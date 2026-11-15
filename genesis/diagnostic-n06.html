@@ -1,0 +1,15 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOCTIS · Comparatif N06</title><style>body{margin:auto;padding:28px 20px;max-width:700px;background:#101b23;color:#e1e8eb;font:17px/1.6 system-ui}h1{line-height:1.2}a{display:block;padding:15px 18px;margin:12px 0;border:1px solid #527482;border-radius:10px;color:#c4eef2;text-decoration:none}small{display:block;color:#b1c3cb}</style></head><body>
+<h1>N06 · Jardins de l’Aube</h1>
+<a href="./diagnostic-chrome.html">Version corrigée · Chrome PC, iPhone et Android</a>
+<p>Les profils adaptent les ressources au PC et à l’iPhone 12. L’objectif est de tenir 60 FPS ; il doit être vérifié sur l’appareil.</p>
+<a href="./?scene=n06&amp;diagnostics=1">Jouer avec le profil automatique<small>Léger sur téléphone, équilibré sur PC ; résolution adaptative.</small></a>
+<a href="./?scene=n06&amp;quality=detail&amp;adaptive=0&amp;perf=reference&amp;diagnostics=1">1 · Ancien mode détaillé<small>1,4 million de gaussiennes, textures d’origine, 2024² pixels et éclairage d’origine.</small></a>
+<a href="./?scene=n06&amp;quality=detail&amp;adaptive=0&amp;diagnostics=1">2 · Nouveau mode détaillé<small>1,4 million de gaussiennes de surface améliorées, géométrie indexée et éclairage optimisé. La résolution respecte aussi le DPR et les limites du profil.</small></a>
+<a href="./?scene=n06&amp;quality=light&amp;adaptive=0&amp;perf=reference&amp;diagnostics=1">3 · Ancien mode léger<small>1,4 million de gaussiennes et 1,4 million de pixels ; ce mode était plus coûteux que son nom ne le suggérait.</small></a>
+<a href="./?scene=n06&amp;quality=light&amp;adaptive=0&amp;diagnostics=1">4 · Nouveau mode léger, résolution fixe<small>240 000 gaussiennes sur les mêmes 3 096 feuilles. Jusqu’à 850 000 pixels ; textures adaptées au téléphone.</small></a>
+<a href="./?scene=n06&amp;quality=light&amp;adaptive=1&amp;diagnostics=1">5 · Nouveau mode léger, résolution adaptative<small>Comparer au test 4 et noter aussi les pixels affichés.</small></a>
+<a href="./?scene=n06&amp;quality=balanced&amp;adaptive=0&amp;diagnostics=1">Mode équilibré<small>560 000 gaussiennes ; recommandé par défaut sur PC.</small></a>
+<a href="./?scene=n06&amp;quality=light&amp;adaptive=0&amp;lightcull=0&amp;diagnostics=1">Test 4 avec toutes les lumières<small>Comparaison isolée du filtrage des lumières hors champ.</small></a>
+<a href="./?scene=n06&amp;quality=light&amp;adaptive=0&amp;aa=off&amp;diagnostics=1">Test 4 sans MSAA natif<small>Essai isolé : les silhouettes peuvent devenir plus crénelées.</small></a>
+<p>Attends dix secondes avant de relever « Performances ». Compare les mêmes vues à l’accueil, près des jardinières et dans les trois pavillons, avant et après les objectifs. Fais deux parcours : les shaders peuvent se compiler au premier passage.</p>
+<small>La résolution et les ressources diffèrent entre les profils : les gains de FPS éventuels ne doivent pas tous être attribués au moteur. Le temps GPU peut être indisponible dans le navigateur. Les objectifs enregistrés restent conservés.</small></body></html>

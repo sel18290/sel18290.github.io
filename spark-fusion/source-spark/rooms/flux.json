@@ -1,0 +1,9 @@
+{
+  "id": "flux",
+  "name": "Galerie de flux",
+  "halfWidth": 6.9, "halfLength": 7.4, "height": 6.9,
+  "bayCount": 4, "apertureRadius": 1.65,
+  "accent": [247, 157, 85],
+  "machines": [{"x":-3.8,"z":-1.2,"height":3.25,"type":"lamellar"},{"x":3.4,"z":1.6,"height":2.7,"type":"helical"}],
+  "seat": [0,-1], "spawn": [0,1.65,5.5]
+}

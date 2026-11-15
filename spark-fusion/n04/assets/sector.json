@@ -1,0 +1,46 @@
+{
+  "format": "antimatter15/splat; 32 bytes per Gaussian, little endian; Y up; metres",
+  "count": 168792,
+  "bytes": 5401344,
+  "sha256": "0d5ab21cea04afc9ee012f39a899e3c187b5c682a0a993d15610dfa9626d757c",
+  "families": {
+    "shell": 74320,
+    "overhead_ribs": 28200,
+    "neural_core": 11524,
+    "heat_exchangers": 17056,
+    "rear_bulkhead": 5022,
+    "instrumentation": 32670
+  },
+  "origin": "Original synthetic calibration bay, deterministic parametric oriented Gaussians. No captured photography, external model or image. Baked material colour and lighting, no view-dependent harmonics.",
+  "license": "Original sector.splat released under CC0-1.0. Plaque glyphs from DejaVu Sans Mono.",
+  "bounds": {
+    "minX": -5.8,
+    "maxX": 5.8,
+    "minZ": -6,
+    "maxZ": 6,
+    "floor": 0,
+    "ceiling": 5.8
+  },
+  "spawn": [
+    0,
+    1.65,
+    4.5
+  ],
+  "collisionDiscs": [
+    {
+      "x": 0,
+      "z": -1.5,
+      "r": 1.35
+    },
+    {
+      "x": -3.65,
+      "z": 0.65,
+      "r": 0.91
+    },
+    {
+      "x": 3.65,
+      "z": -2.5,
+      "r": 0.91
+    }
+  ]
+}

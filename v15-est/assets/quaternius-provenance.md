@@ -1,0 +1,16 @@
+# Ultimate Modular Sci-Fi Pack
+
+Modèles de Quaternius. Licence CC0, utilisation, adaptation et redistribution autorisées. [Catalogue de l’auteur](https://quaternius.com/packs/ultimatemodularscifi.html) · [Licence CC0](https://creativecommons.org/publicdomain/zero/1.0/). Copie du dépôt quaternius-showcase maintenu par trebeljahr ; version 0128ca510d653bb04d6d1e4885bd8890b5050b4f. Aucune modification des fichiers GLB.
+
+|Modèle et fichier source|Octets|Git blob SHA-1|SHA-256|
+|---|---:|---|---|
+|[Door_Double](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Door_Double.glb)|101844|6016e4682fd783e00e00538214f120eb9ead1030|23ffe657c51f3aaef8ce1cdab73b7e96e1d63734d400346c8e5ce3a2b6c16bc4|
+|[Props_Computer](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Computer.glb)|42080|2662e373e0176adbf830ab84d368472b4c64483c|69d6ecda6377123c5751ecb59c99f851ccb15506d17a585067a21029d5bce6b6|
+|[Props_Capsule](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Capsule.glb)|73084|400ee395a2ed4040832f3916fb5d0420a01e6ffc|720704c4be88ea443c540bc18053e554795aab040fd3376ea52cbed83dc6ca54|
+|[Props_Pod](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Pod.glb)|124636|fc0f08bef6dc96e32dd79a937054bb68dfdb9257|004a55d8ebdd1f1f3639d82930045a5507f6903f536fa3ea0e179adfed1bbf97|
+|[Props_Chest](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Chest.glb)|266208|f92f7bf0bc389768d3d96d3e09e246ff29699b2c|e8d6b0b1496196e3c38226ffa1120b0987506a87861015cf29e72d630b33138d|
+|[Props_Vessel_Tall](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Vessel_Tall.glb)|20668|460b015bb790f6775728f212bf9b71a9435a637d|3ecf1e1dcd4f5dd15d00f4913a74e5fe457ee4ec474771538ea22b1edc547755|
+|[Props_Teleporter_2](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Props_Teleporter_2.glb)|54256|2fb426e1d1d234befdc8e407a2842cf94359ed77|2c5fbc92f7983e20a9cba2c5886ac9ccbe0c67593346e3538c3bf795e0b2adb9|
+|[Wall_2](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Wall_2.glb)|102252|df816bf37c1da22d6723e839374e63f70171e53c|1ada1b7edab33b6dca0635fec1c4e877191b0c83ad6f4cefb67a1f514d2759fb|
+|[Column_3](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/Column_3.glb)|42384|10a1f846f886fe3ec1b2b2ff881c52b3ddae2b8f|8512b847a3efbd59b9e0064d23d439745645c072048c50a0d3be6752440045c6|
+|[RoofTile_Vents](https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/0128ca510d653bb04d6d1e4885bd8890b5050b4f/public/glb/modular_sci_fi/RoofTile_Vents.glb)|66428|e2751e71403eac6cbac700c0edb3f99f79167f0e|3ecb0f562475c468bed90fd612f2dc71a4a5374e32a8a39911a9050bad64c596|

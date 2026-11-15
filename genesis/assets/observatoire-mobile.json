@@ -1,0 +1,27 @@
+{
+  "count": 48090,
+  "bytes": 1538880,
+  "sha256": "75571e7dc67dce4d3dcb5aa6e4a752b313689d0bb9694bcfc7ef3a175ca4ab45",
+  "families": {
+    "neural-resonator": 16903,
+    "resonator-armour": 8736,
+    "central-field": 2555,
+    "magnetic-winding": 6240,
+    "cryogenic-exchanger": 4056,
+    "orbital-aurora": 9600
+  },
+  "origin": "Original synthetic surface Gaussians, no training or image projection",
+  "boundsXYZ": [
+    [
+      -78.51667022705078,
+      0.014076756313443184,
+      -150.51852416992188
+    ],
+    [
+      65.51667022705078,
+      19.06727409362793,
+      2.466813325881958
+    ]
+  ],
+  "license": "Original generated spatial asset"
+}

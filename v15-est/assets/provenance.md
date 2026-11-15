@@ -1,0 +1,1 @@
+Kay Lousberg — KayKit Space Base Bits 1.0. CC0. Original glTF et images regroupés dans des GLB autonomes sans transformation de la topologie. Source: https://github.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/tree/6dfbcac9927d06283752c4defd4882cfe0d29666/addons/kaykit_space_base_bits/Assets/gltf/

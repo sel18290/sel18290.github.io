@@ -1,0 +1,8 @@
+#n3-root{display:block;pointer-events:none;background:transparent;z-index:30}
+#n3-root .lab-top,#n3-root .lab-bottom{display:none}
+#n3-root .archive-panel,#n3-root .repair-panel{pointer-events:auto;position:absolute;inset:4vh 5vw 80px;max-height:calc(92vh - 80px);overflow:auto;background:#151920f5;color:#edf3fa;border:1px solid #a9676b;padding:24px}
+#n3-root .resume-quest{pointer-events:auto;position:absolute;bottom:20px;right:5vw;background:#e8c170;color:#181518}
+#n3-root:not(:has(.archive-panel:not([hidden]),.repair-panel:not([hidden]))) .resume-quest{display:none}
+.quest-intro{max-width:580px;background:#191e25;color:#eee;border:1px solid #bd656b;padding:26px}
+.quest-intro::backdrop{background:#000b}
+@media(max-width:600px){#n3-root .repair-board{display:block}#n3-root .archive-panel,#n3-root .repair-panel{inset:2vh 2vw 85px;padding:14px}}

@@ -1,0 +1,52 @@
+{
+  "count": 132565,
+  "bytes": 4242080,
+  "sha256": "9539f5469c4f958c4ef76d911cd1c194accec73674b9c3e73adcc69a9884fbfa",
+  "format": "antimatter15/splat; 32-byte little-endian records, metres, Y up",
+  "origin": "Original parametric 3D Gaussian sector; surface-aligned ellipsoids and baked colour, no training, no image planes.",
+  "license": "CC0-1.0 for original generated spatial asset",
+  "profile": "mobile",
+  "families": {
+    "deck_and_pressure_shell": 75719,
+    "service_galleries": 9018,
+    "arched_transverse_frames": 18800,
+    "suspension_and_power": 6108,
+    "thermal_machines": 17044,
+    "pressure_iris": 5876
+  },
+  "bounds": {
+    "minX": -5.8,
+    "maxX": 5.8,
+    "minZ": -6,
+    "maxZ": 6,
+    "floor": 0,
+    "ceiling": 8.6
+  },
+  "spawn": [
+    0,
+    1.65,
+    4.5
+  ],
+  "seatAnchor": [
+    0,
+    0,
+    -1.5
+  ],
+  "collisionDiscs": [
+    {
+      "x": 0,
+      "z": -1.5,
+      "r": 1.35
+    },
+    {
+      "x": -3.65,
+      "z": 0.65,
+      "r": 0.91
+    },
+    {
+      "x": 3.65,
+      "z": -2.5,
+      "r": 0.91
+    }
+  ]
+}

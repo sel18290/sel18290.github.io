@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "id": "n06-jardin-aube",
+  "name": "N06 · Les jardins de l’Aube",
+  "mode": "3d",
+  "space": {
+    "width": 64,
+    "depth": 72,
+    "spawn": [
+      0,
+      1.65,
+      13
+    ],
+    "obstacles": [],
+    "network": "garden"
+  },
+  "resources": {},
+  "objects": [
+    {
+      "id": "garden",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "components": {
+        "garden": {}
+      }
+    },
+    {
+      "id": "briefing",
+      "position": [
+        0,
+        0,
+        9
+      ],
+      "components": {
+        "interaction": {
+          "label": "Ouvrir le dossier de relève",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "briefing"
+        }
+      }
+    },
+    {
+      "id": "journal",
+      "position": [
+        0,
+        0,
+        -25
+      ],
+      "components": {
+        "interaction": {
+          "label": "Reconstituer la nuit de Lina",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "journal"
+        }
+      }
+    },
+    {
+      "id": "light",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "components": {
+        "interaction": {
+          "label": "Programmer le cycle lumineux",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "light"
+        }
+      }
+    },
+    {
+      "id": "rest",
+      "position": [
+        -23,
+        0,
+        -4
+      ],
+      "components": {
+        "interaction": {
+          "label": "Préparer le refuge nocturne",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "rest"
+        }
+      }
+    },
+    {
+      "id": "meal",
+      "position": [
+        23,
+        0,
+        -4
+      ],
+      "components": {
+        "interaction": {
+          "label": "Préparer la routine du soir",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "meal"
+        }
+      }
+    },
+    {
+      "id": "safety",
+      "position": [
+        0,
+        0,
+        9
+      ],
+      "components": {
+        "interaction": {
+          "label": "Valider le plan de prévention",
+          "range": 3.5
+        },
+        "gardenTask": {
+          "task": "safety"
+        }
+      }
+    },
+    {
+      "id": "hub-n01",
+      "position": [
+        -17.64822977218936,
+        0,
+        24.839422012357876
+      ],
+      "components": {
+        "interaction": {
+          "label": "Entrer dans N01 · Quartiers personnels",
+          "range": 2.8
+        },
+        "hubGate": {
+          "destination": "n01"
+        }
+      }
+    },
+    {
+      "id": "hub-n02",
+      "position": [
+        8.962876848815513,
+        0,
+        29.122564079987306
+      ],
+      "components": {
+        "interaction": {
+          "label": "Entrer dans N02 · Chambre des écrans",
+          "range": 2.8
+        },
+        "hubGate": {
+          "destination": "n02"
+        }
+      }
+    },
+    {
+      "id": "hub-n03",
+      "position": [
+        19.425341254441726,
+        0,
+        23.475796411378344
+      ],
+      "components": {
+        "interaction": {
+          "label": "Entrer dans N03 · Réseau Est · Laboratoire",
+          "range": 2.8
+        },
+        "hubGate": {
+          "destination": "n03"
+        }
+      }
+    }
+  ],
+  "objectives": [
+    "briefing",
+    "journal",
+    "light",
+    "rest",
+    "meal",
+    "safety"
+  ],
+  "transitions": [
+    {
+      "label": "← Revenir à NOCTIS",
+      "to": "/fusion-native/"
+    }
+  ]
+}

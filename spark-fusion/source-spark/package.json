@@ -1,0 +1,19 @@
+{
+  "name": "spark-sector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tools/test_navigation.mjs && node tools/test_profile.mjs && node tools/test_chair.mjs && node tools/test_hatch.mjs && python tools/test_sector.py && python tools/test_pilot.py",
+    "build": "esbuild src/app.js --bundle --format=esm --minify --outfile=dist/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@sparkjsdev/spark": "^2.4.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.180.0"
+  }
+}

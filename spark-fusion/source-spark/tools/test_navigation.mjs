@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {accessible, move, spawn} from '../src/navigation.js';
+assert(accessible(spawn.x,spawn.z));
+let player={...spawn};
+for(let i=0;i<300;i++)move(player,0,0,1,1/60);
+assert(player.z>=.1&&player.z<.15);
+for(let i=0;i<58;i++)move(player,0,1,0,1/60);
+for(let i=0;i<300;i++)move(player,0,0,1,1/60);
+assert(player.z< -5.6 && player.z>= -5.75);
+for(let i=0;i<600;i++)move(player,Math.PI/2,0,1,.05);
+assert(player.x>=-5.55 && player.x < -5.4);
+console.log('Entrée, butée du noyau, contournement latéral, accès arrière et murs vérifiés.');

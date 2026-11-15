@@ -1,0 +1,11 @@
+{
+  "version":1,"id":"resonance","name":"Archives de résonance","mode":"hybrid",
+  "space":{"width":11.6,"depth":12,"spawn":[0,1.65,4.5],"obstacles":[[0,-1.5,1.35],[-3.65,0.65,0.91],[3.65,-2.5,0.91]]},
+  "resources":{"nef":"/spark-fusion/n04/assets/pilot.splat","nef-mobile":"/spark-fusion/n04/assets/pilot-mobile.splat","console":"/v15-est/assets/Props_Computer.glb"},
+  "objectives":["lecture"],
+  "objects":[
+    {"id":"volume","position":[0,0,0],"components":{"gaussian":{"asset":"nef","mobile":"nef-mobile","signal":"terminal","objective":"lecture"}}},
+    {"id":"terminal","position":[0,0,2.5],"components":{"catalogue":{"asset":"console","height":1.55},"collider":{"radius":0.8},"interaction":{"label":"Consulter la console","range":3},"archive":{"theme":"light","objective":"lecture"}}}
+  ],
+  "transitions":[{"label":"Ouvrir NOCTIS","to":"/fusion-native/"}]
+}

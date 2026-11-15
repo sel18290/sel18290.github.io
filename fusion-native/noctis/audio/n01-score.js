@@ -1,0 +1,15 @@
+// N01: original two-layer score. Later rooms keep their existing audio systems.
+export function installN01Score(sound,{room=1}={}){
+ let mix;const enhanced=room===2;
+ let timer=0,bar=0,active=false;const voices=new Set();
+ const chords=[[146.83,220,293.66],[130.81,196,261.63],[174.61,220,349.23],[146.83,196,293.66]];
+ function note(freq,delay,duration,amplitude){const c=sound.ctx,t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amplitude,t+.6);g.gain.setTargetAtTime(.00001,t+duration-1,.3);if(enhanced&&!mix){mix=c.createGain();mix.gain.value=.85;mix.connect(sound.master);}const pan=c.createStereoPanner();pan.pan.value=enhanced?Math.sin(freq)*.18:0;o.connect(g).connect(pan).connect(enhanced?mix:sound.master);o.start(t);o.stop(t+duration);const voice={o,g};voices.add(voice);o.onended=()=>{o.disconnect();g.disconnect();pan.disconnect();voices.delete(voice);};}
+ function phrase(){if(!active)return;const warm=enhanced&&document.body.classList.contains('n2-light-adjusted');const chord=chords[bar%4].map(f=>warm?f*1.002:f);chord.forEach(f=>note(f,0,10,.008));const motif=bar%2?[440,392,293.66]:[293.66,440,349.23];motif.forEach((f,i)=>note(f,2+i*2.4,2,.013));if(enhanced){[0,3,6,9].forEach((d,i)=>note(chord[i%3]*2,d,1.3,.004));}bar++;}
+ function stop(){active=false;clearInterval(timer);timer=0;for(const {o,g} of voices){try{g.gain.cancelScheduledValues(sound.ctx.currentTime);g.gain.setTargetAtTime(0,sound.ctx.currentTime,.035);o.stop(sound.ctx.currentTime+.18);}catch{}}}
+ function sync(){const b=document.body;const blocked=!!document.querySelector('.cortex-resync');const wanted=sound.enabled&&sound.ready&&sound.ctx?.state==='running'&&!document.hidden&&!b.classList.contains('audio-gated')&&!b.classList.contains('waking')&&(enhanced?b.classList.contains('room-two'):!b.classList.contains('room-two'))&&!b.classList.contains('room-three')&&document.querySelector('#cortex-connect')?.hidden&&!blocked;
+ if(enhanced&&mix){const speaking=b.classList.contains('orbi-speaking')||!document.querySelector('#dialogue')?.hidden;mix.gain.setTargetAtTime(speaking?.42:.85,sound.ctx.currentTime,.25);}
+ if(wanted&&!active){active=true;bar=0;phrase();timer=setInterval(phrase,12000);}else if(!wanted&&active)stop();}
+ const observer=new MutationObserver(sync);observer.observe(document.body,{attributes:true,attributeFilter:['class'],childList:true});const connection=document.querySelector('#cortex-connect');if(connection)observer.observe(connection,{attributes:true,attributeFilter:['hidden']});document.addEventListener('visibilitychange',sync);document.addEventListener('noctis:wake-start',stop);document.addEventListener('noctis:awake',sync);
+ // Poll only readiness/volume enable state, never frame-by-frame computation.
+ const readiness=setInterval(sync,1000);window.addEventListener('pagehide',()=>{stop();clearInterval(readiness);observer.disconnect();document.removeEventListener('visibilitychange',sync);document.removeEventListener('noctis:wake-start',stop);document.removeEventListener('noctis:awake',sync);},{once:true});sync();
+}

@@ -1,0 +1,1 @@
+export class PuzzleManager {constructor(){this.types=new Map();}register(type,factory){if(this.types.has(type))throw Error('Duplicate puzzle');this.types.set(type,factory);return ()=>this.types.delete(type);}create(type,...args){const factory=this.types.get(type);if(!factory)throw Error('Unknown puzzle');return factory(...args);}}

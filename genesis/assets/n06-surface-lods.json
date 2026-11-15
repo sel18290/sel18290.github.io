@@ -1,0 +1,68 @@
+{
+  "seed": 26062024,
+  "format": "splat-32",
+  "surface": "curved lanceolate leaves with analytic tangent frames",
+  "profiles": [
+    {
+      "name": "mobile",
+      "files": [
+        "n06-surface-mobile.splat"
+      ],
+      "count": 240000,
+      "bytes": 7680000,
+      "leaves": 3096,
+      "beds": [
+        36504,
+        36504,
+        36504,
+        36240,
+        24255,
+        24255,
+        22869,
+        22869
+      ],
+      "normalThickness": 0.00055
+    },
+    {
+      "name": "balanced",
+      "files": [
+        "n06-surface-balanced.splat"
+      ],
+      "count": 560000,
+      "bytes": 17920000,
+      "leaves": 3096,
+      "beds": [
+        84708,
+        84708,
+        84708,
+        84708,
+        57015,
+        57015,
+        53678,
+        53460
+      ],
+      "normalThickness": 0.00055
+    },
+    {
+      "name": "hd",
+      "files": [
+        "n06-surface-hd-1.splat",
+        "n06-surface-hd-2.splat"
+      ],
+      "count": 1400000,
+      "bytes": 44800000,
+      "leaves": 3096,
+      "beds": [
+        212004,
+        211676,
+        211536,
+        211536,
+        142380,
+        142380,
+        134244,
+        134244
+      ],
+      "normalThickness": 0.00055
+    }
+  ]
+}

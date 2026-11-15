@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {Box3} from 'three';
+import {createHatch} from '../src/hatch.js';
+const hatch=createHatch(),leaves=hatch.root.children.filter(n=>n.isGroup);
+assert.equal(leaves.length,2);
+const x=leaves[1].position.x;
+hatch.activate();for(let i=0;i<80;i++)hatch.update(1/30);
+assert(hatch.open && leaves[1].position.x>x+.29);
+const envelope=new Box3().setFromObject(hatch.root);
+assert(envelope.max.z< -5.64 && envelope.min.z> -6);
+hatch.activate();for(let i=0;i<80;i++)hatch.update(1/30);
+assert(Math.abs(leaves[1].position.x-x)<.001);
+console.log('Volet : ouverture, fermeture et enveloppe murale contrôlées.');

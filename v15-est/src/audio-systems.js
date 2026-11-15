@@ -1,0 +1,6 @@
+import {InstallationAudio} from './audio.js';
+// One existing audio engine/context/master; this subclass only schedules contextual cues.
+export class CortexSystemsAudio extends InstallationAudio{
+ constructor(){super();this.systemAt={pulse:-Infinity,motor:-Infinity,proximity:-Infinity,anomaly:-1};this.wasNear=false;}
+ update(pose,time,anomaly){if(!this.ctx||!this.enabled||!this.ambientActive)return;this.lastPulse=time;this.lastMechanism=time;this.lastAnomaly=anomaly?.cycle??-1;super.update(pose,time,anomaly);const at=this.systemAt,near=Math.hypot(pose.x,pose.z+3)<5.5;if(near&&!this.wasNear&&time-at.proximity>8){at.proximity=time;this.phrase([[240,0,.16,360],[480,.18,.24,420]],{position:[0,1.8,-3],level:.022,type:'triangle'});}this.wasNear=near;if(time-at.pulse>7.5){at.pulse=time;this.phrase([[132,0,.16,117],[264,.18,.2,247]],{position:[0,6.8,-3.8],level:.014});}if(time-at.motor>17){at.motor=time;const side=Math.floor(time/17)%2?-1:1;this.phrase([[105,0,.32,81],[153,.18,.24,116]],{position:[side*6.4,3.6,side<0?-1:7],level:.017,type:'triangle'});}if(anomaly?.active&&at.anomaly!==anomaly.cycle){at.anomaly=anomaly.cycle;this.phrase([[82,0,.32,51],[610,.12,.18,420]],{position:[-4.2,2.2,-4.7],level:.020,type:'triangle'});}}
+}

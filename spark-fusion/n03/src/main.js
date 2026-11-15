@@ -1,0 +1,65 @@
+import{isInteractionKey}from'./gameplay-key.js';
+import{createCore}from'../core/index.js';
+import{openResearchRoom}from'./room3d.js';
+import{FirstPersonInput}from'./controls.js';
+import{CortexSystemsAudio}from'./audio-systems.js';
+const $=s=>document.querySelector(s),menu=$('#menu'),canvas=$('#view');let room,input,paused=true,started=false,connecting=false,wasPlaying=false,humStop,disposed=false,cueTimer;const scope='cortex-3d-phase1';
+const requestedRoom=new URLSearchParams(location.search).get('room');
+const generated=!!requestedRoom;
+const memory=new Map();const storage={getItem:key=>{try{return memory.get(key)??localStorage.getItem(key);}catch{return memory.get(key)??null;}},setItem:(key,value)=>{memory.set(key,value);try{localStorage.setItem(key,value);}catch{status('Préférences conservées pour cette visite seulement.');}},removeItem:key=>{memory.delete(key);try{localStorage.removeItem(key);}catch{}}};
+const core=createCore({namespace:generated?'cortex.master.demo.v1':'cortex.3d.phase1.v1',local:storage,session:()=>sessionStorage});const audio=new CortexSystemsAudio();core.audio.attach(audio);audio.setVolume(core.preferences.get('volume')??.35);$('#volume').value=Math.round(audio.volume*100);$('#sound').checked=core.preferences.get('sound')!==false;
+core.audio.register('installation.hum',()=>generated?room.startAmbience(audio):audio.hum());core.audio.register('installation.connect',()=>audio.phrase([[92,0,.18,61],[330,.14,.25,440],[550,.40,.3,660],[880,.72,.4]],{position:[0,1.8,-3.8],level:.05,type:'triangle'}));
+const listeners=new AbortController(),signal=listeners.signal;core.interactions.bind(document.querySelector('#game'),b=>b.id,signal);
+const n04Button=document.createElement('button');
+n04Button.id='n04-seat-access';n04Button.textContent='ACCÉDER À N04 — MONDE SPARK';
+n04Button.hidden=true;document.querySelector('#game').append(n04Button);
+let transferring=false;
+function enterN04(){
+ if(transferring||!room)return;
+ transferring=true;
+ const pose={x:room.position.x,z:room.position.z,yaw:input.yaw,pitch:input.pitch};
+ input.enabled=false;input.clear();input.unlock();room.pause();core.audio.stopScope(scope);audio.suspend();
+ parent.postMessage({type:'cortex:n04',pose},location.origin);
+}
+n04Button.onclick=enterN04;
+window.addEventListener('keydown',e=>{if(e.code==='KeyF'&&!e.repeat&&!n04Button.hidden)enterN04()},{signal});
+canvas.addEventListener('click',()=>{if(document.pointerLockElement===canvas&&!n04Button.hidden&&!document.querySelector('#interact').disabled)enterN04()},{signal});
+function seatAccess(){
+ if(!room)return;
+ const d=Math.hypot(room.position.x,room.position.z+3),p=room.projected;
+ n04Button.hidden=paused||connecting||d>6||p.z<-1||p.z>1||Math.abs(p.x)>.88||Math.abs(p.y)>.8;
+ if(!n04Button.hidden){n04Button.style.left=(p.x*.5+.5)*100+'%';n04Button.style.top=Math.min(78,Math.max(20,(-p.y*.5+.5)*100+12))+'%';}
+}
+
+$('#createRoom').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const output=$('#generationStatus');
+ try{
+   const {fromBrief}=await import('./brief.js');
+   const spec=fromBrief($('#brief').value,'personnelle',Number($('#seed').value));
+   const [{buildRoom},{retireRoom}]=await Promise.all([import('./room-builder.js'),import('./room-resources.js')]);
+   const candidate=buildRoom(spec,{profile:room?.profile??'balanced',textures:false});
+   retireRoom(candidate,room?.lab);
+   sessionStorage.setItem('cortex.master.preview',JSON.stringify(spec));
+   location.assign('/?room=personnelle');
+ }catch(error){output.textContent=error.message;}
+},{signal});
+function status(text){$('#liveStatus').textContent=text;clearTimeout(status.timer);status.timer=setTimeout(()=>$('#liveStatus').textContent='',3500);}
+function startHum(){humStop?.();if(audio.enabled)humStop=core.audio.play('installation.hum',{scope,family:'MUSIC',instanceId:'room-hum'});}
+function pause(){if(!room||connecting)return;paused=true;input.enabled=false;input.clear();input.unlock();room.pause();room.metrics(0);menu.hidden=false;$('#menuTitle').innerHTML='Connexion<br><em>en attente.</em>';$('#menuCopy').textContent=generated?room.lab.layout.spec.name:'L’exploration est suspendue. Reprenez pour rejoindre le siège neuronal.';$('#start').textContent='Reprendre l’exploration →';document.body.classList.add('paused');core.audio.stopScope(scope);audio.suspend();}
+function resume(){if(!room||connecting)return;paused=false;started=true;menu.hidden=true;document.body.classList.remove('paused');input.enabled=true;room.start();if($('#sound').checked)audio.enable(true).then(enabled=>{if(enabled&&!paused&&$('#sound').checked)startHum();else audio.enable(false);}).catch(()=>{$('#sound').checked=false;status('Le son reste indisponible. Vous pouvez explorer la salle.');});canvas.focus();if(!document.body.classList.contains('touch'))input.capture();}
+function activate(){if(paused||connecting||!room)return;if(generated){const station=room.inspect();if(station){status(station.message);audio.tone(station.frequency,{position:[station.x,station.height,station.z],level:.05,duration:.3,end:station.end,type:station.type});}return;}if(room.activate(()=>{room.metrics(0);$('#connection').hidden=false;$('#returnExplore').focus();core.progression.award('seat-activation');core.events.emit('neural.connection-tested',{phase:2});})){connecting=true;input.unlock();core.audio.stopScope(scope);const stop=core.audio.play('installation.connect',{scope,family:'SUCCESS',instanceId:'seat-link'});clearTimeout(cueTimer);cueTimer=setTimeout(stop,1600);}}
+$('#start').addEventListener('click',resume,{signal});$('#pauseButton').addEventListener('click',pause,{signal});$('#interact').addEventListener('click',activate,{signal});window.addEventListener('keydown',e=>{if(isInteractionKey(e,paused,connecting)){e.preventDefault();activate();}},{signal});
+$('#returnExplore').addEventListener('click',()=>{core.audio.stopScope(scope);$('#connection').hidden=true;connecting=false;room.lab.materials.cyan.color.set(0xdb394e);room.lab.chairController.reset();paused=false;input.enabled=true;room.start();startHum();canvas.focus();if(!document.body.classList.contains('touch'))input.capture();},{signal});
+$('#sound').addEventListener('change',async e=>{try{const enabled=await audio.enable(e.target.checked);e.target.checked=enabled;core.preferences.set('sound',enabled);if(enabled&&!paused)startHum();else{core.audio.stopScope(scope);humStop=null;}}catch{e.target.checked=false;status('Le son n’a pas pu démarrer. Le niveau reste jouable.');}},{signal});
+$('#volume').addEventListener('input',e=>{core.audio.setVolume(+e.target.value/100);core.preferences.set('volume',audio.volume);},{signal});$('#touchMode').addEventListener('change',e=>{document.body.classList.toggle('touch',e.target.checked);input?.clear();input?.unlock();},{signal});$('#cinema').addEventListener('change',e=>{room?.cinema(e.target.checked);core.preferences.set('cinema',e.target.checked);},{signal});$('#quality').addEventListener('change',e=>{try{room?.quality(e.target.value);core.preferences.set('quality',e.target.value);}
+ catch(error){e.target.value=room?.profile??'balanced';status('Qualité conservée. '+error.message);}},{signal});
+$('#brightness').addEventListener('input',e=>{room?.brightness(+e.target.value);core.preferences.set('brightness',+e.target.value);},{signal});
+const isTouch=matchMedia('(pointer:coarse)').matches||innerWidth<720;document.body.classList.toggle('touch',isTouch);$('#touchMode').checked=isTouch;
+function error(message){input&&(input.enabled=false);room?.pause();$('#error').hidden=false;$('#errorMessage').textContent=message;menu.hidden=true;}
+core.scenes.register(scope,{enter:async()=>{try{input=new FirstPersonInput(canvas,$('#joystick'),pause);const savedQuality=core.preferences.get('quality')??(core.preferences.get('eco')===true?'economy':'balanced');if(generated){const {openGeneratedRoom}=await import('./generated-room.js');room=await openGeneratedRoom(requestedRoom,canvas,input,error,savedQuality);$('#menuTitle').textContent=room.lab.layout.spec.name;$('#menuCopy').textContent='Explorez les équipements. Approchez-vous d’un poste et activez son diagnostic.'+(room.lab.layout.spec.architecture?.walkable?' Une rampe à gauche donne accès à la galerie de maintenance.':'');$('.objective strong').textContent='Inspecter les équipements';$('.system').textContent=room.lab.layout.spec.name;}else room=await openResearchRoom(canvas,input,error,{profile:savedQuality});$('#brightness').value=core.preferences.get('brightness')??0;room.brightness(+$('#brightness').value);room.onFrame=(pose,time,state)=>{generated?room.soundscape(audio,pose,time):audio.update(pose,time,state);seatAccess()};
+try{const s=JSON.parse(localStorage.getItem('cortex.sparkFusion.v1'));const p=s?.pose;if(p&&Number.isFinite(p.x)&&Number.isFinite(p.z)){room.position.x=p.x;room.position.z=p.z;input.yaw=p.yaw||0;input.pitch=p.pitch||0}}catch{}
+$('#cinema').disabled=!room.post.supported;$('#cinema').checked=room.post.supported&&(core.preferences.get('cinema')??!isTouch);room.cinema($('#cinema').checked);$('#quality').value=room.profile;room.quality(room.profile);$('#start').disabled=false;$('#start').textContent='Reprendre l’exploration →';resume();}catch(e){console.error(e);error(e.message==='WEBGL2_UNAVAILABLE'?'WebGL 2 ne peut pas être initialisé sur ce terminal. Le prototype nécessite une accélération graphique compatible.':'La préparation du laboratoire a échoué. Détail : '+e.message);}},exit:async()=>{room?.pause();core.audio.stopScope(scope);},dispose:()=>{if(disposed)return;disposed=true;clearTimeout(status.timer);clearTimeout(cueTimer);listeners.abort();input?.dispose();room?.dispose();audio.dispose();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){wasPlaying=!paused&&!connecting;room?.pause();input?.clear();core.audio.stopScope(scope);humStop=null;audio.suspend();}else if(connecting&&$('#connection').hidden){audio.resume();room?.start();}else if(wasPlaying&&!paused&&!connecting){audio.resume();room?.start();startHum();}},{signal});
+window.addEventListener('pagehide',e=>{if(!e.persisted)core.scenes.dispose();else{room?.pause();core.audio.stopScope(scope);audio.suspend();}},{signal});window.addEventListener('pageshow',e=>{if(e.persisted&&started)pause();},{signal});
+core.scenes.go(scope).catch(e=>{console.error(e);error('Le niveau n’a pas pu démarrer. Rechargez la page.');});

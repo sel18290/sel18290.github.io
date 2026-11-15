@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOCTIS · Comparatif N05</title>
+<style>body{margin:auto;padding:28px 20px;max-width:650px;background:#101b23;color:#e1e8eb;font:17px/1.6 system-ui}h1{line-height:1.2}a{display:block;padding:15px 18px;margin:12px 0;border:1px solid #527482;border-radius:10px;color:#c4eef2;text-decoration:none}small{display:block;color:#b1c3cb}p{color:#c4d0d6}</style></head><body>
+<h1>Comparer la fluidité de N05</h1>
+<a href="./diagnostic-chrome.html">Version corrigée · Chrome PC, iPhone et Android</a>
+<p>Sur l’iPhone 12, reste au même endroit, oriente le regard de la même façon, attends 10 secondes puis ouvre « Performances ». Refais chaque comparaison deux fois.</p>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=0&amp;perf=reference">1 · Version de référence<small>Éclairage et panneaux d’origine, résolution fixe.</small></a>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=0">2 · Version optimisée à résolution identique<small>Comparer d’abord 1 et 2 pour mesurer les optimisations.</small></a>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=1">3 · Version optimisée avec résolution adaptative<small>Objectif 60 FPS ; le nombre de pixels peut varier.</small></a>
+<p>Pour localiser le coût restant, compare les tests ci-dessous au test 2 :</p>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=0&amp;aa=off">Tester sans anticrénelage natif<small>Les bords des objets peuvent devenir plus crénelés. Ce mode est uniquement un essai.</small></a>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=0&amp;lightcull=0">Tester avec toutes les lumières d’origine</a>
+<a href="./?scene=n05&amp;quality=light&amp;diagnostics=1&amp;adaptive=0&amp;batching=0">Tester avec les panneaux séparés d’origine</a>
+<p>Note les FPS, les pixels, le temps CPU et, s’il est disponible, le temps GPU. Pour tenir 60 FPS, chaque image doit être prête en environ 16,7 ms. Les temps CPU et GPU peuvent se recouvrir : ils ne s’additionnent pas.</p>
+<small>Le temps CPU mesure la préparation et la soumission du rendu. L’absence de temps GPU signifie que le navigateur ne fournit pas cette mesure. Ce comparatif conserve les objectifs enregistrés.</small>
+</body></html>

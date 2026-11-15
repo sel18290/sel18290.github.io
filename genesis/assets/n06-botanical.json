@@ -1,0 +1,11 @@
+{
+  "count": 1400000,
+  "bytes": 44800000,
+  "format": "splat-32",
+  "seed": 26062024,
+  "parts": 2,
+  "perPart": 700000,
+  "plants": 344,
+  "leaves": 3096,
+  "beds": 8
+}

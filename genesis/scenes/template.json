@@ -1,0 +1,7 @@
+{
+  "version":1,"id":"atelier","name":"Atelier de lecture","mode":"2d",
+  "space":{"width":8,"depth":8,"spawn":[0,1.65,2],"obstacles":[]},
+  "resources":{},"objectives":["lecture"],
+  "objects":[{"id":"tablette","position":[0,0,0],"components":{"interaction":{"label":"Ouvrir la tablette","range":3},"archive":{"theme":"screens","objective":"lecture"}}}],
+  "transitions":[{"label":"Retour au laboratoire","to":"/genesis/"}]
+}

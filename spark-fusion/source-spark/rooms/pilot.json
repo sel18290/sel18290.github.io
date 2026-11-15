@@ -1,0 +1,9 @@
+{
+  "id": "pilot",
+  "name": "Nef de couplage",
+  "halfWidth": 5.8, "halfLength": 6, "height": 8.6,
+  "bayCount": 5, "apertureRadius": 2.2,
+  "accent": [231, 71, 52],
+  "machines": [{"x":-3.65,"z":0.65,"height":2.7,"type":"helical"}, {"x":3.65,"z":-2.5,"height":3.1,"type":"lamellar"}],
+  "seat": [0,-1.5], "spawn": [0,1.65,4.5]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "n05-apercu",
+  "name": "N05 · Observatoire du sommeil",
+  "modules": [
+    "n05-tablette",
+    "n05-poste-observation",
+    "n05-observatoire"
+  ],
+  "transitions": [
+    {
+      "label": "Ouvrir NOCTIS",
+      "to": "/fusion-native/"
+    }
+  ]
+}

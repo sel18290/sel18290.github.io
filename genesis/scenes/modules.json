@@ -1,0 +1,350 @@
+{
+  "n01-cinema": {
+    "presentation": "cinematic-image"
+  },
+  "n04-nef": {
+    "space": {
+      "width": 11.6,
+      "depth": 12,
+      "spawn": [
+        0,
+        1.65,
+        4.5
+      ],
+      "obstacles": [
+        [
+          0,
+          -1.5,
+          1.35
+        ],
+        [
+          -3.65,
+          0.65,
+          0.91
+        ],
+        [
+          3.65,
+          -2.5,
+          0.91
+        ]
+      ]
+    },
+    "resources": {
+      "nef": "/spark-fusion/n04/assets/pilot.splat",
+      "nef-mobile": "/spark-fusion/n04/assets/pilot-mobile.splat"
+    },
+    "objects": [
+      {
+        "id": "volume",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "components": {
+          "gaussian": {
+            "asset": "nef",
+            "mobile": "nef-mobile",
+            "signal": "terminal",
+            "objective": "lecture"
+          }
+        }
+      }
+    ]
+  },
+  "n03-console": {
+    "resources": {
+      "console": "/v15-est/assets/Props_Computer.glb"
+    },
+    "objects": [
+      {
+        "id": "terminal",
+        "position": [
+          0,
+          0,
+          2.5
+        ],
+        "components": {
+          "catalogue": {
+            "asset": "console",
+            "height": 1.55
+          },
+          "collider": {
+            "radius": 0.8
+          },
+          "interaction": {
+            "label": "Consulter la console",
+            "range": 3
+          }
+        }
+      }
+    ]
+  },
+  "n02-tablette": {
+    "objectives": [
+      "lecture"
+    ],
+    "objects": [
+      {
+        "id": "document",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "components": {
+          "archive": {
+            "theme": "light",
+            "objective": "lecture",
+            "trigger": "terminal"
+          }
+        }
+      }
+    ]
+  },
+  "n05-observatoire": {
+    "space": {
+      "width": 10,
+      "depth": 12,
+      "spawn": [
+        0,
+        1.65,
+        4.5
+      ],
+      "obstacles": [
+        [
+          3.05,
+          -2.5,
+          1.35
+        ],
+        [
+          1,
+          32,
+          1.85
+        ]
+      ],
+      "network": "orbital"
+    },
+    "resources": {
+      "observatoire": "/genesis/assets/observatoire.splat",
+      "observatoire-mobile": "/genesis/assets/observatoire-mobile.splat",
+      "capsule-a": "/v15-est/assets/Props_Capsule.glb",
+      "capsule-b": "/v15-est/assets/Props_Pod.glb",
+      "cryocuve": "/v15-est/assets/Props_Vessel_Tall.glb",
+      "reacteur": "/v15-est/assets/Reactor_Vessel.glb",
+      "auxiliaire": "/v15-est/assets/Field_Core.glb",
+      "cartographe": "/v15-est/assets/Props_Computer.glb"
+    },
+    "objects": [
+      {
+        "id": "observatoire",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "components": {
+          "gaussian": {
+            "asset": "observatoire",
+            "mobile": "observatoire-mobile",
+            "signal": "terminal",
+            "objective": "lecture",
+            "static": true
+          },
+          "orbital": {
+            "horizon": "/genesis/assets/aube-orbitale.webp"
+          }
+        }
+      },
+      {
+        "id": "capsule-a",
+        "position": [
+          -20,
+          0,
+          -1
+        ],
+        "components": {
+          "collider": {
+            "radius": 1
+          },
+          "interaction": {
+            "label": "Lire le cycle thermique",
+            "range": 2.9
+          },
+          "inspection": {
+            "objective": "capsule-a",
+            "message": "Cycle thermique relevé."
+          },
+          "machine": {
+            "kind": "capsule",
+            "objective": "capsule-a",
+            "working": "Ouverture et contrôle du cycle thermique…"
+          }
+        }
+      },
+      {
+        "id": "capsule-b",
+        "position": [
+          -20,
+          0,
+          4
+        ],
+        "components": {
+          "catalogue": {
+            "asset": "capsule-b",
+            "height": 3.4,
+            "autoCollider": true
+          },
+          "collider": {
+            "radius": 1.4
+          }
+        }
+      },
+      {
+        "id": "cryocuve",
+        "position": [
+          -17,
+          0,
+          0
+        ],
+        "components": {
+          "catalogue": {
+            "asset": "cryocuve",
+            "height": 3,
+            "autoCollider": true
+          },
+          "collider": {
+            "radius": 1
+          }
+        }
+      },
+      {
+        "id": "reacteur",
+        "position": [
+          20,
+          0,
+          0
+        ],
+        "components": {
+          "collider": {
+            "radius": 2.1
+          },
+          "interaction": {
+            "label": "Vérifier le régulateur",
+            "range": 4.0
+          },
+          "inspection": {
+            "objective": "reacteur",
+            "message": "Alimentation de la galerie vérifiée."
+          },
+          "machine": {
+            "kind": "reactor",
+            "objective": "reacteur",
+            "working": "Stabilisation du régulateur…"
+          }
+        }
+      },
+      {
+        "id": "auxiliaire",
+        "position": [
+          23,
+          0,
+          5
+        ],
+        "components": {
+          "catalogue": {
+            "asset": "auxiliaire",
+            "height": 2.9,
+            "autoCollider": true
+          },
+          "collider": {
+            "radius": 1.2
+          }
+        }
+      },
+      {
+        "id": "cartographe",
+        "position": [
+          4,
+          0,
+          34
+        ],
+        "components": {
+          "collider": {
+            "radius": 0.8
+          },
+          "interaction": {
+            "label": "Consulter les éphémérides",
+            "range": 2.7
+          },
+          "inspection": {
+            "objective": "cartographe",
+            "message": "Trajectoire orbitale enregistrée."
+          },
+          "machine": {
+            "kind": "atlas",
+            "objective": "cartographe",
+            "working": "Calcul des trajectoires orbitales…"
+          }
+        }
+      }
+    ],
+    "objectives": [
+      "capsule-a",
+      "reacteur",
+      "cartographe"
+    ]
+  },
+  "n05-poste-observation": {
+    "resources": {
+      "console": "/v15-est/assets/Props_Computer.glb"
+    },
+    "objects": [
+      {
+        "id": "terminal",
+        "position": [
+          1.85,
+          0,
+          0.45
+        ],
+        "components": {
+          "collider": {
+            "radius": 0.8
+          },
+          "interaction": {
+            "label": "Consulter la console",
+            "range": 3
+          },
+          "machine": {
+            "kind": "console",
+            "objective": "lecture",
+            "working": "Synchronisation de la console…"
+          }
+        }
+      }
+    ]
+  },
+  "n05-tablette": {
+    "objectives": [
+      "lecture"
+    ],
+    "objects": [
+      {
+        "id": "document",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "components": {
+          "archive": {
+            "theme": "light",
+            "objective": "lecture",
+            "trigger": "terminal",
+            "afterMachine": true
+          }
+        }
+      }
+    ]
+  }
+}

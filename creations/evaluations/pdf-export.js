@@ -49,24 +49,62 @@ async function screenshotHtml(source,key){
     catch(error){canvas=null;}
   }
   if(!canvas){
-    // Repli 100 % local : transcription lisible du document, sans dépendance CDN.
-    const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim();
-    canvas=document.createElement('canvas');
-    canvas.width=1100;
-    const context=canvas.getContext('2d');
-    context.font='22px Arial';
-    const words=text.split(/\s+/),lines=[],limit=1000;
-    let line='';
-    for(const word of words){
-      const next=line?line+' '+word:word;
-      if(context.measureText(next).width>limit&&line){lines.push(line);line=word;}else line=next;
+    // Repli local structuré : conserver paragraphes, titres, listes et lignes de tableaux.
+    // Ne jamais aplatir le document avec replace(/\\s+/g,' ').
+    const blocks=[];
+    const root=node;
+    const blockTags=new Set(['P','DIV','SECTION','ARTICLE','HEADER','H1','H2','H3','H4','H5','H6','LI','TR','BLOCKQUOTE','PRE']);
+    function collect(el,depth=0){
+      if(el.nodeType===Node.TEXT_NODE){
+        const value=(el.textContent||'').replace(/[ \\t\\r\\n]+/g,' ').trim();
+        if(value)blocks.push({text:value,depth,tag:'TEXT'});
+        return;
+      }
+      if(el.nodeType!==Node.ELEMENT_NODE)return;
+      const tag=el.tagName;
+      if(['SCRIPT','STYLE','NOSCRIPT'].includes(tag))return;
+      if(tag==='BR'){blocks.push({break:true});return;}
+      if(tag==='IMG'){blocks.push({text:'[Illustration du document]',tag:'EM'});return;}
+      if(tag==='TABLE'){for(const row of el.querySelectorAll('tr')){const cells=[...row.querySelectorAll('th,td')].map(c=>(c.innerText||c.textContent||'').replace(/\\s+/g,' ').trim());blocks.push({text:cells.join('   |   '),tag:'TR'});}blocks.push({break:true});return;}
+      if(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE'].includes(tag)){
+        const text=(el.innerText||el.textContent||'').replace(/[ \\t]+/g,' ').trim();
+        if(text)blocks.push({text,tag,depth});
+        blocks.push({break:true});return;
+      }
+      if(tag==='DIV'||tag==='SECTION'||tag==='ARTICLE'){
+        for(const child of el.childNodes)collect(child,depth+1);
+        blocks.push({break:true});return;
+      }
+      for(const child of el.childNodes)collect(child,depth);
     }
-    if(line)lines.push(line);
-    canvas.height=Math.max(120,Math.min(25000,lines.length*32+90));
-    context.fillStyle='#ffffff';context.fillRect(0,0,canvas.width,canvas.height);
-    context.fillStyle='#153948';context.font='bold 23px Arial';context.fillText('DOCUMENT DE RÉFÉRENCE',38,41);
-    context.fillStyle='#283d49';context.font='22px Arial';
-    lines.forEach((txt,i)=>{if(i*32+88<canvas.height)context.fillText(txt,38,i*32+88);});
+    collect(root);
+    const canvas=document.createElement('canvas'),width=1100,margin=42,limit=width-2*margin;
+    canvas.width=width;
+    const lines=[];
+    const fontFor=tag=>/^H[1-6]$/.test(tag)?'bold 27px Arial':tag==='TR'?'20px Arial':'22px Arial';
+    const probe=document.createElement('canvas').getContext('2d');
+    for(const block of blocks){
+      if(block.break){if(lines.length&&lines[lines.length-1].gap!==true)lines.push({gap:true});continue;}
+      probe.font=fontFor(block.tag);
+      const words=block.text.split(/\\s+/);let line='';
+      for(const word of words){
+        const candidate=line?line+' '+word:word;
+        if(probe.measureText(candidate).width>limit&&line){lines.push({text:line,font:probe.font});line=word;}else line=candidate;
+      }
+      if(line)lines.push({text:line,font:probe.font});
+      if(block.tag==='TR')lines.push({gap:true});
+    }
+    const height=Math.max(140,Math.min(30000,90+lines.reduce((n,l)=>n+(l.gap?15:34),0)));
+    canvas.height=height;
+    const context=canvas.getContext('2d');
+    context.fillStyle='#fff';context.fillRect(0,0,width,height);
+    let y=52;
+    for(const item of lines){
+      if(item.gap){y+=15;continue;}
+      if(y>height-12)break;
+      context.font=item.font;context.fillStyle='#253541';
+      context.fillText(item.text,margin,y);y+=34;
+    }
   }
   cache.set(key,canvas);return canvas;
  }finally{node.remove();}

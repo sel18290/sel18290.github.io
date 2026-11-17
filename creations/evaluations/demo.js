@@ -237,31 +237,10 @@ function studentShell(){
 return `<div class="student-shell">${tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome()}</div>`;
 }
 function studentWelcome(){
-  const active=state.attempts.find(a=>a.id===state.activeAttemptId && a.status==='progress');
-  const example=state.exams.find(e=>e.id==='sommeil-pdf-a2'&&e.open);
-  const published=state.exams.filter(e=>e.open);
-  const featured=example?'<aside class="exam-card"><p class="eyebrow">Contrôle de référence</p>'+
-    '<span class="exam-tag">PSE · SECONDE BAC PRO</span><h2>'+esc(example.title)+'</h2>'+
-    '<p class="muted">Le contrôle PDF fourni : <strong>6 parties, 8 documents, 20 questions</strong>, dont un tableau à compléter.</p>'+
-    '<div class="tile-stats">'+pill(example.duration+' minutes','live')+pill(sum(example)+' points','ok')+'</div>'+
-    '<div class="btn-row" style="margin-top:22px"><button class="btn secondary" data-action="choose-pdf">Utiliser le code '+esc(example.code)+'</button></div></aside>':
-    '<aside class="exam-card"><p class="eyebrow">Espace élève</p><h2>Prêt pour une évaluation</h2>'+
-    '<p class="muted">Aucun contrôle de référence publié actuellement. Ton professeur peut créer ou publier un contrôle.</p></aside>';
-  return '<div class="page-head"><div><p class="eyebrow">Espace élève · Mode découverte</p><h1>Prêt pour ton contrôle ?</h1>'+
-    '<p>Entre le code fourni par ton professeur, puis réponds question par question.</p></div>'+
-    btn('← Accueil','home','ghost')+'</div>'+
-    '<div class="student-intro"><div class="panel"><div class="panel-head"><div><h2>Rejoindre une évaluation</h2>'+
-    '<p>Accès sans compte pour cette démonstration.</p></div>'+pill('Démo gratuite','ok')+'</div>'+
-    '<div class="field"><label for="student-code">Code du contrôle</label>'+
-    '<input id="student-code" type="text" autocapitalize="characters" autocomplete="off" maxlength="22" value="'+esc(chosenCode)+'" placeholder="Code fourni"></div>'+
-    '<div class="field"><label for="student-name">Nom fictif utilisé pour le test</label><input id="student-name" type="text" maxlength="35" value="Élève Démo" placeholder="Élève Démo">'+
-    '<small>Utilise un pseudonyme : aucune identité réelle n’est nécessaire.</small></div>'+
-    '<div class="btn-row">'+btn(active?'Reprendre le contrôle →':'Commencer le contrôle →','start-exam','')+'</div></div>'+featured+'</div>'+
-    '<section class="panel"><div class="panel-head"><h2>Contrôles disponibles en démonstration</h2><span class="chip">'+published.length+' publié(s)</span></div>'+
-    (published.length?'<div class="tile-grid">'+published.map(e=>'<div class="card"><span class="chip blue">'+esc(e.level)+'</span>'+
-    '<h3 style="margin:12px 0">'+esc(e.title)+'</h3><p class="muted small">'+e.questions.length+' questions · '+e.duration+' minutes · Code <strong>'+esc(e.code)+'</strong></p>'+
-    '<button class="btn ghost small" data-action="choose-code" data-code="'+esc(e.code)+'">Choisir ce contrôle →</button></div>').join('')+'</div>':
-    '<div class="empty">Aucun contrôle publié pour le moment.</div>')+'</section>';
+ const a=state.assignments.find(x=>x.id===studentAssignmentId);
+ const valid=a&&a.active&&a.token===studentQrToken&&!window.CORTEX_CLASSES.byId(state,a.classId)?.archived&&(!a.groupId||!window.CORTEX_CLASSES.group(state,a.classId,a.groupId)?.archived);
+ const e=valid?examBy(a.examId):null;
+ return window.CORTEX_CLASSES.landing(state,valid?a:null,e,!valid||!e);
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function studentDocuments(e,q,a,answered){
@@ -420,20 +399,28 @@ ${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<la
 }
 function studentDone(){
 const a=activeAttempt(),e=examBy(a?.examId);
-return `<div class="panel student-done"><div class="done-icon">✓</div><p class="eyebrow" style="justify-content:center">Évaluation terminée</p><h1 style="font-size:38px">Copie remise !</h1><p class="lead">Ton contrôle « ${esc(e?.title||'Évaluation')} » a été ajouté au tableau de bord de démonstration.</p><p class="muted small">Aucune copie réelle n'a été envoyée. Pour voir tes réponses, repasse en profil professeur sur ce même navigateur.</p><div class="btn-row" style="justify-content:center;margin-top:28px">${btn('Voir la copie côté professeur →','go-copies','')}${btn('Retour à l’espace élève','student','secondary')}</div></div>`;
+return `<div class="panel student-done"><div class="done-icon">✓</div><p class="eyebrow" style="justify-content:center">Évaluation terminée</p><h1 style="font-size:38px">Copie remise !</h1><p class="lead">Ton contrôle « ${esc(e?.title||'Évaluation')} » a été ajouté au tableau de bord de démonstration.</p><p class="muted small">Aucune copie réelle n'a été envoyée. Pour voir tes réponses, repasse en profil professeur sur ce même navigateur.</p><div class="btn-row" style="justify-content:center;margin-top:28px">${btn('Retour à l’accueil','home','secondary')}</div></div>`;
 }
 function setAnswer(key,value){
 const a=activeAttempt();if(!a||a.status!=='progress')return;a.answers[key]=value;save();
 const el=document.getElementById('save-hint');if(el)el.textContent='✓ Enregistré sur cet appareil';
 }
 function startExam(){
-const code=document.getElementById('student-code')?.value.trim().toUpperCase()||chosenCode;
-const e=state.exams.find(x=>x.code.toUpperCase()===code&&x.open);if(!e){showToast('Code inconnu ou contrôle non publié.');return;}
-const existing=activeAttempt();
-if(existing&&existing.status==='progress'&&existing.examId===e.id){nav('student','examen');return;}
-const pseudonym=(document.getElementById('student-name')?.value.trim()||'Élève Démo').slice(0,35);
-const a={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,name:pseudonym,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,answers:{},grade:null,feedback:'',interruptions:0};
-state.attempts.push(a);state.activeAttemptId=a.id;currentQuestion=0;save();nav('student','examen');
+ const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
+ const e=examBy(assignment?.examId);
+ const cl=window.CORTEX_CLASSES.byId(state,assignment?.classId);
+ const gr=assignment?.groupId?window.CORTEX_CLASSES.group(state,assignment.classId,assignment.groupId):null;
+ if(!assignment||!e?.open||!cl||cl.archived||(assignment.groupId&&(!gr||gr.archived))){
+   showToast('Accès QR invalide ou contrôle non publié. Demande un nouveau QR au professeur.');return;
+ }
+ const existing=activeAttempt();
+ if(existing&&existing.status==='progress'&&existing.assignmentId===assignment.id){nav('student','examen');return;}
+ const name=(document.getElementById('student-name')?.value.trim()||'Élève Démo').slice(0,45);
+ const at={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,assignmentId:assignment.id,
+  classId:cl.id,className:cl.name,groupId:assignment.groupId||null,groupName:gr?.name||'Classe entière',
+  name,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,
+  answers:{},grade:null,feedback:'',interruptions:0};
+ state.attempts.push(at);state.activeAttemptId=at.id;currentQuestion=0;save();nav('student','examen');
 }
 function registerInterruption(kind){
 const a=activeAttempt();if(!a||a.status!=='progress')return;

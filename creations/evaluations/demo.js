@@ -38,6 +38,38 @@ if(window.CORTEX_DOCS && !state.exams.some(e=>e.id===window.CORTEX_DOCS.demoExam
  state.exams.splice(1,0,JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam)));
  try { localStorage.setItem(KEY,JSON.stringify(state)); } catch(e) {}
 }
+
+if(window.CORTEX_DOCS && !state.attempts.some(a=>a.id==='ex-pdf-demo')){
+  state.attempts.unshift({
+    id:'ex-pdf-demo',examId:'sommeil-pdf-a2',name:'Élève Démo · Copie PDF',status:'submitted',
+    startedAt:Date.now()-5300000,submittedAt:Date.now()-1500000,grade:null,feedback:'',
+    interruptions:1,answers:{
+      pdfq1:'Il manque 4 heures de sommeil chaque nuit : 8 − 4 = 4 h.',
+      pdfq2:'Il joue en ligne jusqu’à 1 h 30 et boit une boisson énergisante vers 21 h.',
+      pdfq3:'Il se concentre mal en classe et se dispute avec ses amis.',
+      pdfq4:'Comment Dylan pourrait-il retrouver un sommeil suffisant ?',
+      pdfq5:'Un rythme biologique est un phénomène naturel qui se répète. Sa fréquence est le nombre de répétitions dans un temps donné.',
+      pdfq6:'Ultradien | Circadien | Infradien',
+      pdfq7:'L’entraînement du mardi dépend d’un horaire de vie, pas d’un phénomène physiologique.',
+      pdfq8:'Environ 90 minutes.',
+      pdfq9:'7 h 30 = 450 minutes. 450 / 90 = 5 cycles.',
+      pdfq10:'lent profond | paradoxal',
+      pdfq11:'Le sommeil aide le cerveau à mémoriser les connaissances apprises pendant la journée.',
+      pdfq12:'Fatigue et irritabilité.',
+      pdfq13:'Il se dispute avec ses amis et ne va plus au football.',
+      pdfq14:'Un risque accru d’AVC et une baisse de mobilité des spermatozoïdes chez les adultes étudiés.',
+      pdfq15:'La somnolence peut faire commettre une erreur ou provoquer un accident au travail.',
+      pdfq16:'La mélatonine favorise l’endormissement ; la lumière d’un écran peut retarder sa production.',
+      pdfq17:'Il passe d’horaires de vacances très tardifs à des horaires de cours matinaux.',
+      pdfq18:'Camille dort difficilement à cause de la lumière et voit moins ses proches.',
+      pdfq19:'Un repos compensateur ; le C2P peut donner des points pour une formation.',
+      pdfq20:'Arrêter les écrans avant de se coucher et garder des horaires réguliers.'
+    }
+  });
+  state.events.push({id:'event-pdf-demo',attemptId:'ex-pdf-demo',kind:'visibility',at:Date.now()-3600000});
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+}
+
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -123,7 +155,7 @@ return pageHead(editor.isNew===false?'Modifier le contrôle':'Créer un contrôl
 }
 function teacherCopies(){
 const submitted=state.attempts.filter(a=>a.status==='submitted');
-return pageHead('Copies & notes','Consulte les réponses et valide une note manuellement.',btn('Essayer côté élève →','student','secondary'))+
+return pageHead('Copies & notes','Ouvre une copie pour consulter chaque document, sa réponse et son barème.',btn('Corriger la copie PDF · 20 questions','review-pdf-sample','')+btn('Essayer côté élève →','student','secondary'))+
 `<div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2><p>Exemples fictifs + copies remises sur cet appareil.</p></div>${btn('Réinitialiser la démo','reset-demo','ghost small')}</div><div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Interruptions</th><th>Action</th></tr></thead><tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong></td><td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td><td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td><td>${a.interruptions||0}</td><td><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Ouvrir ↗</button></td></tr>`).join('')}</tbody></table></div>${submitted.length===0?'<p class="empty">Aucune copie pour l’instant. Passe côté élève pour en créer une.</p>':''}</div>`;
 }
 function teacherMonitoring(){
@@ -318,6 +350,7 @@ const clean=JSON.parse(JSON.stringify(editor));delete clean.isNew;
 if(existing>=0)state.exams[existing]=clean;else state.exams.unshift(clean);
 save();editor=null;showToast('Contrôle enregistré dans cette démo.');nav('teacher','controles');return;}
 if(a==='close-modal'){closeModal();return;}
+if(a==='review-pdf-sample'){reviewAttemptId='ex-pdf-demo';reviewIndex=0;nav('teacher','corriger/ex-pdf-demo');return;}
 if(a==='review-copy'){
  const at=attemptBy(id);
  if(!at||at.status!=='submitted'){showToast('Copie indisponible.');return;}

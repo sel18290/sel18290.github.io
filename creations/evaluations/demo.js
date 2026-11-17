@@ -459,8 +459,161 @@ function setReviewPoints(value){
  }
  save();render();
 }
+function classAction(action,id,el){
+ const C=window.CORTEX_CLASSES;
+ const cl=()=>C.byId(state,id);
+ const close=()=>{closeModal();render();};
+ if(action==='class-open-manager'){nav('teacher','classes');return true;}
+ if(action==='class-open'||action==='class-go'){
+  const key=action==='class-go'?teacherClassFilter:id;
+  if(key&&C.byId(state,key)){selectedClassId=key;nav('teacher','classes');}
+  else nav('teacher','classes');
+  return true;
+ }
+ if(action==='class-add'){
+  const name=C.codeName(document.getElementById('new-class-name')?.value);
+  if(!name||name.length>32){showToast('Saisis un nom de classe valide.');return true;}
+  const found=state.classes.find(c=>c.name.toUpperCase()===name);
+  if(found){
+   if(!found.archived){showToast('Cette classe existe déjà.');return true;}
+   found.archived=false;selectedClassId=found.id;
+  }else{
+   const id='classe-'+C.id();state.classes.push({id,name,groups:[],archived:false});selectedClassId=id;
+  }
+  save();render();showToast('Classe ajoutée.');return true;
+ }
+ if(action==='class-ask-delete'){
+  const item=cl();if(!item)return true;
+  modalShow('Supprimer la classe',`<p>Archiver <strong>${esc(item.name)}</strong> ?</p>
+  <div class="danger-confirmation"><strong>La classe ne sera plus proposée dans les menus ni les QR codes.</strong>
+  <p>Les contrôles, copies et corrections déjà enregistrés seront conservés, avec le nom de la classe.</p></div>`,
+  `<button class="btn danger" data-action="class-confirm-delete" data-id="${esc(item.id)}">Confirmer l’archivage</button>`+btn('Annuler','close-modal','ghost'));
+  return true;
+ }
+ if(action==='class-confirm-delete'){
+  const item=cl();if(!item)return true;
+  item.archived=true;
+  state.assignments.forEach(a=>{if(a.classId===id)a.active=false;});
+  if(selectedClassId===id)selectedClassId=state.classes.find(c=>!c.archived)?.id||null;
+  if(teacherClassFilter===id){teacherClassFilter='';teacherGroupFilter='';}
+  save();close();showToast('Classe archivée ; copies conservées.');return true;
+ }
+ if(action==='class-split'){
+  const item=cl();if(!item)return true;
+  for(const [key,name] of [['g1','Demi-groupe 1'],['g2','Demi-groupe 2']]){
+   const existing=item.groups.find(g=>g.id===key||g.name===name);
+   if(existing)existing.archived=false;
+   else item.groups.push({id:key,name,archived:false});
+  }
+  state.assignments.forEach(a=>{if(a.classId===id&&a.groupId==null)a.active=false;});
+  save();render();showToast('Deux demi-groupes créés. Affecte un contrôle à chacun pour générer ses QR codes.');return true;
+ }
+ if(action==='class-merge'){
+  const item=cl();if(!item)return true;
+  modalShow('Revenir à la classe entière',`<p>Les groupes de <strong>${esc(item.name)}</strong> seront archivés. Les copies existantes restent conservées.</p>
+  <div class="danger-confirmation">Les QR codes des anciens demi-groupes deviendront inactifs. Il faudra affecter le contrôle à la classe entière.</div>`,
+  `<button class="btn danger" data-action="class-confirm-merge" data-id="${esc(id)}">Archiver les demi-groupes</button>`+btn('Annuler','close-modal','ghost'));
+  return true;
+ }
+ if(action==='class-confirm-merge'){
+  const item=cl();if(!item)return true;
+  item.groups.forEach(g=>g.archived=true);
+  state.assignments.forEach(a=>{if(a.classId===id&&a.groupId)a.active=false;});
+  teacherGroupFilter='';save();close();showToast('Classe entière rétablie ; historique conservé.');return true;
+ }
+ if(action==='class-group-add'){
+  const item=cl(),name=(document.getElementById('class-new-group')?.value||'').trim().slice(0,32);
+  if(!item||!name){showToast('Donne un nom au demi-groupe.');return true;}
+  const existing=item.groups.find(g=>g.name.toLowerCase()===name.toLowerCase());
+  if(existing&&!existing.archived){showToast('Ce demi-groupe existe déjà.');return true;}
+  if(existing)existing.archived=false;else item.groups.push({id:'g-'+C.id(),name,archived:false});
+  state.assignments.forEach(a=>{if(a.classId===id&&a.groupId==null)a.active=false;});
+  save();render();showToast('Demi-groupe ajouté.');return true;
+ }
+ if(action==='class-ask-delete-group'){
+  const item=cl(),g=C.group(state,id,el.dataset.group);if(!item||!g)return true;
+  modalShow('Supprimer le demi-groupe',`<p>Archiver <strong>${esc(g.name)}</strong> dans ${esc(item.name)} ?</p>
+   <div class="danger-confirmation">Les anciens QR codes du groupe seront désactivés. Les copies et les corrections seront conservées.</div>`,
+   `<button class="btn danger" data-action="class-confirm-delete-group" data-id="${esc(id)}" data-group="${esc(g.id)}">Archiver ce groupe</button>`+btn('Annuler','close-modal','ghost'));
+  return true;
+ }
+ if(action==='class-confirm-delete-group'){
+  const g=C.group(state,id,el.dataset.group);if(!g)return true;g.archived=true;
+  state.assignments.forEach(a=>{if(a.classId===id&&a.groupId===g.id)a.active=false;});
+  if(teacherGroupFilter===g.id)teacherGroupFilter='';
+  save();close();showToast('Demi-groupe archivé ; copies conservées.');return true;
+ }
+ if(action==='class-assign'){
+  const item=cl(),examId=document.getElementById('class-assign-exam')?.value||'';
+  const groupId=document.getElementById('class-assign-group')?.value||null;
+  const exam=examBy(examId);
+  if(!item||item.archived||!exam){showToast('Choisis un contrôle et une classe valides.');return true;}
+  const hasGroups=item.groups.some(g=>!g.archived);
+  if(hasGroups&&(!groupId||!item.groups.some(g=>g.id===groupId&&!g.archived))){
+   showToast('Choisis un demi-groupe actif.');return true;
+  }
+  const existing=state.assignments.find(a=>a.examId===examId&&a.classId===id&&(a.groupId||null)===groupId);
+  if(existing){existing.active=true;save();showToast('Accès QR réactivé.');currentQrAssignmentId=existing.id;openClassQR(existing.id);return true;}
+  const random=Array.from({length:4},()=>Math.random().toString(36).slice(2,9)).join('');
+  const token='QR-'+random;
+  const assignment={id:'acces-'+C.id(),examId,classId:id,groupId,token,active:true,createdAt:Date.now()};
+  state.assignments.push(assignment);save();currentQrAssignmentId=assignment.id;openClassQR(assignment.id);
+  return true;
+ }
+ if(action==='class-unassign'){
+  const a=state.assignments.find(x=>x.id===id);if(!a)return true;
+  modalShow('Retirer l’accès QR',`<p>Retirer l’affectation <strong>${esc(C.assignmentLabel(state,a))}</strong> ? Les copies existantes ne seront pas supprimées.</p>`,
+   `<button class="btn danger" data-action="class-confirm-unassign" data-id="${esc(id)}">Désactiver ce QR</button>`+btn('Annuler','close-modal','ghost'));
+  return true;
+ }
+ if(action==='class-confirm-unassign'){
+  const a=state.assignments.find(x=>x.id===id);if(a){a.active=false;save();}
+  close();showToast('QR désactivé, copies conservées.');return true;
+ }
+ if(action==='class-open-qr'){openClassQR(id);return true;}
+ if(action==='class-qr-list'){
+  const exam=examBy(id);
+  if(exam)modalShow('QR codes du contrôle',C.qrChoices(state,exam),btn('Fermer','close-modal','ghost'));
+  return true;
+ }
+ if(action==='class-assignment-copies'){
+  const a=state.assignments.find(x=>x.id===id);
+  if(a){teacherClassFilter=a.classId;teacherGroupFilter=a.groupId||'';nav('teacher','copies');}
+  return true;
+ }
+ if(action==='class-show-copies'||action==='class-group-copies'){
+  teacherClassFilter=id;teacherGroupFilter=action==='class-group-copies'?el.dataset.group||'':'';
+  nav('teacher','copies');return true;
+ }
+ if(action==='class-qr-copy'||action==='class-qr-download'||action==='class-qr-simulate'){
+  const a=state.assignments.find(x=>x.id===id&&x.active);if(!a){showToast('Accès QR indisponible.');return true;}
+  const url=C.qrLink(a);
+  if(action==='class-qr-simulate'){closeModal();location.hash='#eleve/rejoindre/'+encodeURIComponent(a.id)+'/'+encodeURIComponent(a.token);routePage();return true;}
+  if(action==='class-qr-copy'){
+   if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>showToast('Lien QR copié.')).catch(()=>showToast('Copie bloquée : sélectionne le lien affiché.'));
+   else showToast('Sélectionne le lien pour le copier.');
+   return true;
+  }
+  const target=document.getElementById('class-qr-image'),canvas=target?.querySelector('canvas'),image=target?.querySelector('img');
+  const href=canvas?.toDataURL?.('image/png')||image?.src;
+  if(!href){showToast('QR non prêt : réessaie dans un instant.');return true;}
+  const link=document.createElement('a');link.download='CORTEX-'+C.classLabel(state,a.classId)+(a.groupId?'-'+C.groupLabel(state,a.classId,a.groupId):'')+'-QR.png';
+  link.href=href;document.body.appendChild(link);link.click();link.remove();return true;
+ }
+ if(action==='class-student-start'){startExam();return true;}
+ return false;
+}
+function openClassQR(id){
+ const a=state.assignments.find(x=>x.id===id&&x.active),exam=examBy(a?.examId);
+ if(!a||!exam){showToast('Affectation QR introuvable.');return;}
+ currentQrAssignmentId=id;
+ const url=window.CORTEX_CLASSES.qrLink(a);
+ modalShow('QR code de la classe',window.CORTEX_CLASSES.qrModal(state,a,exam,url),btn('Fermer','close-modal','ghost'));
+ Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(url,'class-qr-image')).catch(err=>showToast(err.message));
+}
 function action(el){
 const a=el.dataset.action,id=el.dataset.id;
+if(a.startsWith('class-')&&classAction(a,id,el))return;
 if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}

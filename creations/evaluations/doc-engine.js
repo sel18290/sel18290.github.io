@@ -136,7 +136,12 @@ window.CORTEX_DOCS=(function cortexDocEngine(){
         if(question.endsWith('?')||question.endsWith('.'))break;
         question+=' '+next;
       }
-      if(!qs.some(q=>q.prompt===question))qs.push({id:'import-q-'+(qs.length+1),prompt:question,type:'text',points:1});
+      if(!qs.some(q=>q.prompt===question)){
+        // Repérer approximativement la page pour présenter la source correspondante
+        let pageNo=1;let base=0;
+        for(let pi=0;pi<pages.length;pi++){const count=pages[pi].split('\n').map(x=>x.trim()).filter(Boolean).length;if(i<base+count){pageNo=pi+1;break;}base+=count;}
+        qs.push({id:'import-q-'+(qs.length+1),prompt:question,type:'text',points:1,page:pageNo});
+      }
     }
     onStatus('Extraction terminée : '+pages.length+' page(s), '+qs.length+' question(s) proposées. Contrôle manuel requis.');
     return {kind,filename:file.name,pages,raw,questions:qs.slice(0,80),blob:file,sourceId:'doc-'+Date.now()+'-'+Math.floor(Math.random()*99999)};
@@ -170,5 +175,26 @@ window.CORTEX_DOCS=(function cortexDocEngine(){
     <div class="import-columns"><section class="panel"><h3>Documents et tableaux du fichier</h3><p class="small muted">Le PDF original peut être conservé dans ce navigateur, avec sa mise en page et ses schémas. L’extraction texte ci-dessous ne préserve pas toujours la disposition des tableaux.</p><details><summary>Afficher le texte extrait (vérification)</summary><pre class="doc-raw-preview">${h(d.raw.slice(0,26000))}</pre></details><button class="btn ghost small" data-action="preview-import-original">Voir le document original</button></section>
     <section class="panel"><h3>Questions proposées</h3><p class="small muted">Corrige les énoncés avant d'enregistrer. Tu peux ajouter les questions manquantes ensuite dans l'éditeur.</p><div class="import-question-list">${candidates.length?candidates.map((q,i)=>`<label><strong>Question ${i+1}</strong><textarea rows="2" data-import-q="${i}">${h(q.prompt)}</textarea></label>`).join(''):'<p class="small muted">Aucun numéro de question reconnu automatiquement. Crée les questions dans l’éditeur après import.</p>'}</div><div class="btn-row"><button class="btn" data-action="save-import">Enregistrer le contrôle importé →</button></div></section></div></div>`;
   }
-  return {demoExam,sections,renderSample,guidePanel,parseFile,storeFile,readFile,importReview};
+  async function renderPdfOriginal(sourceId,pageNumber,containerId){
+    const target=document.getElementById(containerId);if(!target)return;
+    let stored;
+    try {stored=await readFile(sourceId)}catch(e){target.textContent='Fichier original indisponible : '+e.message;return;}
+    if(!stored){target.textContent='Le PDF original n’est plus enregistré sur ce navigateur.';return;}
+    if(stored.kind!=='pdf')return;
+    target.textContent='Chargement de la page originale…';
+    try {
+      await addScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      const pdf=window.pdfjsLib;
+      pdf.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const handle=await pdf.getDocument({data:new Uint8Array(await stored.blob.arrayBuffer())}).promise;
+      const page=await handle.getPage(Math.max(1,Math.min(handle.numPages,pageNumber)));
+      const viewport=page.getViewport({scale:1.4});
+      if(!target.isConnected)return;
+      const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+      canvas.style.width='100%';canvas.style.height='auto';canvas.style.maxWidth='850px';canvas.setAttribute('aria-label','Page '+pageNumber+' du PDF original');
+      target.replaceChildren(canvas);
+      await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+    }catch(e){if(target.isConnected)target.textContent='Impossible d’afficher cette page. Utilise le bouton « Document original ». '+e.message;}
+  }
+  return {demoExam,sections,renderSample,guidePanel,parseFile,storeFile,readFile,importReview,renderPdfOriginal};
 })();

@@ -33,7 +33,11 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEIL26';
+let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null;
+if(window.CORTEX_DOCS && !state.exams.some(e=>e.id===window.CORTEX_DOCS.demoExam.id)) {
+ state.exams.splice(1,0,JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam)));
+ try { localStorage.setItem(KEY,JSON.stringify(state)); } catch(e) {}
+}
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -70,21 +74,22 @@ return `<div class="home"><section class="home-hero"><div class="hero-copy"><p c
 <article class="card role-card eleve"><div class="role-icon" aria-hidden="true">✎</div><div><h2>Je suis élève</h2><p>Un parcours simple et agréable pour lire les documents, répondre aux questions, enregistrer sa progression et rendre son contrôle.</p></div><div class="btn-row">${btn('Tester un contrôle →','student','secondary')}<span class="small muted">Code SOMMEIL26</span></div></article></div></section>
 <section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Ouvre le contrôle avec son code et réponds comme dans une vraie évaluation.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
 }
-const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['creer','＋','Créer un contrôle']];
+const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherShell(){
-const body=tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='creer'?teacherEditor():teacherDashboard();
+const body=tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
+function teacherImport(){return window.CORTEX_DOCS?window.CORTEX_DOCS.guidePanel():'<p>Le module documentaire est indisponible.</p>';}
 function pageHead(title,desc,actions=''){return `<div class="page-head"><div><p class="eyebrow">Espace professeur · Démonstration</p><h1>${title}</h1><p>${desc}</p></div><div class="btn-row">${actions}</div></div>`;}
 function teacherDashboard(){
 const submitted=state.attempts.filter(a=>a.status==='submitted'),corrected=submitted.filter(a=>a.grade!=null),live=state.attempts.filter(a=>a.status==='progress');
-return pageHead('Tableau de bord','Tes évaluations et tes copies au même endroit.',btn('＋ Nouveau contrôle','create',''))+
+return pageHead('Tableau de bord','Tes évaluations et tes copies au même endroit.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Nouveau contrôle','create',''))+
 `<div class="stats"><div class="stat"><div class="stat-label">Contrôles disponibles</div><div class="stat-value">${state.exams.length}</div><div class="stat-foot">Bibliothèque de démonstration</div></div><div class="stat"><div class="stat-label">Copies remises</div><div class="stat-value">${submitted.length}</div><div class="stat-foot">Conservées sur cet appareil</div></div><div class="stat"><div class="stat-label">Notes validées</div><div class="stat-value">${corrected.length}</div><div class="stat-foot">Sur ${submitted.length} copies</div></div><div class="stat"><div class="stat-label">Épreuves en cours</div><div class="stat-value">${live.length}</div><div class="stat-foot">Démonstration locale</div></div></div>
 <div class="two-col"><section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2><p>Créer, publier et essayer depuis l’espace élève.</p></div>${btn('Tout voir →','go-exams','ghost small')}</div>${state.exams.slice(0,4).map(e=>`<div class="list-row"><div class="item-icon">▤</div><div class="grow"><div class="item-title">${esc(e.title)}</div><div class="item-meta">${esc(e.level)} · ${e.questions.length} questions · ${e.duration} min</div></div>${pill(e.open?'Publié':'Brouillon',e.open?'ok':'warn')}<button class="table-action" data-action="try-exam" data-id="${e.id}">Tester</button></div>`).join('')}</section>
 <section class="panel"><div class="panel-head"><h2>Commencer ici</h2>${pill('Démo','live')}</div><p class="muted small">Cette version sert à découvrir l'ergonomie. Les PDF réels, les copies scolaires et la correction IA seront activés seulement sur un serveur privé.</p><div class="inline-note"><strong>Parcours conseillé</strong><br>1. Ouvre « Mes contrôles ».<br>2. Essaie un contrôle côté élève.<br>3. Reviens dans « Copies & notes » pour le corriger.</div><div class="btn-row" style="margin-top:18px">${btn('Essayer le contrôle sommeil →','try-sleep','secondary full')}</div></section></div>`;
 }
 function teacherExams(){
-return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('＋ Créer un contrôle','create',''))+
+return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
 `<div class="toolbar"><span class="muted small">${state.exams.length} contrôles de démonstration</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
 <div class="tile-grid" id="exam-tiles">${state.exams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Code '+e.code:'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button></div></div></article>`).join('')}</div>`;
 }
@@ -92,7 +97,7 @@ function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e))
 function teacherEditor(){
 if(!editor)editor=editorFor(null);
 return pageHead(editor.isNew===false?'Modifier le contrôle':'Créer un contrôle','Organise les questions et le barème. Toute modification reste dans cette démonstration.',btn('← Mes contrôles','go-exams','ghost'))+
-`<div class="panel"><div class="form-grid"><div class="field"><label for="ex-title">Titre du contrôle</label><input id="ex-title" data-editor="title" placeholder="Ex. Le sommeil" value="${esc(editor.title)}"></div><div class="field"><label for="ex-level">Classe / niveau</label><input id="ex-level" data-editor="level" value="${esc(editor.level)}"></div><div class="field"><label for="ex-chapter">Chapitre</label><input id="ex-chapter" data-editor="chapter" value="${esc(editor.chapter)}"></div><div class="field"><label for="ex-duration">Durée (minutes)</label><input id="ex-duration" type="number" min="5" max="240" data-editor="duration" value="${esc(editor.duration)}"></div></div><div class="field"><label for="ex-doc">Document à consulter (texte)</label><textarea id="ex-doc" data-editor="doc" placeholder="Rédige ou colle un document scientifique…">${esc(editor.doc)}</textarea></div><div class="field"><label for="pdf">Joindre un PDF – aperçu uniquement</label><input id="pdf" type="file" accept=".pdf,.doc,.docx" data-demo-file><small>Dans cette démo publique, aucun document n'est importé ni transmis ; seul le nom du fichier est affiché.</small><span class="small muted" id="pdf-status"></span></div><hr class="divider"><div class="panel-head"><h2>Questions <span class="chip blue">${editor.questions.length}</span></h2><span class="small muted">Barème : ${sum(editor)} points (20 conseillé)</span></div>
+`<div class="panel"><div class="form-grid"><div class="field"><label for="ex-title">Titre du contrôle</label><input id="ex-title" data-editor="title" placeholder="Ex. Le sommeil" value="${esc(editor.title)}"></div><div class="field"><label for="ex-level">Classe / niveau</label><input id="ex-level" data-editor="level" value="${esc(editor.level)}"></div><div class="field"><label for="ex-chapter">Chapitre</label><input id="ex-chapter" data-editor="chapter" value="${esc(editor.chapter)}"></div><div class="field"><label for="ex-duration">Durée (minutes)</label><input id="ex-duration" type="number" min="5" max="240" data-editor="duration" value="${esc(editor.duration)}"></div></div><div class="field"><label for="ex-doc">Document à consulter (texte)</label><textarea id="ex-doc" data-editor="doc" placeholder="Rédige ou colle un document scientifique…">${esc(editor.doc)}</textarea></div><div class="field"><label for="pdf">Joindre un PDF ou Word / analyser le document</label><input id="pdf" type="file" accept=".pdf,.doc,.docx" data-demo-file><small>Le fichier est analysé uniquement dans ton navigateur. Il ne sera pas envoyé à un serveur.</small><span class="small muted" id="pdf-status"></span></div><hr class="divider"><div class="panel-head"><h2>Questions <span class="chip blue">${editor.questions.length}</span></h2><span class="small muted">Barème : ${sum(editor)} points (20 conseillé)</span></div>
 <div id="edit-questions">${editor.questions.map((q,i)=>`<div class="question-editor"><div class="question-editor-head"><strong>Question ${i+1}</strong><div class="btn-row"><span class="small muted">${Number(q.points||0)} pt</span><button class="table-action" data-action="remove-question" data-index="${i}">Supprimer</button></div></div><div class="form-grid" style="margin-top:13px"><div class="field"><label>Type de question</label><select data-question="${i}" data-qfield="type"><option value="text" ${q.type==='text'?'selected':''}>Réponse rédigée</option><option value="choice" ${q.type==='choice'?'selected':''}>QCM (une réponse)</option></select></div><div class="field"><label>Points</label><input type="number" min="1" max="20" value="${esc(q.points)}" data-question="${i}" data-qfield="points"></div></div><div class="field"><label>Énoncé</label><textarea data-question="${i}" data-qfield="prompt" rows="2">${esc(q.prompt)}</textarea></div>${q.type==='choice'?`<div class="field"><label>Choix (séparés par ;)</label><textarea rows="2" data-question="${i}" data-qfield="choices">${esc((q.choices||['Option 1','Option 2']).join(' ; '))}</textarea><small>Les choix sont utilisés dans la démo ; le corrigé officiel reste à ajouter au serveur privé.</small></div>`:''}</div>`).join('')}</div>
 <button class="dashed-add" data-action="add-question">＋ Ajouter une question</button><div class="btn-row" style="margin-top:23px">${btn('Enregistrer le contrôle','save-exam','')} ${btn('Annuler','go-exams','ghost')}</div></div>`;
 }
@@ -119,11 +124,75 @@ return `<div class="student-shell">${tab==='examen'?studentExam():tab==='termine
 function studentWelcome(){
 const active=state.attempts.find(a=>a.id===state.activeAttemptId && a.status==='progress');
 return `<div class="page-head"><div><p class="eyebrow">Espace élève · Mode découverte</p><h1>Prêt pour ton contrôle ?</h1><p>Entre le code fourni par ton professeur, puis réponds question par question.</p></div>${btn('← Accueil','home','ghost')}</div>
-<div class="student-intro"><div class="panel"><div class="panel-head"><div><h2>Rejoindre une évaluation</h2><p>Accès sans compte pour cette démonstration.</p></div>${pill('Démo gratuite','ok')}</div><div class="field"><label for="student-code">Code du contrôle</label><input id="student-code" type="text" autocapitalize="characters" autocomplete="off" maxlength="22" value="${esc(chosenCode)}" placeholder="SOMMEIL26"></div><div class="field"><label for="student-name">Nom fictif utilisé pour le test</label><input id="student-name" type="text" maxlength="35" value="Élève Démo" placeholder="Élève Démo"><small>Utilise un pseudonyme : aucune identité réelle n'est nécessaire.</small></div><div class="btn-row">${btn(active?'Reprendre le contrôle →':'Commencer le contrôle →','start-exam','')}</div></div>
-<aside class="exam-card"><p class="eyebrow">Contrôle de référence</p><span class="exam-tag">PSE · SECONDE BAC PRO</span><h2>Le sommeil et les rythmes biologiques</h2><p class="muted">5 questions, dont 3 réponses rédigées et 2 QCM, pour tester l'interface de Cortex.</p><div class="tile-stats">${pill('45 minutes','live')}${pill('20 points','ok')}</div><div class="btn-row" style="margin-top:22px"><button class="btn secondary" data-action="choose-sleep">Utiliser le code SOMMEIL26</button></div></aside></div>
+<div class="student-intro"><div class="panel"><div class="panel-head"><div><h2>Rejoindre une évaluation</h2><p>Accès sans compte pour cette démonstration.</p></div>${pill('Démo gratuite','ok')}</div><div class="field"><label for="student-code">Code du contrôle</label><input id="student-code" type="text" autocapitalize="characters" autocomplete="off" maxlength="22" value="${esc(chosenCode)}" placeholder="SOMMEILPDF"></div><div class="field"><label for="student-name">Nom fictif utilisé pour le test</label><input id="student-name" type="text" maxlength="35" value="Élève Démo" placeholder="Élève Démo"><small>Utilise un pseudonyme : aucune identité réelle n'est nécessaire.</small></div><div class="btn-row">${btn(active?'Reprendre le contrôle →':'Commencer le contrôle →','start-exam','')}</div></div>
+<aside class="exam-card"><p class="eyebrow">Contrôle de référence</p><span class="exam-tag">PSE · SECONDE BAC PRO</span><h2>Le sommeil, un rythme essentiel</h2><p class="muted">Le contrôle PDF fourni : <strong>6 parties, 8 documents, 20 questions</strong>, dont un tableau à compléter. Réponses rédigées et barème d’origine.</p><div class="tile-stats">${pill('60 minutes','live')}${pill('20 points','ok')}</div><div class="btn-row" style="margin-top:22px"><button class="btn secondary" data-action="choose-pdf">Utiliser le code SOMMEILPDF</button></div></aside></div>
 <section class="panel"><div class="panel-head"><h2>Contrôles disponibles en démonstration</h2><span class="chip">${state.exams.filter(e=>e.open).length} publiés</span></div><div class="tile-grid">${state.exams.filter(e=>e.open).map(e=>`<div class="card"><span class="chip blue">${esc(e.level)}</span><h3 style="margin:12px 0">${esc(e.title)}</h3><p class="muted small">${e.questions.length} questions · ${e.duration} minutes · Code <strong>${esc(e.code)}</strong></p><button class="btn ghost small" data-action="choose-code" data-code="${esc(e.code)}">Choisir ce contrôle →</button></div>`).join('')}</div></section>`;
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
+function renderDocumentStudent(e,q,a,answered,remaining){
+  const sample=e.pdfSource;
+  const body=sample?window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered):
+    '<div class="doc-exam-ribbon"><span>DOCUMENT IMPORTE · ' +esc(e.sourceName||'PDF / Word')+
+    '</span><span>DEMONSTRATION</span></div><div class="doc-ribbon"><div class="doc-intro-label">Le document original est conservé dans ce navigateur. Ouvre-le pour consulter ses tableaux et illustrations.</div>'+
+    '<button type="button" class="btn secondary small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Voir les pages originales ↗</button></div>'+
+    '<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
+    '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="5" data-answer="'+esc(q.id)+'" placeholder="Écris ta réponse…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
+  return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
+  pill('Temps indicatif : '+remaining+' min','live')+pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+
+  '<div class="exam-top"><div><strong>Ta progression : '+answered+' / '+e.questions.length+' réponses</strong><div class="small muted">Réponses conservées sur cet appareil, sans serveur</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span>'+
+  '<button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div>'+
+  '<div class="exam-progress"><span style="width:'+(answered/e.questions.length*100)+'%"></span></div>'+
+  '<div class="student-exam"><section class="panel exam-question">'+body+
+  '<div class="exam-nav"><button class="btn ghost" data-action="question-prev" '+(currentQuestion===0?'disabled':'')+'>← Précédent</button>'+
+  (currentQuestion===e.questions.length-1?btn('Relire et terminer →','review-exam',''):btn('Question suivante →','question-next',''))+'</div></section>'+
+  '<aside class="panel sidebar-note"><div class="panel-head"><h2>Navigation</h2>'+pill(Math.round(answered/e.questions.length*100)+' %','ok')+'</div>'+
+  (sample?'<p class="small muted">6 parties · 8 documents · 20 questions</p>':'<p class="small muted">Document importé depuis ton navigateur</p>')+
+  '<div class="question-dots">'+e.questions.map((other,i)=>'<button class="question-dot '+(i===currentQuestion?'current ':'')+
+  (String(a.answers[other.id]||'').trim()?'answered':'')+'" data-action="question-jump" data-index="'+i+'" title="Question '+(i+1)+'">'+(i+1)+'</button>').join('')+'</div>'+
+  '<hr class="divider"><p class="small muted">Les réponses peuvent être modifiées avant la remise. Une sortie de page ne prouve pas une fraude.</p>'+
+  btn('Simuler une interruption','simulate-interruption','ghost small full')+'</aside></div>';
+}
+async function processImport(file) {
+  const status=document.getElementById('import-progress');
+  if(!file){showToast('Sélectionne un fichier PDF ou Word.');return;}
+  try {
+    if(status)status.textContent='Ouverture du document…';
+    const parsed=await window.CORTEX_DOCS.parseFile(file,msg=>{const node=document.getElementById('import-progress');if(node)node.textContent=msg;});
+    pendingImport=parsed;
+    const region=document.getElementById('import-results');
+    if(region)region.innerHTML=window.CORTEX_DOCS.importReview(parsed);
+    showToast('Document analysé : vérifie les questions et les documents.');
+  } catch(error) {
+    if(status)status.textContent='Import impossible : '+error.message;
+    showToast('Import impossible : '+error.message);
+  }
+}
+async function saveImported(){
+  if(!pendingImport){showToast('Importe d’abord un fichier.');return;}
+  try { await window.CORTEX_DOCS.storeFile(pendingImport); }
+  catch(error) {showToast('Impossible de conserver le fichier sur cet appareil. Vérifie le stockage du navigateur.');return;}
+  const qs=pendingImport.questions.filter(q=>q.prompt.trim()).map((q,i)=>({...q,id:'q-import-'+i+'-'+Date.now(),points:Number(q.points)||1}));
+  if(!qs.length)qs.push({id:'q-import-1',prompt:'Question 1 — à renseigner par le professeur',points:1,type:'text'});
+  const newExam={id:'import-'+Date.now(),title:pendingImport.filename.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Document importé',duration:60,code:'DOC'+String(Math.floor(100000+Math.random()*900000)),open:false,doc:'',sourceId:pendingImport.sourceId,sourceType:pendingImport.kind,sourceName:pendingImport.filename,questions:qs};
+  state.exams.unshift(newExam);save();editor=editorFor(newExam.id);editor.isNew=false;pendingImport=null;
+  showToast('Document conservé. Vérifie le barème et les questions avant de publier.');
+  nav('teacher','creer');
+}
+function openOriginalFromBlob(blob,kind){
+  if(previewFileUrl)URL.revokeObjectURL(previewFileUrl);
+  previewFileUrl=URL.createObjectURL(blob);
+  const link='<p class="small muted">Le fichier s’ouvre depuis ton appareil, sans transfert au serveur.</p>'+
+    '<p><a class="btn secondary" target="_blank" rel="noopener" href="'+previewFileUrl+'">Ouvrir le fichier dans un nouvel onglet</a></p>';
+  modalShow('Document original',link+(kind==='pdf'?'<iframe title="PDF original" class="pdf-original-frame" src="'+previewFileUrl+'"></iframe>':'<p>Pour un document Word, utilise le bouton ci-dessus. Les aperçus DOCX dépendent du navigateur.</p>'),btn('Fermer','close-modal','ghost'));
+}
+async function openSavedOriginal(sourceId){
+  try {
+    const file=await window.CORTEX_DOCS.readFile(sourceId);
+    if(!file){showToast('Fichier original introuvable sur cet appareil.');return;}
+    openOriginalFromBlob(file.blob,file.kind);
+  }catch(error){showToast('Impossible de charger le document : '+error.message);}
+}
+
 function studentExam(){
 const a=activeAttempt();
 if(!a||a.status!=='progress'){tab='accueil';return studentWelcome();}
@@ -131,6 +200,7 @@ const e=examBy(a.examId),q=e.questions[currentQuestion]||e.questions[0];if(!q)re
 const answered=e.questions.filter(q=>String(a.answers[q.id]??'').trim().length>0).length;
 const elapsed=Math.max(0,Math.floor((Date.now()-a.startedAt)/60000));const remaining=Math.max(0,e.duration-elapsed);
 const ans=String(a.answers[q.id]??'');
+if(e.pdfSource || e.sourceId) return renderDocumentStudent(e,q,a,answered,remaining);
 return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill('Temps indicatif : '+remaining+' min','live')}${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
 <div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${e.doc?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(e.doc)}</div>`:''}
@@ -187,6 +257,13 @@ if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
 if(a==='teacher-tab'){if(el.dataset.tab==='creer')editor=editorFor(null);nav('teacher',el.dataset.tab);return;}
 if(a==='create'){editor=editorFor(null);nav('teacher','creer');return;}
+if(a==='go-import'){pendingImport=null;nav('teacher','import');return;}
+if(a==='choose-pdf'){chosenCode='SOMMEILPDF';render();return;}
+if(a==='try-pdf-demo'){chosenCode='SOMMEILPDF';nav('student','accueil');return;}
+if(a==='import-doc-file'){processImport(document.getElementById('cortex-import-file')?.files?.[0]);return;}
+if(a==='save-import'){saveImported();return;}
+if(a==='preview-import-original'){if(pendingImport)openOriginalFromBlob(pendingImport.blob,pendingImport.kind);return;}
+if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal(e.sourceId);return;}
 if(a==='go-exams'){nav('teacher','controles');return;}
 if(a==='go-copies'){nav('teacher','copies');return;}
 if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;nav('teacher','creer');return;}
@@ -227,13 +304,24 @@ const t=e.target;
 if(t.hasAttribute('data-editor')&&editor){editor[t.dataset.editor]=t.dataset.editor==='duration'?Number(t.value):t.value;}
 if(t.hasAttribute('data-question')&&editor){const q=editor.questions[Number(t.dataset.question)];if(!q)return;const name=t.dataset.qfield;q[name]=name==='points'?Number(t.value):name==='choices'?t.value.split(';').map(v=>v.trim()).filter(Boolean):t.value;}
 if(t.hasAttribute('data-answer')&&t.tagName==='TEXTAREA')setAnswer(t.dataset.answer,t.value);
+if(t.hasAttribute('data-import-q')&&pendingImport){const q=pendingImport.questions[Number(t.dataset.importQ)];if(q)q.prompt=t.value;}
+if(t.hasAttribute('data-doc-fill')){
+  const at=activeAttempt(),id=t.dataset.docFill;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}
+}
 if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.querySelectorAll('#exam-tiles [data-search]').forEach(card=>card.hidden=!card.dataset.search.toLowerCase().includes(search));}
 });
 document.addEventListener('change',e=>{
 const t=e.target;
 if(t.hasAttribute('data-question')&&t.dataset.qfield==='type'&&editor){editor.questions[Number(t.dataset.question)].type=t.value;if(t.value==='choice'&&!editor.questions[Number(t.dataset.question)].choices)editor.questions[Number(t.dataset.question)].choices=['Proposition A','Proposition B'];render();}
 if(t.hasAttribute('data-answer')&&t.type==='radio'){setAnswer(t.dataset.answer,t.value);render();}
-if(t.hasAttribute('data-demo-file')){const s=document.getElementById('pdf-status');if(s)s.textContent=t.files?.[0]?'Fichier sélectionné : '+t.files[0].name+' (aperçu uniquement, non importé)':'';}
+if(t.hasAttribute('data-doc-sub')){const at=activeAttempt(),id=t.dataset.docSub;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}}
+
+if(t.hasAttribute('data-demo-file')&&t.files?.[0]) {
+  const file=t.files[0];
+  nav('teacher','import');
+  // Après changement de page, l'ancien input ne vit plus : garder le fichier capturé
+  processImport(file);
+}
 });
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&view==='student'&&tab==='examen')registerInterruption('visibility');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.children.length)closeModal();});

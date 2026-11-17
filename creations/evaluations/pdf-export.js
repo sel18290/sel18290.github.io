@@ -29,40 +29,45 @@ function summarize(copy,exam){
    answered:exam?.questions?.filter(q=>String(copy?.answers?.[q.id]??'').trim()).length||0,
    grade:copy?.grade??null,date:copy?.submittedAt||null};
 }
-let lib=null;
 async function loadJsPDF(){
- if(window.jspdf?.jsPDF)return window.jspdf.jsPDF;
- if(!lib){
-  lib=new Promise((resolve,reject)=>{
-   const tag=document.createElement('script');
-   tag.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
-   tag.async=true;tag.onload=()=>resolve(window.jspdf?.jsPDF);
-   tag.onerror=()=>{lib=null;reject(new Error('Lecteur PDF non chargé : vérifie ta connexion.'))};
-   document.head.appendChild(tag);
-  });
- }
- const ctor=await lib;
- if(!ctor)throw Error('Générateur PDF indisponible.');
- return ctor;
+ if(window.CORTEX_LOCAL_PDF)return window.CORTEX_LOCAL_PDF;
+ throw new Error('Le moteur PDF local est manquant. Recharge la page avec Ctrl+F5.');
 }
 const cache=new Map();
 async function screenshotHtml(source,key){
  if(cache.has(key))return cache.get(key);
- if(!window.html2canvas){
-  await new Promise((resolve,reject)=>{
-   const tag=document.createElement('script');
-   tag.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-   tag.async=true;tag.onload=resolve;tag.onerror=()=>reject(Error('Capture des documents indisponible.'));
-   document.head.appendChild(tag);
-  });
- }
+ // Aucun chargement réseau requis : html2canvas est facultatif si déjà présent.
  const node=document.createElement('div');
  node.className='pdf-document-snapshot';
  Object.assign(node.style,{position:'fixed',left:'-12000px',top:'0',width:'760px',background:'#fff',color:'#252525',padding:'10px',zIndex:'-1'});
  node.innerHTML=source;
  document.body.appendChild(node);
  try{
-  const canvas=await window.html2canvas(node,{backgroundColor:'#ffffff',scale:1.15,logging:false,useCORS:false});
+  let canvas;
+  if(window.html2canvas){
+    try{canvas=await window.html2canvas(node,{backgroundColor:'#ffffff',scale:1.15,logging:false,useCORS:false});}
+    catch(error){canvas=null;}
+  }
+  if(!canvas){
+    // Repli 100 % local : transcription lisible du document, sans dépendance CDN.
+    const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim();
+    canvas=document.createElement('canvas');
+    canvas.width=1100;
+    const context=canvas.getContext('2d');
+    context.font='22px Arial';
+    const words=text.split(/\s+/),lines=[],limit=1000;
+    let line='';
+    for(const word of words){
+      const next=line?line+' '+word:word;
+      if(context.measureText(next).width>limit&&line){lines.push(line);line=word;}else line=next;
+    }
+    if(line)lines.push(line);
+    canvas.height=Math.max(120,Math.min(25000,lines.length*32+90));
+    context.fillStyle='#ffffff';context.fillRect(0,0,canvas.width,canvas.height);
+    context.fillStyle='#153948';context.font='bold 23px Arial';context.fillText('DOCUMENT DE RÉFÉRENCE',38,41);
+    context.fillStyle='#283d49';context.font='22px Arial';
+    lines.forEach((txt,i)=>{if(i*32+88<canvas.height)context.fillText(txt,38,i*32+88);});
+  }
   cache.set(key,canvas);return canvas;
  }finally{node.remove();}
 }

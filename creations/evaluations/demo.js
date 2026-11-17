@@ -621,8 +621,8 @@ if(a==='about'){notifyAbout();return;}
 if(a==='teacher-tab'){if(el.dataset.tab==='creer'){editor=editorFor(null);editorIndex=0;}nav('teacher',el.dataset.tab);return;}
 if(a==='create'){editor=editorFor(null);editorIndex=0;editorDocTab='documents';nav('teacher','creer');return;}
 if(a==='go-import'){importExamId=null;visualPage=1;visualQuestionId=null;nav('teacher','import');return;}
-if(a==='choose-pdf'){chosenCode='SOMMEILPDF';render();return;}
-if(a==='try-pdf-demo'){chosenCode='SOMMEILPDF';nav('student','accueil');return;}
+if(a==='choose-pdf'){showToast('L’élève doit scanner le QR code généré par le professeur.');return;}
+if(a==='try-pdf-demo'){const e=examBy('sommeil-pdf-a2');if(e)modalShow('QR du contrôle',window.CORTEX_CLASSES.qrChoices(state,e),btn('Fermer','close-modal','ghost'));return;}
 if(a==='visual-import-file'){processImport(document.getElementById('visual-doc-file')?.files?.[0]);return;}
 if(a==='import-doc-file'){processImport(document.getElementById('cortex-import-file')?.files?.[0]);return;}
 if(a==='visual-open-existing'){
@@ -698,6 +698,7 @@ if(a==='confirm-delete-exam'){
  const deletedAttempts=new Set(state.attempts.filter(x=>x.examId===id).map(x=>x.id));
  state.exams=state.exams.filter(x=>x.id!==id);
  state.attempts=state.attempts.filter(x=>x.examId!==id);
+ state.assignments.forEach(a=>{if(a.examId===id)a.active=false;});
  state.events=state.events.filter(x=>!deletedAttempts.has(x.attemptId));
  if(deletedAttempts.has(state.activeAttemptId))state.activeAttemptId=null;
  if(editor?.id===id){editor=null;editorIndex=0;}
@@ -756,7 +757,7 @@ if(a==='go-copies'){nav('teacher','copies');return;}
 if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;editorDocTab='source';nav('teacher','creer');return;}
 if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
 if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=!e.open;save();render();}return;}
-if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;e.open=true;chosenCode=e.code;save();nav('student','accueil');return;}
+if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;modalShow('Accès élève par QR code',window.CORTEX_CLASSES.qrChoices(state,e),btn('Fermer','close-modal','ghost'));return;}
 if(a==='add-question'){if(!editor)return;editor.questions.push({id:'q-'+Date.now(),type:'text',prompt:'',points:4});render();return;}
 if(a==='remove-question'){if(editor&&editor.questions.length>1){editor.questions.splice(Number(el.dataset.index),1);render();}else showToast('Conserve au moins une question.');return;}
 if(a==='save-exam'){
@@ -817,7 +818,7 @@ if(a==='simulate-interruption'){registerInterruption('simulation');showToast('In
 if(a==='review-exam'){reviewExam();return;}
 if(a==='confirm-submit'){const at=activeAttempt();if(!at)return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
-if(a==='confirm-reset'){state=makeSeed();chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
+if(a==='confirm-reset'){state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('click',e=>{
 const el=e.target.closest('[data-action]');if(el){e.preventDefault();action(el);}
@@ -847,6 +848,12 @@ if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.qu
 });
 document.addEventListener('change',e=>{
 const t=e.target;
+if(t.hasAttribute('data-class-filter')){
+ teacherClassFilter=t.value||'';teacherGroupFilter='';render();return;
+}
+if(t.hasAttribute('data-group-filter')){
+ teacherGroupFilter=t.value||'';render();return;
+}
 if(t.hasAttribute('data-question')&&editor){
  const q=editor.questions[Number(t.dataset.question)],name=t.dataset.qfield;
  if(!q)return;

@@ -33,7 +33,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null;
+let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0;
 if(window.CORTEX_DOCS && !state.exams.some(e=>e.id===window.CORTEX_DOCS.demoExam.id)) {
  state.exams.splice(1,0,JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam)));
  try { localStorage.setItem(KEY,JSON.stringify(state)); } catch(e) {}
@@ -55,6 +55,7 @@ function routePage(){
 const bits=decodeURIComponent(location.hash.slice(1)||'accueil').split('/');
 view=bits[0]==='professeur'?'teacher':bits[0]==='eleve'?'student':'home';
 tab=bits[1]|| (view==='teacher'?'dashboard':'accueil');
+if(view==='teacher'&&tab==='corriger')reviewAttemptId=bits[2]||reviewAttemptId;
 render();
 }
 function header(){
@@ -66,6 +67,13 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+if(view==='teacher'&&tab==='corriger'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
+ if(e?.sourceId&&e.sourceType==='pdf'){
+  const page=e.questions[reviewIndex]?.page||1;
+  Promise.resolve().then(()=>window.CORTEX_DOCS.renderPdfOriginal(e.sourceId,page,'review-source-canvas'));
+ }
+}
 if(view==='student'&&tab==='examen'){
  const a=activeAttempt(),e=examBy(a?.examId);
  if(e?.sourceId&&e.sourceType==='pdf'){
@@ -82,7 +90,12 @@ return `<div class="home"><section class="home-hero"><div class="hero-copy"><p c
 <section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Ouvre le contrôle avec son code et réponds comme dans une vraie évaluation.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
 }
 const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
+function teacherReviewFull(){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
+ return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex});
+}
 function teacherShell(){
+if(tab==='corriger')return teacherReviewFull();
 const body=tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
@@ -259,6 +272,19 @@ modalShow('Relire ma copie',`<p>${e.questions.length-empty} réponses sur ${e.qu
 function notifyAbout(){
 modalShow('Comment fonctionne cette démonstration ?',`<p>Tu peux explorer librement les profils <strong>Professeur</strong> et <strong>Élève</strong>, sans créer de compte.</p><div class="preview-list"><div class="summary-answer"><strong>Ce qui fonctionne</strong><p>Création de contrôles fictifs, passage d'un contrôle, sauvegarde dans ce navigateur, copie remise, correction manuelle et journal d'interruptions local.</p></div><div class="summary-answer"><strong>Ce qui n'est pas activé</strong><p>Comptes réels, traitement de PDF, stockage serveur, suivi de classe à distance et correction IA par RTX 3060. Rien n'est envoyé sur internet depuis les formulaires.</p></div></div><p class="small muted">Évite d'utiliser de vraies données scolaires : cette page est publique.</p>`,btn('Compris','close-modal',''));
 }
+function setReviewPoints(value){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId),q=e?.questions[reviewIndex];
+ if(!at||!q)return;
+ at.marks ||= {};
+ at.marks[q.id] ||= {};
+ if(value===''||value===null){delete at.marks[q.id].points;}
+ else {
+   const n=Number(value),max=Number(q.points);
+   if(!Number.isFinite(n)||n<0||n>max){showToast('Choisis une valeur entre 0 et '+max+' point(s).');return;}
+   at.marks[q.id].points=Math.round(n*100)/100;
+ }
+ save();render();
+}
 function action(el){
 const a=el.dataset.action,id=el.dataset.id;
 if(a==='home'){nav('home');return;}
@@ -292,7 +318,35 @@ const clean=JSON.parse(JSON.stringify(editor));delete clean.isNew;
 if(existing>=0)state.exams[existing]=clean;else state.exams.unshift(clean);
 save();editor=null;showToast('Contrôle enregistré dans cette démo.');nav('teacher','controles');return;}
 if(a==='close-modal'){closeModal();return;}
-if(a==='review-copy'){previewCopy(id);return;}
+if(a==='review-copy'){
+ const at=attemptBy(id);
+ if(!at||at.status!=='submitted'){showToast('Copie indisponible.');return;}
+ reviewAttemptId=id;reviewIndex=0;nav('teacher','corriger/'+encodeURIComponent(id));return;
+}
+if(a==='review-back'){nav('teacher','copies');return;}
+if(a==='review-select'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
+ if(!e)return;
+ const i=Number(el.dataset.index);if(!Number.isInteger(i)||i<0||i>=e.questions.length)return;
+ reviewIndex=i;render();return;
+}
+if(a==='review-prev'||a==='review-next'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);if(!e)return;
+ reviewIndex=Math.min(e.questions.length-1,Math.max(0,reviewIndex+(a==='review-next'?1:-1)));render();return;
+}
+if(a==='review-mark'){setReviewPoints(el.dataset.value);return;}
+if(a==='review-clear'){setReviewPoints('');return;}
+if(a==='review-validate'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);if(!at||!e)return;
+ const totals=window.CORTEX_REVIEW.totals(at,e);
+ if(!totals.ready){showToast('Corrige toutes les questions avant de valider la note.');return;}
+ at.grade=totals.grade;at.reviewedAt=Date.now();save();
+ showToast('Note validée dans la démonstration : '+totals.grade+'/20');render();return;
+}
+if(a==='review-original'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
+ if(e?.sourceId)openSavedOriginal(e.sourceId);return;
+}
 if(a==='save-grade'){const at=attemptBy(id);const grade=Number(document.getElementById('manual-grade')?.value);const original=document.getElementById('manual-grade')?.value;if(!at||original===''||!Number.isFinite(grade)||grade<0||grade>20){showToast('Saisis une note entre 0 et 20.');return;}at.grade=grade;at.feedback=document.getElementById('manual-feedback')?.value||'';save();closeModal();showToast('Note enregistrée dans la démonstration.');render();return;}
 if(a==='choose-sleep'){chosenCode='SOMMEIL26';render();return;}
 if(a==='choose-code'){chosenCode=el.dataset.code;render();return;}
@@ -318,12 +372,20 @@ if(t.hasAttribute('data-import-q')&&pendingImport){const q=pendingImport.questio
 if(t.hasAttribute('data-doc-fill')){
   const at=activeAttempt(),id=t.dataset.docFill;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}
 }
+if(t.hasAttribute('data-review-comment')){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId),q=e?.questions[reviewIndex];
+ if(at&&q){at.marks ||= {};at.marks[q.id] ||= {};at.marks[q.id].comment=t.value;save();}
+}
+if(t.hasAttribute('data-review-general')){
+ const at=attemptBy(reviewAttemptId);if(at){at.feedback=t.value;save();}
+}
 if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.querySelectorAll('#exam-tiles [data-search]').forEach(card=>card.hidden=!card.dataset.search.toLowerCase().includes(search));}
 });
 document.addEventListener('change',e=>{
 const t=e.target;
 if(t.hasAttribute('data-question')&&t.dataset.qfield==='type'&&editor){editor.questions[Number(t.dataset.question)].type=t.value;if(t.value==='choice'&&!editor.questions[Number(t.dataset.question)].choices)editor.questions[Number(t.dataset.question)].choices=['Proposition A','Proposition B'];render();}
 if(t.hasAttribute('data-answer')&&t.type==='radio'){setAnswer(t.dataset.answer,t.value);render();}
+if(t.id==='review-points'){setReviewPoints(t.value);return;}
 if(t.hasAttribute('data-doc-sub')){const at=activeAttempt(),id=t.dataset.docSub;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}}
 
 if(t.hasAttribute('data-demo-file')&&t.files?.[0]) {

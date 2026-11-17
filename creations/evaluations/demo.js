@@ -33,7 +33,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0;
+let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0;
 if(window.CORTEX_DOCS && !state.exams.some(e=>e.id===window.CORTEX_DOCS.demoExam.id)) {
  state.exams.splice(1,0,JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam)));
  try { localStorage.setItem(KEY,JSON.stringify(state)); } catch(e) {}
@@ -99,6 +99,10 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+if(view==='teacher'&&tab==='creer'&&editor?.sourceId&&editor.sourceType==='pdf'){
+  const selected=editor.questions[editorIndex],page=selected?.page||1;
+  Promise.resolve().then(()=>window.CORTEX_DOCS.renderPdfOriginal(editor.sourceId,page,'editor-source-canvas'));
+}
 if(view==='teacher'&&tab==='corriger'){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
  if(e?.sourceId&&e.sourceType==='pdf'){
@@ -147,12 +151,11 @@ return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et pas
 }
 function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e)):{id:'demo-'+Date.now(),title:'',level:'Seconde Bac Pro',chapter:'PSE · Nouveau chapitre',duration:45,code:'DEMO'+Math.floor(Math.random()*9000+1000),open:false,doc:'',questions:[{id:'q-'+Date.now(),type:'text',prompt:'',points:4}]};}
 function teacherEditor(){
-if(!editor)editor=editorFor(null);
-return pageHead(editor.isNew===false?'Modifier le contrôle':'Créer un contrôle','Organise les questions et le barème. Toute modification reste dans cette démonstration.',btn('← Mes contrôles','go-exams','ghost'))+
-`<div class="panel"><div class="form-grid"><div class="field"><label for="ex-title">Titre du contrôle</label><input id="ex-title" data-editor="title" placeholder="Ex. Le sommeil" value="${esc(editor.title)}"></div><div class="field"><label for="ex-level">Classe / niveau</label><input id="ex-level" data-editor="level" value="${esc(editor.level)}"></div><div class="field"><label for="ex-chapter">Chapitre</label><input id="ex-chapter" data-editor="chapter" value="${esc(editor.chapter)}"></div><div class="field"><label for="ex-duration">Durée (minutes)</label><input id="ex-duration" type="number" min="5" max="240" data-editor="duration" value="${esc(editor.duration)}"></div></div><div class="field"><label for="ex-doc">Document à consulter (texte)</label><textarea id="ex-doc" data-editor="doc" placeholder="Rédige ou colle un document scientifique…">${esc(editor.doc)}</textarea></div><div class="field"><label for="pdf">Joindre un PDF ou Word / analyser le document</label><input id="pdf" type="file" accept=".pdf,.doc,.docx" data-demo-file><small>Le fichier est analysé uniquement dans ton navigateur. Il ne sera pas envoyé à un serveur.</small><span class="small muted" id="pdf-status"></span></div><hr class="divider"><div class="panel-head"><h2>Questions <span class="chip blue">${editor.questions.length}</span></h2><span class="small muted">Barème : ${sum(editor)} points (20 conseillé)</span></div>
-<div id="edit-questions">${editor.questions.map((q,i)=>`<div class="question-editor"><div class="question-editor-head"><strong>Question ${i+1}</strong><div class="btn-row"><span class="small muted">${Number(q.points||0)} pt</span><button class="table-action" data-action="remove-question" data-index="${i}">Supprimer</button></div></div><div class="form-grid" style="margin-top:13px"><div class="field"><label>Type de question</label><select data-question="${i}" data-qfield="type"><option value="text" ${q.type==='text'?'selected':''}>Réponse rédigée</option><option value="choice" ${q.type==='choice'?'selected':''}>QCM (une réponse)</option></select></div><div class="field"><label>Points</label><input type="number" min="1" max="20" value="${esc(q.points)}" data-question="${i}" data-qfield="points"></div></div><div class="field"><label>Énoncé</label><textarea data-question="${i}" data-qfield="prompt" rows="2">${esc(q.prompt)}</textarea></div>${q.type==='choice'?`<div class="field"><label>Choix (séparés par ;)</label><textarea rows="2" data-question="${i}" data-qfield="choices">${esc((q.choices||['Option 1','Option 2']).join(' ; '))}</textarea><small>Les choix sont utilisés dans la démo ; le corrigé officiel reste à ajouter au serveur privé.</small></div>`:''}</div>`).join('')}</div>
-<button class="dashed-add" data-action="add-question">＋ Ajouter une question</button><div class="btn-row" style="margin-top:23px">${btn('Enregistrer le contrôle','save-exam','')} ${btn('Annuler','go-exams','ghost')}</div></div>`;
+  if(!editor)editor=editorFor(null);
+  editorIndex=Math.max(0,Math.min(editorIndex,editor.questions.length-1));
+  return window.CORTEX_EDITOR.render({exam:editor,index:editorIndex});
 }
+
 function teacherCopies(){
 const submitted=state.attempts.filter(a=>a.status==='submitted');
 return pageHead('Copies & notes','Ouvre une copie pour consulter chaque document, sa réponse et son barème.',btn('Corriger la copie PDF · 20 questions','review-pdf-sample','')+btn('Essayer côté élève →','student','secondary'))+
@@ -258,7 +261,7 @@ const ans=String(a.answers[q.id]??'');
 if(e.pdfSource || e.sourceId) return renderDocumentStudent(e,q,a,answered,remaining);
 return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill('Temps indicatif : '+remaining+' min','live')}${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
-<div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${e.doc?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(e.doc)}</div>`:''}
+<div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${(q.doc||e.doc)?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(q.doc||e.doc)}</div>`:''}
 ${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<label class="choice"><input type="radio" name="choice" value="${i}" data-answer="${esc(q.id)}" ${ans===String(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}</div>`:`<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="${esc(q.id)}" placeholder="Rédige ta réponse ici…">${esc(ans)}</textarea><small>Tu peux modifier ta réponse avant de rendre le contrôle.</small></div>`}
 <div class="exam-nav"><button class="btn ghost" data-action="question-prev" ${currentQuestion===0?'disabled':''}>← Précédent</button>${currentQuestion===e.questions.length-1?btn('Relire et terminer →','review-exam',''):btn('Question suivante →','question-next','')}</div></section>
 <aside class="panel sidebar-note"><div class="panel-head"><h2>Mes questions</h2>${pill( Math.round(answered/e.questions.length*100)+' %','ok')}</div><div class="question-dots">${e.questions.map((other,i)=>`<button class="question-dot ${i===currentQuestion?'current':''} ${String(a.answers[other.id]??'').trim()?'answered':''}" title="Question ${i+1}" aria-label="Aller à la question ${i+1}" data-action="question-jump" data-index="${i}">${i+1}</button>`).join('')}</div><hr class="divider"><p class="small muted">Le passage à une autre application peut être détecté comme une interruption. Ce signal n'est jamais une preuve de triche.</p><button class="btn ghost small full" data-action="simulate-interruption">Simuler une interruption</button><p class="tiny muted" style="margin-top:13px">Fonction de démonstration. Elle n'identifie pas l'application ouverte.</p></aside></div>`;
@@ -323,8 +326,8 @@ if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
-if(a==='teacher-tab'){if(el.dataset.tab==='creer')editor=editorFor(null);nav('teacher',el.dataset.tab);return;}
-if(a==='create'){editor=editorFor(null);nav('teacher','creer');return;}
+if(a==='teacher-tab'){if(el.dataset.tab==='creer'){editor=editorFor(null);editorIndex=0;}nav('teacher',el.dataset.tab);return;}
+if(a==='create'){editor=editorFor(null);editorIndex=0;nav('teacher','creer');return;}
 if(a==='go-import'){pendingImport=null;nav('teacher','import');return;}
 if(a==='choose-pdf'){chosenCode='SOMMEILPDF';render();return;}
 if(a==='try-pdf-demo'){chosenCode='SOMMEILPDF';nav('student','accueil');return;}
@@ -333,8 +336,47 @@ if(a==='save-import'){saveImported();return;}
 if(a==='preview-import-original'){if(pendingImport)openOriginalFromBlob(pendingImport.blob,pendingImport.kind);return;}
 if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal(e.sourceId);return;}
 if(a==='go-exams'){nav('teacher','controles');return;}
+if(a==='editor-select'){
+  const idx=Number(el.dataset.index);
+  if(editor&&Number.isInteger(idx)&&idx>=0&&idx<editor.questions.length){editorIndex=idx;render();}
+  return;
+}
+if(a==='editor-prev'||a==='editor-next'){
+  if(!editor)return;
+  editorIndex=Math.max(0,Math.min(editor.questions.length-1,editorIndex+(a==='editor-next'?1:-1)));
+  render();return;
+}
+if(a==='editor-add-question'){
+  if(!editor)return;
+  const prev=editor.questions[editorIndex],n=Math.max(0,...editor.questions.map(q=>Number(q.number||0)))+1;
+  const q={id:'q-'+Date.now()+'-'+Math.floor(Math.random()*10000),type:'text',prompt:'',points:1};
+  if(editor.pdfSource){q.section=Number(prev?.section||0);q.number=n;}
+  if(editor.sourceId){q.page=Number(prev?.page||1);}
+  editor.questions.splice(editorIndex+1,0,q);editorIndex++;render();return;
+}
+if(a==='editor-delete'){
+  if(!editor||editor.questions.length<=1)return;
+  editor.questions.splice(editorIndex,1);
+  editorIndex=Math.min(editorIndex,editor.questions.length-1);render();return;
+}
+if(a==='editor-duplicate'){
+  if(!editor)return;
+  const src=editor.questions[editorIndex],q=JSON.parse(JSON.stringify(src));
+  q.id='q-'+Date.now()+'-'+Math.floor(Math.random()*10000);
+  if(editor.pdfSource)q.number=Math.max(0,...editor.questions.map(x=>Number(x.number||0)))+1;
+  q.prompt=q.prompt+' (variante)';
+  editor.questions.splice(editorIndex+1,0,q);editorIndex++;render();return;
+}
+if(a==='editor-move-up'||a==='editor-move-down'){
+  if(!editor)return;
+  const to=editorIndex+(a==='editor-move-up'?-1:1);
+  if(to<0||to>=editor.questions.length)return;
+  const [q]=editor.questions.splice(editorIndex,1);editor.questions.splice(to,0,q);
+  editorIndex=to;render();return;
+}
+if(a==='editor-original'){if(editor?.sourceId)openSavedOriginal(editor.sourceId);return;}
 if(a==='go-copies'){nav('teacher','copies');return;}
-if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;nav('teacher','creer');return;}
+if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;nav('teacher','creer');return;}
 if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
 if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=!e.open;save();render();}return;}
 if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil');if(!e)return;e.open=true;chosenCode=e.code;save();nav('student','accueil');return;}
@@ -344,7 +386,14 @@ if(a==='save-exam'){
 if(!editor)return;
 if(!editor.title.trim()){showToast('Donne un titre à ton contrôle.');return;}
 if(!editor.questions.every(q=>q.prompt.trim())){showToast('Complète les énoncés des questions.');return;}
-if(!editor.questions.every(q=>Number(q.points)>0&&Number(q.points)<=20)){showToast('Chaque question doit avoir entre 1 et 20 points.');return;}
+if(!editor.questions.every(q=>Number(q.points)>=0.25&&Number(q.points)<=20)){
+ showToast('Chaque question doit avoir entre 0,25 et 20 points.');return;
+}
+if(editor.questions.some(q=>q.type==='choice'&&!editor.pdfSource&&
+(!Array.isArray(q.choices)||q.choices.length<2||!Number.isInteger(Number(q.correct??0))||
+Number(q.correct??0)<0||Number(q.correct??0)>=q.choices.length))){
+ showToast('Vérifie les choix et la bonne réponse des QCM.');return;
+}
 const existing=state.exams.findIndex(e=>e.id===editor.id);
 const clean=JSON.parse(JSON.stringify(editor));delete clean.isNew;
 if(existing>=0)state.exams[existing]=clean;else state.exams.unshift(clean);
@@ -399,7 +448,12 @@ const el=e.target.closest('[data-action]');if(el){e.preventDefault();action(el);
 document.addEventListener('input',e=>{
 const t=e.target;
 if(t.hasAttribute('data-editor')&&editor){editor[t.dataset.editor]=t.dataset.editor==='duration'?Number(t.value):t.value;}
-if(t.hasAttribute('data-question')&&editor){const q=editor.questions[Number(t.dataset.question)];if(!q)return;const name=t.dataset.qfield;q[name]=name==='points'?Number(t.value):name==='choices'?t.value.split(';').map(v=>v.trim()).filter(Boolean):t.value;}
+if(t.hasAttribute('data-question')&&editor){
+ const q=editor.questions[Number(t.dataset.question)];if(!q)return;
+ const name=t.dataset.qfield;
+ q[name]=['points','correct','section','page'].includes(name)?Number(t.value):
+  name==='choices'?t.value.split(';').map(v=>v.trim()).filter(Boolean):t.value;
+}
 if(t.hasAttribute('data-answer')&&t.tagName==='TEXTAREA')setAnswer(t.dataset.answer,t.value);
 if(t.hasAttribute('data-import-q')&&pendingImport){const q=pendingImport.questions[Number(t.dataset.importQ)];if(q)q.prompt=t.value;}
 if(t.hasAttribute('data-doc-fill')){
@@ -416,7 +470,20 @@ if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.qu
 });
 document.addEventListener('change',e=>{
 const t=e.target;
-if(t.hasAttribute('data-question')&&t.dataset.qfield==='type'&&editor){editor.questions[Number(t.dataset.question)].type=t.value;if(t.value==='choice'&&!editor.questions[Number(t.dataset.question)].choices)editor.questions[Number(t.dataset.question)].choices=['Proposition A','Proposition B'];render();}
+if(t.hasAttribute('data-question')&&editor){
+ const q=editor.questions[Number(t.dataset.question)],name=t.dataset.qfield;
+ if(!q)return;
+ if(name==='type'){
+   q.type=t.value;
+   if(t.value==='choice'&&!q.choices)q.choices=['Proposition A','Proposition B'];
+   if(t.value==='choice'&&!Number.isInteger(Number(q.correct)))q.correct=0;
+   render();return;
+ }
+ if(name==='section'||name==='page'){q[name]=Number(t.value);render();return;}
+ if(name==='points'){q.points=Number(t.value);render();return;}
+ if(name==='choices'){q.choices=t.value.split(';').map(v=>v.trim()).filter(Boolean);q.correct=Math.min(Number(q.correct||0),Math.max(q.choices.length-1,0));render();return;}
+ if(name==='correct'){q.correct=Number(t.value);return;}
+}
 if(t.hasAttribute('data-answer')&&t.type==='radio'){setAnswer(t.dataset.answer,t.value);render();}
 if(t.id==='review-points'){setReviewPoints(t.value);return;}
 if(t.hasAttribute('data-doc-sub')){const at=activeAttempt(),id=t.dataset.docSub;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}}

@@ -168,7 +168,7 @@ function teacherDashboard(){
 function teacherExams(){
 return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
 `<div class="toolbar"><span class="muted small">${state.exams.length} contrôles de démonstration</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
-<div class="tile-grid" id="exam-tiles">${state.exams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Code '+e.code:'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${state.exams.length===0?'<div class="empty">Aucun contrôle pour le moment. Tu peux créer un nouveau contrôle ou restaurer la démonstration depuis « Vue d’ensemble ».</div>':''}</div>`;
+<div class="tile-grid" id="exam-tiles">${state.exams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Code '+e.code:'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button>${e.sourceId?`<button class="table-action" data-action="visual-open-existing" data-id="${esc(e.id)}">Découper ↗</button>`:''}<button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${state.exams.length===0?'<div class="empty">Aucun contrôle pour le moment. Tu peux créer un nouveau contrôle ou restaurer la démonstration depuis « Vue d’ensemble ».</div>':''}</div>`;
 }
 function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e)):{id:'demo-'+Date.now(),title:'',level:'Seconde Bac Pro',chapter:'PSE · Nouveau chapitre',duration:45,code:'DEMO'+Math.floor(Math.random()*9000+1000),open:false,doc:'',questions:[{id:'q-'+Date.now(),type:'text',prompt:'',points:4}]};}
 function teacherEditor(){
@@ -430,13 +430,59 @@ if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
 if(a==='teacher-tab'){if(el.dataset.tab==='creer'){editor=editorFor(null);editorIndex=0;}nav('teacher',el.dataset.tab);return;}
-if(a==='create'){editor=editorFor(null);editorIndex=0;nav('teacher','creer');return;}
-if(a==='go-import'){pendingImport=null;nav('teacher','import');return;}
+if(a==='create'){editor=editorFor(null);editorIndex=0;editorDocTab='documents';nav('teacher','creer');return;}
+if(a==='go-import'){importExamId=null;visualPage=1;visualQuestionId=null;nav('teacher','import');return;}
 if(a==='choose-pdf'){chosenCode='SOMMEILPDF';render();return;}
 if(a==='try-pdf-demo'){chosenCode='SOMMEILPDF';nav('student','accueil');return;}
+if(a==='visual-import-file'){processImport(document.getElementById('visual-doc-file')?.files?.[0]);return;}
 if(a==='import-doc-file'){processImport(document.getElementById('cortex-import-file')?.files?.[0]);return;}
-if(a==='save-import'){saveImported();return;}
-if(a==='preview-import-original'){if(pendingImport)openOriginalFromBlob(pendingImport.blob,pendingImport.kind);return;}
+if(a==='visual-open-existing'){
+ const exam=examBy(id);if(!exam?.sourceId)return;
+ importExamId=id;visualPage=1;visualQuestionId=exam.questions?.[0]?.id||null;nav('teacher','import');return;
+}
+if(a==='visual-return-import'){
+ if(!editor?.sourceId)return;
+ const existing=state.exams.findIndex(x=>x.id===editor.id);
+ const content=JSON.parse(JSON.stringify(editor));delete content.isNew;
+ if(existing>=0)state.exams[existing]=content;else state.exams.unshift(content);
+ save();importExamId=editor.id;visualPage=1;visualQuestionId=editor.questions[editorIndex]?.id||null;
+ nav('teacher','import');return;
+}
+if(a==='visual-edit-questions'){
+ const ex=examBy(importExamId);if(!ex)return;
+ editor=editorFor(ex.id);editor.isNew=false;editorIndex=Math.max(0,ex.questions.findIndex(q=>q.id===visualQuestionId));
+ editorDocTab='documents';nav('teacher','creer');return;
+}
+if(a==='visual-page-prev'||a==='visual-page-next'){
+ const ex=examBy(importExamId);if(!ex)return;
+ visualPage=Math.max(1,Math.min(ex.sourcePageCount||1,visualPage+(a==='visual-page-next'?1:-1)));
+ render();return;
+}
+if(a==='visual-capture-full'){window.CORTEX_VISUAL.fullBlob().then(b=>visualRecordCapture(b,visualPage)).catch(err=>showToast(err.message));return;}
+if(a==='visual-download-original'){
+ const ex=examBy(importExamId);if(!ex)return;
+ window.CORTEX_DOCS.readFile(ex.sourceId).then(f=>{if(f)window.CORTEX_VISUAL.download(f.blob,ex.sourceName||'controle.pdf')}).catch(err=>showToast(err.message));return;
+}
+if(a==='visual-copy-original'){
+ window.CORTEX_VISUAL.fullBlob().then(b=>window.CORTEX_VISUAL.copy(b)).then(()=>showToast('Page copiée en image.')).catch(err=>showToast(err.message));return;
+}
+if(a==='visual-attach'){visualLink(id);return;}
+if(a==='visual-detach'){visualUnlink(id);return;}
+if(a==='visual-copy-asset'){visualCopy(id);return;}
+if(a==='visual-download-asset'){visualDownload(id);return;}
+if(a==='visual-delete-asset'){
+ const ex=examBy(importExamId);if(!ex)return;
+ ex.assets=(ex.assets||[]).filter(x=>x.id!==id);ex.questions.forEach(q=>q.assetIds=(q.assetIds||[]).filter(x=>x!==id));save();render();
+ if(!state.exams.some(e=>e.assets?.some(x=>x.id===id)))window.CORTEX_VISUAL.removeImage(id).catch(()=>{});
+ showToast('Capture supprimée des documents.');return;
+}
+if(a==='visual-paste-image'){
+ window.CORTEX_VISUAL.paste().then(blob=>visualFile(new File([blob],'Capture collée.png',{type:blob.type||'image/png'}))).catch(err=>showToast(err.message));
+ return;
+}
+if(a==='visual-copy-source'){visualCopySource(false);return;}
+if(a==='visual-download-source'){visualCopySource(true);return;}
+if(a==='editor-doc-tab'){editorDocTab=el.dataset.tab==='documents'?'documents':'source';render();return;}
 if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal(e.sourceId);return;}
 if(a==='dashboard-preview'){const exam=examBy(id);if(exam)examPreviewModal(exam);return;}
 if(a==='preview-try-exam'){
@@ -514,7 +560,7 @@ if(a==='editor-move-up'||a==='editor-move-down'){
 }
 if(a==='editor-original'){if(editor?.sourceId)openSavedOriginal(editor.sourceId);return;}
 if(a==='go-copies'){nav('teacher','copies');return;}
-if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;nav('teacher','creer');return;}
+if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;editorDocTab='source';nav('teacher','creer');return;}
 if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
 if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=!e.open;save();render();}return;}
 if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;e.open=true;chosenCode=e.code;save();nav('student','accueil');return;}

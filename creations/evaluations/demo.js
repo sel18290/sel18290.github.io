@@ -105,17 +105,65 @@ return `<div class="workspace"><aside class="sidebar"><div class="side-title"><s
 }
 function teacherImport(){return window.CORTEX_DOCS?window.CORTEX_DOCS.guidePanel():'<p>Le module documentaire est indisponible.</p>';}
 function pageHead(title,desc,actions=''){return `<div class="page-head"><div><p class="eyebrow">Espace professeur · Démonstration</p><h1>${title}</h1><p>${desc}</p></div><div class="btn-row">${actions}</div></div>`;}
+function examPreviewCard(e) {
+  const first=e.questions?.[0],summary=e.pdfSource?
+    '<div class="exam-preview-pdf"><b>DOCUMENT 1 · Une semaine dans la vie de Dylan</b><p>Dylan dort <strong>4 h</strong> les jours de cours, <strong>12 h</strong> le week-end. Repère conseillé : <strong>8 à 10 h</strong>.</p></div>':
+    '<div class="exam-preview-pdf"><b>Document associé</b><p>'+esc((first?.doc||e.doc||e.sourcePages?.[0]||'Ouvrir pour voir le contenu').slice(0,180))+'</p></div>';
+  const items=(e.questions||[]).slice(0,3).map((q,i)=>'<span>Q'+(q.number||i+1)+' · '+esc(q.prompt.slice(0,108))+'</span>').join('');
+  return '<span class="exam-preview-caption">APERÇU DU CONTRÔLE</span><h3>'+esc(e.title)+'</h3>'+
+    '<div class="exam-preview-meta"><span>'+esc(e.level)+'</span><span>· '+e.questions.length+' questions</span><span>· '+Number(e.duration)+' min</span></div>'+
+    summary+'<div class="exam-preview-questions">'+items+'</div>';
+}
+function examPreviewModal(e){
+  const first=e.questions?.[0],section=e.pdfSource?window.CORTEX_DOCS?.sections?.[first?.section||0]:null;
+  const source=section?section.document:
+    '<div class="review-generic-doc">'+esc(first?.doc||e.doc||e.sourcePages?.[0]||'Aucun document textuel à prévisualiser.')+'</div>';
+  modalShow('Aperçu du contrôle', '<p class="muted small">'+esc(e.title)+' · '+esc(e.level)+' · '+e.questions.length+
+    ' questions · '+Number(e.duration)+' minutes · '+sum(e)+' points</p>'+
+    '<div class="exam-preview-modal-doc">'+source+'</div>'+
+    '<h3>Questions du contrôle</h3><div class="exam-preview-modal-list">'+e.questions.map((q,i)=>
+    '<div><strong>Q'+esc(q.number||i+1)+' · '+q.points+' pt</strong><br>'+esc(q.prompt)+'</div>').join('')+'</div>',
+    '<button class="btn" data-action="preview-try-exam" data-id="'+esc(e.id)+'">Tester comme élève →</button>'+
+    btn('Fermer','close-modal','ghost'));
+}
 function teacherDashboard(){
-const submitted=state.attempts.filter(a=>a.status==='submitted'),corrected=submitted.filter(a=>a.grade!=null),live=state.attempts.filter(a=>a.status==='progress');
-return pageHead('Tableau de bord','Tes évaluations et tes copies au même endroit.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Nouveau contrôle','create',''))+
-`<div class="stats"><div class="stat"><div class="stat-label">Contrôles disponibles</div><div class="stat-value">${state.exams.length}</div><div class="stat-foot">Bibliothèque de démonstration</div></div><div class="stat"><div class="stat-label">Copies remises</div><div class="stat-value">${submitted.length}</div><div class="stat-foot">Conservées sur cet appareil</div></div><div class="stat"><div class="stat-label">Notes validées</div><div class="stat-value">${corrected.length}</div><div class="stat-foot">Sur ${submitted.length} copies</div></div><div class="stat"><div class="stat-label">Épreuves en cours</div><div class="stat-value">${live.length}</div><div class="stat-foot">Démonstration locale</div></div></div>
-<div class="two-col"><section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2><p>Créer, publier et essayer depuis l’espace élève.</p></div>${btn('Tout voir →','go-exams','ghost small')}</div>${state.exams.slice(0,4).map(e=>`<div class="list-row"><div class="item-icon">▤</div><div class="grow"><div class="item-title">${esc(e.title)}</div><div class="item-meta">${esc(e.level)} · ${e.questions.length} questions · ${e.duration} min</div></div>${pill(e.open?'Publié':'Brouillon',e.open?'ok':'warn')}<button class="table-action" data-action="try-exam" data-id="${e.id}">Tester</button></div>`).join('')}</section>
-<section class="panel"><div class="panel-head"><h2>Commencer ici</h2>${pill('Démo','live')}</div><p class="muted small">Cette version sert à découvrir l'ergonomie. Les PDF réels, les copies scolaires et la correction IA seront activés seulement sur un serveur privé.</p><div class="inline-note"><strong>Parcours conseillé</strong><br>1. Ouvre « Mes contrôles ».<br>2. Essaie un contrôle côté élève.<br>3. Reviens dans « Copies & notes » pour le corriger.</div><div class="btn-row" style="margin-top:18px">${btn('Essayer le contrôle sommeil →','try-sleep','secondary full')}</div></section></div>`;
+  const submitted=state.attempts.filter(a=>a.status==='submitted'),corrected=submitted.filter(a=>a.grade!=null),live=state.attempts.filter(a=>a.status==='progress');
+  const rows=state.exams.length?state.exams.slice(0,4).map(e=>'<div class="list-row">'+
+    '<div class="exam-preview-wrap"><button type="button" class="item-icon exam-preview-trigger" data-action="dashboard-preview" data-id="'+esc(e.id)+
+    '" aria-label="Prévisualiser '+esc(e.title)+'" title="Survoler pour prévisualiser, cliquer pour ouvrir">▤</button>'+
+    '<div class="exam-preview-popup" role="tooltip">'+examPreviewCard(e)+'</div></div>'+
+    '<div class="grow"><div class="item-title">'+esc(e.title)+'</div><div class="item-meta">'+esc(e.level)+' · '+
+    e.questions.length+' questions · '+e.duration+' min</div></div>'+
+    pill(e.open?'Publié':'Brouillon',e.open?'ok':'warn')+
+    '<button class="table-action" data-action="try-exam" data-id="'+esc(e.id)+'">Tester</button></div>').join(''):
+    '<div class="empty">Aucun contrôle dans la démo. Tu peux en créer un ou restaurer l’exemple.</div>';
+  const sample=state.exams.find(x=>x.id==='sommeil-pdf-a2');
+  return pageHead('Tableau de bord','Ton espace d’évaluation, simplifié autour du contrôle PSE de référence.',
+    btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Nouveau contrôle','create',''))+
+  '<div class="stats"><div class="stat"><div class="stat-label">Contrôles disponibles</div><div class="stat-value">'+state.exams.length+
+  '</div><div class="stat-foot">Bibliothèque de démonstration</div></div>'+
+  '<div class="stat"><div class="stat-label">Copies remises</div><div class="stat-value">'+submitted.length+
+  '</div><div class="stat-foot">Conservées sur cet appareil</div></div>'+
+  '<div class="stat"><div class="stat-label">Notes validées</div><div class="stat-value">'+corrected.length+
+  '</div><div class="stat-foot">Sur '+submitted.length+' copies</div></div>'+
+  '<div class="stat"><div class="stat-label">Épreuves en cours</div><div class="stat-value">'+live.length+
+  '</div><div class="stat-foot">Démonstration locale</div></div></div>'+
+  '<div class="two-col"><section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2>'+
+  '<p>Survole l’icône ▤ pour voir un aperçu. Clique dessus pour le contrôle complet.</p></div>'+
+  btn('Tout voir →','go-exams','ghost small')+'</div>'+rows+'</section>'+
+  '<section class="panel"><div class="panel-head"><h2>Ton contrôle de référence</h2>'+pill('Démo','live')+'</div>'+
+  '<p class="muted small">Seul ton contrôle sur le sommeil et sa copie fictive sont inclus au départ. Les autres contrôles peuvent toujours être créés ou importés.</p>'+
+  '<div class="inline-note"><strong>Parcours conseillé</strong><br>1. Prévisualise le document avec l’icône ▤.<br>'+
+  '2. Essaie le contrôle côté élève avec le grand minuteur.<br>3. Corrige la copie fictive côté professeur.</div>'+
+  '<div class="btn-row" style="margin-top:18px">'+
+  (sample?'<button class="btn secondary full" data-action="try-exam" data-id="'+esc(sample.id)+'">Tester le contrôle PSE →</button>':
+  btn('Restaurer la démo de référence','reset-demo','secondary full'))+
+  '</div></section></div>';
 }
 function teacherExams(){
 return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
 `<div class="toolbar"><span class="muted small">${state.exams.length} contrôles de démonstration</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
-<div class="tile-grid" id="exam-tiles">${state.exams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Code '+e.code:'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button></div></div></article>`).join('')}</div>`;
+<div class="tile-grid" id="exam-tiles">${state.exams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Code '+e.code:'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${state.exams.length===0?'<div class="empty">Aucun contrôle pour le moment. Tu peux créer un nouveau contrôle ou restaurer la démonstration depuis « Vue d’ensemble ».</div>':''}</div>`;
 }
 function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e)):{id:'demo-'+Date.now(),title:'',level:'Seconde Bac Pro',chapter:'PSE · Nouveau chapitre',duration:45,code:'DEMO'+Math.floor(Math.random()*9000+1000),open:false,doc:'',questions:[{id:'q-'+Date.now(),type:'text',prompt:'',points:4}]};}
 function teacherEditor(){

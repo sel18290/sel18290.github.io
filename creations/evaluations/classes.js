@@ -139,21 +139,32 @@ async function drawQr(url,selector='class-qr-image'){
  new window.QRCode(target,{text:url,width:230,height:230,colorDark:'#0a2630',colorLight:'#ffffff',
   correctLevel:window.QRCode.CorrectLevel.M});
 }
-function landing(s,assignment,exam,invalid=false){
+function newLanding(s,assignment,exam,invalid=false,options={}){
  if(invalid||!assignment||!exam){
   return `<div class="qr-student-landing panel"><div class="qr-landing-icon">!</div><h1>QR code non reconnu</h1>
-   <p>Ce lien ne correspond pas à un accès actif sur cet appareil. Dans cette version locale, les contrôles personnalisés ne sont pas partagés entre appareils.</p>
-   <button class="btn secondary" data-action="home">Retour à l’accueil</button></div>`;
+    <p>Ce lien ne correspond pas à un accès actif sur cet appareil. Dans cette version locale, les contrôles personnalisés ne sont pas partagés entre appareils.</p>
+    <button class="btn secondary" data-action="home">Retour à l’accueil</button></div>`;
  }
- return `<div class="qr-student-landing panel"><span class="chip teal">Accès par QR code</span>
-   <h1>Bienvenue en ${h(classLabel(s,assignment.classId))}</h1>
-   <h2>${h(groupLabel(s,assignment.classId,assignment.groupId))}</h2>
-   <div class="qr-landing-exam"><span>TON CONTRÔLE</span><strong>${h(exam.title)}</strong>
-     <small>${exam.questions.length} questions · ${exam.duration} minutes · ${exam.open?'Prêt':'Non publié'}</small></div>
-   <p class="muted small">Le compte à rebours commencera uniquement quand tu ouvriras la copie. Utilise un pseudonyme pour cette démonstration.</p>
-   <div class="field"><label for="student-name">Ton nom de démonstration</label><input id="student-name" maxlength="45" value="Élève Démo" autocomplete="off"></div>
-   <button class="btn full" data-action="class-student-start" ${!exam.open?'disabled':''}>Ouvrir ma copie →</button>
-   <p class="class-qr-warning">Cette démonstration ne transmet aucune copie au professeur sur un autre appareil.</p>
+ const ready=options.step==='ready'&&/^\d{1,4}$/.test(String(options.number||''));
+ return `<div class="qr-student-landing panel">
+   <span class="chip teal">QR vérifié · ${h(classLabel(s,assignment.classId))}</span>
+   <h1>${ready?'Ton contrôle est prêt.':'Bienvenue dans ta classe.'}</h1>
+   <h2>${h(classLabel(s,assignment.classId))} · ${h(groupLabel(s,assignment.classId,assignment.groupId))}</h2>
+   ${ready?`<div class="qr-identity-confirm"><span>NUMÉRO D'ÉLÈVE</span><strong>N° ${h(options.number)}</strong>
+     <button type="button" class="btn ghost small" data-action="class-student-edit-number">Modifier le numéro</button></div>`:
+    `<p class="muted">Saisis ton <strong>numéro sur la liste de classe</strong> (et non ton numéro de téléphone) pour accéder au contrôle.</p>
+    <div class="field"><label for="student-number">Mon numéro d'élève</label>
+      <input id="student-number" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" autocomplete="off"
+        placeholder="Ex. 12" aria-describedby="student-number-hint" required>
+      <small id="student-number-hint">Entre 1 et 4 chiffres. Les zéros initiaux sont conservés.</small></div>`}
+   <div class="qr-landing-exam"><span>TON ÉVALUATION</span><strong>${h(exam.title)}</strong>
+     <small>${exam.questions.length} questions · ${exam.duration} minutes · ${exam.open?'Prête':'Non publiée'}</small></div>
+   ${ready?`<div class="qr-start-notice"><span>◷</span><div><strong>Le chronomètre ne tourne pas encore.</strong>
+      <p>Le décompte de ${Number(exam.duration)||60} minutes commencera lorsque tu appuieras sur « Démarrer le contrôle ».</p></div></div>`:
+     `<p class="muted small">Ton numéro sert à classer la copie dans ton demi-groupe. Le compte à rebours n’a pas encore commencé.</p>`}
+   <button class="btn full" data-action="${ready?'class-student-start':'class-student-identify'}"
+     ${!exam.open?'disabled':''}>${ready?'Démarrer le contrôle →':'Accéder au contrôle →'}</button>
+   <p class="class-qr-warning">Démo GitHub : ton numéro et ta copie restent sur cet appareil. Le QR ne permet pas encore l'identification sécurisée ni l'envoi au professeur sur un autre téléphone.</p>
  </div>`;
 }
 return {NAMES,classes,init,byId,group,classLabel,groupLabel,assignmentLabel,assignments,assignedTo,copyMatch,

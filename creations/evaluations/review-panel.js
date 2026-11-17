@@ -51,9 +51,9 @@ window.CORTEX_REVIEW=(function reviewModule(){
       <button class="btn ghost small" data-action="review-original" data-id="${esc(exam.id)}">↗ Ouvrir le document intégral</button>`;
     }
     if(exam.sourceId){
-      return `<div class="review-source-label"><span class="review-source-tag">WORD IMPORTÉ</span><h3>${esc(exam.sourceName||'Document Word')}</h3></div>
-      <pre class="doc-import-text">${esc(exam.sourcePages?.[Math.max(0,(q.page||1)-1)]||exam.sourcePages?.[0]||'Texte indisponible sur cet appareil')}</pre>
-      <button class="btn ghost small" data-action="review-original" data-id="${esc(exam.id)}">↗ Ouvrir le fichier Word d’origine</button>`;
+      return '<div class="review-source-label"><span class="review-source-tag">DOCUMENT WORD ORIGINAL</span><h3>'+esc(exam.sourceName||'Document Word')+'</h3></div>'+
+        '<div class="review-source-content"><div class="import-original-canvas" id="review-word-canvas"><p class="small muted">Affichage du Word original…</p></div></div>'+
+        '<button class="btn ghost small" data-action="review-original" data-id="'+esc(exam.id)+'">↗ Ouvrir le document complet</button>';
     }
     if(exam.doc){
       return `<div class="review-source-label"><span class="review-source-tag">DOCUMENT PÉDAGOGIQUE</span><h3>${esc(exam.title)}</h3></div><div class="review-generic-doc">${esc(exam.doc)}</div>`;

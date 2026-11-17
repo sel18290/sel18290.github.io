@@ -112,7 +112,31 @@ function qrChoices(s,exam){
 }
 function qrLink(a){
  const base=location.origin+location.pathname;
- return `${base}#eleve/rejoindre/${encodeURIComponent(a.id)}/${encodeURIComponent(a.token)}`;
+ // Ces métadonnées permettent de reconnaître le contrôle de démonstration sur un autre appareil.
+ // Elles ne constituent PAS une preuve d'identité ni un droit d'accès sécurisé.
+ const cl=a.classId||'2mrc1',groupId=a.groupId||'entier',examId=a.examId||'sommeil-pdf-a2';
+ return `${base}#eleve/rejoindre/${encodeURIComponent(a.id)}/${encodeURIComponent(a.token)}/${encodeURIComponent(cl)}/${encodeURIComponent(groupId)}/${encodeURIComponent(examId)}`;
+}
+function hydrateQrDemo(state,parts){
+ const [id,token,classId,groupRaw,examId]=parts;
+ if(!id||!token||!classId||!examId)return false;
+ if(state.assignments.some(a=>a.id===id))return false;
+ // En mode statique, seul le véritable contrôle PSE de démonstration est distribuable
+ // sans transfert de données depuis le navigateur du professeur.
+ if(examId!=='sommeil-pdf-a2'||!state.exams.some(e=>e.id===examId&&e.pdfSource))return false;
+ if(id.length>100||token.length>128||!/^[-a-z0-9]{2,80}$/i.test(id)||
+ !/^(QR-[a-z0-9]+|DEMO-CORTEX-[a-z0-9-]+)$/i.test(token))return false;
+ const classroom=state.classes.find(c=>c.id===classId&&!c.archived);
+ if(!classroom)return false;
+ const groupId=groupRaw==='entier'?null:groupRaw;
+ if(groupId){
+   if(!/^(g[12]|g-[a-z0-9-]{1,35})$/i.test(groupId))return false;
+   let g=classroom.groups.find(g=>g.id===groupId);
+   if(!g){g={id:groupId,name:groupId==='g1'?'Demi-groupe 1':groupId==='g2'?'Demi-groupe 2':'Demi-groupe',archived:false};classroom.groups.push(g);}
+   if(g.archived)return false;
+ }
+ state.assignments.push({id,token,classId,groupId,examId,active:true,createdAt:Date.now(),demoQr:true});
+ return true;
 }
 function qrModal(s,a,e,url){
  return `<div class="qr-sheet"><span class="chip teal">QR professeur · ${h(assignmentLabel(s,a))}</span>
@@ -168,5 +192,5 @@ function landing(s,assignment,exam,invalid=false,options={}){
  </div>`;
 }
 return {NAMES,classes,init,byId,group,classLabel,groupLabel,assignmentLabel,assignments,assignedTo,copyMatch,
- classSelect,groupSelect,filterBar,overview,qrChoices,qrLink,qrModal,drawQr,landing,codeName,id};
+ classSelect,groupSelect,filterBar,overview,qrChoices,qrLink,hydrateQrDemo,qrModal,drawQr,landing,codeName,id};
 })();

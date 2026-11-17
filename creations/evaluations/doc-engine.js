@@ -169,6 +169,19 @@ window.CORTEX_DOCS=(function cortexDocEngine(){
       };
     });
   }
+  async function deleteFile(sourceId){
+    return await new Promise((resolve,reject)=>{
+      const req=indexedDB.open('cortex-demo-documents-v1',1);
+      req.onupgradeneeded=()=>req.result.createObjectStore('files');
+      req.onerror=()=>reject(req.error);
+      req.onsuccess=()=>{
+        const db=req.result,tx=db.transaction('files','readwrite');
+        tx.objectStore('files').delete(sourceId);
+        tx.oncomplete=()=>{db.close();resolve(true)};
+        tx.onerror=()=>{db.close();reject(tx.error)};
+      };
+    });
+  }
   function importReview(d){
     const candidates=d.questions||[];
     return `<div class="import-review"><div class="import-summary"><span class="chip teal">Fichier lu : ${h(d.filename)}</span><span class="chip">${d.pages.length} page(s)</span><span class="chip blue">${candidates.length} question(s) détectée(s)</span></div>
@@ -196,5 +209,5 @@ window.CORTEX_DOCS=(function cortexDocEngine(){
       await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
     }catch(e){if(target.isConnected)target.textContent='Impossible d’afficher cette page. Utilise le bouton « Document original ». '+e.message;}
   }
-  return {demoExam,sections,renderSample,guidePanel,parseFile,storeFile,readFile,importReview,renderPdfOriginal};
+  return {demoExam,sections,renderSample,guidePanel,parseFile,storeFile,readFile,deleteFile,importReview,renderPdfOriginal};
 })();

@@ -193,11 +193,31 @@ function studentShell(){
 return `<div class="student-shell">${tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome()}</div>`;
 }
 function studentWelcome(){
-const active=state.attempts.find(a=>a.id===state.activeAttemptId && a.status==='progress');
-return `<div class="page-head"><div><p class="eyebrow">Espace élève · Mode découverte</p><h1>Prêt pour ton contrôle ?</h1><p>Entre le code fourni par ton professeur, puis réponds question par question.</p></div>${btn('← Accueil','home','ghost')}</div>
-<div class="student-intro"><div class="panel"><div class="panel-head"><div><h2>Rejoindre une évaluation</h2><p>Accès sans compte pour cette démonstration.</p></div>${pill('Démo gratuite','ok')}</div><div class="field"><label for="student-code">Code du contrôle</label><input id="student-code" type="text" autocapitalize="characters" autocomplete="off" maxlength="22" value="${esc(chosenCode)}" placeholder="SOMMEILPDF"></div><div class="field"><label for="student-name">Nom fictif utilisé pour le test</label><input id="student-name" type="text" maxlength="35" value="Élève Démo" placeholder="Élève Démo"><small>Utilise un pseudonyme : aucune identité réelle n'est nécessaire.</small></div><div class="btn-row">${btn(active?'Reprendre le contrôle →':'Commencer le contrôle →','start-exam','')}</div></div>
-<aside class="exam-card"><p class="eyebrow">Contrôle de référence</p><span class="exam-tag">PSE · SECONDE BAC PRO</span><h2>Le sommeil, un rythme essentiel</h2><p class="muted">Le contrôle PDF fourni : <strong>6 parties, 8 documents, 20 questions</strong>, dont un tableau à compléter. Réponses rédigées et barème d’origine.</p><div class="tile-stats">${pill('60 minutes','live')}${pill('20 points','ok')}</div><div class="btn-row" style="margin-top:22px"><button class="btn secondary" data-action="choose-pdf">Utiliser le code SOMMEILPDF</button></div></aside></div>
-<section class="panel"><div class="panel-head"><h2>Contrôles disponibles en démonstration</h2><span class="chip">${state.exams.filter(e=>e.open).length} publiés</span></div><div class="tile-grid">${state.exams.filter(e=>e.open).map(e=>`<div class="card"><span class="chip blue">${esc(e.level)}</span><h3 style="margin:12px 0">${esc(e.title)}</h3><p class="muted small">${e.questions.length} questions · ${e.duration} minutes · Code <strong>${esc(e.code)}</strong></p><button class="btn ghost small" data-action="choose-code" data-code="${esc(e.code)}">Choisir ce contrôle →</button></div>`).join('')}</div></section>`;
+  const active=state.attempts.find(a=>a.id===state.activeAttemptId && a.status==='progress');
+  const example=state.exams.find(e=>e.id==='sommeil-pdf-a2'&&e.open);
+  const published=state.exams.filter(e=>e.open);
+  const featured=example?'<aside class="exam-card"><p class="eyebrow">Contrôle de référence</p>'+
+    '<span class="exam-tag">PSE · SECONDE BAC PRO</span><h2>'+esc(example.title)+'</h2>'+
+    '<p class="muted">Le contrôle PDF fourni : <strong>6 parties, 8 documents, 20 questions</strong>, dont un tableau à compléter.</p>'+
+    '<div class="tile-stats">'+pill(example.duration+' minutes','live')+pill(sum(example)+' points','ok')+'</div>'+
+    '<div class="btn-row" style="margin-top:22px"><button class="btn secondary" data-action="choose-pdf">Utiliser le code '+esc(example.code)+'</button></div></aside>':
+    '<aside class="exam-card"><p class="eyebrow">Espace élève</p><h2>Prêt pour une évaluation</h2>'+
+    '<p class="muted">Aucun contrôle de référence publié actuellement. Ton professeur peut créer ou publier un contrôle.</p></aside>';
+  return '<div class="page-head"><div><p class="eyebrow">Espace élève · Mode découverte</p><h1>Prêt pour ton contrôle ?</h1>'+
+    '<p>Entre le code fourni par ton professeur, puis réponds question par question.</p></div>'+
+    btn('← Accueil','home','ghost')+'</div>'+
+    '<div class="student-intro"><div class="panel"><div class="panel-head"><div><h2>Rejoindre une évaluation</h2>'+
+    '<p>Accès sans compte pour cette démonstration.</p></div>'+pill('Démo gratuite','ok')+'</div>'+
+    '<div class="field"><label for="student-code">Code du contrôle</label>'+
+    '<input id="student-code" type="text" autocapitalize="characters" autocomplete="off" maxlength="22" value="'+esc(chosenCode)+'" placeholder="Code fourni"></div>'+
+    '<div class="field"><label for="student-name">Nom fictif utilisé pour le test</label><input id="student-name" type="text" maxlength="35" value="Élève Démo" placeholder="Élève Démo">'+
+    '<small>Utilise un pseudonyme : aucune identité réelle n’est nécessaire.</small></div>'+
+    '<div class="btn-row">'+btn(active?'Reprendre le contrôle →':'Commencer le contrôle →','start-exam','')+'</div></div>'+featured+'</div>'+
+    '<section class="panel"><div class="panel-head"><h2>Contrôles disponibles en démonstration</h2><span class="chip">'+published.length+' publié(s)</span></div>'+
+    (published.length?'<div class="tile-grid">'+published.map(e=>'<div class="card"><span class="chip blue">'+esc(e.level)+'</span>'+
+    '<h3 style="margin:12px 0">'+esc(e.title)+'</h3><p class="muted small">'+e.questions.length+' questions · '+e.duration+' minutes · Code <strong>'+esc(e.code)+'</strong></p>'+
+    '<button class="btn ghost small" data-action="choose-code" data-code="'+esc(e.code)+'">Choisir ce contrôle →</button></div>').join('')+'</div>':
+    '<div class="empty">Aucun contrôle publié pour le moment.</div>')+'</section>';
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function renderDocumentStudent(e,q,a,answered,remaining){
@@ -212,7 +232,7 @@ function renderDocumentStudent(e,q,a,answered,remaining){
     '<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
     '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="5" data-answer="'+esc(q.id)+'" placeholder="Écris ta réponse…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
   return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
-  pill('Temps indicatif : '+remaining+' min','live')+pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+
+  pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+window.CORTEX_CLOCK.render(e,a)+
   '<div class="exam-top"><div><strong>Ta progression : '+answered+' / '+e.questions.length+' réponses</strong><div class="small muted">Réponses conservées sur cet appareil, sans serveur</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span>'+
   '<button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div>'+
   '<div class="exam-progress"><span style="width:'+(answered/e.questions.length*100)+'%"></span></div>'+
@@ -275,7 +295,8 @@ const answered=e.questions.filter(q=>String(a.answers[q.id]??'').trim().length>0
 const elapsed=Math.max(0,Math.floor((Date.now()-a.startedAt)/60000));const remaining=Math.max(0,e.duration-elapsed);
 const ans=String(a.answers[q.id]??'');
 if(e.pdfSource || e.sourceId) return renderDocumentStudent(e,q,a,answered,remaining);
-return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill('Temps indicatif : '+remaining+' min','live')}${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
+return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
+${window.CORTEX_CLOCK.render(e,a)}
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
 <div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${(q.doc||e.doc)?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(q.doc||e.doc)}</div>`:''}
 ${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<label class="choice"><input type="radio" name="choice" value="${i}" data-answer="${esc(q.id)}" ${ans===String(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}</div>`:`<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="${esc(q.id)}" placeholder="Rédige ta réponse ici…">${esc(ans)}</textarea><small>Tu peux modifier ta réponse avant de rendre le contrôle.</small></div>`}
@@ -549,5 +570,12 @@ if(t.hasAttribute('data-demo-file')&&t.files?.[0]) {
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&view==='student'&&tab==='examen')registerInterruption('visibility');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.children.length)closeModal();});
 window.addEventListener('hashchange',routePage);
+if(typeof window.setInterval==='function'){
+  window.setInterval(()=>{
+    if(view!=='student'||tab!=='examen')return;
+    const at=activeAttempt();
+    if(at?.status==='progress')window.CORTEX_CLOCK?.update(document,at,examBy(at.examId));
+  },1000);
+}
 routePage();
 })();

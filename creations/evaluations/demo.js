@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,currentQrAssignmentId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -56,6 +56,10 @@ const bits=decodeURIComponent(location.hash.slice(1)||'accueil').split('/');
 view=bits[0]==='professeur'?'teacher':bits[0]==='eleve'?'student':'home';
 tab=bits[1]|| (view==='teacher'?'dashboard':'accueil');
 if(view==='teacher'&&tab==='corriger')reviewAttemptId=bits[2]||reviewAttemptId;
+if(view==='student'&&tab==='rejoindre'){
+ studentAssignmentId=bits[2]||null;studentQrToken=bits[3]||null;
+}
+if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;}
 render();
 }
 function header(){
@@ -72,6 +76,10 @@ if(view==='teacher'&&tab==='import'){
  if(ve?.sourceId)Promise.resolve().then(()=>window.CORTEX_VISUAL.showOriginal(ve,visualPage,visualRecordCapture));
 }
 if(window.CORTEX_VISUAL)Promise.resolve().then(()=>window.CORTEX_VISUAL.hydrate(root));
+if(view==='teacher'&&tab==='qr'&&window.CORTEX_CLASSES){
+ const ass=state.assignments.find(a=>a.id===currentQrAssignmentId);
+ if(ass)Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(window.CORTEX_CLASSES.qrLink(ass),'class-qr-image').catch(e=>showToast(e.message)));
+}
 if(view==='teacher'&&tab==='creer'&&editorDocTab==='source'&&editor?.sourceId&&editor.sourceType==='docx'){
  Promise.resolve().then(()=>window.CORTEX_VISUAL.showWordSource(editor.sourceId,'editor-word-canvas'));
 }
@@ -111,14 +119,14 @@ return `<div class="home"><section class="home-hero"><div class="hero-copy"><p c
 <article class="card role-card eleve"><div class="role-icon" aria-hidden="true">✎</div><div><h2>Je suis élève</h2><p>Un parcours simple et agréable pour lire les documents, répondre aux questions, enregistrer sa progression et rendre son contrôle.</p></div><div class="btn-row">${btn('Tester un contrôle →','student','secondary')}<span class="small muted">Code SOMMEILPDF</span></div></article></div></section>
 <section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Ouvre le contrôle avec son code et réponds comme dans une vraie évaluation.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
 }
-const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
+const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherReviewFull(){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
  return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex});
 }
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
-const body=tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
+const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
 function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}

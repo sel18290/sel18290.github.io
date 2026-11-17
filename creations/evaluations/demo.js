@@ -338,9 +338,8 @@ async function visualFile(file){
 }
 async function visualCopy(id){
  try{
-  const blob=await window.CORTEX_VISUAL.getImage(id);
-  if(!blob)throw Error('Image non disponible sur cet appareil.');
-  await window.CORTEX_VISUAL.copy(blob);showToast('Image copiée dans le presse-papiers.');
+  await window.CORTEX_VISUAL.copy(window.CORTEX_VISUAL.getImage(id));
+  showToast('Image copiée dans le presse-papiers.');
  }catch(error){showToast(error.message);}
 }
 async function visualDownload(id){
@@ -356,9 +355,9 @@ async function visualCopySource(download){
   const el=document.getElementById('visual-source-preview');
   const canvas=el?.querySelector('canvas');
   const source=canvas||el?.querySelector('.source-document')||el;
-  const blob=await window.CORTEX_VISUAL.imageOfElement(source);
-  if(download)window.CORTEX_VISUAL.download(blob,'document-question-'+(editorIndex+1)+'.png');
-  else{await window.CORTEX_VISUAL.copy(blob);showToast('Document copié en image.');}
+  const blobPromise=window.CORTEX_VISUAL.imageOfElement(source);
+  if(download)window.CORTEX_VISUAL.download(await blobPromise,'document-question-'+(editorIndex+1)+'.png');
+  else{await window.CORTEX_VISUAL.copy(blobPromise);showToast('Document copié en image.');}
  }catch(error){showToast('Copie impossible : '+error.message);}
 }
 function openOriginalFromBlob(blob,kind){
@@ -488,7 +487,7 @@ if(a==='visual-download-original'){
  window.CORTEX_DOCS.readFile(ex.sourceId).then(f=>{if(f)window.CORTEX_VISUAL.download(f.blob,ex.sourceName||'controle.pdf')}).catch(err=>showToast(err.message));return;
 }
 if(a==='visual-copy-original'){
- window.CORTEX_VISUAL.fullBlob().then(b=>window.CORTEX_VISUAL.copy(b)).then(()=>showToast('Page copiée en image.')).catch(err=>showToast(err.message));return;
+ window.CORTEX_VISUAL.copy(window.CORTEX_VISUAL.fullBlob()).then(()=>showToast('Page copiée en image.')).catch(err=>showToast(err.message));return;
 }
 if(a==='visual-attach'){visualLink(id);return;}
 if(a==='visual-detach'){visualUnlink(id);return;}

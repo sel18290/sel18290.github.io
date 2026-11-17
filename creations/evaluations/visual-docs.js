@@ -179,6 +179,18 @@ async function showOriginal(exam,page,onCapture){
   bindCrop(area,canvas,selection,async blob=>onCapture(blob,page));
  }catch(err){if(target.isConnected&&generation===cropGeneration)target.textContent='Document non affiché : '+err.message;}
 }
+async function showWordSource(sourceId,targetId){
+ const target=document.getElementById(targetId);
+ if(!target)return;
+ try{
+  const source=await window.CORTEX_DOCS.readFile(sourceId);
+  if(!source||source.kind!=='docx')throw Error('Le fichier Word est indisponible sur cet appareil.');
+  await script('https://unpkg.com/mammoth@1.10.0/mammoth.browser.min.js');
+  const container=document.createElement('div');target.replaceChildren(container);
+  const canvas=await sanitizeWord(source.blob,container);
+  canvas.style.maxWidth='100%';canvas.style.width='100%';canvas.style.height='auto';
+ }catch(e){if(target.isConnected)target.textContent='Prévisualisation Word impossible : '+e.message;}
+}
 function cropBlob(canvas,rect){
  return new Promise((resolve,reject)=>{
   const c=document.createElement('canvas');c.width=Math.round(rect.width);c.height=Math.round(rect.height);
@@ -261,5 +273,5 @@ async function paste(){
  }
  throw Error('Aucune image dans le presse-papiers.');
 }
-return {inspect,workspace,importHome,showOriginal,fullBlob,saveImage,getImage,removeImage,imageUrl,renderAssets,hydrate,imageOfElement,download,copy,paste};
+return {inspect,workspace,importHome,showOriginal,showWordSource,fullBlob,saveImage,getImage,removeImage,imageUrl,renderAssets,hydrate,imageOfElement,download,copy,paste};
 })();

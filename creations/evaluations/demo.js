@@ -240,8 +240,11 @@ function studentWelcome(){
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function studentDocuments(e,q,a,answered){
  const attached=window.CORTEX_VISUAL?.renderAssets(e,q,'student')||'';
- const form='<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
- '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="'+esc(q.id)+'" placeholder="Rédige ta réponse ici…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
+ const answerField=q.type==='choice'?'<div class="exam-choices">'+(q.choices||[]).map((choice,i)=>
+    '<label class="choice"><input type="radio" name="choice" value="'+i+'" data-answer="'+esc(q.id)+'" '+
+    (String(a.answers[q.id]??'')===String(i)?'checked':'')+'><span>'+esc(choice)+'</span></label>').join('')+'</div>':
+    '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="'+esc(q.id)+'" placeholder="Rédige ta réponse ici…">'+esc(a.answers[q.id]||'')+'</textarea></div>';
+ const form='<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+answerField+'</div>';
  if(e.pdfSource){
   const original=window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered);
   return attached?original.replace('<div class="doc-question-response">',attached+'<div class="doc-question-response">'):original;

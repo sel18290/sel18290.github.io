@@ -232,5 +232,34 @@ function importHome(){
   <p class="small muted">Le fichier et les extraits sont sauvegardés sur cet appareil. Cette démo GitHub ne publie pas encore les documents pour les élèves sur leurs téléphones.</p>
  </div>`;
 }
-return {inspect,workspace,importHome,showOriginal,fullBlob,saveImage,getImage,removeImage,imageUrl,renderAssets,hydrate};
+async function imageOfElement(element){
+ if(!element)throw Error('Aucun document visible à capturer.');
+ if(element.tagName==='CANVAS')return await new Promise((resolve,reject)=>element.toBlob(b=>b?resolve(b):reject(Error('Échec de capture')),'image/png'));
+ await script('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+ const canvas=await window.html2canvas(element,{backgroundColor:'#fff',scale:1.4,logging:false,useCORS:false});
+ return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Échec de capture')),'image/png'));
+}
+function download(blob,name){
+ const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;
+ link.download=String(name||'document.png').replace(/[\\/:*?"<>|]/g,'_');link.style.display='none';document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),20000);
+}
+async function copy(blob){
+ if(!navigator.clipboard?.write||typeof ClipboardItem==='undefined')throw Error('Copie d’image indisponible dans ce navigateur. Utilise « Télécharger ».');
+ await navigator.clipboard.write([new ClipboardItem({'image/png':blob.type==='image/png'?blob:await pngFromBlob(blob)})]);
+}
+async function pngFromBlob(blob){
+ const image=await createImageBitmap(blob),c=document.createElement('canvas');
+ c.width=image.width;c.height=image.height;c.getContext('2d').drawImage(image,0,0);
+ return await new Promise((resolve,reject)=>c.toBlob(x=>x?resolve(x):reject(Error('Conversion impossible')),'image/png'));
+}
+async function paste(){
+ if(!navigator.clipboard?.read)throw Error('Collage par bouton indisponible ici. Utilise Ctrl+V ou « Importer une image ».');
+ const items=await navigator.clipboard.read();
+ for(const item of items)for(const mime of item.types){
+  if(mime.startsWith('image/'))return await item.getType(mime);
+ }
+ throw Error('Aucune image dans le presse-papiers.');
+}
+return {inspect,workspace,importHome,showOriginal,fullBlob,saveImage,getImage,removeImage,imageUrl,renderAssets,hydrate,imageOfElement,download,copy,paste};
 })();

@@ -201,9 +201,25 @@ function teacherEditor(){
 }
 
 function teacherCopies(){
-const submitted=state.attempts.filter(a=>a.status==='submitted');
-return pageHead('Copies & notes','Ouvre une copie pour consulter chaque document, sa réponse et son barème.',(attemptBy('ex-pdf-demo')?btn('Corriger la copie PDF · 20 questions','review-pdf-sample',''):'')+btn('Essayer côté élève →','student','secondary'))+
-`<div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2><p>Exemples fictifs + copies remises sur cet appareil.</p></div>${btn('Réinitialiser la démo','reset-demo','ghost small')}</div><div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Interruptions</th><th>Action</th></tr></thead><tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong></td><td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td><td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td><td>${a.interruptions||0}</td><td><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Ouvrir ↗</button></td></tr>`).join('')}</tbody></table></div>${submitted.length===0?'<p class="empty">Aucune copie pour l’instant. Passe côté élève pour en créer une.</p>':''}</div>`;
+ const submitted=state.attempts.filter(a=>a.status==='submitted'&&window.CORTEX_CLASSES.copyMatch(a,teacherClassFilter,teacherGroupFilter))
+ .sort((a,b)=>String(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId)).localeCompare(String(b.className||window.CORTEX_CLASSES.classLabel(state,b.classId)),'fr')||
+ String(a.groupName||'').localeCompare(String(b.groupName||''),'fr')||((b.submittedAt||0)-(a.submittedAt||0)));
+ const showDemo=!teacherClassFilter||teacherClassFilter==='2mrc1';
+ return pageHead('Copies & notes','Copies classées par classe et demi-groupe. Ouvre une copie pour corriger chaque question.',
+ (showDemo&&attemptBy('ex-pdf-demo')?btn('Corriger la copie PDF de démonstration','review-pdf-sample',''):'')+
+ btn('Mes classes','class-open-manager','secondary'))+
+ `${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}
+ <div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2>
+ <p>Conserve le contexte classe et demi-groupe même après un archivage.</p></div>
+ ${btn('Réinitialiser la démo','reset-demo','ghost small')}</div>
+ <div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Classe / groupe</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Action</th></tr></thead>
+ <tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong></td>
+ <td><span class="class-copy-badge">${esc(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId,'Sans classe'))}</span>
+ <div class="small muted">${esc(a.groupName||window.CORTEX_CLASSES.groupLabel(state,a.classId,a.groupId,'Groupe archivé'))}</div></td>
+ <td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td>
+ <td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td>
+ <td><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Corriger ↗</button></td></tr>`).join('')}</tbody></table></div>
+ ${submitted.length===0?'<p class="empty">Aucune copie pour cette sélection. Vérifie le filtre ou fais un essai depuis un QR code.</p>':''}</div>`;
 }
 function teacherMonitoring(){
 const progress=state.attempts.filter(a=>a.status==='progress');const recent=[...state.events].sort((a,b)=>b.at-a.at);

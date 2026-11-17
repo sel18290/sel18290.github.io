@@ -218,7 +218,7 @@ function teacherCopies(){
  <p>Conserve le contexte classe et demi-groupe même après un archivage.</p></div>
  ${btn('Réinitialiser la démo','reset-demo','ghost small')}</div>
  <div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Classe / groupe</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Action</th></tr></thead>
- <tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong></td>
+ <tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong>${a.studentNumber?`<div class="small muted">Numéro d'élève : ${esc(a.studentNumber)}</div>`:''}</td>
  <td><span class="class-copy-badge">${esc(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId,'Sans classe'))}</span>
  <div class="small muted">${esc(a.groupName||window.CORTEX_CLASSES.groupLabel(state,a.classId,a.groupId,'Groupe archivé'))}</div></td>
  <td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td>
@@ -419,7 +419,7 @@ function startExam(){
    showToast('Accès QR invalide ou contrôle non publié. Demande un nouveau QR au professeur.');return;
  }
  const existing=activeAttempt();
- if(existing&&existing.status==='progress'&&existing.assignmentId===assignment.id){nav('student','examen');return;}
+ if(existing&&existing.status==='progress'&&existing.assignmentId===assignment.id&&existing.studentNumber===studentRollNumber){nav('student','examen');return;}
  if(!/^\d{1,4}$/.test(studentRollNumber)||tab!=='pret'){showToast('Saisis ton numéro d’élève avant de commencer.');return;}
  const name='Élève n° '+studentRollNumber;
  const at={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,assignmentId:assignment.id,

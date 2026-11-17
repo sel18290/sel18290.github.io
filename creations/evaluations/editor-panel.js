@@ -9,7 +9,27 @@ function documentContent(exam,question){
   const raw=module?.source?module.source(exam,question):'<p>Document indisponible.</p>';
   return raw.replaceAll('id="review-source-canvas"','id="editor-source-canvas"').replaceAll('data-action="review-original"','data-action="editor-original"');
 }
-function render({exam,index=0}){
+const visualPane=function visualPane(exam,q,docTab,sourceHtml){
+ const items=exam.assets||[],associated=q.assetIds||[],helper=window.CORTEX_VISUAL;
+ if(docTab!=='documents')return `<div class="visual-source-pane"><div class="visual-editor-tools">
+  <button class="btn ghost small" data-action="visual-copy-source">Copier le document</button>
+  <button class="btn ghost small" data-action="visual-download-source">Télécharger en PNG</button>
+  ${exam.sourceId?'<button class="btn secondary small" data-action="visual-return-import">Découper le PDF / Word</button>':''}
+  </div><div id="visual-source-preview">${sourceHtml}</div>
+  <div class="ed-source-help"><strong>Le même document est conservé dans la correction.</strong><p>Utilise « Documents élève » pour ajouter des captures ou des images.</p></div></div>`;
+ const bank=items.map(asset=>`<div><img data-visual-id="${esc(asset.id)}" data-visual-drag="${esc(asset.id)}" draggable="true" alt="${esc(asset.name)}">
+  <span>${esc(asset.name)}</span><button class="btn ${associated.includes(asset.id)?'secondary':'ghost'} small" data-action="${associated.includes(asset.id)?'visual-detach':'visual-attach'}" data-id="${esc(asset.id)}">${associated.includes(asset.id)?'Retirer de cette question':'Associer à cette question'}</button></div>`).join('');
+ return `<div class="visual-editor-gallery"><h3>Documents visibles par l’élève</h3>
+  ${helper?.renderAssets(exam,q,'editor')||'<p class="muted small">Aucun document associé. Ajoute une image ci-dessous.</p>'}
+  ${items.length?'<h3>Bibliothèque des captures du contrôle</h3><div class="visual-editor-library">'+bank+'</div>':''}</div>
+  <div class="visual-editor-drop" data-visual-dropzone tabindex="0" role="group" aria-label="Déposer un document pour cette question">
+    <strong>⇩ Glisse une capture ici</strong><p>Ou colle une image / importe un fichier PNG, JPEG ou WebP.</p>
+    <div class="btn-row"><label class="btn secondary small" for="visual-editor-upload">＋ Ajouter une image</label>
+      <input id="visual-editor-upload" type="file" accept="image/png,image/jpeg,image/webp" data-visual-upload hidden>
+      <button class="btn ghost small" data-action="visual-paste-image">Coller une capture</button></div>
+  </div>`;
+};
+function render({exam,index=0,docTab='source'}){
   if(!exam||!Array.isArray(exam.questions))return '<div class="panel">Aucun contrôle en cours.</div>';
   if(!exam.questions.length)return '<div class="panel">Ajoute une question pour commencer.</div>';
   const q=exam.questions[index]||exam.questions[0],i=Math.min(index,exam.questions.length-1);
@@ -23,6 +43,8 @@ function render({exam,index=0}){
     `<div class="field"><label for="ed-qdoc">Document spécifique à cette question (facultatif)</label>
     <textarea id="ed-qdoc" rows="3" data-question="${i}" data-qfield="doc" placeholder="Colle ici un document spécifique ; sinon, la source commune est utilisée.">${esc(q.doc||'')}</textarea>
     <small>Ce texte sera également visible dans l’espace élève et pendant la correction.</small></div>`;
+  const associated=q.assetIds||[];
+  const documentPanel=visualPane(exam,q,docTab,documentContent(exam,q));
   const qcm=q.type==='choice'&&!sample;
   const typeField=sample?`<div class="ed-format-lock"><strong>Format du PDF conservé</strong><span>Réponse rédigée${q.number===6?' · tableau interactif':q.number===10?' · deux champs à compléter':''}. Pour créer un QCM, utilise l’éditeur de nouveaux contrôles.</span></div>`:
     `<div class="field"><label for="ed-qtype">Type de question</label><select id="ed-qtype" data-question="${i}" data-qfield="type">
@@ -66,9 +88,11 @@ function render({exam,index=0}){
       <div class="review-question-scroll">${cards}</div><div class="ed-nav-actions"><button class="btn ghost small full" data-action="editor-add-question">＋ Ajouter une question</button></div></nav>
       <section class="review-document-pane ed-document" aria-label="Document de la question ${i+1}">
       <div class="review-pane-title"><div><span class="review-overline">SOURCE PÉDAGOGIQUE</span><h2>Document associé</h2></div><span class="review-source-badge">${sample?'PDF reconstitué':imported?'Fichier importé':'Texte / cours'}</span></div>
-      ${documentContent(exam,q)}
-      <div class="ed-source-help"><strong>Le même document sera présenté à l'élève et au correcteur.</strong>
-      <p>Change la partie ou la page associée dans le panneau de droite pour afficher une autre source.</p></div>
+      <div class="visual-editor-tabs" role="tablist" aria-label="Documents associés à cette question">
+        <button role="tab" data-action="editor-doc-tab" data-tab="source" aria-selected="${docTab==='source'}">Document original</button>
+        <button role="tab" data-action="editor-doc-tab" data-tab="documents" aria-selected="${docTab==='documents'}">Documents élève (${associated.length})</button>
+      </div>
+      ${documentPanel}
       </section>
       <section class="review-response-pane ed-configuration" aria-label="Modification question ${i+1}">
       <div class="review-pane-title"><div><span class="review-overline">QUESTION ${esc(numbered(q)||i+1)} / ${exam.questions.length}</span><h2>Modifier la question</h2></div><span class="review-points-pill">${fmt(q.points)} pt</span></div>

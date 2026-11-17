@@ -540,6 +540,10 @@ if(a==='confirm-delete-exam'){
  if(chosenCode===exam.code)chosenCode=state.exams.find(x=>x.open)?.code||'';
  save();closeModal();render();
  if(exam.sourceId && !state.exams.some(x=>x.sourceId===exam.sourceId) && window.CORTEX_DOCS?.deleteFile)window.CORTEX_DOCS.deleteFile(exam.sourceId).catch(()=>{});
+ for(const asset of exam.assets||[]){
+   if(!state.exams.some(other=>other.assets?.some(x=>x.id===asset.id)))
+    window.CORTEX_VISUAL?.removeImage(asset.id).catch(()=>{});
+ }
  showToast('Contrôle et copies associées supprimés de cette démo.');
  return;
 }

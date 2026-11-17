@@ -139,7 +139,7 @@ async function drawQr(url,selector='class-qr-image'){
  new window.QRCode(target,{text:url,width:230,height:230,colorDark:'#0a2630',colorLight:'#ffffff',
   correctLevel:window.QRCode.CorrectLevel.M});
 }
-function newLanding(s,assignment,exam,invalid=false,options={}){
+function landing(s,assignment,exam,invalid=false,options={}){
  if(invalid||!assignment||!exam){
   return `<div class="qr-student-landing panel"><div class="qr-landing-icon">!</div><h1>QR code non reconnu</h1>
     <p>Ce lien ne correspond pas à un accès actif sur cet appareil. Dans cette version locale, les contrôles personnalisés ne sont pas partagés entre appareils.</p>

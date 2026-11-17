@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0;
+let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -67,7 +67,12 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
-if(view==='teacher'&&tab==='creer'&&editor?.sourceId&&editor.sourceType==='pdf'){
+if(view==='teacher'&&tab==='import'){
+ const ve=examBy(importExamId);
+ if(ve?.sourceId)Promise.resolve().then(()=>window.CORTEX_VISUAL.showOriginal(ve,visualPage,visualRecordCapture));
+}
+if(window.CORTEX_VISUAL)Promise.resolve().then(()=>window.CORTEX_VISUAL.hydrate(root));
+if(view==='teacher'&&tab==='creer'&&editorDocTab==='source'&&editor?.sourceId&&editor.sourceType==='pdf'){
   const selected=editor.questions[editorIndex],page=selected?.page||1;
   Promise.resolve().then(()=>window.CORTEX_DOCS.renderPdfOriginal(editor.sourceId,page,'editor-source-canvas'));
 }
@@ -103,7 +108,7 @@ if(tab==='corriger')return teacherReviewFull();
 const body=tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
-function teacherImport(){return window.CORTEX_DOCS?window.CORTEX_DOCS.guidePanel():'<p>Le module documentaire est indisponible.</p>';}
+function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}
 function pageHead(title,desc,actions=''){return `<div class="page-head"><div><p class="eyebrow">Espace professeur · Démonstration</p><h1>${title}</h1><p>${desc}</p></div><div class="btn-row">${actions}</div></div>`;}
 function examPreviewCard(e) {
   const first=e.questions?.[0],summary=e.pdfSource?
@@ -169,7 +174,7 @@ function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e))
 function teacherEditor(){
   if(!editor)editor=editorFor(null);
   editorIndex=Math.max(0,Math.min(editorIndex,editor.questions.length-1));
-  return window.CORTEX_EDITOR.render({exam:editor,index:editorIndex});
+  return window.CORTEX_EDITOR.render({exam:editor,index:editorIndex,docTab:editorDocTab});
 }
 
 function teacherCopies(){
@@ -246,31 +251,92 @@ function renderDocumentStudent(e,q,a,answered,remaining){
   '<hr class="divider"><p class="small muted">Les réponses peuvent être modifiées avant la remise. Une sortie de page ne prouve pas une fraude.</p>'+
   btn('Simuler une interruption','simulate-interruption','ghost small full')+'</aside></div>';
 }
-async function processImport(file) {
-  const status=document.getElementById('import-progress');
-  if(!file){showToast('Sélectionne un fichier PDF ou Word.');return;}
-  try {
-    if(status)status.textContent='Ouverture du document…';
-    const parsed=await window.CORTEX_DOCS.parseFile(file,msg=>{const node=document.getElementById('import-progress');if(node)node.textContent=msg;});
-    pendingImport=parsed;
-    const region=document.getElementById('import-results');
-    if(region)region.innerHTML=window.CORTEX_DOCS.importReview(parsed);
-    showToast('Document analysé : vérifie les questions et les documents.');
-  } catch(error) {
-    if(status)status.textContent='Import impossible : '+error.message;
-    showToast('Import impossible : '+error.message);
-  }
+async function processImport(file){
+ if(!file){showToast('Sélectionne un fichier PDF ou Word.');return;}
+ const status=document.getElementById('visual-import-status');
+ try{
+  if(status)status.textContent='Ouverture visuelle du document original…';
+  const data=await window.CORTEX_VISUAL.inspect(file);
+  const sourceId='original-'+Date.now()+'-'+Math.floor(Math.random()*100000);
+  await window.CORTEX_DOCS.storeFile({blob:file,kind:data.kind,filename:file.name,sourceId});
+  const exam={id:'import-'+Date.now()+'-'+Math.floor(Math.random()*10000),
+   title:file.name.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Contrôle importé',
+   duration:60,code:'DOC'+Math.floor(100000+Math.random()*900000),
+   open:false,doc:'',sourceId,sourceType:data.kind,sourceName:file.name,sourcePages:[],sourcePageCount:data.pages,
+   assets:[],questions:[{id:'question-'+Date.now(),prompt:'',type:'text',points:1,page:1,assetIds:[]}]};
+  state.exams.unshift(exam);importExamId=exam.id;visualPage=1;visualQuestionId=exam.questions[0].id;save();
+  showToast('Document original chargé. Encadre les zones utiles pour tes élèves.');render();
+ }catch(error){if(status)status.textContent='Impossible d’ouvrir le document : '+error.message;showToast(error.message);}
 }
-async function saveImported(){
-  if(!pendingImport){showToast('Importe d’abord un fichier.');return;}
-  try { await window.CORTEX_DOCS.storeFile(pendingImport); }
-  catch(error) {showToast('Impossible de conserver le fichier sur cet appareil. Vérifie le stockage du navigateur.');return;}
-  const qs=pendingImport.questions.filter(q=>q.prompt.trim()).map((q,i)=>({...q,id:'q-import-'+i+'-'+Date.now(),points:Number(q.points)||1}));
-  if(!qs.length)qs.push({id:'q-import-1',prompt:'Question 1 — à renseigner par le professeur',points:1,type:'text'});
-  const newExam={id:'import-'+Date.now(),title:pendingImport.filename.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Document importé',duration:60,code:'DOC'+String(Math.floor(100000+Math.random()*900000)),open:false,doc:'',sourceId:pendingImport.sourceId,sourceType:pendingImport.kind,sourceName:pendingImport.filename,sourcePages:pendingImport.pages,sourcePageCount:pendingImport.pages.length,questions:qs};
-  state.exams.unshift(newExam);save();editor=editorFor(newExam.id);editor.isNew=false;pendingImport=null;
-  showToast('Document conservé. Vérifie le barème et les questions avant de publier.');
-  nav('teacher','creer');
+async function visualRecordCapture(blob,page){
+ const exam=examBy(importExamId);
+ if(!exam)return;
+ try{
+  const id='capture-'+Date.now()+'-'+Math.floor(Math.random()*100000);
+  await window.CORTEX_VISUAL.saveImage(blob,id);
+  exam.assets||=[];
+  exam.assets.push({id,name:'Extrait '+(exam.assets.length+1),page:page||1,createdAt:Date.now()});
+  save();showToast('Capture créée. Glisse-la vers Documents élève ou clique sur Ajouter.');render();
+ }catch(err){showToast('Impossible de conserver la capture : '+err.message);}
+}
+function visualTarget(){
+ const exam=view==='teacher'&&tab==='import'?examBy(importExamId):editor;
+ const q=tab==='import'?exam?.questions.find(q=>q.id===visualQuestionId)||exam?.questions[0]:editor?.questions[editorIndex];
+ return {exam,q};
+}
+function visualLink(id){
+ const {exam,q}=visualTarget();
+ if(!exam||!q||!exam.assets?.some(a=>a.id===id)){showToast('Capture indisponible.');return;}
+ q.assetIds||=[];
+ if(!q.assetIds.includes(id))q.assetIds.push(id);
+ if(tab==='import')save();
+ render();showToast('Capture ajoutée aux documents de la question.');
+}
+function visualUnlink(id){
+ const {q}=visualTarget();if(!q)return;
+ q.assetIds=(q.assetIds||[]).filter(x=>x!==id);
+ if(tab==='import')save();
+ render();
+}
+async function visualFile(file){
+ if(!file)return;
+ if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>6*1024*1024){showToast('Image PNG, JPG ou WebP de 6 Mo maximum.');return;}
+ const {exam,q}=visualTarget();
+ if(!exam||!q){showToast('Ouvre d’abord un contrôle et une question.');return;}
+ try{
+  const id='image-'+Date.now()+'-'+Math.floor(Math.random()*100000);
+  await window.CORTEX_VISUAL.saveImage(file,id);
+  exam.assets||=[];
+  exam.assets.push({id,name:(file.name||'Capture collée').slice(0,70),page:null,createdAt:Date.now()});
+  q.assetIds||[];q.assetIds.push(id);
+  if(tab==='import')save();
+  render();showToast('Image ajoutée aux documents de la question.');
+ }catch(error){showToast('Enregistrement impossible : '+error.message);}
+}
+async function visualCopy(id){
+ try{
+  const blob=await window.CORTEX_VISUAL.getImage(id);
+  if(!blob)throw Error('Image non disponible sur cet appareil.');
+  await window.CORTEX_VISUAL.copy(blob);showToast('Image copiée dans le presse-papiers.');
+ }catch(error){showToast(error.message);}
+}
+async function visualDownload(id){
+ try{
+  const {exam}=visualTarget(),asset=exam?.assets?.find(a=>a.id===id);
+  const blob=await window.CORTEX_VISUAL.getImage(id);
+  if(!blob)throw Error('Capture introuvable.');
+  window.CORTEX_VISUAL.download(blob,(asset?.name||'document')+'.'+(blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg'));
+ }catch(error){showToast(error.message);}
+}
+async function visualCopySource(download){
+ try{
+  const el=document.getElementById('visual-source-preview');
+  const canvas=el?.querySelector('canvas');
+  const source=canvas||el?.querySelector('.source-document')||el;
+  const blob=await window.CORTEX_VISUAL.imageOfElement(source);
+  if(download)window.CORTEX_VISUAL.download(blob,'document-question-'+(editorIndex+1)+'.png');
+  else{await window.CORTEX_VISUAL.copy(blob);showToast('Document copié en image.');}
+ }catch(error){showToast('Copie impossible : '+error.message);}
 }
 function openOriginalFromBlob(blob,kind){
   if(previewFileUrl)URL.revokeObjectURL(previewFileUrl);

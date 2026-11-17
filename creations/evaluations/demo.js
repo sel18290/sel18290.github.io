@@ -254,6 +254,7 @@ function studentDocuments(e,q,a,answered){
  (attached||fallback||manual)+'<p class="small muted">Les documents ci-dessus sont ceux associés à cette question.</p>'+form;
 }
 function renderDocumentStudent(e,q,a,answered,remaining){
+ const sample=!!e.pdfSource;
  const body=studentDocuments(e,q,a,answered);
   return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
   pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+window.CORTEX_CLOCK.render(e,a)+

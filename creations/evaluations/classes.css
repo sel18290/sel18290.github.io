@@ -33,3 +33,20 @@
 @media(max-width:1230px){.class-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:950px){.class-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.class-detail-cols{grid-template-columns:1fr}.class-filter-bar{align-items:stretch}.class-filters{width:100%}.class-filters select{min-width:145px}}
 @media(max-width:600px){.class-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.class-card{padding:12px;min-height:142px}.class-card strong{font-size:21px}.class-card-bottom{font-size:9px}.class-details{padding:15px}.class-detail-area{padding:14px}.class-addbar{padding:13px}.class-addbar .btn{width:100%}.class-group-row,.class-assignment-row{align-items:flex-start;flex-direction:column}.class-filters>*{flex:1}.class-qr-pick{align-items:flex-start}.class-qr-pick>span:last-child{font-size:11px}.qr-student-landing{padding:18px}.qr-image{width:244px;height:244px}.class-qr-details{grid-template-columns:1fr}.class-quick-strip{gap:5px}}
+
+/* Vérification du numéro avant le lancement de l'épreuve */
+.qr-student-landing #student-number{font-size:34px;line-height:1.3;letter-spacing:.14em;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;min-height:68px;border:1px solid #64aeae;background:#102b37}
+.qr-student-landing #student-number:focus{box-shadow:0 0 0 3px #8fe5d943}
+.qr-student-landing #student-number-hint{display:block;color:#a6c7d1;margin-top:7px}
+.qr-identity-confirm{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(110deg,#1d4b50,#132d41);border:1px solid #548e94;border-radius:14px;padding:16px 17px;margin:18px 0;flex-wrap:wrap}
+.qr-identity-confirm>span{color:#acd3d4;font-size:10px;letter-spacing:.12em;font-weight:900}
+.qr-identity-confirm>strong{font-size:25px;color:#d3fff3;font-variant-numeric:tabular-nums}
+.qr-start-notice{display:flex;gap:14px;align-items:start;background:#193e49;border:1px solid #4c8085;border-radius:12px;padding:16px;margin-bottom:17px}
+.qr-start-notice>span{color:#88ecd8;font-size:27px;line-height:1.2}
+.qr-start-notice strong{display:block;color:#d7fff4;font-size:13px}
+.qr-start-notice p{color:#b4d4db;font-size:12px;margin:5px 0 0}
+.pdf-export-status{background:#193c42;color:#abebe3;border:1px solid #538a83;border-radius:12px;padding:12px 17px;margin:0 0 16px;font-size:12px}
+.pdf-export-status[hidden]{display:none}
+.pdf-row-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pdf-row-actions .btn{white-space:nowrap;font-size:11px;padding:8px 10px}
+@media(max-width:600px){.qr-identity-confirm{align-items:start}.qr-identity-confirm>strong{width:100%}.qr-student-landing #student-number{font-size:28px}.pdf-row-actions{gap:5px}}

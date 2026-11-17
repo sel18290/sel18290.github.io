@@ -60,6 +60,8 @@ if(view==='student'&&(tab==='rejoindre'||tab==='pret')){
  const nextAssignment=bits[2]||null,nextToken=bits[3]||null;
  if(studentAssignmentId!==nextAssignment||studentQrToken!==nextToken)studentRollNumber='';
  studentAssignmentId=nextAssignment;studentQrToken=nextToken;
+ // Un QR public de la démo doit aussi fonctionner dans un navigateur vierge.
+ if(tab==='rejoindre' && bits.length>=7 && window.CORTEX_CLASSES.hydrateQrDemo(state,bits.slice(2,7)))save();
 }
 if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';}
 render();
@@ -607,8 +609,12 @@ function classAction(action,id,el){
   link.href=href;document.body.appendChild(link);link.click();link.remove();return true;
  }
  if(action==='class-student-identify'){
-  const value=String(document.getElementById('student-number')?.value||'').trim();
-  if(!/^\d{1,4}$/.test(value)){showToast('Saisis ton numéro sur la liste de classe (1 à 4 chiffres).');return true;}
+  const input=document.getElementById('student-number');
+  const value=String(input?.value||'').trim();
+  if(!/^\d{1,4}$/.test(value)){
+   if(input){input.setAttribute?.('aria-invalid','true');input.focus?.();}
+   showToast('Saisis ton numéro de liste : 1 à 4 chiffres (exemple : 003).');return true;
+  }
   const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
   if(!assignment||!examBy(assignment.examId)?.open){showToast('Ce contrôle n’est pas accessible.');return true;}
   studentRollNumber=value;
@@ -871,6 +877,13 @@ if(a==='confirm-submit'){const at=activeAttempt();if(!at)return;at.status='submi
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
 if(a==='confirm-reset'){state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
+document.addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&e.target?.id==='student-number'){
+  e.preventDefault();
+  const trigger=document.querySelector('[data-action="class-student-identify"]');
+  if(trigger&&!trigger.disabled)action(trigger);
+ }
+});
 document.addEventListener('click',e=>{
 const el=e.target.closest('[data-action]');if(el){e.preventDefault();action(el);}
 });

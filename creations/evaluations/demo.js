@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,currentQrAssignmentId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',currentQrAssignmentId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -56,10 +56,12 @@ const bits=decodeURIComponent(location.hash.slice(1)||'accueil').split('/');
 view=bits[0]==='professeur'?'teacher':bits[0]==='eleve'?'student':'home';
 tab=bits[1]|| (view==='teacher'?'dashboard':'accueil');
 if(view==='teacher'&&tab==='corriger')reviewAttemptId=bits[2]||reviewAttemptId;
-if(view==='student'&&tab==='rejoindre'){
- studentAssignmentId=bits[2]||null;studentQrToken=bits[3]||null;
+if(view==='student'&&(tab==='rejoindre'||tab==='pret')){
+ const nextAssignment=bits[2]||null,nextToken=bits[3]||null;
+ if(studentAssignmentId!==nextAssignment||studentQrToken!==nextToken)studentRollNumber='';
+ studentAssignmentId=nextAssignment;studentQrToken=nextToken;
 }
-if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;}
+if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';}
 render();
 }
 function header(){
@@ -240,7 +242,7 @@ function studentWelcome(){
  const a=state.assignments.find(x=>x.id===studentAssignmentId);
  const valid=a&&a.active&&a.token===studentQrToken&&!window.CORTEX_CLASSES.byId(state,a.classId)?.archived&&(!a.groupId||!window.CORTEX_CLASSES.group(state,a.classId,a.groupId)?.archived);
  const e=valid?examBy(a.examId):null;
- return window.CORTEX_CLASSES.landing(state,valid?a:null,e,!valid||!e);
+ return window.CORTEX_CLASSES.landing(state,valid?a:null,e,!valid||!e,{step:tab==='pret'?'ready':'identify',number:studentRollNumber});
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function studentDocuments(e,q,a,answered){
@@ -415,10 +417,11 @@ function startExam(){
  }
  const existing=activeAttempt();
  if(existing&&existing.status==='progress'&&existing.assignmentId===assignment.id){nav('student','examen');return;}
- const name=(document.getElementById('student-name')?.value.trim()||'Élève Démo').slice(0,45);
+ if(!/^\d{1,4}$/.test(studentRollNumber)||tab!=='pret'){showToast('Saisis ton numéro d’élève avant de commencer.');return;}
+ const name='Élève n° '+studentRollNumber;
  const at={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,assignmentId:assignment.id,
   classId:cl.id,className:cl.name,groupId:assignment.groupId||null,groupName:gr?.name||'Classe entière',
-  name,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,
+  name,studentNumber:studentRollNumber,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,
   answers:{},grade:null,feedback:'',interruptions:0};
  state.attempts.push(at);state.activeAttemptId=at.id;currentQuestion=0;save();nav('student','examen');
 }
@@ -599,6 +602,18 @@ function classAction(action,id,el){
   if(!href){showToast('QR non prêt : réessaie dans un instant.');return true;}
   const link=document.createElement('a');link.download='CORTEX-'+C.classLabel(state,a.classId)+(a.groupId?'-'+C.groupLabel(state,a.classId,a.groupId):'')+'-QR.png';
   link.href=href;document.body.appendChild(link);link.click();link.remove();return true;
+ }
+ if(action==='class-student-identify'){
+  const value=String(document.getElementById('student-number')?.value||'').trim();
+  if(!/^\d{1,4}$/.test(value)){showToast('Saisis ton numéro sur la liste de classe (1 à 4 chiffres).');return true;}
+  const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
+  if(!assignment||!examBy(assignment.examId)?.open){showToast('Ce contrôle n’est pas accessible.');return true;}
+  studentRollNumber=value;
+  nav('student','pret/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
+ }
+ if(action==='class-student-edit-number'){
+  studentRollNumber='';
+  nav('student','rejoindre/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
  }
  if(action==='class-student-start'){startExam();return true;}
  return false;

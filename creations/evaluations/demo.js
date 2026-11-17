@@ -672,12 +672,49 @@ if(t.hasAttribute('data-answer')&&t.type==='radio'){setAnswer(t.dataset.answer,t
 if(t.id==='review-points'){setReviewPoints(t.value);return;}
 if(t.hasAttribute('data-doc-sub')){const at=activeAttempt(),id=t.dataset.docSub;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}}
 
+if(t.hasAttribute('data-visual-question')){
+ visualQuestionId=t.value;render();return;
+}
+if(t.hasAttribute('data-visual-upload')&&t.files?.[0]){
+ visualFile(t.files[0]);return;
+}
 if(t.hasAttribute('data-demo-file')&&t.files?.[0]) {
   const file=t.files[0];
   nav('teacher','import');
   // Après changement de page, l'ancien input ne vit plus : garder le fichier capturé
   processImport(file);
 }
+});
+document.addEventListener('dragstart',e=>{
+ const img=e.target?.closest?.('[data-visual-drag]');
+ if(!img||!e.dataTransfer)return;
+ e.dataTransfer.setData('application/x-cortex-doc-id',img.dataset.visualDrag);
+ e.dataTransfer.effectAllowed='copy';
+});
+document.addEventListener('dragover',e=>{
+ const zone=e.target?.closest?.('[data-visual-dropzone]');
+ if(!zone)return;
+ e.preventDefault();e.dataTransfer.dropEffect='copy';zone.classList.add('drag-over');
+});
+document.addEventListener('dragleave',e=>{
+ const zone=e.target?.closest?.('[data-visual-dropzone]');
+ if(zone&&!zone.contains(e.relatedTarget))zone.classList.remove('drag-over');
+});
+document.addEventListener('drop',e=>{
+ const zone=e.target?.closest?.('[data-visual-dropzone]');
+ if(!zone)return;
+ e.preventDefault();zone.classList.remove('drag-over');
+ const id=e.dataTransfer?.getData('application/x-cortex-doc-id');
+ if(id){visualLink(id);return;}
+ const file=Array.from(e.dataTransfer?.files||[]).find(f=>/^image\//.test(f.type));
+ if(file)visualFile(file);
+});
+document.addEventListener('paste',e=>{
+ if(view!=='teacher'||!['import','creer'].includes(tab))return;
+ const image=Array.from(e.clipboardData?.items||[]).find(x=>x.type.startsWith('image/'));
+ if(!image)return;
+ const file=image.getAsFile();if(!file)return;
+ e.preventDefault();visualFile(file);
 });
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&view==='student'&&tab==='examen')registerInterruption('visibility');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.children.length)closeModal();});

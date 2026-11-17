@@ -174,7 +174,7 @@ function teacherEditor(){
 
 function teacherCopies(){
 const submitted=state.attempts.filter(a=>a.status==='submitted');
-return pageHead('Copies & notes','Ouvre une copie pour consulter chaque document, sa réponse et son barème.',btn('Corriger la copie PDF · 20 questions','review-pdf-sample','')+btn('Essayer côté élève →','student','secondary'))+
+return pageHead('Copies & notes','Ouvre une copie pour consulter chaque document, sa réponse et son barème.',(attemptBy('ex-pdf-demo')?btn('Corriger la copie PDF · 20 questions','review-pdf-sample',''):'')+btn('Essayer côté élève →','student','secondary'))+
 `<div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2><p>Exemples fictifs + copies remises sur cet appareil.</p></div>${btn('Réinitialiser la démo','reset-demo','ghost small')}</div><div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Interruptions</th><th>Action</th></tr></thead><tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong></td><td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td><td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td><td>${a.interruptions||0}</td><td><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Ouvrir ↗</button></td></tr>`).join('')}</tbody></table></div>${submitted.length===0?'<p class="empty">Aucune copie pour l’instant. Passe côté élève pour en créer une.</p>':''}</div>`;
 }
 function teacherMonitoring(){
@@ -351,6 +351,41 @@ if(a==='import-doc-file'){processImport(document.getElementById('cortex-import-f
 if(a==='save-import'){saveImported();return;}
 if(a==='preview-import-original'){if(pendingImport)openOriginalFromBlob(pendingImport.blob,pendingImport.kind);return;}
 if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal(e.sourceId);return;}
+if(a==='dashboard-preview'){const exam=examBy(id);if(exam)examPreviewModal(exam);return;}
+if(a==='preview-try-exam'){
+ const exam=examBy(id);if(!exam)return;
+ if(!exam.open){showToast('Publie ce contrôle dans « Mes contrôles » avant de le tester.');return;}
+ closeModal();chosenCode=exam.code;nav('student','accueil');return;
+}
+if(a==='ask-delete-exam'){
+ const exam=examBy(id);if(!exam)return;
+ const related=state.attempts.filter(x=>x.examId===id);
+ modalShow('Confirmer la suppression', '<p>Tu t’apprêtes à supprimer le contrôle suivant de cette démonstration :</p>'+
+   '<div class="danger-confirmation"><strong>'+esc(exam.title)+'</strong>'+
+   '<span class="danger-number">'+exam.questions.length+' questions</span>'+
+   '<ul><li>Suppression du contrôle et de ses documents associés.</li>'+
+   '<li>Suppression de '+related.length+' copie(s), notes et interruptions liées.</li>'+
+   '<li>Action irréversible dans cette version de démonstration.</li></ul></div>'+
+   '<p class="muted small">La suppression ne concerne que les données de ce navigateur, pas ton dépôt GitHub.</p>',
+   '<button type="button" class="btn danger" data-action="confirm-delete-exam" data-id="'+esc(id)+'">Supprimer définitivement</button>'+
+   btn('Annuler','close-modal','ghost'));
+ return;
+}
+if(a==='confirm-delete-exam'){
+ const exam=examBy(id);if(!exam){closeModal();return;}
+ const deletedAttempts=new Set(state.attempts.filter(x=>x.examId===id).map(x=>x.id));
+ state.exams=state.exams.filter(x=>x.id!==id);
+ state.attempts=state.attempts.filter(x=>x.examId!==id);
+ state.events=state.events.filter(x=>!deletedAttempts.has(x.attemptId));
+ if(deletedAttempts.has(state.activeAttemptId))state.activeAttemptId=null;
+ if(editor?.id===id){editor=null;editorIndex=0;}
+ if(reviewAttemptId && deletedAttempts.has(reviewAttemptId))reviewAttemptId=null;
+ if(chosenCode===exam.code)chosenCode=state.exams.find(x=>x.open)?.code||'';
+ save();closeModal();render();
+ if(exam.sourceId && window.CORTEX_DOCS?.deleteFile)window.CORTEX_DOCS.deleteFile(exam.sourceId).catch(()=>{});
+ showToast('Contrôle et copies associées supprimés de cette démo.');
+ return;
+}
 if(a==='go-exams'){nav('teacher','controles');return;}
 if(a==='editor-select'){
   const idx=Number(el.dataset.index);
@@ -415,7 +450,7 @@ const clean=JSON.parse(JSON.stringify(editor));delete clean.isNew;
 if(existing>=0)state.exams[existing]=clean;else state.exams.unshift(clean);
 save();editor=null;showToast('Contrôle enregistré dans cette démo.');nav('teacher','controles');return;}
 if(a==='close-modal'){closeModal();return;}
-if(a==='review-pdf-sample'){reviewAttemptId='ex-pdf-demo';reviewIndex=0;nav('teacher','corriger/ex-pdf-demo');return;}
+if(a==='review-pdf-sample'){if(!attemptBy('ex-pdf-demo')){showToast('La copie exemple n’est plus disponible.');return;}reviewAttemptId='ex-pdf-demo';reviewIndex=0;nav('teacher','corriger/ex-pdf-demo');return;}
 if(a==='review-copy'){
  const at=attemptBy(id);
  if(!at||at.status!=='submitted'){showToast('Copie indisponible.');return;}

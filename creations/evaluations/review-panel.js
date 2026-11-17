@@ -29,7 +29,12 @@ window.CORTEX_REVIEW=(function reviewModule(){
     }
     return `<div class="review-written-response">${esc(raw)}</div>`;
   }
-  function source(exam,q){
+  function source(exam,q,options={}){
+    const captures=window.CORTEX_VISUAL?.renderAssets(exam,q,'review')||'';
+    if(captures&&!options.original){
+      return '<div class="review-source-label"><span class="review-source-tag">DOCUMENTS ASSOCIÉS À CETTE QUESTION</span><h3>Extraits fournis aux élèves</h3></div>'+
+        '<div class="review-source-content">'+captures+'</div>';
+    }
     if(q.doc && !exam.pdfSource && !exam.sourceId){
       return '<div class="review-source-label"><span class="review-source-tag">DOCUMENT ASSOCIÉ À CETTE QUESTION</span><h3>'+esc(exam.title)+'</h3></div>'+
         '<div class="review-generic-doc">'+esc(q.doc)+'</div>';

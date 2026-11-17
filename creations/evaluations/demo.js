@@ -72,6 +72,19 @@ if(view==='teacher'&&tab==='import'){
  if(ve?.sourceId)Promise.resolve().then(()=>window.CORTEX_VISUAL.showOriginal(ve,visualPage,visualRecordCapture));
 }
 if(window.CORTEX_VISUAL)Promise.resolve().then(()=>window.CORTEX_VISUAL.hydrate(root));
+if(view==='teacher'&&tab==='creer'&&editorDocTab==='source'&&editor?.sourceId&&editor.sourceType==='docx'){
+ Promise.resolve().then(()=>window.CORTEX_VISUAL.showWordSource(editor.sourceId,'editor-word-canvas'));
+}
+if(view==='teacher'&&tab==='corriger'){
+ const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
+ if(e?.sourceId&&e.sourceType==='docx'&&!(e.questions[reviewIndex]?.assetIds||[]).length)
+  Promise.resolve().then(()=>window.CORTEX_VISUAL.showWordSource(e.sourceId,'review-word-canvas'));
+}
+if(view==='student'&&tab==='examen'){
+ const at=activeAttempt(),e=examBy(at?.examId);
+ if(e?.sourceId&&e.sourceType==='docx'&&!(e.questions[currentQuestion]?.assetIds||[]).length)
+  Promise.resolve().then(()=>window.CORTEX_VISUAL.showWordSource(e.sourceId,'import-word-canvas'));
+}
 if(view==='teacher'&&tab==='creer'&&editorDocTab==='source'&&editor?.sourceId&&editor.sourceType==='pdf'){
   const selected=editor.questions[editorIndex],page=selected?.page||1;
   Promise.resolve().then(()=>window.CORTEX_DOCS.renderPdfOriginal(editor.sourceId,page,'editor-source-canvas'));

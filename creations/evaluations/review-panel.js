@@ -30,6 +30,10 @@ window.CORTEX_REVIEW=(function reviewModule(){
     return `<div class="review-written-response">${esc(raw)}</div>`;
   }
   function source(exam,q){
+    if(q.doc && !exam.pdfSource && !exam.sourceId){
+      return '<div class="review-source-label"><span class="review-source-tag">DOCUMENT ASSOCIÉ À CETTE QUESTION</span><h3>'+esc(exam.title)+'</h3></div>'+
+        '<div class="review-generic-doc">'+esc(q.doc)+'</div>';
+    }
     if(exam.pdfSource && window.CORTEX_DOCS?.sections){
       const section=window.CORTEX_DOCS.sections[q.section]||window.CORTEX_DOCS.sections[0];
       return `<div class="review-source-label"><span class="review-source-tag">DOCUMENT ORIGINAL · PARTIE ${(q.section||0)+1}/6</span><h3>${esc(section.title)}</h3><p>${esc(section.description)}</p></div><div class="review-source-content">${section.document}</div><div class="review-source-foot">Documents reproduits à partir du contrôle PSE de démonstration.</div>`;
@@ -95,5 +99,5 @@ window.CORTEX_REVIEW=(function reviewModule(){
         <div class="review-validation"><span>${t.ready?'Toutes les questions sont évaluées.':`${t.total-t.completed} question(s) restent à évaluer.`}</span>
         <button class="btn" data-action="review-validate" ${t.ready?'':'disabled'}>✓ Valider ${fmt(t.grade)} / 20</button></div></footer></div>`;
   }
-  return {render,totals};
+  return {render,totals,source};
 })();

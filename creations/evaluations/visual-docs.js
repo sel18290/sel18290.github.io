@@ -256,9 +256,14 @@ function download(blob,name){
  link.download=String(name||'document.png').replace(/[\\/:*?"<>|]/g,'_');link.style.display='none';document.body.appendChild(link);link.click();link.remove();
  setTimeout(()=>URL.revokeObjectURL(url),20000);
 }
-async function copy(blob){
- if(!navigator.clipboard?.write||typeof ClipboardItem==='undefined')throw Error('Copie d’image indisponible dans ce navigateur. Utilise « Télécharger ».');
- await navigator.clipboard.write([new ClipboardItem({'image/png':blob.type==='image/png'?blob:await pngFromBlob(blob)})]);
+function copy(blobOrPromise){
+ if(!navigator.clipboard?.write||typeof ClipboardItem==='undefined')return Promise.reject(Error('Copie d’image indisponible dans ce navigateur. Utilise « Télécharger ».'));
+ const png=Promise.resolve(blobOrPromise).then(blob=>{
+   if(!blob)throw Error('Capture introuvable sur cet appareil.');
+   return blob.type==='image/png'?blob:pngFromBlob(blob);
+ });
+ // L’écriture démarre immédiatement depuis le clic, même si l’image est générée ensuite.
+ return navigator.clipboard.write([new ClipboardItem({'image/png':png})]);
 }
 async function pngFromBlob(blob){
  const image=await createImageBitmap(blob),c=document.createElement('canvas');

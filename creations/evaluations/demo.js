@@ -1,46 +1,10 @@
 (function demoModule(){
 'use strict';
-const KEY='cortex-evaluations-demo-2026-v2';
-const docSleep='Un adolescent de 15 à 17 ans a généralement besoin de 8 à 10 heures de sommeil par nuit. Le sommeil intervient dans la récupération, la consolidation de la mémoire et le maintien de la vigilance.';
-const seed=[
-{id:'sommeil',title:'Le sommeil et les rythmes biologiques',level:'Seconde Bac Pro',chapter:'PSE · A2',duration:45,code:'SOMMEIL26',open:true,doc:docSleep,questions:[
-{id:'q1',type:'text',prompt:'Indique deux conséquences possibles d’un manque de sommeil sur la vie scolaire.',points:4},
-{id:'q2',type:'choice',prompt:'Combien d’heures de sommeil sont généralement recommandées pour un adolescent ?',choices:['5 à 6 heures','6 à 7 heures','8 à 10 heures','11 à 13 heures'],correct:2,points:4},
-{id:'q3',type:'text',prompt:'Explique le rôle du sommeil dans la mémorisation des apprentissages.',points:4},
-{id:'q4',type:'text',prompt:'Propose deux habitudes permettant d’améliorer la qualité du sommeil.',points:4},
-{id:'q5',type:'choice',prompt:'Quel comportement risque de retarder l’endormissement ?',choices:['Conserver des horaires réguliers','Consulter son téléphone juste avant de dormir','Pratiquer une activité calme','Aérer sa chambre'],correct:1,points:4}
-]},
-{id:'risques',title:'Prévenir les risques professionnels',level:'CAP 1re année',chapter:'PSE · Prévention',duration:35,code:'RISQUES26',open:true,doc:'Le danger est une source potentielle de dommage. Le risque tient compte de l’exposition au danger et des conséquences possibles. Prévenir un risque consiste notamment à supprimer le danger ou à limiter l’exposition.',questions:[
-{id:'r1',type:'text',prompt:'Quelle différence fais-tu entre un danger et un risque ?',points:5},
-{id:'r2',type:'choice',prompt:'Quelle mesure est prioritaire dans une démarche de prévention ?',choices:['Supprimer le danger à la source','Distribuer une affiche seulement','Attendre un accident'],correct:0,points:5},
-{id:'r3',type:'text',prompt:'Donne deux exemples de protections collectives en milieu professionnel.',points:5},
-{id:'r4',type:'text',prompt:'Explique pourquoi le port d’un équipement de protection individuelle ne remplace pas toutes les mesures de prévention.',points:5}
-]},
-{id:'addictions',title:'Les conduites addictives',level:'Première Bac Pro',chapter:'PSE · Addictions',duration:40,code:'ADDICTIONS26',open:false,doc:'Une addiction est un trouble marqué par une perte de contrôle d’un comportement malgré les conséquences négatives possibles. Les facteurs de risque et de protection peuvent être individuels, sociaux et environnementaux.',questions:[
-{id:'a1',type:'text',prompt:'Explique la notion de perte de contrôle.',points:5},
-{id:'a2',type:'text',prompt:'Propose deux facteurs de protection contre une conduite addictive.',points:5},
-{id:'a3',type:'text',prompt:'Pourquoi les conséquences d’une addiction peuvent-elles dépasser le domaine de la santé ?',points:5},
-{id:'a4',type:'text',prompt:'Cite une structure ou une personne ressource pour demander de l’aide.',points:5}
-]}];
+const KEY='cortex-evaluations-demo-2026-v3';
 function makeSeed(){
-return {exams:JSON.parse(JSON.stringify(seed)),attempts:[
-{id:'ex1',examId:'sommeil',name:'Élève Démo 01',status:'submitted',startedAt:Date.now()-7200000,submittedAt:Date.now()-5500000,answers:{q1:'Fatigue et manque de concentration.',q2:'2',q3:'Le sommeil aide le cerveau à retenir les cours.',q4:'Pas d’écrans le soir et horaires réguliers.',q5:'1'},interruptions:0,grade:15,feedback:'Bonne compréhension générale ; développer les explications.'},
-{id:'ex2',examId:'sommeil',name:'Élève Démo 02',status:'submitted',startedAt:Date.now()-7300000,submittedAt:Date.now()-5600000,answers:{q1:'On est fatigué et on réagit moins vite.',q2:'2',q3:'Le cerveau travaille.',q4:'',q5:'1'},interruptions:2,grade:null,feedback:''},
-{id:'ex3',examId:'risques',name:'Élève Démo 03',status:'submitted',startedAt:Date.now()-6600000,submittedAt:Date.now()-5600000,answers:{r1:'Le danger est ce qui peut blesser et le risque est lié à l’exposition.',r2:'0',r3:'Barrière de protection et aspiration à la source.',r4:'On doit aussi agir sur le danger.'},interruptions:0,grade:16,feedback:'Explications pertinentes.'}
-],events:[{id:'ev1',attemptId:'ex2',kind:'visibility',at:Date.now()-6800000},{id:'ev2',attemptId:'ex2',kind:'visibility',at:Date.now()-6750000}],activeAttemptId:null};
-}
-function load(){
-try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
-return makeSeed();
-}
-let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0;
-if(window.CORTEX_DOCS && !state.exams.some(e=>e.id===window.CORTEX_DOCS.demoExam.id)) {
- state.exams.splice(1,0,JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam)));
- try { localStorage.setItem(KEY,JSON.stringify(state)); } catch(e) {}
-}
-
-if(window.CORTEX_DOCS && !state.attempts.some(a=>a.id==='ex-pdf-demo')){
-  state.attempts.unshift({
+  const example=window.CORTEX_DOCS?.demoExam;
+  return {exams:example?[JSON.parse(JSON.stringify(example))]:[],
+    attempts:example?[{
     id:'ex-pdf-demo',examId:'sommeil-pdf-a2',name:'Élève Démo · Copie PDF',status:'submitted',
     startedAt:Date.now()-5300000,submittedAt:Date.now()-1500000,grade:null,feedback:'',
     interruptions:1,answers:{
@@ -65,11 +29,15 @@ if(window.CORTEX_DOCS && !state.attempts.some(a=>a.id==='ex-pdf-demo')){
       pdfq19:'Un repos compensateur ; le C2P peut donner des points pour une formation.',
       pdfq20:'Arrêter les écrans avant de se coucher et garder des horaires réguliers.'
     }
-  });
-  state.events.push({id:'event-pdf-demo',attemptId:'ex-pdf-demo',kind:'visibility',at:Date.now()-3600000});
-  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  }]:[],
+    events:example?[{id:'event-pdf-demo',attemptId:'ex-pdf-demo',kind:'visibility',at:Date.now()-3600000}]:[],
+    activeAttemptId:null};
 }
-
+function load(){
+try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
+return makeSeed();
+}
+let state=load(),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -275,12 +243,12 @@ const a=activeAttempt();if(!a||a.status!=='progress')return;a.answers[key]=value
 const el=document.getElementById('save-hint');if(el)el.textContent='✓ Enregistré sur cet appareil';
 }
 function startExam(){
-const code=document.getElementById('student-code')?.value.trim().toUpperCase()||'SOMMEIL26';
+const code=document.getElementById('student-code')?.value.trim().toUpperCase()||chosenCode;
 const e=state.exams.find(x=>x.code.toUpperCase()===code&&x.open);if(!e){showToast('Code inconnu ou contrôle non publié.');return;}
 const existing=activeAttempt();
 if(existing&&existing.status==='progress'&&existing.examId===e.id){nav('student','examen');return;}
 const pseudonym=(document.getElementById('student-name')?.value.trim()||'Élève Démo').slice(0,35);
-const a={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,name:pseudonym,status:'progress',startedAt:Date.now(),submittedAt:null,answers:{},grade:null,feedback:'',interruptions:0};
+const a={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,name:pseudonym,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,answers:{},grade:null,feedback:'',interruptions:0};
 state.attempts.push(a);state.activeAttemptId=a.id;currentQuestion=0;save();nav('student','examen');
 }
 function registerInterruption(kind){
@@ -379,7 +347,7 @@ if(a==='go-copies'){nav('teacher','copies');return;}
 if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;nav('teacher','creer');return;}
 if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
 if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=!e.open;save();render();}return;}
-if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil');if(!e)return;e.open=true;chosenCode=e.code;save();nav('student','accueil');return;}
+if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;e.open=true;chosenCode=e.code;save();nav('student','accueil');return;}
 if(a==='add-question'){if(!editor)return;editor.questions.push({id:'q-'+Date.now(),type:'text',prompt:'',points:4});render();return;}
 if(a==='remove-question'){if(editor&&editor.questions.length>1){editor.questions.splice(Number(el.dataset.index),1);render();}else showToast('Conserve au moins une question.');return;}
 if(a==='save-exam'){
@@ -430,7 +398,7 @@ if(a==='review-original'){
  if(e?.sourceId)openSavedOriginal(e.sourceId);return;
 }
 if(a==='save-grade'){const at=attemptBy(id);const grade=Number(document.getElementById('manual-grade')?.value);const original=document.getElementById('manual-grade')?.value;if(!at||original===''||!Number.isFinite(grade)||grade<0||grade>20){showToast('Saisis une note entre 0 et 20.');return;}at.grade=grade;at.feedback=document.getElementById('manual-feedback')?.value||'';save();closeModal();showToast('Note enregistrée dans la démonstration.');render();return;}
-if(a==='choose-sleep'){chosenCode='SOMMEIL26';render();return;}
+if(a==='choose-sleep'){chosenCode='SOMMEILPDF';render();return;}
 if(a==='choose-code'){chosenCode=el.dataset.code;render();return;}
 if(a==='start-exam'){startExam();return;}
 if(a==='question-prev'){currentQuestion=Math.max(0,currentQuestion-1);render();return;}

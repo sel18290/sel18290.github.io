@@ -207,10 +207,13 @@ function teacherCopies(){
  .sort((a,b)=>String(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId)).localeCompare(String(b.className||window.CORTEX_CLASSES.classLabel(state,b.classId)),'fr')||
  String(a.groupName||'').localeCompare(String(b.groupName||''),'fr')||((b.submittedAt||0)-(a.submittedAt||0)));
  const showDemo=!teacherClassFilter||teacherClassFilter==='2mrc1';
+ const pdfBatch='<button type="button" class="btn" data-action="pdf-download-batch" '+(submitted.length?'':'disabled')+
+   '>↓ Télécharger le lot en PDF ('+submitted.length+' copie'+(submitted.length>1?'s':'')+')</button>';
  return pageHead('Copies & notes','Copies classées par classe et demi-groupe. Ouvre une copie pour corriger chaque question.',
  (showDemo&&attemptBy('ex-pdf-demo')?btn('Corriger la copie PDF de démonstration','review-pdf-sample',''):'')+
- btn('Mes classes','class-open-manager','secondary'))+
+ pdfBatch+btn('Mes classes','class-open-manager','secondary'))+
  `${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}
+ <div id="pdf-export-status" role="status" aria-live="polite" class="pdf-export-status" hidden></div>
  <div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2>
  <p>Conserve le contexte classe et demi-groupe même après un archivage.</p></div>
  ${btn('Réinitialiser la démo','reset-demo','ghost small')}</div>
@@ -220,7 +223,7 @@ function teacherCopies(){
  <div class="small muted">${esc(a.groupName||window.CORTEX_CLASSES.groupLabel(state,a.classId,a.groupId,'Groupe archivé'))}</div></td>
  <td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td>
  <td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td>
- <td><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Corriger ↗</button></td></tr>`).join('')}</tbody></table></div>
+ <td><div class="btn-row"><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Corriger ↗</button><button type="button" class="btn secondary small" data-action="pdf-download-copy" data-id="${esc(a.id)}">↓ PDF</button></div></td></tr>`).join('')}</tbody></table></div>
  ${submitted.length===0?'<p class="empty">Aucune copie pour cette sélection. Vérifie le filtre ou fais un essai depuis un QR code.</p>':''}</div>`;
 }
 function teacherMonitoring(){
@@ -626,8 +629,41 @@ function openClassQR(id){
  modalShow('QR code de la classe',window.CORTEX_CLASSES.qrModal(state,a,exam,url),btn('Fermer','close-modal','ghost'));
  Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(url,'class-qr-image')).catch(err=>showToast(err.message));
 }
+let pdfExportBusy=false;
+async function downloadPDFCopies(copies,scopeLabel=''){
+ if(pdfExportBusy){showToast('Un export PDF est déjà en cours.');return;}
+ if(!copies.length){showToast('Aucune copie remise dans cette sélection.');return;}
+ if(!window.CORTEX_PDF){showToast('Module PDF indisponible. Recharge la page.');return;}
+ pdfExportBusy=true;
+ const status=document.getElementById('pdf-export-status');
+ if(status){status.hidden=false;status.textContent='Préparation du PDF de '+copies.length+' copie(s)…';}
+ try{
+  const result=await window.CORTEX_PDF.exportCopies(copies,examBy,{
+   scope:scopeLabel||teacherClassFilter||'Toutes_classes',
+   onProgress:(index,total,at)=>{
+    if(status)status.textContent='Création du PDF : '+index+' / '+total+' copie(s) - '+(at.className||'Classe');
+   }
+  });
+  if(status)status.textContent='PDF généré localement : '+result.filename+' ('+result.pages+' pages).';
+  showToast('Fichier PDF prêt : '+result.count+' copie(s).');
+ }catch(error){
+  if(status)status.textContent='Export PDF impossible : '+(error?.message||error);
+  showToast('Export PDF : '+(error?.message||'échec de génération'));
+ }finally{pdfExportBusy=false;}
+}
+
 function action(el){
 const a=el.dataset.action,id=el.dataset.id;
+if(a==='pdf-download-copy'){
+ const at=attemptBy(id);
+ if(!at||at.status!=='submitted'){showToast('Copie non remise ou introuvable.');return;}
+ downloadPDFCopies([at],(at.className||'Classe')+'_'+(at.groupName||'Groupe'));return;
+}
+if(a==='pdf-download-batch'){
+ const list=state.attempts.filter(at=>at.status==='submitted'&&window.CORTEX_CLASSES.copyMatch(at,teacherClassFilter,teacherGroupFilter))
+   .sort((x,y)=>String(x.className||'').localeCompare(String(y.className||''),'fr')||String(x.groupName||'').localeCompare(String(y.groupName||''),'fr')||String(x.studentNumber||'').localeCompare(String(y.studentNumber||''),'fr',{numeric:true}));
+ downloadPDFCopies(list,(teacherClassFilter?window.CORTEX_CLASSES.classLabel(state,teacherClassFilter):'Toutes_classes')+(teacherGroupFilter?'_'+window.CORTEX_CLASSES.groupLabel(state,teacherClassFilter,teacherGroupFilter):''));return;
+}
 if(a.startsWith('class-')&&classAction(a,id,el))return;
 if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}

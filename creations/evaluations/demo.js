@@ -225,17 +225,23 @@ function studentWelcome(){
     '<div class="empty">Aucun contrôle publié pour le moment.</div>')+'</section>';
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
+function studentDocuments(e,q,a,answered){
+ const attached=window.CORTEX_VISUAL?.renderAssets(e,q,'student')||'';
+ const form='<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
+ '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="'+esc(q.id)+'" placeholder="Rédige ta réponse ici…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
+ if(e.pdfSource){
+  const original=window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered);
+  return attached?original.replace('<div class="doc-question-response">',attached+'<div class="doc-question-response">'):original;
+ }
+ const source=e.sourceId?'<div class="doc-ribbon"><span class="chip blue">Document importé</span><button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Ouvrir le fichier original ↗</button></div>':'';
+ const fallback=e.sourceId&&!attached?(e.sourceType==='pdf'?'<div id="import-original-canvas" class="import-original-canvas"><p class="small muted">Chargement du PDF original…</p></div>':
+ '<div id="import-word-canvas" class="import-original-canvas"><p class="small muted">Chargement du document Word…</p></div>'):'';
+ const manual=e.doc&&!e.sourceId?'<div class="question-doc">'+esc(q.doc||e.doc)+'</div>':'';
+ return '<div class="doc-exam-ribbon"><span>'+esc(e.chapter||'Contrôle')+'</span><span>'+sum(e)+' POINTS</span></div>'+source+
+ (attached||fallback||manual)+'<p class="small muted">Les documents ci-dessus sont ceux associés à cette question.</p>'+form;
+}
 function renderDocumentStudent(e,q,a,answered,remaining){
-  const sample=e.pdfSource;
-  const body=sample?window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered):
-    '<div class="doc-exam-ribbon"><span>DOCUMENT IMPORTE · '+esc(e.sourceName||'PDF / Word')+'</span><span>DEMONSTRATION</span></div>'+
-    '<div class="doc-intro-label">Document original et questions affichés ensemble. Les illustrations et tableaux du PDF restent consultables ici.</div>'+
-    '<div class="doc-ribbon"><span class="chip blue">Page source '+(q.page||1)+' / '+(e.sourcePageCount||1)+'</span><button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Document complet ↗</button></div>'+
-    (e.sourceType==='pdf'?'<div id="import-original-canvas" class="import-original-canvas" role="region" aria-label="Page du PDF original"><p class="small muted">Chargement de la page PDF…</p></div>':
-      '<pre class="doc-import-text">'+esc((e.sourcePages||[])[0]||'Texte du document non disponible')+'</pre>')+
-    '<details><summary>Voir la transcription texte de cette page</summary><pre class="doc-import-text">'+esc((e.sourcePages||[])[Math.max(0,(q.page||1)-1)]||'')+'</pre></details>'+
-    '<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
-    '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="5" data-answer="'+esc(q.id)+'" placeholder="Écris ta réponse…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
+ const body=studentDocuments(e,q,a,answered);
   return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
   pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+window.CORTEX_CLOCK.render(e,a)+
   '<div class="exam-top"><div><strong>Ta progression : '+answered+' / '+e.questions.length+' réponses</strong><div class="small muted">Réponses conservées sur cet appareil, sans serveur</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span>'+
@@ -365,6 +371,7 @@ return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en co
 ${window.CORTEX_CLOCK.render(e,a)}
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
 <div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${(q.doc||e.doc)?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(q.doc||e.doc)}</div>`:''}
+${window.CORTEX_VISUAL?.renderAssets(e,q,'student')||''}
 ${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<label class="choice"><input type="radio" name="choice" value="${i}" data-answer="${esc(q.id)}" ${ans===String(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}</div>`:`<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="${esc(q.id)}" placeholder="Rédige ta réponse ici…">${esc(ans)}</textarea><small>Tu peux modifier ta réponse avant de rendre le contrôle.</small></div>`}
 <div class="exam-nav"><button class="btn ghost" data-action="question-prev" ${currentQuestion===0?'disabled':''}>← Précédent</button>${currentQuestion===e.questions.length-1?btn('Relire et terminer →','review-exam',''):btn('Question suivante →','question-next','')}</div></section>
 <aside class="panel sidebar-note"><div class="panel-head"><h2>Mes questions</h2>${pill( Math.round(answered/e.questions.length*100)+' %','ok')}</div><div class="question-dots">${e.questions.map((other,i)=>`<button class="question-dot ${i===currentQuestion?'current':''} ${String(a.answers[other.id]??'').trim()?'answered':''}" title="Question ${i+1}" aria-label="Aller à la question ${i+1}" data-action="question-jump" data-index="${i}">${i+1}</button>`).join('')}</div><hr class="divider"><p class="small muted">Le passage à une autre application peut être détecté comme une interruption. Ce signal n'est jamais une preuve de triche.</p><button class="btn ghost small full" data-action="simulate-interruption">Simuler une interruption</button><p class="tiny muted" style="margin-top:13px">Fonction de démonstration. Elle n'identifie pas l'application ouverte.</p></aside></div>`;

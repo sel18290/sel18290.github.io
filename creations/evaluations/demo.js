@@ -66,6 +66,13 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+if(view==='student'&&tab==='examen'){
+ const a=activeAttempt(),e=examBy(a?.examId);
+ if(e?.sourceId&&e.sourceType==='pdf'){
+  const pageNo=e.questions[currentQuestion]?.page||1;
+  Promise.resolve().then(()=>window.CORTEX_DOCS.renderPdfOriginal(e.sourceId,pageNo,'import-original-canvas'));
+ }
+}
 }
 function home(){
 return `<div class="home"><section class="home-hero"><div class="hero-copy"><p class="eyebrow">Biosphère Genesis / Apprendre</p><h1>Évaluer autrement.<br><em>Comprendre davantage.</em></h1><p class="lead">Un espace conçu pour transformer les contrôles en expériences claires, accessibles et pédagogiques. Découvre les deux côtés de CORTEX, librement, sans mot de passe.</p><div class="hero-actions">${btn('Découvrir le profil professeur <span class="button-arrow">↗</span>','teacher','')} ${btn('Essayer côté élève →','student','secondary')}</div><div class="hero-foot"><span>Optimisé iPhone et Android</span><span>Contrôles rédigés et QCM</span><span>Aucune donnée réelle</span></div></div><div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 3 / 5</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>3 / 5</strong></div></div></section>
@@ -132,9 +139,12 @@ function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function renderDocumentStudent(e,q,a,answered,remaining){
   const sample=e.pdfSource;
   const body=sample?window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered):
-    '<div class="doc-exam-ribbon"><span>DOCUMENT IMPORTE · ' +esc(e.sourceName||'PDF / Word')+
-    '</span><span>DEMONSTRATION</span></div><div class="doc-ribbon"><div class="doc-intro-label">Le document original est conservé dans ce navigateur. Ouvre-le pour consulter ses tableaux et illustrations.</div>'+
-    '<button type="button" class="btn secondary small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Voir les pages originales ↗</button></div>'+
+    '<div class="doc-exam-ribbon"><span>DOCUMENT IMPORTE · '+esc(e.sourceName||'PDF / Word')+'</span><span>DEMONSTRATION</span></div>'+
+    '<div class="doc-intro-label">Document original et questions affichés ensemble. Les illustrations et tableaux du PDF restent consultables ici.</div>'+
+    '<div class="doc-ribbon"><span class="chip blue">Page source '+(q.page||1)+' / '+(e.sourcePageCount||1)+'</span><button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Document complet ↗</button></div>'+
+    (e.sourceType==='pdf'?'<div id="import-original-canvas" class="import-original-canvas" role="region" aria-label="Page du PDF original"><p class="small muted">Chargement de la page PDF…</p></div>':
+      '<pre class="doc-import-text">'+esc((e.sourcePages||[])[0]||'Texte du document non disponible')+'</pre>')+
+    '<details><summary>Voir la transcription texte de cette page</summary><pre class="doc-import-text">'+esc((e.sourcePages||[])[Math.max(0,(q.page||1)-1)]||'')+'</pre></details>'+
     '<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+
     '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="5" data-answer="'+esc(q.id)+'" placeholder="Écris ta réponse…">'+esc(a.answers[q.id]||'')+'</textarea></div></div>';
   return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
@@ -173,7 +183,7 @@ async function saveImported(){
   catch(error) {showToast('Impossible de conserver le fichier sur cet appareil. Vérifie le stockage du navigateur.');return;}
   const qs=pendingImport.questions.filter(q=>q.prompt.trim()).map((q,i)=>({...q,id:'q-import-'+i+'-'+Date.now(),points:Number(q.points)||1}));
   if(!qs.length)qs.push({id:'q-import-1',prompt:'Question 1 — à renseigner par le professeur',points:1,type:'text'});
-  const newExam={id:'import-'+Date.now(),title:pendingImport.filename.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Document importé',duration:60,code:'DOC'+String(Math.floor(100000+Math.random()*900000)),open:false,doc:'',sourceId:pendingImport.sourceId,sourceType:pendingImport.kind,sourceName:pendingImport.filename,questions:qs};
+  const newExam={id:'import-'+Date.now(),title:pendingImport.filename.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Document importé',duration:60,code:'DOC'+String(Math.floor(100000+Math.random()*900000)),open:false,doc:'',sourceId:pendingImport.sourceId,sourceType:pendingImport.kind,sourceName:pendingImport.filename,sourcePages:pendingImport.pages,sourcePageCount:pendingImport.pages.length,questions:qs};
   state.exams.unshift(newExam);save();editor=editorFor(newExam.id);editor.isNew=false;pendingImport=null;
   showToast('Document conservé. Vérifie le barème et les questions avant de publier.');
   nav('teacher','creer');

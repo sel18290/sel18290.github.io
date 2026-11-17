@@ -6,7 +6,7 @@ const numbered=q=>Number.isFinite(Number(q.number))&&q.number!==undefined?String
 const sectionNames=['Analyser une situation','Comprendre les rythmes','Les phases du sommeil','Santé et vie sociale','Désynchronisation','Prévention et travail de nuit'];
 function documentContent(exam,question){
   const module=window.CORTEX_REVIEW;
-  const raw=module?.source?module.source(exam,question):'<p>Document indisponible.</p>';
+  const raw=module?.source?module.source(exam,question,{original:true}):'<p>Document indisponible.</p>';
   return raw.replaceAll('id="review-source-canvas"','id="editor-source-canvas"').replaceAll('data-action="review-original"','data-action="editor-original"');
 }
 const visualPane=function visualPane(exam,q,docTab,sourceHtml){

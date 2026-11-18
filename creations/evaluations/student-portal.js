@@ -97,6 +97,12 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-illustration" aria-hidden="true"><div class="portal-illustration-glow"></div><div class="portal-planet">20<span>points</span></div><div class="portal-small-orbit">✦</div></div>'+
    '<div class="portal-visual-foot">Une note ne résume pas ce que tu sais. Chaque correction est une occasion d’avancer.</div></section>'+
    '<section class="portal-login-form">'+
+   '<div class="portal-demo-gateway" aria-label="Découvrir le carnet élève fictif de CORTEX">'+
+   '<div class="portal-demo-gateway-top"><span class="portal-demo-status"><span class="portal-demo-status-dot" aria-hidden="true"></span> MODE DÉMONSTRATION</span><span class="portal-demo-noctis">NOCTIS / MON CORTEX</span></div>'+
+   '<div class="portal-demo-gateway-main"><div class="portal-demo-gateway-copy"><span class="portal-demo-kicker">✦ TON ESPACE ÉLÈVE</span><h2>Entre dans ton <em>univers.</em></h2><p>Découvre ton carnet fictif : copies corrigées, progression, estimation d’une note et conseils d’Albert IA. Aucun compte nécessaire.</p></div><div class="portal-demo-orbit" aria-hidden="true"><span class="portal-demo-orbit-core">C<span>·</span></span><i class="portal-demo-star star-one"></i><i class="portal-demo-star star-two"></i><i class="portal-demo-star star-three"></i></div></div>'+
+   '<button class="portal-preview-button" type="button" data-action="portal-demo"><span class="portal-preview-icon" aria-hidden="true">✦</span><span class="portal-preview-copy"><strong>Découvrir mon tableau de bord</strong><small>13 contrôles fictifs · Notes · Albert IA</small></span><span class="portal-preview-arrow" aria-hidden="true">↗</span></button>'+
+   '<div class="portal-demo-features" aria-hidden="true"><span>◈ Mes résultats</span><span>≈ Estimation IA</span><span>✧ Conseils Albert</span></div>'+
+   '</div>'+
    '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
    '<div class="portal-login-divider"><span>OU ACCÉDER À MES COPIES</span></div>'+
    '<div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
@@ -111,7 +117,6 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-pin-wrap"><input id="portal-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="••••••"><button type="button" class="portal-show-pin" data-action="portal-toggle-pin" aria-label="Afficher ou masquer le PIN">Afficher</button></div></div>'+
    '<button class="portal-main-button" type="button" data-action="portal-login">Accéder à mon espace <span aria-hidden="true">↗</span></button>'+
    '<p class="portal-login-help">Première connexion ? Scanne le QR code de ton contrôle pour créer ton PIN. Si tu l’as oublié, demande sa réinitialisation au professeur.</p>'+
-   '<button class="portal-preview-button" type="button" data-action="portal-demo">✧ Découvrir mon tableau de bord fictif (notes et résultats)</button>'+ 
    '<div class="portal-safety"><strong>Version de démonstration.</strong> Les données sont locales à cet appareil, non synchronisées, et l’espace professeur n’est pas protégé. N’utilise aucune donnée réelle.</div>'+
    '</section></div>';
  }

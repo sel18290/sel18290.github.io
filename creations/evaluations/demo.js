@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -262,21 +262,23 @@ return pageHead('Analyses pédagogiques','Un aperçu des résultats pour cibler 
 `<div class="stats"><div class="stat"><div class="stat-label">Moyenne validée</div><div class="stat-value">${avg}${avg!=='—'?'<span class="small">/20</span>':''}</div><div class="stat-foot">Exemple de classe</div></div><div class="stat"><div class="stat-label">Copies notées</div><div class="stat-value">${graded.length}</div><div class="stat-foot">Sur ${done.length} copies</div></div><div class="stat"><div class="stat-label">En attente de correction</div><div class="stat-value">${done.length-graded.length}</div><div class="stat-foot">À valider</div></div><div class="stat"><div class="stat-label">Contrôles publiés</div><div class="stat-value">${state.exams.filter(e=>e.open&&(!teacherClassFilter||window.CORTEX_CLASSES.assignedTo(state,e.id,teacherClassFilter,teacherGroupFilter))).length}</div><div class="stat-foot">Évaluations accessibles</div></div></div>
 <div class="two-col"><section class="panel"><div class="panel-head"><h2>Répartition des notes</h2>${pill('Notes validées','live')}</div><div class="bars">${bins.map((n,i)=>`<div class="bar-row"><span>${i*5}–${i===3?'20':i*5+4} / 20</span><div class="bar-bg"><span style="width:${graded.length?(n/graded.length*100):0}%"></span></div><b>${n}</b></div>`).join('')}</div></section><section class="panel"><div class="panel-head"><h2>Idées de remédiation</h2></div><p class="small muted">Exemples de suggestions pédagogiques, non générées par une IA dans cette démonstration.</p><div class="preview-list"><div class="summary-answer"><strong>Sommeil</strong><p>Revoir les conséquences du manque de sommeil avec une carte mentale.</p></div><div class="summary-answer"><strong>Réponses rédigées</strong><p>Entraîner les élèves à justifier avec une notion scientifique et un exemple.</p></div></div></section></div>`;
 }
+function portalData(){return portalSession?.demo&&portalPreviewState?portalPreviewState:state;}
 function studentShell(){
  if(tab==='accueil')return window.CORTEX_PORTAL.studentLogin(state);
  if(tab==='espace'){
   if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
-  return window.CORTEX_PORTAL.dashboard(state,portalSession,{period:portalPeriod,year:portalYear});
+  return window.CORTEX_PORTAL.dashboard(portalData(),portalSession,{period:portalPeriod,year:portalYear,preview:portalSession.demo===true});
  }
  if(tab==='correction'){
   if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
-  return window.CORTEX_PORTAL.correction(state,portalSession,portalCopyId);
+  return window.CORTEX_PORTAL.correction(portalData(),portalSession,portalCopyId);
  }
  return '<div class="student-shell">'+(tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
 }
 
 function portalAuthorized(){
  if(!portalSession||Date.now()>portalSession.expiresAt)return false;
+ if(portalSession.demo===true)return !!portalPreviewState?.classes?.some(c=>c.id===portalSession.classId)&&portalSession.number==='12';
  const cl=window.CORTEX_CLASSES.byId(state,portalSession.classId),A=window.CORTEX_ACCESS,P=window.CORTEX_PORTAL;
  if(!cl||cl.archived||A.normalizeNumber(portalSession.number,cl)!==portalSession.number)return false;
  const record=A.record(state,cl,portalSession.number);
@@ -313,13 +315,19 @@ async function portalLogin(){
 function portalAction(kind,el){
  const P=window.CORTEX_PORTAL,id=el.dataset.id;
  if(kind==='portal-login'){portalLogin();return;}
+ if(kind==='portal-demo'){
+  portalPreviewState=P.previewData();const cl=portalPreviewState.classes[0];
+  portalSession={demo:true,classId:cl.id,number:'12',expiresAt:Date.now()+20*60*1000};
+  portalPeriod='s1';portalYear=P.keyYear(Date.now())-1;portalCopyId=null;
+  nav('student','espace');return;
+ }
  if(kind==='portal-toggle-pin'){
   const input=document.getElementById('portal-pin');if(!input)return;
   input.type=input.type==='password'?'text':'password';
   el.textContent=input.type==='password'?'Afficher':'Masquer';input.focus();return;
  }
- if(kind==='portal-open'){portalSession=null;portalCopyId=null;nav('student','accueil');return;}
- if(kind==='portal-logout'){portalSession=null;portalCopyId=null;nav('student','accueil');showToast('Déconnexion effectuée.');return;}
+ if(kind==='portal-open'){portalSession=null;portalPreviewState=null;portalCopyId=null;nav('student','accueil');return;}
+ if(kind==='portal-logout'){portalSession=null;portalPreviewState=null;portalCopyId=null;nav('student','accueil');showToast('Déconnexion effectuée.');return;}
  if(kind==='portal-class-code'||kind==='portal-create-class-code'||kind==='portal-copy-class-code'||kind==='portal-ask-rotate-code'||kind==='portal-confirm-rotate-code'){
   const cl=window.CORTEX_CLASSES.byId(state,id);if(!cl||cl.archived){showToast('Classe introuvable.');return;}
   if(kind==='portal-create-class-code'){
@@ -347,24 +355,24 @@ function portalAction(kind,el){
  if(kind==='portal-period'){portalPeriod=el.dataset.period==='s2'?'s2':'s1';render();return;}
  if(kind==='portal-back'){portalCopyId=null;nav('student','espace');return;}
  if(kind==='portal-copy'){
-  if(!P.candidate(state,portalSession.classId,portalSession.number,id)){showToast('Cette correction n’est pas disponible.');return;}
+  if(!P.candidate(portalData(),portalSession.classId,portalSession.number,id)){showToast('Cette correction n’est pas disponible.');return;}
   portalCopyId=id;nav('student','correction');return;
  }
  if(kind==='portal-revision'){
-  const at=P.candidate(state,portalSession.classId,portalSession.number,el.dataset.attempt),q=state.exams.find(e=>e.id===at?.examId)?.questions.find(x=>x.id===el.dataset.question);
+  const data=portalData(),at=P.candidate(data,portalSession.classId,portalSession.number,el.dataset.attempt),q=data.exams.find(e=>e.id===at?.examId)?.questions.find(x=>x.id===el.dataset.question);
   if(!at||!q||typeof at.marks?.[q.id]?.points!=='number'){showToast('Question indisponible.');return;}
-  state.studentReviewFlags ||= {};
-  const cl=(state.studentReviewFlags[portalSession.classId]||={});
+  data.studentReviewFlags ||= {};
+  const cl=(data.studentReviewFlags[portalSession.classId]||={});
   const student=(cl[portalSession.number]||={});
   const questions=(student[at.id]||={});
-  questions[q.id]=!questions[q.id];save();render();return;
+  questions[q.id]=!questions[q.id];if(!portalSession.demo)save();render();return;
  }
  if(kind==='portal-show-results'||kind==='portal-show-revision'){
   document.getElementById(kind==='portal-show-results'?'portal-results':'portal-revisions')?.scrollIntoView({behavior:'smooth',block:'start'});return;
  }
  if(kind==='portal-print'){window.print?.();return;}
  if(kind==='portal-export'){
-  const csv=P.exportCsv(state,portalSession);
+  const csv=P.exportCsv(portalData(),portalSession);
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;
   link.download='CORTEX-bilan-'+portalSession.classId+'-'+portalSession.number+'.csv';
@@ -1100,7 +1108,7 @@ if(a==='simulate-interruption'){registerInterruption('simulation');showToast('In
 if(a==='review-exam'){reviewExam();return;}
 if(a==='confirm-submit'){const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
-if(a==='confirm-reset'){studentSession=null;portalSession=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
+if(a==='confirm-reset'){studentSession=null;portalSession=null;portalPreviewState=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&['portal-number','portal-classcode','portal-pin'].includes(e.target?.id)){

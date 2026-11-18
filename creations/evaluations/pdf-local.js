@@ -26,6 +26,8 @@ window.CORTEX_LOCAL_PDF=(function pdfFactory(){
   return class LocalPDF{
     constructor(){
       this.pages=[{commands:[],images:[]}];this.current=0;this.fontSize=10;this.font='F1';
+      // Une même page de référence peut apparaître dans des dizaines de copies.
+      this.imageCache=new Map();
       this.fill=[255,255,255];this.ink=[0,0,0];this.stroke=[0,0,0];
       this.internal={pageSize:{getWidth:()=>W,getHeight:()=>H},getNumberOfPages:()=>this.pages.length};
     }
@@ -71,19 +73,24 @@ window.CORTEX_LOCAL_PDF=(function pdfFactory(){
     setPage(i){this.current=Math.min(this.pages.length-1,Math.max(0,Number(i)-1));return this}
     addImage(data,kind,x,y,w,h){
       if(!/^(jpe?g)$/i.test(kind))throw Error('Seul JPEG est pris en charge');
-      const image=decodeJPEG(data),name='Im'+(this.page().images.length+1);
+      let image=this.imageCache.get(data);
+      if(!image){image=decodeJPEG(data);this.imageCache.set(data,image);}
+      const name='Im'+(this.page().images.length+1);
       this.page().images.push({...image,name});
       this.page().commands.push('q '+[p(w),0,0,p(h),p(x),p(H-y-h)].map(fix).join(' ')+' cm /'+name+' Do Q\n');return this;
     }
     build(){
       const objects=[null,null,null,bytes('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'),bytes('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>')];
       const ids=[];const add=x=>(objects.push(x),objects.length-1);
+      const reusableImages=new WeakMap();
       const stream=(raw,prefix='<< /Length ')=>([bytes(prefix+raw.length+' >>\nstream\n'),raw,bytes('\nendstream')]);
       for(const page of this.pages){
         const pageId=add(null),contentId=add(null),refs=[];
         for(const im of page.images){
           const body='<< /Type /XObject /Subtype /Image /Width '+im.width+' /Height '+im.height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ';
-          const id=add(stream(im.data,body));refs.push('/'+im.name+' '+id+' 0 R');
+          let id=reusableImages.get(im.data);
+          if(!id){id=add(stream(im.data,body));reusableImages.set(im.data,id);}
+          refs.push('/'+im.name+' '+id+' 0 R');
         }
         objects[contentId]=stream(bytes(page.commands.join('')));
         objects[pageId]=bytes('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+fix(p(W))+' '+fix(p(H))+'] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << '+refs.join(' ')+' >> >> /Contents '+contentId+' 0 R >>');

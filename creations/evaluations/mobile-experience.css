@@ -673,23 +673,23 @@ html.cortex-phone body.mobile-input-focus .phone-teacher-nav { display:none !imp
 
 
 /* Documents pédagogiques et saisie : lecture confortable sans modifier les sources PDF. */
-html.cortex-phone .source-document,
-html.cortex-phone .visual-word-body,
-html.cortex-phone .review-source-content {
+html.cortex-phone #app .source-document,
+html.cortex-phone #app .visual-word-body,
+html.cortex-phone #app .review-source-content {
   max-width:100%;
 }
-html.cortex-phone .source-document .source-body {
+html.cortex-phone #app .source-document .source-body {
   overflow-x:auto; overscroll-behavior-x:contain;
   -webkit-overflow-scrolling:touch;
 }
-html.cortex-phone .source-document table,
-html.cortex-phone .visual-word-body table {
+html.cortex-phone #app .source-document table,
+html.cortex-phone #app .visual-word-body table {
   width:100%; min-width:0; table-layout:auto;
 }
-html.cortex-phone .source-document td,
-html.cortex-phone .source-document th,
-html.cortex-phone .visual-word-body td,
-html.cortex-phone .visual-word-body th {
+html.cortex-phone #app .source-document td,
+html.cortex-phone #app .source-document th,
+html.cortex-phone #app .visual-word-body td,
+html.cortex-phone #app .visual-word-body th {
   padding:8px 6px; font-size:11px;
   overflow-wrap:anywhere;
 }

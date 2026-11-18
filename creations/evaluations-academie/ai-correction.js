@@ -17,9 +17,16 @@ export async function requestAiDraft(assessmentId,studentNumber){
  return out;
 }
 export function formatDraftFeedback(draft){
- const lines=[String(draft.feedback||'').trim()];
+ const lines=[String(draft.feedback||'').trim(),''];
  for(const q of (draft.questions||[])){
-  lines.push('Question '+String(q.id)+' : '+String(q.points)+'/'+String(q.max)+' pt — '+String(q.commentaire||''));
+  lines.push('Question '+String(q.numero||q.id)+' : '+String(q.points)+'/'+String(q.max)+' pt');
+  if(q.attendu)lines.push('Attendu : '+String(q.attendu));
+  lines.push('Commentaire : '+String(q.commentaire||''));
+  if(q.conseil)lines.push('Conseil : '+String(q.conseil));
+  if(q.document&&q.document!=='aucun')lines.push('Document : '+String(q.document));
+  lines.push('');
  }
- return lines.filter(Boolean).join('\n').slice(0,4000);
+ // Champ de correction existant limité à 4 000 caractères : afficher aussi
+ // les détails complets dans l'interface avant toute validation.
+ return lines.join('\n').slice(0,4000);
 }

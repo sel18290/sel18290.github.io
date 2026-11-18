@@ -372,3 +372,31 @@ body.cw-student-active .layout,body.cw-student-active .bottom{display:none!impor
  .cw-activation-form label{font-size:12px;line-height:1.4}
  .cw-activation-form input,.cw-activation-form select{min-height:52px}
 }
+
+
+/* Assistance confirmation académique — solution sans redirection localhost. */
+.auth-helpbox{margin:17px 0 14px;border:1px solid #9c6478;border-radius:13px;background:linear-gradient(132deg,#262d43,#1c3043);color:#edf4fb;overflow:hidden}
+.auth-helpbox summary{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:12px;font-weight:850;color:#ffd5df;padding:15px;line-height:1.5;list-style:none}
+.auth-helpbox summary::-webkit-details-marker{display:none}
+.auth-helpbox summary::after{content:'+';margin-left:auto;font-size:19px;color:#ffb8c7}
+.auth-helpbox[open] summary::after{content:'−'}
+.auth-helpbox summary:hover{background:#66354d44}
+.auth-helpbox summary:focus-visible,.auth-helpbox button:focus-visible,.auth-helpbox textarea:focus-visible{outline:3px solid #ffbac8;outline-offset:2px}
+.auth-helpbox-body{border-top:1px solid #634c62;padding:14px 15px;display:grid;gap:13px}
+.auth-helpbox-body>p{font-size:11px;line-height:1.75;color:#c9d8e3;margin:0}
+.auth-helpbox-body>p strong{color:#ffe5ec}
+.auth-confirm-link-form{display:grid;gap:9px}
+.auth-confirm-link-form label{font-size:11px;color:#dbe8f3;font-weight:790}
+.auth-confirm-link-form textarea{width:100%;min-height:84px;font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;padding:12px;border:1px solid #607993;border-radius:10px;resize:vertical;background:#11283c;color:#ebf7ff;word-break:break-all}
+.auth-confirm-link-form button,.auth-resend{padding:11px 12px;min-height:48px;font-size:12px;font-weight:820;border-radius:10px;cursor:pointer}
+.auth-confirm-link-form button{background:linear-gradient(110deg,#f8879a,#ea617b);border:1px solid #ffc0c6;color:#251121}
+.auth-resend{background:#233e54;border:1px solid #648ba1;color:#dbf1fa}
+.auth-confirm-link-form button:disabled,.auth-resend:disabled{opacity:.5;cursor:wait}
+.auth-helpbox-body .auth-confirm-privacy{font-size:10px;color:#abc1d1;line-height:1.6}
+@media(max-width:740px){
+ .auth-helpbox{margin:15px 0}
+ .auth-helpbox summary{padding:14px;font-size:12px}
+ .auth-helpbox-body{padding:12px;gap:11px}
+ .auth-helpbox-body>p{font-size:11px}
+ .auth-confirm-link-form button,.auth-resend{width:100%;min-height:52px}
+}

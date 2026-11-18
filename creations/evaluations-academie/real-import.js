@@ -496,12 +496,15 @@ function displayAiDocuments(docs){
 async function initial(file,options={}){
  const useAlbert=options.ai===true;
  if(useAlbert&&!window.confirm(
-  '✦ ANALYSE ALBERT IA — ESPACE ACADÉMIE\n\n'+
-  'Le texte extrait de ton sujet PDF/Word sera transmis à Albert via Supabase. Le fichier original reste stocké dans ton espace professeur uniquement après enregistrement.\n\n'+
-  'N’envoie pas de données personnelles d’élèves sans cadre juridique et autorisation institutionnelle adéquats. Anonymise le contenu si nécessaire ; les questions et documents détectés devront être vérifiés avant publication.\n\nContinuer ?'
+  '✦ ALBERT IA — LECTURE DES PAGES ORIGINALES\n\n'+
+  'Les images des pages PDF/Word et le texte extrait seront envoyés à Albert via Supabase. Tableaux, graphiques et schémas pourront être analysés. Le document original restera local avant l’enregistrement.\n\n'+
+  'N’envoie pas de données personnelles d’élèves sans autorisation et base légale adaptées. Les propositions devront être vérifiées.\n\nContinuer ?'
  ))return;
+ const progress=useAlbert?window.CORTEX_ALBERT_IMPORT.progress('Construire l’atelier avec Albert IA'):null;
  await operation(async()=>{
-  clearEditor();await inspect(file);
+  clearEditor();
+  progress?.update('Ouverture et lecture des pages originales…');
+  await inspect(file);
   const localQuestions=extractQuestions(state.pages);
   let aiDraft=null,aiError=null;
   if(useAlbert){
@@ -509,11 +512,12 @@ async function initial(file,options={}){
     const client=bridge()?.client?.();
     const {data,error}=await client.auth.getSession();
     if(error||!data?.session?.access_token)throw Error('Session professeur expirée. Reconnecte-toi.');
-    msg('Albert IA identifie les documents, les consignes, les questions et les barèmes…');
+    if(progress.signal.aborted)throw Error('Analyse annulée.');
     aiDraft=await window.CORTEX_ALBERT_IMPORT.analyze(state.pages,{
-     mode:'academy',accessToken:data.session.access_token
+      file,mode:'academy',accessToken:data.session.access_token,
+      progress,signal:progress.signal
     });
-   }catch(err){aiError=err;console.warn('Albert Académie :',err);}
+   }catch(err){aiError=err;console.warn('Albert Académie:',String(err));}
   }
   const questions=aiDraft?window.CORTEX_ALBERT_IMPORT.buildQuestions(aiDraft,{pages:state.pages}):localQuestions;
   state.questions=questions.length?questions:[emptyQuestion()];
@@ -523,16 +527,42 @@ async function initial(file,options={}){
   by('ri-upload-chooser').hidden=true;
   by('ri-editor').hidden=false;by('ri-save').textContent='Enregistrer le contrôle et son document';
   displayAiDocuments(aiDraft?.documents||[]);
+  if(aiDraft){
+   try{
+    progress.update('Albert a répondu : génération des extraits originaux à associer…',
+      state.sourceCount,state.sourceCount);
+    const made=await window.CORTEX_ALBERT_IMPORT.makeCaptures(file,aiDraft,state.questions,{
+      max:16,signal:progress.signal,
+      onProgress:txt=>progress.update(txt,state.sourceCount,state.sourceCount)
+    });
+    for(const capture of made.captures){
+     const question=state.questions[capture.questionIndex];if(!question)continue;
+     if(state.assets.length>=60)break;
+     state.assets.push({
+      id:'local-albert-'+crypto.randomUUID(),name:capture.name.slice(0,120),
+      page:capture.page,questionId:question.id,
+      previewUrl:URL.createObjectURL(capture.blob),blob:capture.blob,pending:true
+     });
+    }
+    if(made.skipped)msg(made.skipped+' capture(s) à vérifier manuellement.');
+   }catch(err){
+    msg('Les questions ont été préparées, mais certaines captures devront être associées manuellement : '+String(err?.message||err),true);
+   }
+  }
   await paint();renderQuestions();
   updateDetectionHint(state.questions.length);
-  if(aiDraft)msg('Albert : '+state.questions.length+' question(s) et '+(aiDraft.documents||[]).length+
-   ' document(s) détectés. Vérifie les énoncés, barèmes et pages avant enregistrement.'+
-   (aiDraft.warnings?.length?' Limites : '+aiDraft.warnings.join(' ; '):''));
-  else if(useAlbert)msg('Analyse Albert indisponible : '+String(aiError?.message||'Erreur de service')+
-   '. Détection locale des questions chargée dans l’atelier classique.',true);
-  else msg('Atelier classique : original chargé ('+state.sourceCount+' page(s)), '+
-   state.questions.length+' question(s) proposées. Vérifie avant enregistrement.');
- });
+  if(aiDraft){
+   const message='Albert : '+state.questions.length+' question(s), '+(aiDraft.documents||[]).length+
+    ' document(s) et '+state.assets.length+' capture(s) préparés. Tu peux tout corriger avant d’enregistrer.';
+   msg(message+(aiDraft.warnings?.length?' À vérifier : '+aiDraft.warnings.join(' ; '):''));
+   progress.success(message);
+  }else if(useAlbert){
+   const message='Analyse Albert interrompue ou refusée : '+String(aiError?.message||'Erreur de service')+
+    '. Le document original et la détection locale des questions sont disponibles dans l’atelier classique.';
+   msg(message,true);progress.failure(message);
+  }else msg('Atelier classique : document de '+state.sourceCount+' page(s) chargé, '+
+   state.questions.length+' question(s) proposées. Vérifie les barèmes avant enregistrement.');
+ }).catch?.(err=>{progress?.failure(String(err?.message||err));});
 }
 async function openExisting(id){
  try{

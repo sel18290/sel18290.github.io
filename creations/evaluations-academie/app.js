@@ -379,7 +379,11 @@ function drawRealExamTiles(){
   if(['pdf','docx'].includes(exam.content?.sourceType))
    row2.append(tileButton('Découper ↗','table-action',()=>window.CORTEX_REAL_IMPORT.openExisting(exam.id)));
   row2.append(tileButton('▣ QR codes','table-action',()=>window.CORTEX_ACADEMY_COURSEWORK?.goToQR(exam.id)),
-   tileButton('Tester ↗','table-action',()=>window.CORTEX_ACADEMY_COURSEWORK?.goToQR(exam.id)),
+   tileButton('Tester ↗','table-action',()=>{
+    const accessRow=window.CORTEX_ACADEMY_COURSEWORK?.access?.().find(a=>a.assessment_id===exam.id&&a.active);
+    if(!accessRow?.join_code){status('Publie d’abord le contrôle pour obtenir son lien élève.',true);return}
+    window.open(location.origin+location.pathname+'?join='+encodeURIComponent(accessRow.join_code),'_blank','noopener');
+   }),
    tileButton('◈ Anti-triche','table-action',()=>{
     selectedIntegrityExamId=exam.id;location.hash='#acad-integrity';drawAcademyTools();
    }),

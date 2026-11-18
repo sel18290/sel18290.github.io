@@ -16,7 +16,7 @@ if(qr||globalPortal){
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
  main.innerHTML='<div class="cw-student-frame">'+
   '<div class="cw-student-brand">CORTEX <span>ACADÉMIE · ESPACE ÉLÈVE</span></div>'+
-  '<div class="cw-student-hero"><span>MON PARCOURS SCOLAIRE</span><h1>'+(qr?'Rejoindre mon contrôle.':'Bienvenue dans mon CORTEX.')+'</h1>'+
+  '<div class="cw-student-hero"><span>STATION NOCTIS · ESPACE ÉLÈVE</span><h1>'+(qr?'Rejoindre mon contrôle.':'Bienvenue dans mon CORTEX.')+'</h1>'+
   '<p>'+(qr?'Le QR code t’a envoyé vers le contrôle attribué à ta classe.':'Choisis ta classe, indique ton numéro sur la liste et confirme ton PIN pour retrouver tes contrôles et corrections.')+'</p></div>'+
   '<div id="cw-student-status" role="status" aria-live="polite" class="cw-status" hidden></div>'+
   '<section id="cw-student-login"><form id="cw-student-login-form" class="cw-student-login-form">'+

@@ -120,3 +120,20 @@
  .integrity-watermark>span:last-child{display:none}
 }
 @media(prefers-reduced-motion:reduce){.integrity-v2 .integrity-card{transition:none}}
+
+
+/* AI-readable deterrence notice. Visual only: no guarantee any model will comply. */
+.integrity-watermark-alert{
+ position:fixed;top:max(7px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+ width:max-content;max-width:min(94vw,680px);text-align:center;z-index:1;
+ padding:7px 15px 6px;border-radius:8px;
+ background:rgba(77,17,35,.86);border:1px solid rgba(255,128,144,.82);
+ color:#ffe5e8;font-size:clamp(9px,1.45vw,13px);line-height:1.35;
+ letter-spacing:.035em;font-weight:850;text-shadow:0 1px 2px #2a0b16;
+ box-shadow:0 4px 12px #17081055;white-space:normal;
+}
+.integrity-watermark-alert small{display:block;font-size:9px;letter-spacing:.03em;font-weight:600;margin-top:3px;color:#ffd0d7}
+@media(max-width:760px){
+ .integrity-watermark-alert{max-width:92vw;padding:5px 9px;font-size:10px;line-height:1.3;border-radius:7px}
+ .integrity-watermark-alert small{font-size:8px;margin-top:2px}
+}

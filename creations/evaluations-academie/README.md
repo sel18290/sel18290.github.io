@@ -6,18 +6,18 @@
 
 ## État réel
 
-Le portail académique est publié dans le dépôt GitHub, mais **pas encore branché à Supabase** : la connexion Supabase a bloqué la création du projet. Les formulaires d'inscription / connexion sont volontairement désactivés et aucun compte n'a été créé.
+Le portail académique **est branché à Supabase Paris** : projet `jhtmaoeazmjigfruandl`, région `eu-west-3`. Les formulaires sont actifs, mais l'inscription réelle nécessite encore de configurer l'envoi SMTP et les URLs de redirection dans Supabase Auth. Aucun compte enseignant n'a été créé dans cette session.
 
-Le schéma SQL de démarrage est disponible dans `supabase/schema.sql`, mais **n'a pas encore été exécuté**. Aucune donnée élève n'est migrée, et le site de démonstration reste accessible uniquement comme démonstration.
+La migration `cortex_academie_teacher_access` **a été appliquée** et vérifiée : trois tables, RLS, déclencheur `@ac-paris.fr`, neuf politiques de sécurité, aucun avertissement aux Security Advisors. Aucune donnée élève n'a été migrée ; le site de démonstration reste inchangé.
 
 ## Terminer le déploiement
 
-1. Dans l'organisation Supabase `cortex.evaluation`, créer un **projet gratuit** nommé `CORTEX Evaluations`, en région **Paris — eu-west-3**. Une estimation à **0 $/mois** a été retournée pendant la préparation ; vérifier le coût réel et les quotas avant validation.
-2. Une fois le projet actif, appliquer `supabase/schema.sql` avec SQL Editor (ou une migration versionnée). Le script réserve, au niveau PostgreSQL, la création et la modification de comptes aux adresses `@ac-paris.fr`. Les tables préparatoires ont RLS activé, avec des droits limités au professeur propriétaire.
+1. Le projet **CORTEX Evaluations** existe déjà dans l'organisation `cortex.evaluation`, en région Paris `eu-west-3`. Son coût annoncé était de 0 $/mois, sous réserve des quotas du plan.
+2. La migration `cortex_academie_teacher_access` est déjà appliquée. `supabase/schema.sql` est conservé comme copie de référence du schéma ; il réserve les comptes aux adresses `@ac-paris.fr` et isole les classes et les évaluations par propriétaire.
 3. Dans **Authentication → Sign In / Providers → Email**, conserver **Confirm email = ON**. Configurer un mot de passe minimum de 14 caractères (dans Password Settings si disponible), les protections anti-bot/CAPTCHA, les limites de tentative et les protections contre les mots de passe compromis selon les options du plan.
 4. **Configurer un serveur SMTP personnalisé** : le serveur intégré Supabase n'envoie qu'aux adresses autorisées de l'organisation et n'est pas utilisable pour ouvrir les inscriptions à tous les enseignants de l'académie.
 5. Dans **Authentication → URL Configuration**, déclarer le Site URL et Redirect URL exacts `https://sel18290.github.io/creations/evaluations-academie/`.
-6. Ajouter seulement l'URL publique de Supabase et la **publishable key** (`sb_publishable_...`) dans `config.js`. Jamais de clé `service_role`, `sb_secret_...`, mot de passe SMTP ou jeton d'administration dans le dépôt GitHub public.
+6. L'URL publique de Supabase et sa **publishable key** sont déjà configurées dans `config.js`. Jamais de clé `service_role`, `sb_secret_...`, mot de passe SMTP ou jeton d'administration dans le dépôt GitHub public.
 7. Effectuer un test de bout en bout : adresse académique autorisée, adresse hors domaine refusée au serveur, confirmation e-mail, connexion, réinitialisation du mot de passe, déconnexion, deux enseignants ne voyant que leurs propres données. Vérifier les Security Advisors et les logs.
 8. **Ne pas importer de véritables notes/copies avant** validation de l'établissement / DPO académique, politique de conservation et intégration sécurisée du parcours élèves. Les règles `teacher_id` sont des bases, pas la preuve d'une conformité RGPD complète.
 
@@ -33,4 +33,4 @@ Le schéma SQL de démarrage est disponible dans `supabase/schema.sql`, mais **n
 
 Le domaine `@ac-paris.fr` vérifie l'appartenance à une adresse académique **mais ne prouve pas que le titulaire est un enseignant habilité au lycée**. Envisager une activation par un administrateur ou une liste d'invitations approuvées avant d'autoriser l'utilisation réelle.
 
-**Statut au 18 novembre 2026 : frontend académique et script SQL préparés ; infrastructure Supabase et envoi SMTP restant à mettre en service.**
+**Statut : projet Supabase actif, schéma appliqué, navigateur connecté, classes et contrôles désormais gérés via Supabase. SMTP personnalisé, URLs de redirection et tests de confirmation e-mail encore à configurer et valider.**

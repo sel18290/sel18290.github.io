@@ -73,6 +73,7 @@ function workspace(exam,page,selectedId){
   <div class="visual-steps"><span><b>1</b> Parcours l’original</span><span><b>2</b> Sélectionne une zone</span><span><b>3</b> Glisse la capture vers « Documents élève »</span></div>
   ${exam.aiError?`<p class="visual-warning">⚠ Albert IA n’a pas pu préparer le contrôle : ${esc(exam.aiError)}. L’atelier classique reste disponible et le document original est conservé.</p>`:''}
   ${exam.aiPrepared&&exam.questions.some(q=>q.pointsToVerify)?`<p class="visual-warning">⚠ Certains barèmes n’étaient pas indiqués dans le sujet. Un point provisoire a été attribué à ces questions : ajuste-le dans « Modifier les questions ».</p>`:''}
+  ${exam.aiPrepared&&exam.questions.some(q=>q.correctToVerify)?`<p class="visual-warning">⚠ Des QCM ont été détectés. Vérifie et sélectionne leurs bonnes réponses dans « Modifier les questions » avant toute utilisation.</p>`:''}
   ${exam.aiPrepared&&(exam.aiWarnings||[]).length?`<p class="visual-warning">Limites de l’analyse Albert : ${(exam.aiWarnings||[]).map(esc).join(' · ')}</p>`:''}
   <div class="visual-columns">
    <section class="panel visual-origin"><div class="panel-head"><div><span class="review-overline">DOCUMENT SOURCE</span><h2>Original : ${esc(exam.sourceName||'Document')}</h2></div>

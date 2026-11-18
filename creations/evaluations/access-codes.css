@@ -44,3 +44,16 @@
  .access-toolbar{display:grid;grid-template-columns:1fr 1fr}
  .access-toolbar>.btn:first-child{grid-column:1/-1}
 }
+
+/* PIN choisi par l’élève : états lisibles et champs numériques adaptés au mobile */
+
+.access-state{display:inline-flex;align-items:center;border-radius:99px;padding:5px 9px;border:1px solid #46647a;background:#20344a;color:#bdd6e6;font-size:11px;font-weight:750;white-space:nowrap}
+.access-state.active{background:#1d544e;border-color:#3d9682;color:#c1ffec}
+.qr-student-landing #student-pin,.qr-student-landing #student-pin-confirm{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:25px;letter-spacing:.3em;min-height:58px;font-variant-numeric:tabular-nums}
+.qr-student-landing #student-pin:focus-visible,.qr-student-landing #student-pin-confirm:focus-visible{outline:3px solid #8fe5d94d;outline-offset:2px}
+.qr-student-landing .field small{display:block;color:#acd0db;margin-top:6px;line-height:1.45}
+.access-manager .access-toolbar{align-items:center}
+@media(max-width:760px){
+ .qr-student-landing #student-pin,.qr-student-landing #student-pin-confirm{font-size:23px;min-height:64px;letter-spacing:.25em}
+ .access-table td:last-child{min-width:100px}
+}

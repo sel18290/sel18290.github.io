@@ -79,3 +79,120 @@
 @keyframes cortex-albert-wait-progress{0%{left:-33%}100%{left:100%}}
 @media(max-width:540px){.cortex-albert-step{grid-template-columns:32px minmax(0,1fr);gap:10px;padding:11px}.cortex-albert-step-number{width:30px;height:30px}.cortex-albert-wait-footer{align-items:stretch;flex-direction:column}.cortex-albert-wait-footer span{text-align:center}.cortex-albert-wait-footer button{width:100%}}
 @media(prefers-reduced-motion:reduce){.cortex-albert-wait-fill{animation:none;left:30%;width:40%}.cortex-albert-wait-symbol{animation:none}}
+
+
+/* ── ALBERT / NEXUS 3.0 : interface holographique orbital ─────────────
+   Formes oblongues et panneaux flottants au lieu d'un assistant rectangulaire.
+   Effet spatial réalisé en CSS, sans dépendance ni image de fond.
+*/
+#cortex-albert-person{
+ top:37%;width:76px;min-height:89px;border-radius:47% 48% 39% 41% / 37% 39% 47% 49%;
+ background:radial-gradient(circle at 45% 19%,#287b93aa,#071a34 68%);
+ border:1px solid #9cf5e7;outline:1px solid #25667d;outline-offset:3px;
+ box-shadow:inset 0 0 18px #7bdfec2d,0 0 22px #40b9e549;
+ animation:cortex-helper-float 5s ease-in-out infinite
+}
+#cortex-albert-person:before{content:'';position:absolute;inset:-8px;border:1px solid #5fd7bc77;border-radius:50%;pointer-events:none;animation:cortex-helper-halo 8s linear infinite}
+#cortex-albert-person .buddy-name{background:#0d2947eb;color:#b5f8eb;padding:3px 6px;border-radius:11px;letter-spacing:.08em}
+.cortex-albert-dialog{
+ width:min(680px,calc(100vw - 22px));border:1px solid #65bdc9;
+ border-radius:38px 17px 37px 18px;overflow:auto;
+ background:radial-gradient(circle at 50% 9%,#124d60 0%,transparent 48%),
+ radial-gradient(circle at 85% 75%,#243b78aa,transparent 40%),
+ radial-gradient(#8ae5ee5c .9px,transparent 1px) 0 0/29px 29px,
+ linear-gradient(150deg,#061529,#0b223b 57%,#08142e);
+ box-shadow:0 36px 120px #000d,inset 0 0 70px #3da6bd15
+}
+.cortex-albert-dialog:before{content:'';position:absolute;inset:0 12px auto;height:2px;background:linear-gradient(90deg,transparent,#acfef1,transparent);pointer-events:none}
+.cortex-albert-dialog-content{gap:19px;padding:clamp(17px,4vw,31px)}
+.cortex-albert-dialog-header{align-items:center}
+.cortex-albert-kicker{color:#8dfad9;letter-spacing:.2em}
+.cortex-albert-dialog-header h2{font-size:clamp(23px,4.3vw,32px);font-weight:900;letter-spacing:-.04em;text-shadow:0 0 26px #4bbfdd57}
+.cortex-albert-dialog .cortex-albert-close{border-radius:50%;background:#11344c;border:1px solid #88cecf}
+.cortex-albert-hologram{position:relative;height:162px;margin:-7px 0 -4px;display:grid;place-items:center;isolation:isolate;overflow:hidden}
+.cortex-albert-hologram:before{content:'';position:absolute;width:min(90%,500px);height:80%;border-radius:50%;background:radial-gradient(ellipse,#47c8da48,transparent 65%);filter:blur(13px)}
+.cortex-albert-hologram:after{content:'CONNEXION NEURONALE ÉTABLIE  •  CORTEX  •  STATION NOCTIS';position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:9px;letter-spacing:.17em;color:#9adbdc}
+.cortex-albert-hologram .holo-orbit{position:absolute;width:240px;height:116px;border:1.5px solid #7aeaca9a;border-radius:50%;transform:rotate(-21deg);box-shadow:0 0 18px #44d6cf3d;animation:cortex-orbit-spin 12s linear infinite}
+.cortex-albert-hologram .holo-orbit-two{width:240px;height:110px;border-color:#7baffa88;transform:rotate(36deg);animation-direction:reverse;animation-duration:17s}
+.cortex-albert-hologram .holo-core{position:relative;display:grid;place-items:center;width:99px;height:99px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d8ffff,#49c9d8 25%,#154f83 56%,#081b39 83%);box-shadow:0 0 0 10px #2bb8d81e,0 0 32px #66fff1aa,inset 0 -15px 26px #04203c;animation:cortex-holo-breathe 3.4s ease-in-out infinite}
+.cortex-albert-hologram .holo-core:before{content:'';position:absolute;inset:10px;border:1px solid #c5ffffb2;border-radius:50%;box-shadow:inset 0 0 14px #b7ffef99}
+.cortex-albert-hologram .holo-core:after{content:'';position:absolute;width:60px;height:23px;border-radius:18px;background:#082a42e8;box-shadow:0 0 11px #a4fffedd;transform:translateY(6px)}
+.cortex-albert-hologram .holo-core i{z-index:2;position:relative;width:8px;height:8px;border-radius:50%;background:#c5fcfb;box-shadow:-17px 0 #bffaff,17px 0 #bffaff,0 0 10px #f3ffff;transform:translateY(6px)}
+.cortex-albert-hologram .holo-particle{position:absolute;z-index:3;color:#b4fff2;font-size:19px;text-shadow:0 0 12px #71efe1}
+.cortex-albert-hologram .p1{transform:translate(-145px,-27px)}.cortex-albert-hologram .p2{transform:translate(141px,37px);font-size:13px}
+.cortex-albert-hologram .holo-scan{position:absolute;bottom:21px;width:235px;height:2px;background:linear-gradient(90deg,transparent,#a7f2fb,transparent);filter:drop-shadow(0 0 10px #60efff);animation:cortex-scan 4s ease-in-out infinite}
+.cortex-albert-tabs{gap:12px}
+.cortex-albert-tabs button{border-radius:25px 6px 25px 6px!important;background:#092a3cdb!important;min-height:51px;border:1px solid #538eaa!important;transition:transform .18s,background .18s}
+.cortex-albert-tabs button[aria-selected=true]{border:1px solid #9feedd!important;background:linear-gradient(110deg,#1b645c,#174d69)!important;box-shadow:0 0 25px #40e9cb26,inset 0 0 18px #49edce15}
+.cortex-albert-tabs button:hover{transform:translateY(-2px)}
+.cortex-albert-panel{border-radius:29px 9px 31px 10px;padding:15px;border:1px solid #518aa677;background:linear-gradient(135deg,#13354c94,#0b2135cc);backdrop-filter:blur(8px)}
+.cortex-albert-panel textarea{border-radius:23px 7px 21px 8px;border:1px solid #5da4b5;background:#071e36d9;min-height:106px;box-shadow:inset 0 0 13px #2785a21e;padding:16px}
+.cortex-albert-examples button{border-radius:18px 4px 18px 4px;border-color:#487f99;background:#15374eb5;line-height:1.4}
+.cortex-albert-examples button:hover{border-color:#82eadb;background:#214a62}
+.cortex-albert-send{border-radius:20px 5px 20px 5px;background:linear-gradient(112deg,#98f4d8,#84b9fb)!important;box-shadow:0 7px 23px #62d8e24a;font-size:14px}
+.cortex-albert-answer:has(.cortex-albert-result-heading){gap:14px}
+.cortex-albert-step{border-radius:24px 7px 23px 7px;background:radial-gradient(circle at 96% 0%,#3b9ab326,transparent 42%),linear-gradient(115deg,#153e50,#11253e);border-left:3px solid #78e3cf}
+.cortex-albert-step-number{border-radius:50%;box-shadow:0 0 18px #91ffdd66}
+.cortex-albert-note{border-radius:24px 7px 24px 7px}
+
+/* ── Bilan des 13 contrôles, affichage façon salle de pilotage ───────── */
+.cortex-albert-tips-slot,.portal-albert-tips-slot{display:grid;gap:17px;min-width:0}
+.cortex-analysis-hud{display:flex;align-items:center;gap:24px;padding:22px;border:1px solid #5be6d184;border-radius:40px 9px 40px 9px;background:radial-gradient(circle at 20% 50%,#27687c6b,transparent 55%),linear-gradient(115deg,#14364d,#0b1d36);box-shadow:inset 0 0 20px #4ac8eb15}
+.cortex-analysis-orb{flex:none;position:relative;width:112px;height:112px;border-radius:50%;display:grid;place-content:center;text-align:center;border:2px solid #73eddf;background:radial-gradient(circle,#185c77,#0b1b32 75%);box-shadow:0 0 0 10px #48d2b119,0 0 28px #67e9dd44}
+.cortex-analysis-orb:before{content:'';position:absolute;inset:-13px;border:1px dashed #8ccffb9b;border-radius:50%;animation:cortex-helper-halo 13s linear infinite}
+.cortex-analysis-number{display:block;color:#dbfff4;font-size:44px;font-weight:900;letter-spacing:-.06em}
+.cortex-analysis-orb span:last-child{font-size:10px;letter-spacing:.09em;color:#9ddfd6;text-transform:uppercase}
+.cortex-analysis-hud-info{min-width:0}.cortex-analysis-hud-info h3{color:#effffe;font-size:23px;margin:7px 0;line-height:1.25}
+.cortex-analysis-hud-info p{font-size:13px;line-height:1.7;color:#d0e8ec;margin:0}
+.cortex-analysis-trend{padding:20px;border:1px solid #6f8bc8;background:linear-gradient(120deg,#1f4066,#142538);border-radius:11px 31px 11px 31px;display:grid;gap:10px;position:relative;overflow:hidden}
+.cortex-analysis-trend:after{content:'↗';position:absolute;right:14px;top:8px;font-size:80px;color:#9fcbf31a;pointer-events:none}
+.cortex-analysis-trend>strong{font-size:20px;color:#f5fbff}
+.cortex-analysis-trend>p{font-size:13px;color:#c8e2ed;line-height:1.65;margin:0;max-width:640px}
+.cortex-analysis-zone{display:grid;gap:10px;padding:18px;border:1px solid #46788a;border-radius:31px 10px 31px 10px;background:linear-gradient(125deg,#12354aef,#0c2036eb);min-width:0}
+.cortex-analysis-zone-header{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.cortex-analysis-zone-header h3{font-size:18px;font-weight:850;color:#e9ffff;margin:0}
+.cortex-analysis-zone-symbol{display:grid;place-items:center;font-size:23px;width:40px;height:40px;border-radius:50%;color:#b3fff1;background:#1f5b5e;border:1px solid #71e0c9}
+.cortex-analysis-zone.zone-difficulties .cortex-analysis-zone-symbol{background:#4a385a;color:#efdcff;border-color:#ad8ce5}
+.cortex-analysis-zone.zone-recommendations .cortex-analysis-zone-symbol{background:#334a70;color:#ddedff;border-color:#88bdf5}
+.cortex-analysis-item{display:grid;grid-template-columns:31px minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px;border:1px solid #3e708a;background:#081d30a6;border-radius:22px 7px 22px 7px}
+.cortex-analysis-item-index{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;border:1px solid #86dfd7;color:#b5f9ec;font-size:10px;font-weight:850}
+.cortex-analysis-item-body strong{display:block;color:#f0fbff;font-size:13px;margin-bottom:6px}
+.cortex-analysis-item-body p{font-size:12px;line-height:1.65;color:#bedee8;margin:0;overflow-wrap:anywhere}
+.cortex-corrected-hud{display:flex;gap:14px;align-items:center;padding:17px;border-radius:30px 9px 30px 9px;background:radial-gradient(circle at 10% 50%,#338e9c7a,transparent 48%),#13344b;border:1px solid #75edda}
+.cortex-corrected-symbol{flex:none;display:grid;place-items:center;width:62px;height:62px;border:2px solid #a1f4e9;border-radius:50%;background:radial-gradient(circle,#38819c,#103047);font-size:27px;color:#dcfffc;box-shadow:0 0 19px #6cefd159}
+.cortex-corrected-hud strong{display:block;font-size:17px;color:#e9ffff;margin:4px 0}
+.cortex-corrected-hud p{font-size:12px;color:#c9e2ea;line-height:1.6;margin:0}
+.portal-albert-hook{max-width:260px;font-size:11px;line-height:1.4;margin:7px 0;color:#d1e8ed}
+.portal-albert-corrected{border:1px solid #78e7d1;border-radius:17px 4px 17px 4px;background:linear-gradient(115deg,#154c53,#205478);color:#e8fffa;font-weight:850;padding:10px 12px;line-height:1.35;max-width:285px;cursor:pointer}
+.portal-albert-corrected:hover{background:#256c76}
+.portal-albert-corrected:disabled{opacity:.55;cursor:wait}
+.portal-albert-corrected-slot{min-width:0;display:grid;gap:12px;width:min(650px,100%);font-size:13px}
+.portal-albert-corrected-slot:empty{display:none}
+.portal-albert-corrected-slot:not(:empty){margin-top:12px}
+.portal-result:has(.portal-albert-corrected){border-color:#4ba7a8!important;background:linear-gradient(120deg,#173443,#112d3d)!important}
+.portal-result:has(.portal-albert-corrected) .portal-result-end{display:flex;flex-direction:column;align-items:flex-end;gap:7px;max-width:680px;width:min(100%,680px)}
+.portal-result:has(.portal-albert-corrected) .portal-albert-corrected-slot{width:100%;text-align:left}
+.portal-corrected-invitation{display:grid;gap:14px;margin:16px 0 23px;padding:22px;border:1px solid #69c7bd;border-radius:34px 9px 34px 9px;background:radial-gradient(circle at 85% 0%,#3877a453,transparent 50%),#142b42}
+.portal-corrected-invitation h2{font-size:22px;color:#e5ffff;margin:6px 0}
+.portal-corrected-invitation p{font-size:13px;line-height:1.7;color:#cbe0e9;margin:0;max-width:700px}
+.portal-albert-tips>button{font-size:14px;max-width:none;padding:14px 18px;border-radius:25px 7px 25px 7px;box-shadow:0 0 20px #63d8c722}
+@keyframes cortex-helper-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes cortex-helper-halo{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes cortex-orbit-spin{from{transform:rotate(-21deg)}to{transform:rotate(339deg)}}
+@keyframes cortex-holo-breathe{0%,100%{transform:scale(.94)}50%{transform:scale(1.05)}}
+@keyframes cortex-scan{0%,100%{transform:scaleX(.45);opacity:.4}50%{transform:scaleX(1.25);opacity:1}}
+@media(max-width:680px){
+ #cortex-albert-person{top:auto;bottom:max(73px,env(safe-area-inset-bottom));width:64px;min-height:76px}
+ .cortex-albert-dialog{border-radius:26px 9px 26px 9px}
+ .cortex-albert-hologram{height:132px}.cortex-albert-hologram .holo-orbit{width:186px;height:86px}.cortex-albert-hologram .holo-core{width:76px;height:76px}
+ .cortex-albert-panel{padding:12px;border-radius:20px 8px 20px 8px}
+ .cortex-analysis-hud{flex-direction:column;text-align:center;border-radius:26px 9px 26px 9px;gap:17px}
+ .cortex-analysis-orb{width:88px;height:88px}.cortex-analysis-number{font-size:34px}
+ .cortex-analysis-zone{padding:13px}
+ .portal-result:has(.portal-albert-corrected) .portal-result-end{align-items:stretch;width:100%;max-width:none}
+ .portal-albert-corrected{width:100%;max-width:none}
+ .cortex-corrected-hud{align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+ #cortex-albert-person,.cortex-albert-hologram .holo-orbit,.cortex-albert-hologram .holo-core,.cortex-albert-hologram .holo-scan,.cortex-analysis-orb:before{animation:none}
+}

@@ -204,7 +204,7 @@ function landing(s,assignment,exam,invalid=false,options={}){
   (mode==='identify'?numberForm:identity+(mode==='pin'?pinForm:''))+
   '<div class="qr-landing-exam"><span>TON ÉVALUATION</span><strong>'+h(exam.title)+'</strong>'+
   '<small>'+exam.questions.length+' questions · '+exam.duration+' minutes · '+(exam.open?'Prête':'Non publiée')+'</small></div>'+
-  (mode==='ready'?readyNote:'')+
+  (mode==='ready'?readyNote+window.CORTEX_INTEGRITY.notice(exam):'')+
   '<button class="btn full" data-action="'+action+'" '+(!exam.open?'disabled':'')+'>'+actionLabel+'</button>'+
   '<p class="class-qr-warning">Démo GitHub : le PIN et la copie restent sur cet appareil, et la première connexion ne vérifie pas l’identité. Impossible de retrouver les PIN sur un autre téléphone sans serveur.</p>'+
   '</div>';

@@ -1,0 +1,714 @@
+/* ==========================================================================
+   CORTEX / NOCTIS — OBSERVATION DECK 01
+   Shared visual language for demo AND live Académie; all user journeys.
+   Stars / deep space · porcelain white corridors · ice-blue instruments.
+   Visual only: never obscures source PDFs, input, grading or student security.
+   ========================================================================== */
+:root{
+  --nx-void:#030816;
+  --nx-night:#081329;
+  --nx-deep:#0e2037;
+  --nx-surface:#12243c;
+  --nx-surface-2:#1b3550;
+  --nx-white:#f6fbff;
+  --nx-porcelain:#e8f3ff;
+  --nx-ice:#bfeaff;
+  --nx-cyan:#87dcff;
+  --nx-laser:#92f3ff;
+  --nx-violet:#b6adff;
+  --nx-muted:#adc7db;
+  --nx-line:rgba(201,235,255,.38);
+  --nx-silver:linear-gradient(135deg,#fcfeff 0%,#d8e8f4 48%,#edfaff 100%);
+  --nx-shadow:0 20px 66px rgba(0,5,20,.55);
+  color-scheme:dark;
+}
+body.cortex-noctis{
+  --bg:var(--nx-void);
+  --panel:var(--nx-surface);
+  --panel2:var(--nx-surface-2);
+  --panel3:#23435d;
+  --border:#53758e;
+  --text:#f5fbff;
+  --muted:var(--nx-muted);
+  --teal:var(--nx-laser);
+  --blue:#a9cfff;
+  --mint:var(--nx-laser);
+  --line:#52788d;
+  --radius:18px;
+  --shadow:var(--nx-shadow);
+  margin:0;
+  color:#eef7ff;
+  background-color:#040a18;
+  background-image:
+    radial-gradient(circle at 8% 12%,#f8fdffdd 0 1px,transparent 2px),
+    radial-gradient(circle at 31% 42%,#c6dfffcc 0 .8px,transparent 1.8px),
+    radial-gradient(circle at 78% 17%,#f5fdffcc 0 1.1px,transparent 2.2px),
+    radial-gradient(circle at 63% 72%,#b1ceffcc 0 1px,transparent 2px),
+    radial-gradient(circle at 89% 83%,#f8fdff88 0 1px,transparent 2px),
+    radial-gradient(ellipse 63vw 46vw at 75% -14%,#16396d95,transparent 76%),
+    radial-gradient(ellipse 50vw 34vw at -10% 42%,#1028518a,transparent 79%),
+    linear-gradient(165deg,#040916,#0b1931 49%,#050c1c 100%);
+  background-size:
+    197px 233px,311px 277px,257px 321px,419px 379px,503px 443px,
+    auto,auto,auto;
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+body.cortex-noctis::before{
+  content:"";
+  position:fixed;
+  z-index:0;
+  pointer-events:none;
+  inset:0;
+  background:
+    radial-gradient(1px 1px at 12% 28%,#fff 96%,transparent),
+    radial-gradient(1px 1px at 37% 76%,#d9eaff 96%,transparent),
+    radial-gradient(1px 1px at 64% 16%,#fff 96%,transparent),
+    radial-gradient(1.5px 1.5px at 82% 49%,#d8f5ff 96%,transparent),
+    radial-gradient(1px 1px at 92% 70%,#fff 96%,transparent),
+    radial-gradient(1px 1px at 20% 88%,#d1cfff 96%,transparent);
+  background-size:380px 340px;
+  opacity:.60;
+}
+body.cortex-noctis :is(.shell,.layout,.cw-student-portal,.bottom,.footer,.demo-notice){
+  position:relative;
+}
+body.cortex-noctis :is(h1,h2,h3,h4){
+  letter-spacing:-.035em;
+  text-wrap:balance;
+}
+body.cortex-noctis :is(button,a,[role="button"]):focus-visible{
+  outline:3px solid var(--nx-laser);
+  outline-offset:3px;
+}
+body.cortex-noctis :is(input,textarea,select):focus-visible{
+  outline:2px solid #a5edff;
+  outline-offset:2px;
+  border-color:#a5edff;
+  box-shadow:0 0 0 4px #8fdfff27;
+}
+body.cortex-noctis ::selection{background:#b9eaff;color:#082139}
+body.cortex-noctis :is(input,textarea,select){
+  accent-color:#9cefff;
+}
+body.cortex-noctis :is(button,a){-webkit-tap-highlight-color:transparent}
+/* A structural illuminated edge shared by dashboard surfaces. */
+body.cortex-noctis :is(.panel,.card,.stat,.class-card,.access-card,.portal-panel,.cw-assessment,.cw-copy,.cw-class-card){
+  border-color:#7195ae;
+  box-shadow:0 14px 44px #02061565,inset 0 1px 0 #e7f9ff17;
+}
+body.cortex-noctis :is(.panel,.card,.access-card,.cw-assessment,.cw-copy,.cw-class-card){
+  background:linear-gradient(160deg,#1a344bfa 0%,#0d1d33f8 67%,#102642f7 100%);
+}
+body.cortex-noctis :is(.panel,.card,.cw-assessment,.cw-copy,.cw-class-card):hover{
+  border-color:#9acde4;
+}
+body.cortex-noctis :is(.eyebrow,.overline,.portal-kicker,.cw-student-eyebrow){
+  color:#9beaff;
+  font-weight:850;
+  letter-spacing:.16em;
+}
+/* —— COSMIC NAVIGATION BAY: shared header —— */
+body.cortex-noctis :is(.topbar,.top){
+  background:linear-gradient(110deg,#e6f3ff13,#071426eb 27%,#081933f3 74%,#dbefff10);
+  border-bottom:1px solid #a4cce18a;
+  box-shadow:0 8px 30px #01071890,inset 0 -2px 0 #e9fbff20;
+  backdrop-filter:blur(16px);
+}
+body.cortex-noctis :is(.brand-mark,.logo){
+  background:var(--nx-silver);
+  border:1px solid #fff;
+  box-shadow:inset 0 1px 0 #fff,0 0 19px #96dfff44;
+  color:#18304d;
+  border-radius:12px;
+}
+body.cortex-noctis :is(.brand strong,.cw-student-brand){color:#f8fcff}
+body.cortex-noctis :is(.brand small,.top-status){color:#c7ddeb}
+body.cortex-noctis :is(.top-link,.top-exit,.academy-student-entry){
+  border-color:#668ca5;
+  color:#dfefff;
+  background:#122b45c9;
+}
+body.cortex-noctis :is(.top-link,.academy-student-entry):hover{
+  background:#214560;
+  border-color:#c5eaff;
+}
+body.cortex-noctis .top-link.active{
+  background:#deeffb;
+  border-color:#fff;
+  color:#112a48;
+}
+body.cortex-noctis .top-link.active::after{
+  background:#8bdfff;
+}
+/* Buttons become ice-blue instruments, not neon-green dashboards. */
+body.cortex-noctis :is(.btn:not(.secondary):not(.ghost):not(.danger),.portal-main-button,.cw-primary,.cw-accent,.cw-student-submit,.submit,.auth-confirm-link-form button){
+  background:linear-gradient(120deg,#f8fdff,#cbe9ff 53%,#91dcff);
+  color:#0b2541;
+  border:1px solid #fff;
+  font-weight:850;
+  box-shadow:inset 0 1px 0 #fff,0 5px 21px #76baf13a;
+}
+body.cortex-noctis :is(.btn:not(.secondary):not(.ghost):not(.danger),.portal-main-button,.cw-primary,.cw-accent,.cw-student-submit,.submit):hover:not(:disabled){
+  filter:brightness(1.06);
+  box-shadow:0 0 0 2px #d8f3ff4a,0 9px 25px #75d7ff48;
+}
+body.cortex-noctis :is(.btn.secondary,.btn.ghost,.cw-secondary,.cw-outline,.cw-refresh,.portal-show-pin,.auth-resend){
+  background:#18344ce8;
+  border-color:#789cb5;
+  color:#e4f7ff;
+}
+body.cortex-noctis :is(.btn.secondary,.btn.ghost,.cw-secondary,.cw-outline,.cw-refresh):hover{
+  background:#2a4a62;
+  border-color:#b6ebff;
+}
+body.cortex-noctis :is(.chip,.pill,.status,.cw-pill){
+  background:#193c55;
+  border-color:#78aec4;
+  color:#d4f3ff;
+}
+/* —— WHITE OBSERVATION CORRIDOR: primary public entry —— */
+body.cortex-noctis .home-hero{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid #bcd9edc9;
+  border-radius:27px;
+  padding:clamp(27px,4.5vw,65px);
+  min-height:510px;
+  background-image:
+    linear-gradient(90deg,#061020 0%,#08172ded 35%,#0a1930a3 53%,#07142824 100%),
+    url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center,55% 54%;
+  box-shadow:0 22px 95px #010713bb,0 0 0 1px #d9f5ff13;
+}
+body.cortex-noctis .home-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(105deg,transparent 61%,#f8fdff28 63%,transparent 64%),
+             linear-gradient(0deg,#020915ab,transparent 38%);
+  pointer-events:none;
+  z-index:-1;
+}
+body.cortex-noctis .home-hero .hero-copy{
+  position:relative;
+  z-index:2;
+  padding:15px 0;
+  text-shadow:0 2px 20px #020913da;
+}
+body.cortex-noctis .home-hero h1{
+  color:#fff;
+  font-size:clamp(36px,5vw,67px);
+  font-weight:870;
+}
+body.cortex-noctis .home-hero h1 em{
+  background:linear-gradient(104deg,#f7ffff,#b2e5ff,#e7f3ff);
+  background-clip:text;
+  -webkit-background-clip:text;
+  color:transparent;
+}
+body.cortex-noctis .home-hero .lead{color:#dcecff;max-width:570px}
+body.cortex-noctis .home-hero .hero-foot span{color:#cbe6f7}
+body.cortex-noctis .home-hero .hero-visual{
+  position:relative;z-index:1;isolation:isolate;
+  background:linear-gradient(160deg,#e5f7ff25,#091a3470);
+  border:1px solid #d7f5ff94;
+  box-shadow:inset 0 0 0 1px #ffffff37,0 16px 55px #030c1acc;
+  backdrop-filter:blur(5px);
+  border-radius:20px;
+}
+body.cortex-noctis .home-hero .hero-visual .visual-grid{opacity:.35}
+body.cortex-noctis .home-hero .mock-window{
+  background:#071629d9;
+  border-color:#e2f5ffbc;
+  box-shadow:0 10px 34px #000b;
+}
+body.cortex-noctis .home-hero .floating-card{
+  border-color:#d5efff;
+  background:linear-gradient(135deg,#f8fdff,#c7e2f3);
+  color:#112e49;
+  box-shadow:0 12px 36px #0109168c;
+}
+body.cortex-noctis .home-hero .floating-card :is(small,strong){color:#19334a}
+body.cortex-noctis .home-section .section-head h2{color:#f8fdff}
+body.cortex-noctis .role-card{
+  background:linear-gradient(145deg,#eaf5ff,#c9dfef 52%,#f7fbff);
+  color:#12304a;
+  border:1px solid #fff;
+  box-shadow:0 18px 53px #010817b2,inset 0 1px #fff;
+}
+body.cortex-noctis .role-card.eleve{
+  background:linear-gradient(145deg,#e5f0ff,#c5d4f6 58%,#f4f9ff);
+  border-color:#fff;
+}
+body.cortex-noctis .role-card :is(h2,p,.muted,.small){color:#1b354d}
+body.cortex-noctis .role-card .role-icon{
+  background:#ffffffeb;color:#17456c;border-color:#98b9ce;
+}
+body.cortex-noctis .role-card .btn.secondary{color:#e7faff}
+body.cortex-noctis .mini-step{
+  background:#0c2038c9;
+  border:1px solid #648eaa;
+  border-radius:15px;
+  padding:16px 19px;
+}
+body.cortex-noctis .mini-step .step-n{color:#bbebff}
+/* —— PROFESSOR SPACE: bright architectural frames, readable dark data bays —— */
+body.cortex-noctis .sidebar,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar{
+  background:linear-gradient(165deg,#e8f4ff,#c8dbe9 66%,#e8f7ff) !important;
+  color:#123048;
+  border:1px solid #fff;
+  box-shadow:0 14px 54px #020616a6,inset 0 1px #fff;
+}
+body.cortex-noctis .sidebar :is(.side-title strong,.side-title span),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar :is(.side-title strong,.side-title span){color:#19324a}
+body.cortex-noctis .side-title,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .side-title{border-bottom-color:#adc7d8}
+body.cortex-noctis .sidebar :is(.side-item,.side-item .side-icon),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .academie-prof-nav.side-menu>a.side-item,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-icon{
+  color:#21415a;
+}
+body.cortex-noctis .sidebar :is(.side-item:hover,.side-item.active),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .academie-prof-nav.side-menu>a.side-item:hover,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .academie-prof-nav.side-menu>a.side-item.active{
+  color:#092740;
+  border-color:#98b4cc;
+  background:linear-gradient(110deg,#ffffff,#c2ddf2);
+  box-shadow:inset 3px 0 #44abd6;
+}
+body.cortex-noctis .sidebar .side-item.active .side-icon,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .academie-prof-nav.side-menu>a.side-item.active .side-icon{color:#176188}
+body.cortex-noctis .sidebar .side-bottom,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-bottom{
+  color:#31516a;border-top-color:#a8c6da;
+}
+body.cortex-noctis .sidebar .side-bottom :is(span,p,strong),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-bottom :is(span,p,strong){color:#31516a}
+body.cortex-noctis .workspace-main>.page-head,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head{
+  position:relative;
+  border:1px solid #d9edff9e;
+  border-radius:18px;
+  padding:clamp(20px,2.9vw,30px);
+  overflow:hidden;
+  background-image:linear-gradient(90deg,#081629 0%,#0b1d34f2 44%,#112441aa 68%,#182f462a),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center,60% 50%;
+  box-shadow:inset 0 1px 0 #d8f4ff62,0 15px 45px #0008;
+}
+body.cortex-noctis .workspace-main>.page-head h1,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head h1{color:#f8fcff}
+body.cortex-noctis .workspace-main>.page-head .eyebrow,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head .eyebrow{color:#bae9ff}
+body.cortex-noctis .workspace-main>.page-head p,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head p{color:#d5e8f6}
+body.cortex-noctis .stat,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .stat{
+  background:var(--nx-silver);
+  border:1px solid #fff;
+  border-top:3px solid #d9f5ff;
+  box-shadow:0 15px 45px #0007,inset 0 1px #fff;
+  color:#132d46;
+}
+body.cortex-noctis :is(.stat-label,.stat-value,.stat-foot),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace :is(.stat-label,.stat-value,.stat-foot){color:#15344f}
+body.cortex-noctis :is(.stat-value),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .stat-value{font-variant-numeric:tabular-nums}
+body.cortex-noctis .stat:before{background:linear-gradient(90deg,#77cdf2,#ffffff,#7cafe1)}
+body.cortex-noctis :is(.stat:hover,a.stat:hover),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace a.stat:hover{
+  background:linear-gradient(120deg,#fff,#d6eefa);
+  border-color:#fff;
+}
+body.cortex-noctis .panel,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .workspace-main .panel{
+  border:1px solid #8eafc4!important;
+  background:linear-gradient(160deg,#16314af6,#0c2038f7)!important;
+  color:#edfaff;
+  box-shadow:0 16px 48px #020817ab,inset 0 1px 0 #deefff23!important;
+}
+body.cortex-noctis :is(.panel-head h2,.panel h2),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .panel-head h2{color:#f1faff}
+body.cortex-noctis .class-card,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .class-card{
+  background:linear-gradient(150deg,#eff9ff,#bed9eb 58%,#e8f6ff);
+  border:1px solid #fff;
+  box-shadow:0 12px 35px #0008;
+  color:#122e48;
+}
+body.cortex-noctis .class-card :is(.class-card-upper,strong,.class-card-note,.class-card-bottom),
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .class-card :is(.class-card-upper,strong,.class-card-note,.class-card-bottom){
+  color:#1a3d57;
+  border-color:#8cafc4;
+}
+body.cortex-noctis .class-card:hover{transform:translateY(-2px);border-color:#fff;background:linear-gradient(150deg,#fff,#d6ebf9)}
+body.cortex-noctis .class-card .btn{box-shadow:none}
+body.cortex-noctis .list-row,.cortex-noctis .prof-item{border-color:#527189}
+body.cortex-noctis .item-icon{background:#e8f8ff;color:#1d4565;border-color:#c7e6f6}
+body.cortex-noctis .item-title{color:#eef9ff}
+body.cortex-noctis .item-meta{color:#bad0df}
+/* —— EVALUATION / DOCUMENTS: polished but distraction-free —— */
+body.cortex-noctis :is(.ed-workspace,.visual-workspace,.visual-import-start,.review-workspace,.integrity-page){
+  color:#edf9ff;
+}
+body.cortex-noctis :is(.visual-import-drop,.visual-import-start,.access-intro,.access-card,.ed-configuration,.review-card,.integrity-toggle){
+  border-color:#92b1c6;
+  box-shadow:inset 0 1px #e4fbff1e;
+}
+body.cortex-noctis :is(.visual-import-drop,.ed-configuration){
+  background:linear-gradient(135deg,#18344dec,#0b2037f3);
+}
+body.cortex-noctis :is(.table-wrap,.cw-copies,.cw-answer,.review-table){
+  border-color:#759bb5;
+}
+body.cortex-noctis :is(input[type=text],input[type=number],input[type=email],input[type=password],input[type=search],input[type=file],textarea,select){
+  border-color:#7897b0;
+  background:#0b2037;
+  color:#f2faff;
+  border-radius:11px;
+}
+body.cortex-noctis input::placeholder,
+body.cortex-noctis textarea::placeholder{color:#abc2d4;opacity:1}
+body.cortex-noctis :is(.table-wrap,table){background-color:#0d2239}
+body.cortex-noctis th{background:#e5f4ff;color:#15344e;border-bottom:1px solid #a7cee2}
+body.cortex-noctis td{border-color:#476e87}
+body.cortex-noctis :is(.toast,.notice){border-color:#a5d6e9}
+body.cortex-noctis :is(.integrity-v2,.integrity-page){
+  --i-red:#ec879f;
+  --i-soft:#f7d6e2;
+  --i-border:#678ba4;
+}
+/* —— DEMONSTRATION: student login, student console, question and correction. —— */
+body.cortex-noctis .portal-login{
+  background:#0d2036;
+  border:1px solid #ddf0ff;
+  border-radius:24px;
+  box-shadow:0 25px 90px #000b;
+}
+body.cortex-noctis .portal-login-visual{
+  background-image:linear-gradient(90deg,#071326e2 0%,#061a31ad 45%,#0b22424a),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center,50% 48%;
+  border-right:1px solid #dbeeff;
+}
+body.cortex-noctis .portal-login-visual:after{
+  background:linear-gradient(0deg,#071629dc,transparent 48%);
+}
+body.cortex-noctis .portal-login-visual h1{color:#f9fcff}
+body.cortex-noctis .portal-login-visual h1 em{color:#b8efff}
+body.cortex-noctis .portal-login-visual .portal-tag{
+  background:#dceeffee;color:#15354e;border:1px solid #fff;
+}
+body.cortex-noctis .portal-login-visual :is(.portal-kicker,.portal-visual-foot){color:#cdeaff}
+body.cortex-noctis .portal-login-form{
+  background:linear-gradient(155deg,#f8fcff,#dbeaf7);
+  color:#17354d;
+}
+body.cortex-noctis .portal-login-form :is(h2,.portal-muted,.field label,.portal-login-help,.field small){color:#24415b}
+body.cortex-noctis .portal-login-form .field input,
+body.cortex-noctis .portal-login-form .field select{
+  background:#fff;color:#142e46;border-color:#9dbbcf;
+}
+body.cortex-noctis .portal-login-form .field input::placeholder{color:#6a8398}
+body.cortex-noctis .portal-login-form .portal-show-pin{
+  background:#dbeaf6;color:#1c4057;border-color:#9dbdcf;
+}
+body.cortex-noctis .portal-main-button{
+  min-height:54px;
+}
+body.cortex-noctis .portal-toolbar{
+  border-color:#749db4;background:#0e1f35ad;border-radius:14px;
+  padding:13px 17px;
+}
+body.cortex-noctis .portal-mark{
+  background:var(--nx-silver);color:#1a3e59;border-color:#fff;
+}
+body.cortex-noctis .portal-welcome{
+  background-image:linear-gradient(90deg,#08172a 0%,#102139ec 37%,#0a1e39bd 65%,#102c4b44),url("./cortex-noctis-corridor.svg");
+  background-size:cover;background-position:center;
+  border:1px solid #d0ebff;
+  box-shadow:0 22px 70px #020615b8,inset 0 1px #fff6;
+}
+body.cortex-noctis .portal-welcome h1{color:#faffff}
+body.cortex-noctis .portal-welcome h1 em{color:#c6f2ff}
+body.cortex-noctis .portal-welcome p{color:#d3e9f7}
+body.cortex-noctis :is(.portal-assessment-card,.portal-exam-card,.portal-dashboard-card,.portal-correction-card){
+  border-color:#83abc4;
+  background:linear-gradient(140deg,#16324a,#102339);
+}
+/* —— LIVE ACADÉMIE: entry, teacher console, pupil portal —— */
+body.cortex-noctis .layout .hero{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid #bbdcf5a8;
+  border-radius:25px;
+  padding:clamp(24px,4vw,45px);
+  background-image:linear-gradient(90deg,#061528f2 0%,#0b1f36dd 52%,#0c20403b),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center;
+  box-shadow:0 18px 65px #010616b3;
+}
+body.cortex-noctis .layout .hero :is(h1,h2){color:#fff}
+body.cortex-noctis .layout .hero h1 em{color:#c2efff}
+body.cortex-noctis .layout .hero :is(p,.features,.features span){color:#d9e9f5}
+body.cortex-noctis .layout .hero .shape{opacity:.2;filter:grayscale(1)}
+body.cortex-noctis .layout .access>.panel,
+body.cortex-noctis .layout .access .panel{
+  border:1px solid #c9e5f7;
+  background:linear-gradient(160deg,#1b3550,#102239 77%)!important;
+  box-shadow:0 24px 70px #0009;
+}
+body.cortex-noctis .layout .tabbar{
+  background:linear-gradient(115deg,#11253a,#203b52);
+  border:1px solid #628ca4;
+}
+body.cortex-noctis .layout .tabbar button.selected{
+  background:var(--nx-silver);
+  color:#17344e;
+  border:1px solid #fff;
+}
+body.cortex-noctis .layout .access :is(.field label,h2){color:#effaff}
+body.cortex-noctis .layout .access .field small{color:#b4d0df}
+body.cortex-noctis .academy-tour-banner{
+  border:1px solid #b8e1fc;
+  background:#112e49c9;
+  box-shadow:0 8px 22px #020c1b88;
+}
+body.cortex-noctis .academy-tour-link{background:#e7f5ff;color:#17344f;border-color:#fff}
+body.cortex-noctis .top .demo.demo-primary{
+  background:linear-gradient(120deg,#fafdff,#c9e9ff);
+  border:1px solid #fff;
+  color:#173c56;
+  box-shadow:0 5px 20px #74c9fd47;
+}
+body.cortex-noctis .top .demo-primary .demo-label :is(strong,small),
+body.cortex-noctis .top .demo-primary .demo-arrow{color:#153851}
+body.cortex-noctis .top .demo-primary .demo-play{
+  color:#0e3b54;background:#ffffffc8;border-color:#accfe7;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .workspace-main>.acad-overview>.page-head,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head{
+  border:1px solid #d0e9fa;
+  border-radius:18px;
+  padding:clamp(20px,2.5vw,30px);
+  background-image:linear-gradient(90deg,#091a2d 0%,#0d2440ed 45%,#0e2945a4 73%,#0d2b452b),url("./cortex-noctis-corridor.svg");
+  background-size:cover;background-position:center;
+  box-shadow:0 16px 49px #0009;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head :is(h1,p:not(.eyebrow)){color:#f5faff}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-bottom,
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-bottom :is(p,span,strong){color:#244459}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .workspace-main .panel{
+  background:linear-gradient(160deg,#172e45,#0c1d33)!important;
+  border:1px solid #82adc4!important;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace :is(.stat-label,.stat-value,.stat-foot){color:#153b52}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .btn:not(.secondary):not(.ghost):not(.danger){
+  background:var(--nx-silver);color:#143951;border:1px solid #fff;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .class-card{
+  background:var(--nx-silver);
+  border-color:#fff;color:#19394e;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .class-card :is(strong,.class-card-note,.class-card-upper,.class-card-bottom){color:#23465d}
+body.cortex-noctis .cw-student-portal{
+  max-width:1050px;
+}
+body.cortex-noctis .cw-student-frame{
+  border:1px solid #d8f0ff;
+  background:linear-gradient(155deg,#162d45,#071831 90%);
+  box-shadow:0 24px 90px #010617bf;
+  border-radius:22px;
+}
+body.cortex-noctis .cw-student-hero{
+  position:relative;
+  padding:clamp(23px,4vw,43px);
+  margin:0 0 23px;
+  border:1px solid #d8efff;
+  border-radius:16px;
+  min-height:190px;
+  overflow:hidden;
+  background-image:linear-gradient(90deg,#091b32fa 0%,#0b2540ec 50%,#09243e77),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center;
+}
+body.cortex-noctis .cw-student-hero>span{color:#b6efff}
+body.cortex-noctis .cw-student-hero h1{color:#fff;max-width:660px;text-shadow:0 4px 23px #020916c9}
+body.cortex-noctis .cw-student-hero p{color:#dbf0ff;font-size:13px;max-width:620px}
+body.cortex-noctis .cw-student-brand span{color:#b8eaff}
+body.cortex-noctis .cw-student-assessment{
+  background:var(--nx-silver);
+  border:1px solid #fff;
+  color:#17354c;
+  box-shadow:0 10px 32px #0008;
+}
+body.cortex-noctis .cw-student-assessment :is(.cw-card-head strong,.cw-card-head small,.cw-student-result,.cw-student-feedback){
+  color:#183c53;
+}
+body.cortex-noctis .cw-student-dashboard-head{
+  background:linear-gradient(110deg,#122c46dd,#07182bc2),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  border:1px solid #c5eaff;
+  box-shadow:0 12px 35px #0007;
+}
+body.cortex-noctis .cw-student-dashboard-head h2{color:#fff}
+body.cortex-noctis .cw-student-subject{
+  background:linear-gradient(145deg,#f4fbff,#d7e8f4);
+  color:#15344b;border:1px solid #fff;
+  box-shadow:0 10px 30px #0007;
+}
+body.cortex-noctis .cw-student-subject :is(h2,.cw-instructions,.cw-student-eyebrow){color:#19364e}
+body.cortex-noctis .cw-answer-question,
+body.cortex-noctis .cw-student-attachment,
+body.cortex-noctis .cw-student-login-form:not(.cw-activation-form) label{
+  border-color:#7fa8c2;
+}
+body.cortex-noctis .cw-student-login-form :is(input,select,textarea){
+  border-color:#8cb5cc;
+  background:#0c213a;
+}
+body.cortex-noctis .cw-activation-invitation{
+  background:linear-gradient(135deg,#e9f6ff,#c4e0f2);
+  border:1px solid #fff;
+  color:#18354d;
+}
+body.cortex-noctis .cw-activation-invitation>span{color:#20435c}
+body.cortex-noctis .cw-activation-invitation button{
+  background:linear-gradient(120deg,#21425d,#102b45);
+  color:#effaff;
+  border:1px solid #719cb8;
+}
+body.cortex-noctis .cw-activation-form{
+  background:linear-gradient(160deg,#193b56,#0b2038);
+  border-color:#9ec6df;
+}
+body.cortex-noctis #cw-activation-group{
+  background:#0d2740;color:#f3fbff;border-color:#94bed5;
+}
+body.cortex-noctis .cw-group-stats{border-color:#8cacc1}
+/* —— GUIDED TOUR: NASA-like mission briefing instead of coral pop-up —— */
+body.cortex-noctis .ct-tour{
+  --tour-red:#9edfff;
+  --tour-bg:#0b1e36;
+  --tour-line:#85b4cb;
+  --tour-text:#f5fbff;
+  --tour-muted:#c8dcec;
+  border:1px solid #c9ecff;
+  background:linear-gradient(160deg,#152e48,#091c34);
+  box-shadow:0 24px 80px #000d,0 0 0 1px #f6fbff2e;
+}
+body.cortex-noctis .ct-tour-top{
+  background:linear-gradient(108deg,#effaff,#c6e0f5);
+  border-bottom:1px solid #fff;
+}
+body.cortex-noctis .ct-tour-top-copy :is(strong,small){color:#193b55}
+body.cortex-noctis .ct-tour-mark{
+  background:#183952;color:#eefaff;border-color:#a4cce1;
+}
+body.cortex-noctis .ct-tour-icon-button{background:#bedcec;color:#15344e;border-color:#80aac6}
+body.cortex-noctis .ct-tour-progress span{background:linear-gradient(90deg,#a9e9ff,#fff)}
+body.cortex-noctis .ct-tour-kicker,
+body.cortex-noctis .ct-tour-step-label,
+body.cortex-noctis .ct-tour-dock{color:#bbebff}
+body.cortex-noctis .ct-tour-main h2{color:#f8fcff}
+body.cortex-noctis .ct-tour-task{
+  background:#183955;
+  border-color:#8bc0dc;
+}
+body.cortex-noctis .ct-tour-task :is(strong,p){color:#d8f1ff}
+body.cortex-noctis .ct-tour-task>span{color:#a8eaff}
+body.cortex-noctis .ct-tour-desktop-hint{background:#18374c;border-color:#70a6bd}
+body.cortex-noctis .ct-tour-visit{color:#e5f8ff;background:#25516c;border-color:#8fc9e5}
+body.cortex-noctis .ct-tour-next{
+  background:var(--nx-silver);border-color:#fff;color:#0e304b;
+}
+body.cortex-noctis .ct-tour-plan-item.active{background:#234b65;border-color:#b6eaff}
+body.cortex-noctis .ct-tour-highlight{
+  outline:3px solid #a6ebff!important;
+  box-shadow:0 0 0 9px #b5ecff34,0 0 28px #9adeff93!important;
+}
+/* —— COMMAND PALETTE: Noctis navigation console —— */
+body.cortex-noctis .ct-command-dialog{
+  border:1px solid #cdeeff;
+  background:linear-gradient(145deg,#18364f,#08182f);
+  box-shadow:0 27px 95px #000c;
+}
+body.cortex-noctis .ct-command-heading{background:linear-gradient(115deg,#e7f5ff15,#092238)}
+body.cortex-noctis .ct-command-kicker{color:#b7efff}
+body.cortex-noctis :is(.ct-command-input-wrap,.ct-command-option.is-selected){
+  border-color:#a5cee4;
+}
+body.cortex-noctis .ct-command-icon{background:#d9efff;color:#17405c;border-color:#fff}
+body.cortex-noctis .ct-command-option:hover{background:#22455e;border-color:#a9d6e9}
+/* —— LOW DISTRACTION DURING AN ACTIVE EXAM —— */
+body.cortex-noctis :is(.exam-page,.exam-workspace,.cw-answer-form){
+  isolation:isolate;
+}
+body.cortex-noctis :is(.exam-page,.exam-workspace,.cw-answer-form) textarea{
+  background:#0b1d33;
+}
+body.cortex-noctis .cw-student-receipt{border-color:#8ed0ca;background:#123b42}
+/* —— RESPONSIVE: keep existing navigational affordances and touch targets —— */
+@media(max-width:1100px){
+  body.cortex-noctis .home-hero{padding:32px;min-height:0}
+  body.cortex-noctis .home-hero h1{font-size:clamp(34px,4.9vw,54px)}
+}
+@media(max-width:900px){
+  body.cortex-noctis .home-hero{
+    background-position:center,62% center;
+    padding:24px;
+  }
+  body.cortex-noctis .home-hero .hero-visual{min-height:230px}
+  body.cortex-noctis .workspace-main>.page-head{
+    padding:22px;
+    background-position:center,72% center;
+  }
+  body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar{
+    background:linear-gradient(120deg,#e8f5ff,#cee3f3)!important;
+  }
+}
+@media(max-width:760px){
+  body.cortex-noctis{background-attachment:scroll}
+  body.cortex-noctis::before{position:absolute;opacity:.3}
+  body.cortex-noctis .home-hero{border-radius:19px;padding:22px 18px;gap:20px}
+  body.cortex-noctis .home-hero h1{font-size:clamp(30px,8vw,43px)}
+  body.cortex-noctis .home-hero .lead{font-size:13px;line-height:1.7}
+  body.cortex-noctis .role-card{padding:20px}
+  body.cortex-noctis .portal-login{border-radius:17px}
+  body.cortex-noctis .portal-login-visual{background-position:65% 50%;min-height:205px}
+  body.cortex-noctis .portal-login-form{padding:21px 18px}
+  body.cortex-noctis .portal-welcome{background-position:65% 50%}
+  body.cortex-noctis .layout .hero{background-position:59% 50%;padding:22px}
+  body.cortex-noctis .cw-student-frame{padding:13px;border-radius:15px}
+  body.cortex-noctis .cw-student-hero{padding:20px 15px;min-height:0;background-position:58% 50%}
+  body.cortex-noctis .cw-student-hero h1{font-size:clamp(27px,8vw,36px)}
+  body.cortex-noctis .cw-student-assessment{padding:13px}
+  body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar{
+    position:sticky;top:0;
+    padding:8px!important;
+    border-radius:13px;
+  }
+  body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .side-item{
+    min-height:46px;
+  }
+  body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head{
+    background-position:65% center;
+    padding:18px;
+  }
+  body.cortex-noctis .ct-tour{border-radius:15px}
+  body.cortex-noctis :is(input,textarea,select){font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.cortex-noctis *,body.cortex-noctis *::before,body.cortex-noctis *::after{
+    animation-duration:.01ms!important;transition-duration:.01ms!important;
+  }
+}
+@media(forced-colors:active){
+  body.cortex-noctis :is(.sidebar,.stat,.class-card,.role-card,.panel){background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}
+  body.cortex-noctis :is(.side-item.active,.btn,.top-link.active){outline:2px solid Highlight}
+}

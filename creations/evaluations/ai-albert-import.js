@@ -5,7 +5,8 @@ window.CORTEX_ALBERT_IMPORT=(function(){
  'use strict';
  async function analyze(pages){
   if(!Array.isArray(pages)||!pages.length||pages.length>35)throw Error('Albert accepte 35 pages textuelles maximum.');
-  const texts=pages.map(p=>String(p||'').slice(0,2500));
+  const perPage=Math.max(300,Math.min(2500,Math.floor(30000/pages.length)));
+  const texts=pages.map(p=>String(p||'').slice(0,perPage));
   if(texts.reduce((a,p)=>a+p.length,0)<70)throw Error('Document probablement scanné : pas assez de texte détecté pour Albert. Ouvre l’atelier classique.');
   const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('../evaluations-academie/config.js?v=1');
   const response=await fetch(SUPABASE_URL+'/functions/v1/cortex-albert-import-demo',{

@@ -76,7 +76,11 @@ if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=nu
 render();
 }
 function header(){
-document.querySelectorAll('.top-link').forEach(el=>el.classList.toggle('active',el.dataset.action===view));
+document.querySelectorAll('.top-link').forEach(el=>{
+ const active=el.dataset.action===view;
+ el.classList.toggle('active',active);
+ if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
+});
 }
 function render(){
 header();
@@ -140,7 +144,7 @@ function teacherReviewFull(){
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
 const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='integrite'?window.CORTEX_INTEGRITY.summary(state,integrityFilter,integritySetupId):tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
-return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
+return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}" ${tab===id?'aria-current="page"':''}><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
 function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}
 function pageHead(title,desc,actions=''){return `<div class="page-head"><div><p class="eyebrow">Espace professeur · Démonstration</p><h1>${title}</h1><p>${desc}</p></div><div class="btn-row">${actions}</div></div>`;}

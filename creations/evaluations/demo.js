@@ -917,6 +917,7 @@ if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
+if(a==='integrity-scroll-controls'||a==='integrity-scroll-journal'){document.getElementById(a==='integrity-scroll-controls'?'integrity-controls':'integrity-journal')?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
 if(a==='integrity-open'){nav('teacher','integrite');return;}
 if(a==='integrity-settings'){const ex=examBy(id);if(ex)modalShow('Protection du contrôle',window.CORTEX_INTEGRITY.settings(ex),btn('Fermer','close-modal','ghost'));return;}
 if(a==='integrity-attempt'){const at=attemptBy(id);if(at)modalShow('Événements · '+esc(at.name),window.CORTEX_INTEGRITY.attemptEvents(state.events,at),btn('Fermer','close-modal','ghost'));return;}

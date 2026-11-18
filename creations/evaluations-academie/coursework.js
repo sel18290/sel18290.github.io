@@ -38,6 +38,7 @@ async function reload(success=false){
  try{
   const data=await api('teacher_list',{},null,true);
   state.access=data.access||[];state.copies=data.submissions||[];
+  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:state.copies.length,pinClasses:(data.classAccess||[]).length}}));
   display();
   window.dispatchEvent(new Event('cortex:academy-class-updated'));
   if(success)message('Données actualisées.');
@@ -184,6 +185,7 @@ window.addEventListener('cortex:academy-data-ready',()=>reload());
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
+ window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();
  get('cw-copy-list')?.replaceChildren();
 });

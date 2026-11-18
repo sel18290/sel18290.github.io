@@ -227,11 +227,16 @@ function teacherDashboard(){
   btn('Restaurer la démo de référence','reset-demo','secondary full'))+
   '</div></section></div>';
 }
+function examClassHeading(exam){
+ const linked=state.assignments.filter(a=>a.examId===exam.id&&a.active);
+ const names=[...new Set(linked.map(a=>window.CORTEX_CLASSES.classLabel(state,a.classId)).filter(Boolean))];
+ return names.join(' · ')||window.CORTEX_CLASSES.classLabel(state,exam.classId,'Sans classe');
+}
 function teacherExams(){
 const visibleExams=state.exams.filter(e=>!teacherClassFilter||window.CORTEX_CLASSES.assignedTo(state,e.id,teacherClassFilter,teacherGroupFilter));
 return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
 `<div>${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}</div><div class="toolbar"><span class="muted small">${visibleExams.length} contrôle(s) ${teacherClassFilter?'affecté(s) à la classe':'dans la démo'}</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
-<div class="tile-grid" id="exam-tiles">${visibleExams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Accès QR':'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button>${e.sourceId?`<button class="table-action" data-action="visual-open-existing" data-id="${esc(e.id)}">Découper ↗</button>`:''}<button class="table-action" data-action="class-qr-list" data-id="${esc(e.id)}">▣ QR codes</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="table-action" data-action="integrity-settings" data-id="${esc(e.id)}">◈ Anti-triche</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${visibleExams.length===0?'<div class="empty">Aucun contrôle pour cette sélection. Affecte-en un depuis « Mes classes » ou efface le filtre.</div>':''}</div>`;
+<div class="tile-grid" id="exam-tiles">${visibleExams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Accès QR':'Brouillon',e.open?'ok':'warn')}<span class="small muted">CLASSE : ${esc(examClassHeading(e))}</span><span class="small muted">${esc(e.publishScope==="g1"?"Groupe 1":e.publishScope==="g2"?"Groupe 2":"Classe entière")}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="publish-exam" data-id="${esc(e.id)}">${e.open?'Modifier la publication':'Publier'}</button>${e.open?`<button class="table-action" data-action="toggle-exam" data-id="${esc(e.id)}">Fermer</button>`:''}${e.sourceId?`<button class="table-action" data-action="visual-open-existing" data-id="${esc(e.id)}">Découper ↗</button>`:''}<button class="table-action" data-action="class-qr-list" data-id="${esc(e.id)}">▣ QR codes</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="table-action" data-action="integrity-settings" data-id="${esc(e.id)}">◈ Anti-triche</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${visibleExams.length===0?'<div class="empty">Aucun contrôle pour cette sélection. Affecte-en un depuis « Mes classes » ou efface le filtre.</div>':''}</div>`;
 }
 function editorFor(id){
  const e=examBy(id);
@@ -1219,7 +1224,45 @@ if(a==='editor-original'){if(editor?.sourceId)openSavedOriginal(editor.sourceId)
 if(a==='go-copies'){nav('teacher','copies');return;}
 if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;editorDocTab='source';nav('teacher','creer');return;}
 if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
-if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=!e.open;save();render();}return;}
+if(a==='publish-exam'){
+ const exam=examBy(id);if(!exam)return;
+ const validClasses=state.classes.filter(cl=>!cl.archived);
+ if(!validClasses.length){showToast('Crée une classe avant de publier.');return;}
+ const selected=validClasses.some(c=>c.id===exam.classId)?exam.classId:
+  validClasses.some(c=>c.id===teacherClassFilter)?teacherClassFilter:validClasses[0].id;
+ const group=exam.publishScope||'all';
+ modalShow('Publier · '+esc(exam.title),
+  '<div class="field"><label for="publish-demo-class">Classe destinataire</label><select id="publish-demo-class">'+
+  validClasses.map(cl=>'<option value="'+esc(cl.id)+'" '+(cl.id===selected?'selected':'')+'>'+esc(cl.name)+'</option>').join('')+
+  '</select></div><div class="field"><label for="publish-demo-scope">Publication</label><select id="publish-demo-scope">'+
+  [['all','Classe entière'],['g1','Groupe 1 uniquement'],['g2','Groupe 2 uniquement']].map(pair=>
+   '<option value="'+pair[0]+'" '+(group===pair[0]?'selected':'')+'>'+pair[1]+'</option>').join('')+
+  '</select></div><p class="small muted">Un QR code est généré pour cette classe et ce groupe. La démonstration reste locale et ne remplace pas la validation sécurisée de l’espace réel.</p>',
+  '<button type="button" class="btn" data-action="confirm-publish-exam" data-id="'+esc(exam.id)+'">Publier et créer le QR</button>'+btn('Annuler','close-modal','ghost'));
+ return;
+}
+if(a==='confirm-publish-exam'){
+ const exam=examBy(id),classId=document.getElementById('publish-demo-class')?.value;
+ const cl=window.CORTEX_CLASSES.byId(state,classId),scope=document.getElementById('publish-demo-scope')?.value;
+ if(!exam||!cl||cl.archived||!['all','g1','g2'].includes(scope)){
+  showToast('Choisis une classe et un groupe valides.');return;
+ }
+ if(scope!=='all'){
+  cl.groups||=[];
+  let group=cl.groups.find(g=>g.id===scope);
+  if(group)group.archived=false;
+  else cl.groups.push({id:scope,name:scope==='g1'?'Demi-groupe 1':'Demi-groupe 2',archived:false});
+ }
+ for(const assignment of state.assignments)if(assignment.examId===exam.id)assignment.active=false;
+ const token='QR-'+Array.from({length:4},()=>Math.random().toString(36).slice(2,9)).join('');
+ const assignment={id:'acces-'+Date.now()+'-'+Math.floor(Math.random()*999999),
+  examId:exam.id,classId:cl.id,groupId:scope==='all'?null:scope,token,active:true,createdAt:Date.now()};
+ state.assignments.push(assignment);exam.open=true;exam.classId=cl.id;exam.publishScope=scope;
+ save();closeModal();render();openClassQR(assignment.id);
+ showToast('Publié pour '+cl.name+(scope==='all'?' · classe entière':' · groupe '+scope.slice(1))+'.');
+ return;
+}
+if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=false;save();render();}return;}
 if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;modalShow('Accès élève par QR code',window.CORTEX_CLASSES.qrChoices(state,e),btn('Fermer','close-modal','ghost'));return;}
 if(a==='add-question'){if(!editor)return;editor.questions.push({id:'q-'+Date.now(),type:'text',prompt:'',points:4});render();return;}
 if(a==='remove-question'){if(editor&&editor.questions.length>1){editor.questions.splice(Number(el.dataset.index),1);render();}else showToast('Conserve au moins une question.');return;}

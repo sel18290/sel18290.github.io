@@ -244,7 +244,7 @@ async function openTeacherSimulator(exam){
   window.CORTEX_STUDENT_SIMULATOR.open({
    exam:{...exam,description:exam.description||'',duration:exam.duration||60},
    classe:window.CORTEX_CLASSES.classLabel(state,exam.classId||'','Sans classe'),
-   scope:exam.publishScope||'all',assets
+   scope:exam.publishScope||'all',assets,layout:'all'
   });
  }catch(err){showToast('Simulation indisponible : '+(err?.message||err));}
 }
@@ -276,7 +276,13 @@ function teacherEditor(){
 }
 
 function teacherCodes(){
- const all=state.classes.filter(cl=>!cl.archived);
+ const seenNames=new Set();
+ const all=state.classes.filter(cl=>{
+  if(cl.archived)return false;
+  const key=String(cl.name||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(seenNames.has(key))return false;
+  seenNames.add(key);return true;
+ });
  const visible=all.filter(cl=>!teacherClassFilter||cl.id===teacherClassFilter);
  const A=window.CORTEX_ACCESS;
  const cards=visible.map(cl=>'<article class="access-card"><div><span class="access-counter">'+A.filled(state,cl)+' / '+A.count(cl)+' PIN créés</span>'+

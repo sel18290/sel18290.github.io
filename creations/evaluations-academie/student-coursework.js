@@ -154,10 +154,29 @@ if(qr||globalPortal){
   const form=E('form','cw-answer-form');
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
   for(let i=0;i<questions.length;i++){
-   const q=questions[i],label=E('label','cw-answer-question'),input=E('textarea');
-   input.name=q.id||'q'+(i+1);input.maxLength=6000;input.rows=4;
-   input.placeholder='Rédige ta réponse ici…';input.setAttribute('aria-label',q.prompt||'Réponse');
-   label.append(E('strong','',(i+1)+'. '+q.prompt),input);form.append(label);
+   const q=questions[i],label=E('div','cw-answer-question');
+   label.append(E('strong','',(i+1)+'. '+q.prompt));
+   if(q.page)label.append(E('small','cw-doc-ref','Document original · page '+q.page));
+   const related=(exam.assets||[]).filter(a=>(q.assetIds||[]).includes(a.id)&&a.url);
+   if(related.length){
+    const sourceBox=E('div','cw-student-source-snippets');
+    sourceBox.append(E('strong','','Documents fournis pour cette question'));
+    for(const asset of related){
+     const figure=E('figure','cw-student-source-figure'),img=E('img');
+     img.src=asset.url;img.alt='Extrait pédagogique : '+asset.name;img.loading='eager';
+     figure.append(img,E('figcaption','',asset.name));sourceBox.append(figure);
+    }
+    label.append(sourceBox);
+   }
+   let input;
+   if(q.type==='choice'&&Array.isArray(q.choices)&&q.choices.length>=2){
+    input=E('select','cw-answer-choice');const first=E('option','','Choisir une réponse');
+    first.value='';input.append(first);
+    q.choices.forEach((choice,index)=>{const option=E('option','',(index+1)+'. '+choice);option.value=String(index);input.append(option);});
+   }else{
+    input=E('textarea');input.maxLength=6000;input.rows=4;input.placeholder='Rédige ta réponse ici…';
+   }
+   input.name=q.id||'q'+(i+1);input.setAttribute('aria-label',q.prompt||'Réponse');label.append(input);form.append(label);
   }
   const upload=E('label','cw-student-attachment'),file=E('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';
   upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum. Tu peux envoyer une réponse écrite et/ou un fichier.'));
@@ -168,7 +187,7 @@ if(qr||globalPortal){
    if(!confirm('Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.'))return;
    busy=true;submit.disabled=true;message('Envoi de ta copie en cours…');
    try{
-    const answers=Object.fromEntries([...form.querySelectorAll('textarea')].map(a=>[a.name,a.value]));
+    const answers=Object.fromEntries([...form.querySelectorAll('textarea,select.cw-answer-choice')].map(a=>[a.name,a.value]));
     await api('student_submit',{session:token,assessment_id:currentId,answers:JSON.stringify(answers)},file.files?.[0]||null);
     await loadExam(currentId);message('Copie bien reçue par le professeur.');
    }catch(err){message(err.message||'Impossible de remettre la copie.',true)}

@@ -133,7 +133,16 @@ async function teacherAction(action,body,form,req){
   const {data:roster,error:rosterError}=await admin.from('cortex_academy_roster').select('student_number').eq('assessment_id',id);
   if(rosterError)throw Error('Impossible de préparer la liste d’élèves.');
   const exist=new Set((roster||[]).map(x=>x.student_number));
-  for(let n=1;n<=size;n++)if(!exist.has(n))fresh.push(await resetPin(id,n));
+  const missing=Array.from({length:size},(_,i)=>i+1).filter(n=>!exist.has(n));
+  if(missing.length){
+   const generated=await Promise.all(missing.map(async n=>{
+    const value=pin();
+    return {row:{assessment_id:id,student_number:n,pin_digest:await pinHash(id,n,value),attempts:0,locked_until:null},credential:{number:n,pin:value}};
+   }));
+   const {error:pinError}=await admin.from('cortex_academy_roster').upsert(generated.map(x=>x.row),{onConflict:'assessment_id,student_number'});
+   if(pinError)throw Error('Impossible de créer les PIN élèves.');
+   fresh.push(...generated.map(x=>x.credential));
+  }
   const {error:updateAccess}=await admin.from('cortex_academy_access').update({roster_size:size,active:true,updated_at:new Date().toISOString()}).eq('assessment_id',id).eq('teacher_id',teacher.id);
   if(updateAccess)throw Error('Impossible d’ouvrir l’évaluation.');
   const {error:pubErr}=await admin.from('cortex_teacher_assessments').update({published:true}).eq('id',id).eq('teacher_id',teacher.id);

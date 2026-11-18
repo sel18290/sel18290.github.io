@@ -43,10 +43,21 @@ Deno.serve(async(req:Request)=>{
   const raw=await req.text();
   if(raw.length>44000)return fail('Document trop long pour Albert : réduis le nombre de pages ou le texte.',413);
   let body:any;try{body=JSON.parse(raw)}catch{return fail('Données illisibles.',400)}
-  if(body?.action!=='analyze_subject'||body?.mode!=='demo'||!Array.isArray(body?.pages)||
+  if(body?.action!=='analyze_subject'||!['demo','academy'].includes(body?.mode)||!Array.isArray(body?.pages)||
      body.pages.length<1||body.pages.length>35||
      Object.keys(body).sort().join(',')!=='action,mode,pages')
    return fail('Format de demande non reconnu.',400);
+  if(body.mode==='academy'){
+   const token=req.headers.get('authorization')?.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
+   if(!token)return fail('Compte professeur requis pour l’analyse académique.',401);
+   const {data:{user},error:userError}=await db.auth.getUser(token);
+   if(userError||!user||!user.email_confirmed_at||
+      !user.email?.toLowerCase().endsWith('@ac-paris.fr'))
+    return fail('Compte académique confirmé nécessaire.',403);
+   const {data:profile,error:profileError}=await db.from('cortex_teacher_profiles')
+    .select('user_id').eq('user_id',user.id).maybeSingle();
+   if(profileError||!profile)return fail('Profil professeur non autorisé.',403);
+  }
   const pages=body.pages.map((p:unknown)=>String(p??'').slice(0,2800));
   const totalChars=pages.reduce((a:number,p:string)=>a+p.length,0);
   if(totalChars<70||totalChars>39000)return fail('Texte insuffisant ou trop long pour une analyse fiable.',422);

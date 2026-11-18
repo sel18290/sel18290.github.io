@@ -646,26 +646,50 @@ function classAction(action,id,el){
   const link=document.createElement('a');link.download='CORTEX-'+C.classLabel(state,a.classId)+(a.groupId?'-'+C.groupLabel(state,a.classId,a.groupId):'')+'-QR.png';
   link.href=href;document.body.appendChild(link);link.click();link.remove();return true;
  }
- if(action==='class-student-identify'){
+ if(action==='class-student-number'){
   const input=document.getElementById('student-number');
-  const codeInput=document.getElementById('student-access-code');
   const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
-  if(!assignment||!examBy(assignment.examId)?.open){showToast('Ce contrôle n’est pas accessible.');return true;}
-  const number=window.CORTEX_ACCESS.normalizeNumber(input?.value,assignment);
-  const code=String(codeInput?.value||'').trim();
-  if(!number){input?.focus?.();showToast('Entre ton numéro sur la liste de classe (de 1 à '+window.CORTEX_ACCESS.count(assignment)+').');return true;}
-  if(!window.CORTEX_ACCESS.verify(assignment,number,code)){
-   codeInput?.focus?.();showToast('Numéro ou code individuel incorrect. Demande ton code au professeur.');return true;
-  }
-  studentRollNumber=number;studentAccessCode=code;
-  nav('student','pret/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
+  const cl=window.CORTEX_CLASSES.byId(state,assignment?.classId);
+  if(!assignment||!cl||!examBy(assignment.examId)?.open){showToast('Ce contrôle n’est pas accessible.');return true;}
+  const number=window.CORTEX_ACCESS.normalizeNumber(input?.value,cl);
+  if(!number){input?.focus?.();showToast('Choisis ton numéro de liste entre 1 et '+window.CORTEX_ACCESS.count(cl)+'.');return true;}
+  studentRollNumber=number;studentSession=null;
+  nav('student','pin/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
  }
+ if(action==='class-student-pin'){submitStudentPin();return true;}
  if(action==='class-student-edit-number'){
-  studentRollNumber='';studentAccessCode='';
+  studentRollNumber='';studentSession=null;
   nav('student','rejoindre/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
  }
  if(action==='class-student-start'){startExam();return true;}
  return false;
+}
+async function submitStudentPin(){
+ if(studentPinBusy)return;
+ const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
+ const cl=window.CORTEX_CLASSES.byId(state,assignment?.classId);
+ const number=window.CORTEX_ACCESS.normalizeNumber(studentRollNumber,cl);
+ if(tab!=='pin'||!assignment||!cl||!number||!examBy(assignment.examId)?.open){showToast('Recommence depuis le QR code de ton contrôle.');return;}
+ const pin=String(document.getElementById('student-pin')?.value||'');
+ const confirmation=String(document.getElementById('student-pin-confirm')?.value||'');
+ const status=window.CORTEX_ACCESS.record(state,cl,number);
+ const button=document.querySelector('[data-action="class-student-pin"]');
+ studentPinBusy=true;
+ if(button){button.disabled=true;button.textContent='Vérification du PIN…';}
+ try{
+  if(status)await window.CORTEX_ACCESS.verify(state,cl,number,pin);
+  else await window.CORTEX_ACCESS.enroll(state,cl,number,pin,confirmation);
+  save();
+  if(studentAssignmentId!==assignment.id||studentRollNumber!==number||view!=='student')return;
+  const current=window.CORTEX_ACCESS.record(state,cl,number);
+  if(!current)throw Error('PIN réinitialisé. Recommence la connexion.');
+  studentSession={assignmentId:assignment.id,classId:cl.id,number,hash:current.hash};
+  nav('student','pret/'+encodeURIComponent(assignment.id)+'/'+encodeURIComponent(assignment.token));
+  showToast(status?'PIN accepté.':'PIN créé. Conserve-le pour tes prochains contrôles.');
+ }catch(err){
+  save();showToast(err?.message||'Impossible de valider le PIN.');
+  if(button?.isConnected){button.disabled=false;button.textContent=status?'Valider mon PIN →':'Créer mon PIN et continuer →';}
+ }finally{studentPinBusy=false;}
 }
 function openClassQR(id){
  const a=state.assignments.find(x=>x.id===id&&x.active),exam=examBy(a?.examId);
@@ -675,61 +699,37 @@ function openClassQR(id){
  modalShow('QR code de la classe',window.CORTEX_CLASSES.qrModal(state,a,exam,url),btn('Fermer','close-modal','ghost'));
  Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(url,'class-qr-image')).catch(err=>showToast(err.message));
 }
+function pinClass(id){
+ const assignment=state.assignments.find(x=>x.id===id);
+ return window.CORTEX_CLASSES.byId(state,assignment?.classId||id);
+}
 function openAccessCodes(id){
- const a=state.assignments.find(x=>x.id===id&&x.active),e=examBy(a?.examId);
- if(!a||!e){showToast('Contrôle ou affectation introuvable.');return;}
- modalShow('Codes individuels des élèves',window.CORTEX_ACCESS.render(state,a,e),btn('Fermer','close-modal','ghost'));
+ const cl=pinClass(id);
+ if(!cl||cl.archived){showToast('Classe introuvable.');return;}
+ modalShow('PIN des élèves · '+esc(cl.name),window.CORTEX_ACCESS.render(state,cl),btn('Fermer','close-modal','ghost'));
 }
 function handleAccessAction(kind,id,el){
- const a=state.assignments.find(x=>x.id===id&&x.active),A=window.CORTEX_ACCESS;
- if(!a){showToast('Cette affectation est introuvable.');return;}
- if(kind==='access-manage'){openAccessCodes(id);return;}
+ const cl=pinClass(id),A=window.CORTEX_ACCESS;
+ if(!cl||cl.archived){showToast('Classe introuvable.');return;}
+ if(kind==='access-manage'){openAccessCodes(cl.id);return;}
  try{
   if(kind==='access-set-count'){
-   const size=Number(document.getElementById('access-count')?.value);
-   const maxUsed=Math.max(0,...state.attempts.filter(at=>at.assignmentId===id).map(at=>Number(at.studentNumber)||0));
-   if(size<maxUsed)throw Error('Une copie utilise déjà un numéro supérieur à cette limite.');
-   A.setCount(a,size);save();openAccessCodes(id);showToast('Liste mise à jour.');return;
+   A.setCount(state,cl,document.getElementById('access-count')?.value);
+   save();openAccessCodes(cl.id);showToast('Effectif de la classe mis à jour.');return;
   }
-  if(kind==='access-generate-missing'){
-   const n=A.generateMissing(a);save();openAccessCodes(id);showToast(n?n+' codes générés.':'Tous les codes étaient déjà générés.');return;
-  }
-  if(kind==='access-create-one'){
-   A.create(a,el.dataset.number);save();openAccessCodes(id);showToast('Code du numéro '+el.dataset.number+' généré.');return;
-  }
-  if(kind==='access-ask-one'){
-   const number=el.dataset.number;
-   modalShow('Régénérer le code n° '+esc(number)+' ?','<p>Le code actuel ne fonctionnera plus. Le nouveau code devra être remis à cet élève.</p>'+
-    '<p class="class-qr-warning">Attention : si l’élève a commencé un contrôle, la reprise avec son ancien code ne sera plus possible.</p>',
-    '<button type="button" class="btn danger" data-action="access-confirm-one" data-id="'+esc(id)+'" data-number="'+esc(number)+'">Confirmer la régénération</button>'+
-    '<button type="button" class="btn secondary" data-action="access-manage" data-id="'+esc(id)+'">Annuler</button>');
+  if(kind==='access-ask-reset'){
+   const number=A.normalizeNumber(el.dataset.number,cl);
+   if(!number||!A.record(state,cl,number))throw Error('Ce numéro n’a pas encore de PIN.');
+   modalShow('Réinitialiser le PIN · N° '+esc(number),
+    '<p>Le PIN du numéro '+esc(number)+' sera effacé pour <strong>'+esc(cl.name)+'</strong>. L’élève pourra choisir un nouveau PIN lors de sa prochaine connexion.</p>'+
+    '<p class="class-qr-warning">Les copies et notes ne seront pas supprimées. L’ancien PIN ne fonctionnera plus.</p>',
+    '<button type="button" class="btn danger" data-action="access-confirm-reset" data-id="'+esc(cl.id)+'" data-number="'+esc(number)+'">Réinitialiser ce PIN</button>'+
+    '<button type="button" class="btn secondary" data-action="access-manage" data-id="'+esc(cl.id)+'">Annuler</button>');
    return;
   }
-  if(kind==='access-confirm-one'){
-   A.create(a,el.dataset.number,true);save();openAccessCodes(id);showToast('Nouveau code pour le n° '+el.dataset.number+'.');return;
-  }
-  if(kind==='access-ask-all'){
-   modalShow('Régénérer TOUS les codes ?','<p>Tous les anciens codes deviendront invalides. Il faudra redistribuer les nouveaux codes à chaque élève.</p>'+
-    '<p class="class-qr-warning">Cette action peut bloquer la reprise des contrôles déjà commencés.</p>',
-    '<button class="btn danger" data-action="access-confirm-all" data-id="'+esc(id)+'">Oui, remplacer tous les codes</button>'+
-    '<button class="btn secondary" data-action="access-manage" data-id="'+esc(id)+'">Annuler</button>');
-   return;
-  }
-  if(kind==='access-confirm-all'){
-   A.regenerateAll(a);save();openAccessCodes(id);showToast('Tous les codes ont été renouvelés.');return;
-  }
-  if(kind==='access-copy'){
-   if(!navigator.clipboard?.writeText){showToast('Copie indisponible. Utilise Télécharger CSV.');return;}
-   navigator.clipboard.writeText(A.listText(a)).then(()=>showToast('Liste copiée.')).catch(()=>showToast('Copie impossible sur ce navigateur.'));
-   return;
-  }
-  if(kind==='access-csv'){
-   const name=window.CORTEX_CLASSES.classLabel(state,a.classId).replace(/[^a-zA-Z0-9_-]/g,'_');
-   const blob=new Blob([A.csv(a)],{type:'text/csv;charset=utf-8'});
-   const href=URL.createObjectURL(blob),link=document.createElement('a');
-   link.href=href;link.download='CORTEX-Codes-'+name+'-'+a.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.csv';
-   document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),15000);
-   showToast('Codes téléchargés au format CSV.');return;
+  if(kind==='access-confirm-reset'){
+   const number=A.reset(state,cl,el.dataset.number);save();openAccessCodes(cl.id);
+   showToast('PIN du n° '+number+' réinitialisé. Sa copie est conservée.');return;
   }
  }catch(err){showToast(err?.message||'Opération impossible.');}
 }
@@ -978,14 +978,14 @@ if(a==='question-next'){const e=examBy(activeAttempt()?.examId);currentQuestion=
 if(a==='question-jump'){currentQuestion=Number(el.dataset.index)||0;render();return;}
 if(a==='simulate-interruption'){registerInterruption('simulation');showToast('Interruption fictive enregistrée.');render();return;}
 if(a==='review-exam'){reviewExam();return;}
-if(a==='confirm-submit'){const at=activeAttempt();if(!at)return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
+if(a==='confirm-submit'){const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
-if(a==='confirm-reset'){state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
+if(a==='confirm-reset'){studentSession=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('keydown',e=>{
- if(e.key==='Enter'&&['student-number','student-access-code'].includes(e.target?.id)){
+ if(e.key==='Enter'&&['student-number','student-pin','student-pin-confirm'].includes(e.target?.id)){
   e.preventDefault();
-  const trigger=document.querySelector('[data-action="class-student-identify"]');
+  const trigger=document.querySelector('[data-action="class-student-number"], [data-action="class-student-pin"]');
   if(trigger&&!trigger.disabled)action(trigger);
  }
 });

@@ -219,7 +219,7 @@ function teacherCodes(){
  const A=window.CORTEX_ACCESS;
  const cards=visible.map(cl=>'<article class="access-card"><div><span class="access-counter">'+A.filled(state,cl)+' / '+A.count(cl)+' PIN créés</span>'+
   '<h3>'+esc(cl.name)+'</h3><p>Un PIN personnel par numéro de liste, réutilisable pour les contrôles de la classe.</p></div>'+
-  '<button type="button" class="btn" data-action="access-manage" data-id="'+esc(cl.id)+'">Voir / réinitialiser les PIN →</button></article>').join('');
+  '<div class="btn-row"><button type="button" class="btn" data-action="access-manage" data-id="'+esc(cl.id)+'">Voir / réinitialiser les PIN →</button><button type="button" class="btn secondary" data-action="portal-class-code" data-id="'+esc(cl.id)+'">Code de classe ◈</button></div></article>').join('');
  return pageHead('PIN des élèves','Les élèves créent eux-mêmes leur PIN à 6 chiffres à la première connexion. Le professeur ne peut pas voir les PIN.',btn('Mes classes →','class-open-manager','secondary'))+
   '<div class="access-page">'+window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)+
   '<div class="access-intro"><strong>Numéro de liste + PIN choisi par l’élève</strong><p>Première connexion : création et confirmation du PIN. Connexions suivantes : saisie du même PIN. Un oubli ? Réinitialise le PIN du numéro correspondant, sans effacer les copies.</p></div>'+
@@ -556,7 +556,7 @@ ${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<la
 }
 function studentDone(){
 const a=activeAttempt(),e=examBy(a?.examId);
-return `<div class="panel student-done"><div class="done-icon">✓</div><p class="eyebrow" style="justify-content:center">Évaluation terminée</p><h1 style="font-size:38px">Copie remise !</h1><p class="lead">Ton contrôle « ${esc(e?.title||'Évaluation')} » a été ajouté au tableau de bord de démonstration.</p><p class="muted small">Aucune copie réelle n'a été envoyée. Pour voir tes réponses, repasse en profil professeur sur ce même navigateur.</p><div class="btn-row" style="justify-content:center;margin-top:28px">${btn('Retour à l’accueil','home','secondary')}</div></div>`;
+return `<div class="panel student-done"><div class="done-icon">✓</div><p class="eyebrow" style="justify-content:center">Évaluation terminée</p><h1 style="font-size:38px">Copie remise !</h1><p class="lead">Ton contrôle « ${esc(e?.title||'Évaluation')} » a été ajouté au tableau de bord de démonstration.</p><p class="muted small">Aucune copie réelle n'a été envoyée. Pour voir tes réponses, repasse en profil professeur sur ce même navigateur.</p><div class="btn-row" style="justify-content:center;margin-top:28px">${btn('Accéder à Mon CORTEX ↗','portal-open','')}${btn('Retour à l’accueil','home','secondary')}</div></div>`;
 }
 function setAnswer(key,value){
 const a=activeAttempt();if(!a||a.status!=='progress'||!authorizedAttempt(a))return;a.answers[key]=value;save();
@@ -826,7 +826,7 @@ function pinClass(id){
 function openAccessCodes(id){
  const cl=pinClass(id);
  if(!cl||cl.archived){showToast('Classe introuvable.');return;}
- modalShow('PIN des élèves · '+esc(cl.name),window.CORTEX_ACCESS.render(state,cl),btn('Fermer','close-modal','ghost'));
+ modalShow('PIN des élèves · '+esc(cl.name),window.CORTEX_ACCESS.render(state,cl),'<button class="btn secondary" data-action="portal-class-code" data-id="'+esc(cl.id)+'">Gérer le code de classe</button>'+btn('Fermer','close-modal','ghost'));
 }
 function handleAccessAction(kind,id,el){
  const cl=pinClass(id),A=window.CORTEX_ACCESS;

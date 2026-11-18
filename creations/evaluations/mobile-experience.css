@@ -18,7 +18,7 @@
   .topbar {
     height:62px; min-height:62px; padding:0 16px; position:sticky; top:0;
     border-bottom-color:#4b7b7d55; z-index:28;
-    background:#0a1726f2; backdrop-filter:blur(18px);
+    background:#0a1726f5; backdrop-filter:none;
   }
   .brand { gap:10px; }
   .brand-mark { width:37px; height:37px; border-radius:12px; }

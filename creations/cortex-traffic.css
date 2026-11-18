@@ -1,0 +1,57 @@
+/* CORTEX Noctis · Indicateurs de fréquentation du Nexus.
+ * Deux valeurs REELLES : sessions cumulées / sessions actives sur 2 min. */
+.cortex-traffic{
+ display:flex;align-items:center;gap:6px;flex:0 0 auto;min-width:0;
+ padding:4px;border:1px solid #6887bd83;border-radius:14px;
+ background:linear-gradient(120deg,#0c1c34ed,#182b4aeb 59%,#151d38e8);
+ box-shadow:inset 0 1px #b6d8ff1c,0 5px 20px #02091870;
+ position:relative;isolation:isolate;
+}
+.cortex-traffic:before{content:'';pointer-events:none;position:absolute;inset:0;
+ border-radius:inherit;background:linear-gradient(110deg,transparent,#b4c6ff08,transparent)}
+.cortex-traffic-metric{
+ display:flex;align-items:center;gap:8px;padding:6px 9px;
+ min-width:0;border-radius:10px;position:relative;
+}
+.cortex-traffic-metric+ .cortex-traffic-metric{border-left:1px solid #7189b83b;border-radius:0 10px 10px 0}
+.cortex-traffic-symbol{display:grid;place-items:center;flex:none;height:28px;width:28px;border-radius:9px;
+ background:linear-gradient(140deg,#323f80,#192a51);border:1px solid #788edc88;
+ color:#c7d5ff;font-size:17px;text-shadow:0 0 12px #839af9a1}
+.cortex-traffic-metric-live .cortex-traffic-symbol{color:#98e9f6;border-color:#5c9dc2a8;
+ background:linear-gradient(125deg,#144660,#182842)}
+.cortex-traffic-data{display:grid;min-width:0;gap:3px;line-height:1}
+.cortex-traffic-data strong{font-variant-numeric:tabular-nums;font-feature-settings:"tnum";font-size:17px;
+ font-weight:900;letter-spacing:.01em;line-height:1.02;color:#f3f4ff;
+ text-shadow:0 0 13px #8499f869}
+.cortex-traffic-metric-live strong{color:#c0f3ff;text-shadow:0 0 11px #6ce3fb99}
+.cortex-traffic-data small{font-size:9px;letter-spacing:.015em;line-height:1.2;font-weight:750;color:#b1bfdb;white-space:nowrap}
+.cortex-traffic-metric-live small{color:#b5dfe7}
+.cortex-traffic-dot{position:absolute;width:6px;height:6px;right:3px;top:2px;
+ border-radius:50%;background:#7cdfec;box-shadow:0 0 0 3px #7cdfec26,0 0 10px #79dcea;
+ animation:cortex-traffic-pulse 2.6s infinite ease-in-out}
+.cortex-traffic[data-status=offline] .cortex-traffic-dot{background:#9ba8b8;box-shadow:none;animation:none}
+.cortex-traffic-note{position:absolute;clip-path:inset(50%);height:1px;width:1px;overflow:hidden;white-space:nowrap}
+@keyframes cortex-traffic-pulse{50%{opacity:.5;transform:scale(.78)}}
+@media(max-width:1430px){
+ .cortex-traffic-metric{gap:5px;padding:5px 6px}
+ .cortex-traffic-symbol{height:24px;width:24px;font-size:15px}
+ .cortex-traffic-data strong{font-size:15px}
+ .cortex-traffic-data small{font-size:8px}
+}
+@media(max-width:1240px){
+ .topbar:has(>.cortex-traffic){height:auto;min-height:70px;flex-wrap:wrap;row-gap:5px;padding-top:6px;padding-bottom:7px}
+ .topbar>.cortex-traffic{order:8;width:100%;box-sizing:border-box;justify-content:center}
+ .topbar>.top-actions{order:4}
+ .top:has(>.cortex-traffic){flex-wrap:wrap;gap:9px}
+ .top>.cortex-traffic{order:10;flex-basis:100%;justify-content:center;box-sizing:border-box}
+ .top>.academy-header-actions{order:4}
+}
+@media(max-width:650px){
+ .topbar>.cortex-traffic{justify-content:flex-start;gap:8px;width:100%;padding:3px 5px}
+ .top>.cortex-traffic{justify-content:flex-start;gap:8px}
+ .cortex-traffic-metric{flex:1;justify-content:center;padding:4px 8px}
+ .cortex-traffic-symbol{width:23px;height:23px}
+ .cortex-traffic-data small{font-size:9px}
+ .cortex-traffic-data strong{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.cortex-traffic-dot{animation:none}}

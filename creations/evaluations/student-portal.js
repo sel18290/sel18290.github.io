@@ -214,12 +214,14 @@ window.CORTEX_PORTAL=(function(){
   const questions=(exam.questions||[]).map((q,i)=>{
    const answer=at.answers?.[q.id],points=at.marks?.[q.id]?.points,hasPoints=typeof points==='number'&&Number.isFinite(points),comment=at.marks?.[q.id]?.comment;
    const choice=q.type==='choice'&&Array.isArray(q.choices)&&q.correct!=null&&Number.isInteger(Number(q.correct))&&q.choices[q.correct];
+   const sourceText=String(q.doc||exam.doc||exam.sourcePages?.[Math.max(0,Number(q.page||1)-1)]||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,2200);
    const answerText=choice&&/^\d+$/.test(String(answer??''))?q.choices[Number(answer)]??answer:answer;
    return '<article class="portal-question"><div class="portal-question-top"><span>QUESTION '+(i+1)+' / '+exam.questions.length+'</span>'+
     (hasPoints?'<strong>'+grade(points)+' / '+grade(q.points)+' pt</strong>':'<strong>Commentaire</strong>')+'</div>'+
     '<h3>'+esc(q.prompt)+'</h3><div class="portal-response"><span>TA RÉPONSE</span><p>'+esc(String(answerText??'').trim()||'Aucune réponse donnée')+'</p></div>'+
     (choice?'<div class="portal-expected"><span>RÉPONSE ATTENDUE (QCM)</span><p>'+esc(q.choices[q.correct])+'</p></div>':'')+
     (comment?'<div class="portal-feedback"><span>RETOUR DU PROFESSEUR</span><p>'+esc(comment)+'</p></div>':'')+
+    (sourceText?'<details class="portal-document"><summary>Consulter le document utilisé pour cette question</summary><p>'+esc(sourceText)+'</p></details>':'')+
     '</article>';
   }).join('');
   const general=String(at.feedback||'').trim();
@@ -229,6 +231,7 @@ window.CORTEX_PORTAL=(function(){
    (general?'<div class="portal-general"><span>APPRÉCIATION GÉNÉRALE</span><p>'+esc(general)+'</p></div>':'')+
    '<div class="portal-section-head"><div><span class="portal-kicker">TON TRAVAIL</span><h2>La correction en détail.</h2></div><span class="portal-count">'+exam.questions.length+' question(s)</span></div>'+
    '<div class="portal-question-grid">'+questions+'</div>'+
+   (exam.sourceId?'<div class="portal-footer-tools"><button type="button" class="portal-secondary-button" data-action="portal-original" data-id="'+esc(at.id)+'">▤ Voir le document original</button></div>':'')+
    '<div class="portal-footer-tools"><button type="button" class="portal-secondary-button" data-action="portal-back">← Revenir aux résultats</button><button type="button" class="portal-secondary-button" data-action="portal-print">▤ Imprimer</button></div>'+
    '<p class="portal-demo-warning">Les documents sources complexes peuvent ne pas être reproduits dans cet aperçu ; l’enseignant doit vérifier la correction avant publication.</p>'+
    '</div></div>';

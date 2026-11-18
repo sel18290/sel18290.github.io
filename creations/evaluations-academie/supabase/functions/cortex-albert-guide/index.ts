@@ -80,9 +80,9 @@ Deno.serve(async(req:Request)=>{
    return fail('Pose une question de 5 à 500 caractères sur le site.',422);
   if(body.action==='teacher_help'&&pii(message))return fail('N’envoie aucune donnée personnelle à Albert.',422);
   if(!Deno.env.get('ALBERT_API_KEY'))return fail('La clé Albert est absente du serveur.',503);
-  const {data:quota,error:quotaError}=await db.rpc('cortex_albert_demo_claim_slot');
+  const {data:quota,error:quotaError}=await db.rpc('cortex_albert_guide_claim_slot');
   if(quotaError)return fail('Protection du quota Albert indisponible.',503);
-  if(quota!==true)return fail('Albert est occupé : un appel toutes les 20 secondes, 24 par jour pour toute la démo.',429);
+  if(quota!==true)return fail('Albert est occupé : espace d’aide limité à 55 demandes par jour et une toutes les 8 secondes.',429);
   try{
    const out=await requestAlbert(body.action,
     body.action==='teacher_help'?'Page '+screen+' ; question du professeur : '+message:

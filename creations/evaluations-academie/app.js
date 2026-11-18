@@ -59,6 +59,7 @@ async function init(){
     queueMicrotask(()=>selectMode('update'));
    }else if(event==='SIGNED_OUT'){
     teacherId=null;myClasses=[];myExams=[];
+    window.dispatchEvent(new Event('cortex:academy-logout'));
     if(!$('account-view').hidden)queueMicrotask(()=>selectMode('login'));
    }
   });
@@ -95,6 +96,7 @@ let teacherId=null;
 let myClasses=[];
 let myExams=[];
 let myIncidents=[];
+window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
 let selectedIntegrityExamId='';
 const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
@@ -249,6 +251,7 @@ function drawTeacherData(){
     card.append(desc);list.append(card);
   }
   drawAcademyTools();
+  window.dispatchEvent(new CustomEvent('cortex:academy-data-ready'));
 }
 function requireTeacher(){
  if(!supabase||!teacherId)throw Error('Session académique absente. Reconnectez-vous.');
@@ -297,7 +300,10 @@ $('exam-form').addEventListener('submit',async event=>{
   if(!title||title.length>180)throw Error('Le titre du contrôle est obligatoire.');
   const class_id=$('exam-class').value||null;
   const description=$('exam-description').value.trim();
-  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions:[],antiCheat:antiCreateConfig()},published:false});
+  const prompts=$('exam-questions').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(prompts.length>30||prompts.some(x=>x.length>1200))throw Error('Limite : 30 questions, 1200 caractères par question.');
+  const questions=prompts.map((prompt,i)=>({id:'q'+(i+1),prompt,type:'text',points:Math.round(20/prompts.length*100)/100}));
+  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions,antiCheat:antiCreateConfig()},published:false});
   if(error)throw error;
   $('exam-form').reset();await loadTeacherData(id);
   status('Contrôle enregistré dans Supabase.');

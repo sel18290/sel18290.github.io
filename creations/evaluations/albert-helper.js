@@ -175,9 +175,10 @@
   const busy=waitForAlbert('Estimation de la note en cours','Analyse de 20 réponses fictives, calcul indicatif et préparation de trois conseils. Aucune note officielle n’est modifiée.');
   try{
    // Le serveur utilise un contrôle et 20 réponses FIXES : aucune donnée du carnet n'est envoyée.
-   const out=await endpoint(GRADE,{action:'demo_draft',copy_id:'ex-pdf-demo'});
-   if(out.mode!=='demo'||out.copyId!=='ex-pdf-demo'||!Array.isArray(out.questions)||out.questions.length!==20||!Number.isFinite(Number(out.grade)))
-    throw Error('Correction fictive incomplète : estimation impossible.');
+   const out=await endpoint(GRADE,{action:'demo_estimate_only',copy_id:'ex-pdf-demo'});
+   if(out.mode!=='demo'||out.copyId!=='ex-pdf-demo'||!Number.isFinite(Number(out.grade))||
+      Object.prototype.hasOwnProperty.call(out,'questions'))
+    throw Error('Estimation incomplète ou présence de détails non autorisés.');
    // Copie en cours de correction : uniquement une note indicative, SANS commentaires.
    state.estimate={score:Math.round(Number(out.grade)*100)/100};
    if($('cortex-estimate-result'))renderEstimate($('cortex-estimate-result'));

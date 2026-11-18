@@ -131,6 +131,8 @@ if(qr||globalPortal){
   const subject=E('section','cw-student-subject');
   subject.append(E('span','cw-student-eyebrow','ÉLÈVE N°'+current.student_number),E('h2','',exam.title));
   if(exam.description)subject.append(E('p','cw-instructions',exam.description));
+  if(exam.doc)subject.append(E('div','cw-student-common-doc',exam.doc));
+  if(exam.duration)subject.append(E('p','cw-student-rules','Durée indicative : '+exam.duration+' minutes.'));
   if(current.subject){
    const file=E('a','cw-student-document','📄 Consulter le document : '+current.subject.name);
    file.href=current.subject.url;file.target='_blank';file.rel='noopener';subject.append(file);
@@ -168,15 +170,10 @@ if(qr||globalPortal){
     }
     label.append(sourceBox);
    }
-   let input;
-   if(q.type==='choice'&&Array.isArray(q.choices)&&q.choices.length>=2){
-    input=E('select','cw-answer-choice');const first=E('option','','Choisir une réponse');
-    first.value='';input.append(first);
-    q.choices.forEach((choice,index)=>{const option=E('option','',(index+1)+'. '+choice);option.value=String(index);input.append(option);});
-   }else{
-    input=E('textarea');input.maxLength=6000;input.rows=4;input.placeholder='Rédige ta réponse ici…';
-   }
-   input.name=q.id||'q'+(i+1);input.setAttribute('aria-label',q.prompt||'Réponse');label.append(input);form.append(label);
+   if(q.doc)label.append(E('div','cw-student-question-doc',q.doc));
+   const answerArea=E('div','cw-question-response');
+   answerArea.innerHTML=window.CORTEX_QUESTION_TYPES.studentFields(q,'');
+   label.append(answerArea);form.append(label);
   }
   const upload=E('label','cw-student-attachment'),file=E('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';
   upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum. Tu peux envoyer une réponse écrite et/ou un fichier.'));
@@ -187,7 +184,11 @@ if(qr||globalPortal){
    if(!confirm('Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.'))return;
    busy=true;submit.disabled=true;message('Envoi de ta copie en cours…');
    try{
-    const answers=Object.fromEntries([...form.querySelectorAll('textarea,select.cw-answer-choice')].map(a=>[a.name,a.value]));
+    const wrappers=[...form.querySelectorAll('[data-cortex-q]')];
+    const answers=Object.fromEntries(questions.map(q=>{
+     const container=wrappers.find(w=>w.dataset.cortexQ===q.id);
+     return [q.id,container?window.CORTEX_QUESTION_TYPES.readAnswer(container,q):''];
+    }));
     await api('student_submit',{session:token,assessment_id:currentId,answers:JSON.stringify(answers)},file.files?.[0]||null);
     await loadExam(currentId);message('Copie bien reçue par le professeur.');
    }catch(err){message(err.message||'Impossible de remettre la copie.',true)}

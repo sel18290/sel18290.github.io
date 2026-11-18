@@ -27,7 +27,17 @@
 <div class="divider"><span>Votre identité académique</span></div><p class="help">Pour créer un compte, un e-mail de confirmation sera envoyé à votre messagerie académique. L'accès au tableau de bord reste bloqué jusqu'à validation.</p>
 </div>
 <div id="account-view" hidden><div class="eyebrow">SESSION PROFESSEUR</div><h2>Compte académique confirmé.</h2><p class="account-email" id="account-email"></p>
-<div class="dashboard"><div><strong>Mon espace professionnel</strong><p>Authentification activée. L'import sécurisé des classes, contrôles et copies se déploiera après configuration de la base et validation RGPD.</p></div><span class="chip">Compte personnel</span></div>
+<div class="dashboard"><div><strong>Mon espace professionnel</strong><p>Classes et évaluations sauvegardées sur Supabase, uniquement accessibles à ton compte académique. Les copies élèves ne sont pas encore synchronisées.</p></div><span class="chip">Supabase · Paris</span></div>
+<div id="prof-content">
+<section class="prof-sec"><div class="prof-head"><div><span class="eyebrow">01 / MES CLASSES</span><h3>Créer et organiser mes classes</h3></div><span id="classes-count" class="chip">—</span></div>
+<form id="class-form" class="prof-form"><input id="class-code" maxlength="40" autocomplete="off" placeholder="Code : 2MRC2" aria-label="Code de la classe" required><input id="class-name" maxlength="80" autocomplete="off" placeholder="Libellé : Seconde MRC2" aria-label="Nom de la classe" required><button type="submit">Ajouter</button></form>
+<div id="class-list" class="prof-list" aria-live="polite"></div></section>
+<section class="prof-sec"><div class="prof-head"><div><span class="eyebrow">02 / MES ÉVALUATIONS</span><h3>Créer mes contrôles</h3></div><span id="exams-count" class="chip">—</span></div>
+<form id="exam-form" class="prof-exam-form"><div class="field"><label for="exam-title">Titre du contrôle</label><input id="exam-title" maxlength="180" placeholder="Ex. Le sommeil" required></div>
+<div class="field"><label for="exam-class">Classe</label><select id="exam-class"><option value="">Sans classe</option></select></div>
+<div class="field"><label for="exam-description">Consignes et document de travail</label><textarea id="exam-description" rows="4" maxlength="12000" placeholder="Consignes de l’évaluation, questions…"></textarea></div>
+<button type="submit">Enregistrer l’évaluation</button></form><div id="exam-list" class="prof-list"></div></section>
+<div class="setup-notice"><strong>Utilisation pédagogique réelle non activée</strong><p>Les comptes et les contrôles sont protégés par Supabase Auth et RLS. Les connexions élèves, les copies, les notes et les PDF nécessitent encore leur sécurisation serveur et la validation institutionnelle avant tout usage réel.</p></div></div>
 <button type="button" class="submit secondary" id="logout">Se déconnecter</button></div>
 <div class="setup-notice" id="setup-notice"><strong>Connexion à Supabase en préparation</strong><p>Cette nouvelle adresse est indépendante du site de démonstration. L’inscription sera activée après création du projet Supabase, configuration de l’e-mail académique et mise en place des règles de sécurité serveur.</p></div>
 </div></section></main><div class="bottom">CORTEX ACADÉMIE · PROTOTYPE D’AUTHENTIFICATION · AUCUNE NOTE D’ÉLÈVE</div>

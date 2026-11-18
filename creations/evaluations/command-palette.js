@@ -90,8 +90,9 @@
   dialog.setAttribute('aria-labelledby','ct-command-title');
   const head=create('div','ct-command-heading');
   const meta=create('div','ct-command-heading-copy');
-  meta.append(create('span','ct-command-kicker','CORTEX · NAVIGATION'),create('h2','', 'Aller directement à…'));
-  meta.querySelector('h2').id='ct-command-title';
+  const heading=create('h2','', 'Aller directement à…');
+  heading.id='ct-command-title';
+  meta.append(create('span','ct-command-kicker','CORTEX · NAVIGATION'),heading);
   const dismiss=create('button','ct-command-close','×');dismiss.type='button';dismiss.dataset.dismiss='true';dismiss.setAttribute('aria-label','Fermer la navigation rapide');
   head.append(meta,dismiss);
   const inputWrap=create('div','ct-command-input-wrap');

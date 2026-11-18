@@ -175,7 +175,7 @@ function renderQuestions(){
   const attached=state.assets.filter(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
   const hasImage=attached.length>0;
   if(q.docMode!=='image'&&q.docMode!=='text')q.docMode=!String(q.doc||'').trim()&&hasImage?'image':'text';
-  if(q.docMode==='image'&&!hasImage)q.docMode='text';
+  if(q.docMode==='image'&&!hasImage){q.doc=String(q.docDraft||'').slice(0,5000);q.docMode='text';}
   const modeBox=node('div','ri-document-mode');
   const choiceLabel=node('strong','','Quel document l’élève doit-il voir ?');
   const choices=node('div','ri-document-choices');

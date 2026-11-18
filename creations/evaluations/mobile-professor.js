@@ -231,7 +231,8 @@
     if(headerTools){
       const menuOpen=!drawer.hidden;
       headerTools.setAttribute('aria-expanded',String(menuOpen));
-      headerTools.textContent=menuOpen?'✕ Fermer':'☰ Outils';
+      const desiredLabel=menuOpen?'✕ Fermer':'☰ Outils';
+      if(headerTools.textContent!==desiredLabel)headerTools.textContent=desiredLabel;
     }
     drawer.querySelectorAll('.phone-teacher-more-grid button[data-tab]').forEach(button=>{
       if(button.dataset.tab===tab)button.setAttribute('aria-current','page');

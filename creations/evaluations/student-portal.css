@@ -249,3 +249,7 @@
 .portal-preview-button{width:100%;padding:12px 16px;margin:4px 0 17px;border:1px dashed #70b5aa;border-radius:11px;background:#193a43;color:#b3ffea;font-size:12px;font-weight:780}
 .portal-preview-button:hover{background:#21535d}
 .portal-demo-ribbon{display:flex;align-items:center;justify-content:center;text-align:center;border-radius:11px;background:#284a45;border:1px solid #67aa93;color:#d4ffe9;font-size:11px;letter-spacing:.08em;font-weight:850;padding:11px;margin:0 0 11px}
+
+.portal-document{margin-top:13px;border:1px solid #45687b;border-radius:10px;background:#10263a;padding:12px 14px}
+.portal-document summary{cursor:pointer;color:#b6edec;font-size:12px;font-weight:780}
+.portal-document p{color:#bbd0dc;font-size:12px;line-height:1.7;margin:11px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}

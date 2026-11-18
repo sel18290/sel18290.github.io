@@ -73,6 +73,7 @@ async function showUser(user){
  $('account-email').textContent=user.email;
  $('auth-view').hidden=true;$('account-view').hidden=false;
  status('');
+ await loadTeacherData(user.id);
 }
 function safeAuthMessage(error){
  const msg=String(error?.message||'La demande a échoué.');
@@ -82,6 +83,111 @@ function safeAuthMessage(error){
  if(/already registered/i.test(msg))return 'Cette adresse semble déjà inscrite. Essayez « Connexion ».';
  return msg;
 }
+
+let teacherId=null;
+let myClasses=[];
+let myExams=[];
+const el=(tag,cls,txt)=>{
+ const node=document.createElement(tag);
+ if(cls)node.className=cls;
+ if(txt!==undefined)node.textContent=String(txt);
+ return node;
+};
+function safeError(err){
+ return String(err?.message||'La requête a échoué.').replace(/\b[0-9a-f]{8}-[0-9a-f-]{27,}\b/ig,'[identifiant]').slice(0,240);
+}
+async function loadTeacherData(id){
+ teacherId=id;
+ try{
+  const [cls,ex]=await Promise.all([
+   supabase.from('cortex_teacher_classes').select('id,code,display_name,archived,created_at').eq('teacher_id',id).order('created_at',{ascending:false}),
+   supabase.from('cortex_teacher_assessments').select('id,title,class_id,published,created_at,content').eq('teacher_id',id).order('created_at',{ascending:false})
+  ]);
+  if(cls.error)throw cls.error;if(ex.error)throw ex.error;
+  myClasses=cls.data||[];myExams=ex.data||[];
+  drawTeacherData();
+ }catch(err){status('Impossible de charger les données du professeur : '+safeError(err),true);}
+}
+function drawTeacherData(){
+ $('class-list').replaceChildren();$('exam-list').replaceChildren();
+ $('classes-count').textContent=myClasses.length+' classe(s)';
+ $('exams-count').textContent=myExams.length+' contrôle(s)';
+ if(!myClasses.length)$('class-list').append(el('p','empty','Aucune classe enregistrée.'));
+ for(const c of myClasses){
+  const row=el('div','prof-item'),detail=el('div','prof-item-main');
+  detail.append(el('strong','',c.display_name),el('small','',c.code));
+  const action=el('button','prof-delete','Supprimer');action.type='button';
+  action.addEventListener('click',()=>removeClass(c));
+  row.append(detail,action);$('class-list').append(row);
+ }
+ $('exam-class').replaceChildren();
+ const blank=el('option','','Sans classe');blank.value='';$('exam-class').append(blank);
+ for(const c of myClasses){
+  const option=el('option','',c.display_name+' · '+c.code);option.value=c.id;$('exam-class').append(option);
+ }
+ if(!myExams.length)$('exam-list').append(el('p','empty','Aucune évaluation enregistrée.'));
+ for(const exam of myExams){
+  const row=el('div','prof-item'),detail=el('div','prof-item-main');
+  const cl=myClasses.find(c=>c.id===exam.class_id);
+  detail.append(el('strong','',exam.title),el('small','',cl?.display_name||'Sans classe'));
+  const action=el('button','prof-delete','Supprimer');action.type='button';action.addEventListener('click',()=>removeExam(exam));
+  row.append(detail,action);$('exam-list').append(row);
+ }
+}
+function requireTeacher(){
+ if(!supabase||!teacherId)throw Error('Session académique absente. Reconnectez-vous.');
+ return teacherId;
+}
+async function removeClass(c){
+ if(!confirm('Supprimer la classe '+c.display_name+' ? Les contrôles qui lui sont liés seront conservés sans classe.'))return;
+ try{
+  const id=requireTeacher();
+  const {error}=await supabase.from('cortex_teacher_classes').delete().eq('id',c.id).eq('teacher_id',id);
+  if(error)throw error;
+  await loadTeacherData(id);
+  status('Classe supprimée.');
+ }catch(err){status(safeError(err),true);}
+}
+async function removeExam(exam){
+ if(!confirm('Supprimer définitivement le contrôle « '+exam.title+' » ?'))return;
+ try{
+  const id=requireTeacher();
+  const {error}=await supabase.from('cortex_teacher_assessments').delete().eq('id',exam.id).eq('teacher_id',id);
+  if(error)throw error;
+  await loadTeacherData(id);
+  status('Contrôle supprimé.');
+ }catch(err){status(safeError(err),true);}
+}
+$('class-form').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const button=event.submitter;
+ if(button)button.disabled=true;
+ try{
+  const id=requireTeacher();
+  const code=$('class-code').value.trim().toUpperCase(),display_name=$('class-name').value.trim();
+  if(!/^[A-Z0-9 -]{2,40}$/.test(code)||display_name.length<2)throw Error('Renseignez un code de classe et un nom valides.');
+  const {error}=await supabase.from('cortex_teacher_classes').insert({teacher_id:id,code,display_name});
+  if(error)throw error;
+  $('class-form').reset();await loadTeacherData(id);
+  status('Classe enregistrée dans Supabase.');
+ }catch(err){status(safeError(err),true);}
+ finally{if(button)button.disabled=false;}
+});
+$('exam-form').addEventListener('submit',async event=>{
+ event.preventDefault();const button=event.submitter;if(button)button.disabled=true;
+ try{
+  const id=requireTeacher(),title=$('exam-title').value.trim();
+  if(!title||title.length>180)throw Error('Le titre du contrôle est obligatoire.');
+  const class_id=$('exam-class').value||null;
+  const description=$('exam-description').value.trim();
+  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions:[]},published:false});
+  if(error)throw error;
+  $('exam-form').reset();await loadTeacherData(id);
+  status('Contrôle enregistré dans Supabase.');
+ }catch(err){status(safeError(err),true);}
+ finally{if(button)button.disabled=false;}
+});
+
 $('auth-form').addEventListener('submit',async ev=>{
  ev.preventDefault();if(busy||!supabase){status('Supabase n’est pas encore configuré.',true);return;}
  const email=$('email').value.trim().toLowerCase();
@@ -120,7 +226,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut();selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

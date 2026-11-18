@@ -98,6 +98,7 @@ function details(s,cl){
      const sub=s.attempts.filter(x=>x.assignmentId===a.id&&x.status==='submitted');
      return `<div class="class-assignment-row"><div><strong>${h(e.title)}</strong><small>${h(groupLabel(s,a.classId,a.groupId))} · ${sub.length} copie(s) · ${e.open?'Publié':'Brouillon'}</small></div>
         <div class="btn-row"><button class="btn secondary small" data-action="class-open-qr" data-id="${h(a.id)}">▣ Générer QR</button>
+         <button class="btn secondary small" data-action="access-manage" data-id="${h(a.id)}">⌑ Codes élèves</button>
         <button class="btn ghost small" data-action="class-assignment-copies" data-id="${h(a.id)}">Copies</button>
         <button class="btn danger small" data-action="class-unassign" data-id="${h(a.id)}">Retirer</button></div></div>`;
      }).join('')}</div>`:'<div class="empty">Aucun contrôle affecté à cette classe.</div>'}</div></section>`;
@@ -146,7 +147,8 @@ function qrModal(s,a,e,url){
   <div class="class-qr-url">${h(url)}</div>
   <div class="btn-row"><button class="btn" data-action="class-qr-copy" data-id="${h(a.id)}">Copier le lien</button>
     <button class="btn secondary" data-action="class-qr-download" data-id="${h(a.id)}">Télécharger le QR</button>
-    <button class="btn ghost" data-action="class-qr-simulate" data-id="${h(a.id)}">Simuler le scan</button></div>
+    <button class="btn ghost" data-action="class-qr-simulate" data-id="${h(a.id)}">Simuler le scan</button>
+     <button class="btn secondary" data-action="access-manage" data-id="${h(a.id)}">⌑ Générer les codes individuels</button></div>
   <p class="class-qr-warning">Démonstration GitHub : le QR transmet une destination, pas une authentification sécurisée. Les copies ne sont pas synchronisées entre appareils.</p></div>`;
 }
 async function drawQr(url,selector='class-qr-image'){
@@ -169,26 +171,29 @@ function landing(s,assignment,exam,invalid=false,options={}){
     <p>Ce lien ne correspond pas à un accès actif sur cet appareil. Dans cette version locale, les contrôles personnalisés ne sont pas partagés entre appareils.</p>
     <button class="btn secondary" data-action="home">Retour à l’accueil</button></div>`;
  }
- const ready=options.step==='ready'&&/^\d{1,4}$/.test(String(options.number||''));
+ const ready=options.step==='ready'&&options.verified===true&&/^\d{1,4}$/.test(String(options.number||''));
  return `<div class="qr-student-landing panel">
-   <span class="chip teal">QR vérifié · ${h(classLabel(s,assignment.classId))}</span>
+   <span class="chip teal">QR reconnu (démo) · ${h(classLabel(s,assignment.classId))}</span>
    <h1>${ready?'Ton contrôle est prêt.':'Bienvenue dans ta classe.'}</h1>
    <h2>${h(classLabel(s,assignment.classId))} · ${h(groupLabel(s,assignment.classId,assignment.groupId))}</h2>
-   ${ready?`<div class="qr-identity-confirm"><span>NUMÉRO D'ÉLÈVE</span><strong>N° ${h(options.number)}</strong>
+   ${ready?`<div class="qr-identity-confirm"><span>NUMÉRO D'ÉLÈVE · CODE ACCEPTÉ</span><strong>N° ${h(options.number)}</strong>
      <button type="button" class="btn ghost small" data-action="class-student-edit-number">Modifier le numéro</button></div>`:
-    `<p class="muted">Saisis ton <strong>numéro sur la liste de classe</strong> (et non ton numéro de téléphone) pour accéder au contrôle.</p>
+    `<p class="muted">Saisis ton <strong>numéro sur la liste de classe</strong> (et non ton numéro de téléphone), puis le <strong>code individuel à 6 chiffres</strong> remis par le professeur.</p>
     <div class="field"><label for="student-number">Mon numéro d'élève</label>
       <input id="student-number" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" autocomplete="off"
         placeholder="Ex. 12" aria-describedby="student-number-hint" required>
-      <small id="student-number-hint">Entre 1 et 4 chiffres. Les zéros initiaux sont conservés.</small></div>`}
+      <small id="student-number-hint">Exemple : 12. Le numéro doit figurer dans la liste prévue par le professeur.</small></div>
+     <div class="field"><label for="student-access-code">Code individuel à 6 chiffres</label>
+       <input id="student-access-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="Ex. 583194" aria-describedby="student-access-hint" required>
+       <small id="student-access-hint">Le code correspond uniquement à ton numéro et à cette évaluation.</small></div>`}
    <div class="qr-landing-exam"><span>TON ÉVALUATION</span><strong>${h(exam.title)}</strong>
      <small>${exam.questions.length} questions · ${exam.duration} minutes · ${exam.open?'Prête':'Non publiée'}</small></div>
    ${ready?`<div class="qr-start-notice"><span>◷</span><div><strong>Le chronomètre ne tourne pas encore.</strong>
       <p>Le décompte de ${Number(exam.duration)||60} minutes commencera lorsque tu appuieras sur « Démarrer le contrôle ».</p></div></div>`:
-     `<p class="muted small">Ton numéro sert à classer la copie dans ton demi-groupe. Le compte à rebours n’a pas encore commencé.</p>`}
+     `<p class="muted small">Ton numéro classe ta copie ; le code individuel autorise l’accès dans cette démonstration locale. Le compte à rebours n’a pas commencé.</p>`}
    <button class="btn full" data-action="${ready?'class-student-start':'class-student-identify'}"
      ${!exam.open?'disabled':''}>${ready?'Démarrer le contrôle →':'Accéder au contrôle →'}</button>
-   <p class="class-qr-warning">Démo GitHub : ton numéro et ta copie restent sur cet appareil. Le QR ne permet pas encore l'identification sécurisée ni l'envoi au professeur sur un autre téléphone.</p>
+   <p class="class-qr-warning">Démo GitHub : les codes et les copies restent sur cet appareil. L’espace professeur est public : ce test n’est pas une véritable authentification. Un autre téléphone ne récupère pas les codes sans serveur.</p>
  </div>`;
 }
 return {NAMES,classes,init,byId,group,classLabel,groupLabel,assignmentLabel,assignments,assignedTo,copyMatch,

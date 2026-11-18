@@ -1,0 +1,46 @@
+/* Codes individuels — espace professeur / saisie élève */
+.access-page{display:grid;gap:13px}
+.access-intro{padding:18px 20px;border:1px solid #366578;border-radius:14px;background:#10263a;color:#c2e4ef}
+.access-intro strong{color:#e8fffa}.access-intro p{margin:7px 0 0;font-size:12px}
+.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.access-card{padding:18px;border:1px solid #39586c;background:linear-gradient(130deg,#182d43,#112034);border-radius:16px;display:grid;gap:12px;min-width:0}
+.access-card h3{margin:0;font-size:18px;color:#f1ffff}
+.access-card p{margin:5px 0;font-size:12px;color:#a6c4d5}
+.access-card .btn{justify-self:start}
+.access-counter{font-size:11px;border-radius:20px;padding:5px 11px;display:inline-flex;background:#1d4e56;color:#b7ffeb;border:1px solid #35766d;font-weight:700;width:max-content}
+.access-manager{display:grid;gap:15px;min-width:0}
+.access-head{display:flex;align-items:start;justify-content:space-between;gap:18px;padding:15px;border:1px solid #34576a;border-radius:14px;background:#152b3c}
+.access-head strong{font-size:17px;color:#e0fbee}
+.access-head p{margin:5px 0 0}
+.access-limit{min-width:160px;flex:0 0 180px}
+.access-limit label{display:block;font-size:11px;color:#b2d6e4;margin-bottom:5px}
+.access-limit-input{display:flex;gap:6px}
+.access-limit-input input{min-width:0;max-width:68px;padding:8px;text-align:center}
+.access-limit-input .btn{padding:7px 10px}
+.access-toolbar{display:flex;flex-wrap:wrap;gap:8px}
+.access-scroll{max-height:48vh;overflow:auto;border:1px solid #385266;border-radius:12px}
+.access-table{width:100%;border-collapse:collapse;font-size:13px}
+.access-table th,.access-table td{padding:11px 14px;border-bottom:1px solid #29465c;text-align:left}
+.access-table thead{position:sticky;top:0;background:#1d354a;z-index:1}
+.access-table th{font-size:11px;color:#b0d1dc;letter-spacing:.02em}
+.access-table tr:last-child td{border-bottom:0}
+.access-table td:last-child{text-align:right}
+.access-secret{display:inline-flex;min-width:88px;align-items:center;font-size:15px;font-weight:800;letter-spacing:.12em;font-variant-numeric:tabular-nums;color:#d3fff5}
+.access-bottom{display:grid;gap:10px}
+.access-bottom .btn{justify-self:start}
+.access-bottom .class-qr-warning{margin:0}
+.qr-code-required{padding:11px 13px;border:1px solid #44728a;border-radius:12px;background:#173047;color:#c5e9f5;font-size:12px;line-height:1.6}
+@media(max-width:760px){
+ .access-grid{grid-template-columns:1fr}
+ .access-card{padding:15px}
+ .access-head{flex-direction:column;gap:13px}
+ .access-limit{flex:0 0 auto;width:100%}
+ .access-limit-input input{max-width:90px}
+ .access-scroll{max-height:42dvh}
+ .access-table th,.access-table td{padding:9px 8px;font-size:11px}
+ .access-secret{min-width:70px;font-size:13px;letter-spacing:.08em}
+ .access-table .btn{padding:8px 9px;min-height:36px;font-size:10px}
+ .access-manager .btn{white-space:normal}
+ .access-toolbar{display:grid;grid-template-columns:1fr 1fr}
+ .access-toolbar>.btn:first-child{grid-column:1/-1}
+}

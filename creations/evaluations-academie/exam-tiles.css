@@ -19,7 +19,7 @@ body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exa
 #prof-assessments .cortex-tiles-toolbar span{font-size:13px;color:#c4d5e1}
 #prof-assessments .cortex-tiles-toolbar input{box-sizing:border-box;padding:12px 14px;background:#19344f;border:1px solid #5d859d;color:#f2faff;border-radius:12px;min-width:210px;width:min(100%,310px)}
 #prof-assessments .tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-#prof-assessments .tile{padding:23px;display:grid;gap:13px;min-width:0;background:linear-gradient(150deg,#233f5e,#152b46);border:1px solid #719ab7;border-radius:17px;box-shadow:0 8px 28px #03122520}
+#prof-assessments .tile{padding:23px;display:grid;gap:13px;min-width:0;background:linear-gradient(148deg,#172439ef,#121e30f0);border:1px solid #334760;border-radius:17px;box-shadow:0 8px 28px #03122520}
 #prof-assessments .tile[hidden]{display:none}
 #prof-assessments .tile h3{margin:0;color:#f5faff;font-size:17px;overflow-wrap:anywhere;line-height:1.45}
 #prof-assessments .tile p{font-size:12px;color:#c1d4e1;margin:5px 0 0}
@@ -28,11 +28,11 @@ body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exa
 #prof-assessments .tile-stats .status.ok{background:#23554f;border-color:#65ae9b;color:#baffed}
 #prof-assessments .cortex-class-tag{font-size:11px;font-weight:800;color:#d1fdf0}
 #prof-assessments .tile .small.muted{font-size:11px;color:#b2c4d7}
-#prof-assessments .tile-foot{display:grid;gap:10px;border-top:1px solid #50697f;padding-top:14px}
+#prof-assessments .tile-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid #385065;padding-top:14px}
 #prof-assessments .tile .btn-row{display:flex;flex-wrap:wrap;gap:8px}
 #prof-assessments .tile button{min-height:37px}
 #prof-assessments .tile .btn.ghost{background:transparent;border:1px solid #90adbf;color:#edf7ff;border-radius:9px;padding:9px 11px;font-size:12px;font-weight:700}
-#prof-assessments .tile .table-action{background:transparent;border:0;color:#c9fff0;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-size:12px;font-weight:800;padding:8px 5px}
+#prof-assessments .tile .table-action{background:none;border:0;color:#94f5d7;text-decoration:underline;text-underline-offset:4px;white-space:nowrap;cursor:pointer;font:inherit;font-size:12px;font-weight:800;padding:8px 5px}
 #prof-assessments .tile .table-action:hover{color:white}
 #prof-assessments .tile .btn-delete-exam{border:1px solid #cc7486;background:#a04c62;color:#fff3f6;border-radius:10px;font-size:12px;font-weight:750;padding:9px 13px;cursor:pointer}
 #prof-assessments .tile button:focus-visible{outline:3px solid #91daef;outline-offset:2px}

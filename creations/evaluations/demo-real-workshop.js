@@ -272,6 +272,15 @@ $('manual-question-editor')?.addEventListener('change',event=>{
 });
 function validated(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit contenir 1 à 40 questions.');
+ if(exam.pdfSource){
+  // Préserver le format pédagogique de la copie PSE de démonstration
+  // tout en conservant le barème et les questions d’origine.
+  for(const [i,q] of state.questions.entries()){
+   if(!String(q.prompt||'').trim())throw Error('Question '+(i+1)+' : énoncé manquant.');
+   if(!(Number(q.points)>0&&Number(q.points)<=20))throw Error('Question '+(i+1)+' : barème invalide.');
+  }
+  return state.questions;
+ }
  return state.questions.map((q,i)=>{try{return QT().validate(q)}catch(e){throw Error('Question '+(i+1)+' : '+e.message)}});
 }
 $('manual-source-file').addEventListener('change',async event=>{
@@ -368,9 +377,6 @@ const saveHandler=async event=>{
  }
 };
 $('exam-form').addEventListener('submit',saveHandler);
-$('exam-form').querySelector('button[type="submit"]').addEventListener('click',e=>{
- // La navigation de démonstration utilise la soumission du formulaire.
-});
 paint();
 loadExistingAssets().catch(err=>setHint(err?.message||'Captures indisponibles.'));
 

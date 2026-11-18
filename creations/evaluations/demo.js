@@ -1186,6 +1186,39 @@ if(a==='confirm-submit'){hiddenSince=null;const at=activeAttempt();if(!at||!auth
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
 if(a==='confirm-reset'){studentSession=null;persistPsePreview();portalSession=null;portalPreviewState=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
+/* Accepte uniquement un brouillon de la copie fictive fixe, en mémoire locale. */
+window.addEventListener('cortex:demo-albert-apply',event=>{
+ const draft=event.detail||{},attempt=attemptBy('ex-pdf-demo');
+ const exam=examBy(attempt?.examId);
+ if(draft?.copyId!=='ex-pdf-demo'||!attempt||exam?.id!=='sommeil-pdf-a2'||
+    !Array.isArray(draft.questions)||draft.questions.length!==20||exam.questions.length!==20){
+   showToast('La copie de démonstration de référence est introuvable.');return;
+ }
+ const marks={...(attempt.marks||{})};
+ for(const question of exam.questions){
+  const matches=draft.questions.filter(m=>m?.id===question.id);
+  const m=matches[0],actual=String(attempt.answers?.[question.id]??'');
+  if(matches.length!==1||!m||actual!==String(m.reponse??'')||
+     !Number.isFinite(m.points)||m.points<0||m.points>Number(question.points)||
+     Number(m.max)!==Number(question.points)){
+   showToast('La copie fictive a été modifiée : les points Albert ne peuvent pas être appliqués.');return;
+  }
+  marks[question.id]={points:m.points,comment:[
+   'Réponse attendue : '+String(m.attendu||'—'),
+   'Commentaire Albert : '+String(m.commentaire||'—'),
+   'Conseil : '+String(m.conseil||'—'),
+   'Source : '+String(m.document||'—')
+  ].join('\n')};
+ }
+ attempt.marks=marks;
+ attempt.feedback=String(draft.feedback||'Proposition Albert IA — à contrôler.');
+ attempt.grade=null;
+ attempt.reviewedAt=null;
+ attempt.publishedToStudent=false;
+ save();render();
+ draft.applied=true;
+ showToast('Albert : 20 commentaires et notes proposés, encore à valider dans la démo.');
+});
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&['portal-number','portal-classcode','portal-pin'].includes(e.target?.id)){
   e.preventDefault();const trigger=document.querySelector('[data-action="portal-login"]');if(trigger&&!trigger.disabled)action(trigger);return;

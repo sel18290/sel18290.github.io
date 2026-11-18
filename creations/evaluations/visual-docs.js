@@ -67,8 +67,8 @@ function workspace(exam,page,selectedId){
  const entries=exam.assets||[];
  return `<div class="visual-workspace">
   <header class="visual-workspace-head"><div><div class="eyebrow">CORTEX · DOCUMENT ORIGINAL</div><h1>Capture tes documents.<br><em>Construis ton contrôle.</em></h1>
-   <p>${esc(exam.sourceName||'Document importé')} · ${esc(exam.sourceType==='pdf'?'PDF':'Word')} · Aucun texte analysé, aucune question inventée.</p></div>
-   <div class="btn-row"><button class="btn ghost" data-action="go-exams">Mes contrôles</button>
+   <p>${esc(exam.sourceName||'Document importé')} · ${esc(exam.sourceType==='pdf'?'PDF':'Word')} · ${exam.aiPrepared?`Albert IA : ${exam.questions.length} questions et ${(exam.detectedDocuments||[]).length} documents repérés · à vérifier`:'Atelier classique : questions et documents à compléter.'}</p></div>
+   <div class="btn-row"><button class="btn ghost" data-action="visual-replace-document">← Changer de document</button><button class="btn ghost" data-action="go-exams">Mes contrôles</button>
    <button class="btn" data-action="visual-edit-questions">Modifier les questions →</button></div></header>
   <div class="visual-steps"><span><b>1</b> Parcours l’original</span><span><b>2</b> Sélectionne une zone</span><span><b>3</b> Glisse la capture vers « Documents élève »</span></div>
   <div class="visual-columns">
@@ -86,6 +86,7 @@ function workspace(exam,page,selectedId){
       <span aria-hidden="true">⇩</span><strong>Glisse une capture ici</strong>
       <small>Ou sélectionne « Ajouter à cette question » sous la capture. Fonctionne aussi sur téléphone.</small>
     </div>
+    ${exam.aiPrepared?`<section class="visual-ai-detected"><div class="visual-ai-heading"><strong>✦ Documents repérés par Albert</strong><span class="chip">${(exam.detectedDocuments||[]).length} documents</span></div><p class="small muted">Titres et pages suggérés, à vérifier dans l’original.</p>${(exam.detectedDocuments||[]).map(d=>`<button type="button" class="visual-ai-doc-item" data-action="visual-jump-page" data-page="${Number(d.page||1)}"><strong>${esc(d.title||'Document')}</strong><small>Page ${Number(d.page||1)} · Ouvrir →</small></button>`).join('')||'<p class="small muted">Aucun bloc documentaire détecté avec certitude.</p>'}</section>`:''}
     <div class="visual-bank-list">${entries.length?entries.map(asset=>`<div class="visual-asset-row" data-asset-row="${esc(asset.id)}">
      <img data-visual-id="${esc(asset.id)}" draggable="true" data-visual-drag="${esc(asset.id)}" alt="Capture ${esc(asset.name)}">
      <div><strong>${esc(asset.name)}</strong><small>${asset.page?'Page '+asset.page+' · ':''}${exam.questions.filter(q=>(q.assetIds||[]).includes(asset.id)).length} question(s) associée(s)</small>
@@ -233,15 +234,20 @@ function bindCrop(area,canvas,selection,onCapture){
  });
 }
 function importHome(){
- return `<div class="visual-import-start panel"><div class="eyebrow">CORTEX · IMPORTATION VISUELLE</div>
-  <h1>Ton document, <em>sans transformation.</em></h1>
-  <p class="muted">Importe un PDF ou un Word. Son contenu original s’affiche, puis tu encadres les tableaux, graphiques, schémas ou paragraphes que tu veux montrer aux élèves.</p>
+ return `<div class="visual-import-start panel"><div class="eyebrow">CORTEX · IMPORTER / EXPORTER</div>
+  <h1>Un document. <em>Deux façons de créer.</em></h1>
+  <p class="muted">Choisis ton PDF ou Word puis ouvre l’atelier toi-même, ou laisse Albert IA préparer les documents, questions et barèmes à partir du texte extrait.</p>
   <div class="visual-import-drop"><label for="visual-doc-file" class="visual-import-icon">⇪</label>
-    <h2>Déposer un contrôle PDF ou Word</h2><p>PDF ou .docx · Maximum 18 Mo · Aucun texte analysé</p>
+    <h2>Choisir un document PDF ou Word</h2><p>PDF ou .docx · Atelier classique jusqu’à 18 Mo · Albert jusqu’à 8 Mo</p>
     <input id="visual-doc-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-    <button class="btn" data-action="visual-import-file">Ouvrir l’original →</button></div>
-  <div id="visual-import-status" role="status" class="muted small"></div>
-  <p class="small muted">Le fichier et les extraits sont sauvegardés sur cet appareil. Cette démo GitHub ne publie pas encore les documents pour les élèves sur leurs téléphones.</p>
+    <div class="visual-import-modes">
+      <button class="btn secondary" type="button" data-action="visual-import-file"><strong>▧ Atelier classique</strong><small>Ouvrir l’original, encadrer et saisir librement</small></button>
+      <button class="btn" type="button" data-action="visual-import-albert"><strong>✦ Préparer avec Albert IA</strong><small>Proposer questions, barèmes et documents associés</small></button>
+    </div>
+    <button class="btn ghost small" type="button" data-action="visual-clear-selection">↶ Annuler la sélection / choisir un autre fichier</button>
+  </div>
+  <div id="visual-import-status" role="status" aria-live="polite" class="muted small"></div>
+  <p class="small muted">Atelier classique : document conservé sur ton appareil. Mode Albert : avec ton accord, seul le texte extrait est envoyé au serveur IA ; images et fichier original restent locaux. Vérifie toutes les propositions.</p>
  </div>`;
 }
 async function imageOfElement(element){

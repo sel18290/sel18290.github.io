@@ -1,0 +1,161 @@
+/* CORTEX — Guided Tour v3: ergonomic desktop-only coaching panel.
+   No mobile or landscape-touch styles are changed here. */
+@media (min-width:761px) and (pointer:fine){
+ .ct-tour{
+  top:94px;bottom:auto;left:auto;right:18px;
+  width:min(420px,calc(100vw - 36px));
+  max-height:calc(100dvh - 112px);
+  overflow-y:auto;overflow-x:hidden;
+  border:1px solid #b46b84;border-radius:20px;
+  box-shadow:0 26px 75px #01030bdd,0 0 0 1px #ee92a61c;
+  background:linear-gradient(155deg,#202d42 0%,#131f32 64%,#141e2e 100%);
+  color:#f0f6ff;
+  scrollbar-width:thin;scrollbar-color:#8d5a72 #141f31;
+ }
+ .ct-tour[data-tour-side="left"]{left:18px;right:auto}
+ .ct-tour[data-tour-side="right"]{right:18px;left:auto}
+ .ct-tour-top{
+  position:sticky;top:0;z-index:4;display:flex;align-items:center;
+  gap:11px;padding:15px 17px;
+  background:linear-gradient(108deg,#593147 0%,#2a2f44 65%,#1e2b3e);
+  border-bottom:1px solid #815367;
+ }
+ .ct-tour-mark{
+  width:40px;height:40px;flex:0 0 40px;font-size:24px;
+  border:1px solid #ffafbf;background:#f0778d;color:#311523;border-radius:12px;
+ }
+ .ct-tour-top-copy strong{font-size:12px;letter-spacing:.12em}
+ .ct-tour-top-copy small{font-size:12px;color:#f3c7d3}
+ .ct-tour-icon-button{
+  min-width:38px;width:38px;height:38px;border-radius:10px;
+  font-size:22px;background:#462c42;border-color:#a87384;
+ }
+ .ct-tour-icon-button:hover{background:#76435b}
+ .ct-tour-progress{height:5px;background:#343c53}
+ .ct-tour-progress span{background:linear-gradient(90deg,#fc6483,#ffaeac)}
+ .ct-tour-stepbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:15px 19px 4px;
+ }
+ .ct-tour-step-label{
+  font-size:11px;font-weight:900;letter-spacing:.12em;color:#f6afc2;
+ }
+ .ct-tour-plan-button{
+  flex:0 0 auto;min-height:40px;padding:9px 11px;
+  font-size:12px;font-weight:850;border-radius:10px;
+  background:#263b4d;border:1px solid #55778a;color:#e1f3fa;
+ }
+ .ct-tour-plan-button:hover{border-color:#e8a8bc;background:#354156}
+ .ct-tour-main{padding:16px 19px 13px}
+ .ct-tour-kicker{
+  color:#ffb5c5;font-size:11px;font-weight:900;letter-spacing:.065em;
+ }
+ .ct-tour-kicker span{font-size:20px}
+ .ct-tour-main h2{
+  margin:12px 0 11px;color:#ffffff;letter-spacing:-.035em;
+  font-size:clamp(22px,2vw,26px);line-height:1.24;font-weight:900;
+ }
+ .ct-tour-main h2:focus{outline:none}
+ .ct-tour-main>p{font-size:13px;line-height:1.73;color:#d7e4ef;margin:0}
+ .ct-tour-task{
+  margin-top:18px;padding:15px;border-radius:13px;
+  border:1px solid #91677d;background:linear-gradient(120deg,#44304a,#342d47);
+  gap:12px;
+ }
+ .ct-tour-task>span{font-size:23px;line-height:1.1;color:#ffadc1}
+ .ct-tour-task strong{font-size:12px;color:#ffd2df}
+ .ct-tour-task p{font-size:12.5px;line-height:1.65;color:#f7e5ed;margin-top:6px}
+ .ct-tour-desktop-hint{
+  display:flex;align-items:flex-start;gap:10px;margin:1px 19px 16px;
+  padding:11px 12px;border-radius:11px;
+  border:1px solid #416e70;background:#15313b;
+  font-size:11px;color:#bee8df;line-height:1.5;
+ }
+ .ct-tour-hint-pulse{
+  width:10px;height:10px;flex:0 0 10px;margin-top:4px;
+  border-radius:50%;background:#f57990;box-shadow:0 0 0 4px #f5799033;
+ }
+ .ct-tour-actions{
+  display:grid;grid-template-columns:.78fr 1.32fr .92fr;
+  gap:9px;padding:13px 17px 13px;
+  border-top:1px solid #4b536c;
+  background:#151f30;
+  position:sticky;bottom:0;z-index:3;
+ }
+ .ct-tour-actions button{
+  min-height:49px;padding:10px 9px;border-radius:11px;
+  font-size:12px;font-weight:900;line-height:1.35;
+ }
+ .ct-tour-secondary{color:#d9e5f5;background:#26384b;border-color:#617990}
+ .ct-tour-visit{color:#ffe6ee;background:#643c55;border-color:#b57891}
+ .ct-tour-next{color:#311424;background:linear-gradient(112deg,#fa7a90,#ffb0ae);border-color:#ffd1ca;box-shadow:0 3px 11px #d6507544}
+ .ct-tour-actions button:not(:disabled):hover{filter:brightness(1.10);transform:translateY(-1px)}
+ .ct-tour-desktop-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 18px 14px;color:#94aec6;font-size:10.5px;line-height:1.5;
+ }
+ .ct-tour-dock{
+  min-height:35px;flex:0 0 auto;padding:7px 10px;font-size:11px;font-weight:780;
+  border:1px solid #57677f;border-radius:9px;background:transparent;color:#c4d7e8;
+ }
+ .ct-tour-dock:hover{background:#2a4051;border-color:#b0a1b4}
+ .ct-tour-desktop-foot>span{text-align:right}
+ .ct-tour-academy{padding:0 16px 14px;color:#ffd4e0;text-align:center}
+ .ct-tour-desktop-plan{
+  display:grid;gap:5px;margin:10px 17px 14px;padding:3px 2px;
+  max-height:min(48dvh,480px);overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:#8f6277 #152337;
+ }
+ .ct-tour-plan-item{
+  display:grid;grid-template-columns:32px minmax(0,1fr) 17px;
+  align-items:center;gap:11px;padding:11px 12px;min-height:49px;
+  border:1px solid #496077;border-radius:11px;
+  background:#1b2d41;color:#dfeefd;text-align:left;
+ }
+ .ct-tour-plan-item:hover{background:#334359;border-color:#9e8a9d}
+ .ct-tour-plan-item.active{background:#533149;border-color:#f594a9;color:#fff}
+ .ct-tour-plan-number{font-size:12px;font-weight:900;color:#ffa8ba;font-variant-numeric:tabular-nums}
+ .ct-tour-plan-title{font-size:12px;line-height:1.4;font-weight:750;overflow-wrap:anywhere}
+ .ct-tour-plan-arrow{font-size:19px;line-height:1;color:#ffd0dd;text-align:center}
+ .ct-tour-highlight{
+  outline:3px solid #ff7999!important;outline-offset:5px;
+  box-shadow:0 0 0 9px #f0728833,0 0 25px #e7648663!important;
+  scroll-margin-top:112px;scroll-margin-bottom:120px;
+ }
+ .ct-tour-minimized{
+  top:auto;bottom:18px;
+  width:min(353px,calc(100vw - 36px));max-height:155px;
+  border-radius:14px;
+ }
+ .ct-tour-minimized .ct-tour-top{padding:10px 12px}
+ .ct-tour-minimized .ct-tour-mark{width:31px;height:31px;flex-basis:31px;font-size:19px}
+ .ct-tour-minimized .ct-tour-minibar{padding:10px 12px}
+ .ct-tour-minimized .ct-tour-minibar-label strong{font-size:12px}
+ .ct-tour-minimized .ct-tour-mini-help,.ct-tour-minimized .ct-tour-mini-next{min-height:44px}
+ .ct-tour button:focus-visible,.ct-tour a:focus-visible{outline:3px solid #ffc3d0;outline-offset:3px}
+}
+@media (min-width:761px) and (max-width:1120px) and (pointer:fine){
+ .ct-tour{width:min(370px,calc(100vw - 28px));right:12px;top:83px;max-height:calc(100dvh - 95px)}
+ .ct-tour[data-tour-side="left"]{left:12px;right:auto}
+ .ct-tour[data-tour-side="right"]{right:12px;left:auto}
+ .ct-tour-main{padding:13px 15px}
+ .ct-tour-stepbar{padding:11px 15px 2px}
+ .ct-tour-task{padding:12px;margin-top:12px}
+ .ct-tour-desktop-hint{margin:1px 15px 12px}
+ .ct-tour-actions{padding:11px 12px;gap:6px}
+ .ct-tour-actions button{min-height:46px;padding:8px 6px;font-size:11px}
+ .ct-tour-plan-item{min-height:47px}
+}
+@media (min-width:761px) and (max-height:680px) and (pointer:fine){
+ .ct-tour{top:78px;max-height:calc(100dvh - 90px)}
+ .ct-tour-main{padding-top:10px}
+ .ct-tour-task{margin-top:11px;padding:10px}
+ .ct-tour-stepbar{padding-top:10px}
+ .ct-tour-main h2{font-size:21px;margin:7px 0}
+ .ct-tour-actions{padding-top:8px;padding-bottom:8px}
+ .ct-tour-actions button{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ct-tour-actions button{transition:none}
+ .ct-tour-highlight{transition:none}
+}

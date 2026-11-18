@@ -1,0 +1,10 @@
+/* Chronomètre élève : suivi visuel de la durée, sans prétendre à un verrouillage serveur. */
+.cw-student-timer-start,.cw-student-timer-bar{margin:16px 0;padding:16px;border-radius:14px;border:1px solid #78b8ca;background:linear-gradient(105deg,#0d314b,#173e50);color:#eff9ff;display:grid;gap:12px}
+.cw-student-timer-start strong{font-size:17px}
+.cw-student-timer-start p{line-height:1.55;margin:0;color:#cce7f5}
+.cw-student-timer-start button{max-width:400px;cursor:pointer}
+.cw-student-timer-bar{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;position:sticky;top:8px;z-index:12;box-shadow:0 6px 22px #08162566}
+.cw-student-timer-bar>span{font-weight:700;font-size:14px}
+.cw-student-timer-value{font-size:27px;font-variant-numeric:tabular-nums;color:#b8ffdc;letter-spacing:.04em}
+.cw-student-timer-warning{color:#ffc89d}
+@media(max-width:600px){.cw-student-timer-bar{padding:12px}.cw-student-timer-value{font-size:22px}}

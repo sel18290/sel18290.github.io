@@ -1,4 +1,6 @@
-/* CORTEX · Navigation professeur native smartphone. Fonctionne aussi en mode « site ordinateur » Android. */
+/* CORTEX · Espace professeur mobile 3.0
+   Navigation accessible, panneau Outils refermable, raccourcis et contexte de page.
+   Aucune modification des données enregistrées ou de l'interface ordinateur. */
 (function mobileProfessor(){
   'use strict';
   const app=document.getElementById('app');
@@ -13,80 +15,140 @@
     {tab:'copies',label:'Copies',icon:'✎'}
   ];
   const more=[
-    {tab:'suivi',label:'Suivi des épreuves',icon:'◷'},
-    {tab:'analyses',label:'Analyses',icon:'▥'},
-    {tab:'import',label:'Importer PDF / Word',icon:'⇪'},
-    {tab:'creer',label:'Créer un contrôle',icon:'＋'}
+    {tab:'suivi',label:'Suivi des épreuves',icon:'◷',detail:'Épreuves en cours et interruptions'},
+    {tab:'analyses',label:'Analyses',icon:'▥',detail:'Résultats et indicateurs'},
+    {tab:'import',label:'Importer un PDF / Word',icon:'⇪',detail:'Créer depuis un document'},
+    {tab:'creer',label:'Créer un contrôle',icon:'＋',detail:'Énoncés, documents et barème'}
   ];
-  let bar=null,drawer=null,pending=0,lastTab='';
+  const labels={
+    dashboard:'Mon espace',classes:'Mes classes',controles:'Mes contrôles',
+    copies:'Copies et notes',suivi:'Suivi des épreuves',
+    analyses:'Analyses pédagogiques',import:'Importer un contrôle',
+    creer:'Créer un contrôle',corriger:'Corriger une copie'
+  };
+  let bar=null,drawer=null,backdrop=null,pending=0,lastRoute='',opener=null;
   function onPhone(){
-    // screen.width reste généralement la largeur physique même quand Chrome présente
-    // un viewport « ordinateur » de 980 px sur un téléphone.
-    const sw=window.screen?.width||window.innerWidth;
+    const screenWidth=window.screen?.width||window.innerWidth;
     const touched=(navigator.maxTouchPoints||0)>0;
     return phoneQuery.matches ||
-      (coarseQuery.matches&&(window.innerWidth<=1100||sw<=820)) ||
-      (touched && /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent) && sw<=920);
+      (coarseQuery.matches&&(window.innerWidth<=1100||screenWidth<=820)) ||
+      (touched&&/Android|iPhone|iPod|Mobile/i.test(navigator.userAgent)&&screenWidth<=920);
   }
+  function currentRoute(){return decodeURIComponent(location.hash.slice(1)||'accueil');}
   function activeTab(){
-    const hash=decodeURIComponent(location.hash.slice(1)||'');
-    const bits=hash.split('/');
+    const bits=currentRoute().split('/');
     return bits[0]==='professeur'?(bits[1]||'dashboard'):null;
   }
-  function makeTab(item){
+  function makeTab(item,description){
     const button=document.createElement('button');
     button.type='button';
-    button.setAttribute('data-action','teacher-tab');
-    button.setAttribute('data-tab',item.tab);
-    button.innerHTML='<span aria-hidden="true">'+item.icon+'</span>'+item.label;
+    button.dataset.action='teacher-tab';
+    button.dataset.tab=item.tab;
+    if(description){
+      button.innerHTML='<span aria-hidden="true">'+item.icon+'</span><strong>'+item.label+
+        '</strong><small>'+item.detail+'</small>';
+    }else button.innerHTML='<span aria-hidden="true">'+item.icon+'</span>'+item.label;
     return button;
   }
+  function setOpen(open,source,restore=true){
+    if(!drawer)return;
+    const wasOpen=!drawer.hidden;
+    if(open&&(!onPhone()||!activeTab()))return;
+    if(open&&source)opener=source;
+    drawer.hidden=!open;
+    backdrop.hidden=!open;
+    document.body.classList.toggle('mobile-tools-open',open);
+    const button=bar?.querySelector('#phone-teacher-more-button');
+    if(button)button.setAttribute('aria-expanded',String(open));
+    const headerButton=app.querySelector('.phone-teacher-header [data-phone-open-tools]');
+    if(headerButton){
+      headerButton.setAttribute('aria-expanded',String(open));
+      headerButton.textContent=open?'✕ Fermer':'☰ Outils';
+    }
+    if(open){
+      if(!wasOpen)requestAnimationFrame(()=>drawer.querySelector('.phone-teacher-close')?.focus({preventScroll:true}));
+    }else if(wasOpen&&restore){
+      const target=opener&&opener.isConnected?opener:button;
+      target?.focus?.({preventScroll:true});
+    }
+    if(!open)opener=null;
+  }
+  function toggleDrawer(source){setOpen(drawer?.hidden!==false,source);}
   function ensureBar(){
     if(bar&&document.body.contains(bar))return;
     bar=document.createElement('nav');
     bar.className='phone-teacher-nav';
-    bar.setAttribute('aria-label','Navigation professeur sur téléphone');
+    bar.setAttribute('aria-label','Navigation principale professeur');
     tabs.forEach(item=>bar.appendChild(makeTab(item)));
     const extra=document.createElement('button');
-    extra.type='button';extra.id='phone-teacher-more-button';
+    extra.type='button';
+    extra.id='phone-teacher-more-button';
     extra.setAttribute('aria-expanded','false');
     extra.setAttribute('aria-controls','phone-teacher-more');
-    extra.innerHTML='<span aria-hidden="true">☰</span>Plus';
-    extra.addEventListener('click',()=>toggleDrawer(!drawer||drawer.hidden));
+    extra.innerHTML='<span aria-hidden="true">☰</span>Outils';
+    extra.addEventListener('click',()=>toggleDrawer(extra));
     bar.appendChild(extra);
     document.body.appendChild(bar);
-    drawer=document.createElement('section');drawer.id='phone-teacher-more';
-    drawer.className='phone-teacher-more';drawer.hidden=true;
-    drawer.innerHTML='<h2>Tous les outils professeur</h2><div class="phone-teacher-more-grid"></div>';
+
+    backdrop=document.createElement('button');
+    backdrop.type='button';
+    backdrop.hidden=true;
+    backdrop.className='phone-teacher-backdrop';
+    backdrop.setAttribute('aria-label','Fermer les outils');
+    backdrop.addEventListener('click',()=>setOpen(false));
+    document.body.appendChild(backdrop);
+
+    drawer=document.createElement('section');
+    drawer.id='phone-teacher-more';
+    drawer.className='phone-teacher-more';
+    drawer.hidden=true;
+    drawer.setAttribute('role','dialog');
+    drawer.setAttribute('aria-modal','true');
+    drawer.setAttribute('aria-labelledby','phone-tools-title');
+    drawer.innerHTML='<div class="phone-teacher-more-head">'+
+      '<div><small>CORTEX / NAVIGATION</small><h2 id="phone-tools-title">Tous les outils</h2>'+
+      '<p>Accède aux fonctions de ton espace professeur.</p></div>'+
+      '<button class="phone-teacher-close" type="button" aria-label="Fermer le panneau Outils">✕</button></div>'+
+      '<div class="phone-teacher-more-grid"></div>'+
+      '<button class="phone-teacher-dismiss" type="button">Fermer les outils</button>';
     const grid=drawer.querySelector('.phone-teacher-more-grid');
-    more.forEach(item=>grid.appendChild(makeTab(item)));
+    more.forEach(item=>grid.appendChild(makeTab(item,true)));
+    drawer.querySelector('.phone-teacher-close').addEventListener('click',()=>setOpen(false));
+    drawer.querySelector('.phone-teacher-dismiss').addEventListener('click',()=>setOpen(false));
+    // Fermer avant que le routeur global ne reconstruise l'écran professeur.
+    grid.addEventListener('click',event=>{
+      if(event.target.closest('[data-action="teacher-tab"]'))setOpen(false,null,false);
+    },true);
+    // Geste naturel de fermeture en abaissant l'entête.
+    const head=drawer.querySelector('.phone-teacher-more-head');
+    let y0=null;
+    head.addEventListener('touchstart',event=>{
+      if(event.touches.length===1)y0=event.touches[0].clientY;
+    },{passive:true});
+    head.addEventListener('touchend',event=>{
+      if(y0!==null&&event.changedTouches[0].clientY-y0>70)setOpen(false);
+      y0=null;
+    },{passive:true});
     document.body.appendChild(drawer);
-  }
-  function toggleDrawer(open){
-    if(!drawer)return;
-    drawer.hidden=!open;
-    bar?.querySelector('#phone-teacher-more-button')?.setAttribute('aria-expanded',String(open));
   }
   function drawHeader(tab){
     const workspace=app.querySelector('.workspace');
     if(!workspace)return;
     let header=workspace.querySelector('.phone-teacher-header');
     if(!header){
-      header=document.createElement('div');header.className='phone-teacher-header';
+      header=document.createElement('div');
+      header.className='phone-teacher-header';
       workspace.insertBefore(header,workspace.firstChild);
     }
-    const labels={
-      dashboard:'Mon espace',classes:'Mes classes',controles:'Mes contrôles',
-      copies:'Copies et notes',suivi:'Suivi des épreuves',
-      analyses:'Analyses pédagogiques',import:'Importer un contrôle',
-      creer:'Créer un contrôle',corriger:'Corriger une copie'
-    };
-    const label=labels[tab]||'Espace professeur';
     if(header.dataset.tab!==tab){
       header.dataset.tab=tab;
-      header.innerHTML='<div><small>CORTEX / PROFESSEUR</small><strong>'+label+
-        '</strong></div><button type="button" class="btn secondary" data-phone-open-tools>☰ Outils</button>';
-      header.querySelector('[data-phone-open-tools]').addEventListener('click',()=>toggleDrawer(true));
+      header.innerHTML='<div class="phone-teacher-heading"><small>CORTEX / PROFESSEUR</small>'+
+        '<strong>'+labels[tab]+'</strong></div>'+
+        '<button type="button" class="btn secondary" data-phone-open-tools '+
+        'aria-haspopup="dialog" aria-controls="phone-teacher-more" aria-expanded="false">☰ Outils</button>';
+      header.querySelector('[data-phone-open-tools]').addEventListener('click',event=>{
+        toggleDrawer(event.currentTarget);
+      });
     }
     if(tab==='dashboard'){
       const main=workspace.querySelector('.workspace-main');
@@ -101,8 +163,11 @@
           ['⇪','Importer un document','go-import']
         ];
         for(const [icon,label,action] of actions){
-          const btn=document.createElement('button');btn.type='button';btn.dataset.action=action;
-          btn.innerHTML='<span aria-hidden="true">'+icon+'</span>'+label;quick.appendChild(btn);
+          const button=document.createElement('button');
+          button.type='button';
+          button.dataset.action=action;
+          button.innerHTML='<span aria-hidden="true">'+icon+'</span>'+label;
+          quick.appendChild(button);
         }
         main.insertBefore(quick,main.firstChild);
       }
@@ -114,31 +179,44 @@
     const tab=activeTab();
     html.classList.toggle('cortex-phone',phone);
     html.classList.toggle('teacher-mobile-active',phone&&!!tab);
-    if(!phone||!tab){if(drawer)toggleDrawer(false);lastTab='';return;}
+    if(!phone||!tab){
+      if(drawer)setOpen(false,null,false);
+      lastRoute='';
+      return;
+    }
     ensureBar();
-    if(tab!==lastTab){toggleDrawer(false);lastTab=tab;}
+    const route=currentRoute();
+    if(route!==lastRoute){
+      setOpen(false,null,false);
+      lastRoute=route;
+    }
     drawHeader(tab);
     bar.querySelectorAll('button[data-tab]').forEach(button=>{
-      const selected=button.dataset.tab===tab;
-      if(selected)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+      if(button.dataset.tab===tab)button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
     });
     const extra=bar.querySelector('#phone-teacher-more-button');
-    if(more.some(item=>item.tab===tab)||tab==='corriger'){
-      extra.setAttribute('aria-current','page');
-    }else extra.removeAttribute('aria-current');
+    if(more.some(item=>item.tab===tab)||tab==='corriger')extra.setAttribute('aria-current','page');
+    else extra.removeAttribute('aria-current');
   }
   function schedule(){if(!pending)pending=requestAnimationFrame(sync);}
   new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
-  addEventListener('hashchange',schedule);
-  addEventListener('resize',schedule);
+  window.addEventListener('hashchange',schedule);
+  window.addEventListener('resize',schedule);
   phoneQuery.addEventListener?.('change',schedule);
   coarseQuery.addEventListener?.('change',schedule);
-  addEventListener('keydown',event=>{if(event.key==='Escape')toggleDrawer(false);});
-  document.addEventListener('click',event=>{
-    const clicked=event.target.closest('.phone-teacher-more-grid [data-action]');
-    if(clicked)toggleDrawer(false);
-    if(drawer&&!drawer.hidden&&!event.target.closest('.phone-teacher-more,.phone-teacher-header,.phone-teacher-nav'))
-      toggleDrawer(false);
+  document.addEventListener('keydown',event=>{
+    if(!drawer||drawer.hidden)return;
+    if(event.key==='Escape'){event.preventDefault();setOpen(false);return;}
+    if(event.key!=='Tab')return;
+    const focusable=Array.from(drawer.querySelectorAll('button:not([disabled])'));
+    if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!drawer.contains(document.activeElement))){
+      event.preventDefault();last.focus();
+    }else if(!event.shiftKey&&(document.activeElement===last||!drawer.contains(document.activeElement))){
+      event.preventDefault();first.focus();
+    }
   });
   schedule();
 })();

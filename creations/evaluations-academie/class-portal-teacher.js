@@ -28,7 +28,7 @@ function render(){
  for(const cl of classes){
   const record=access.find(a=>a.class_id===cl.id);
   const card=E('article','cw-class-card'),head=E('div','cw-card-head'),title=E('div');
-  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Numéros et PIN valables pour tous les contrôles de cette classe.'));
+  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Chaque élève reçoit un PIN provisoire une seule fois, puis choisit son PIN personnel pour tous les contrôles.'));
   head.append(title,E('span','cw-pill '+(record?'cw-open':''),record?'Accès préparé':'À préparer'));
   card.append(head);
   const controls=E('div','cw-publish-row'),selector=E('select','cw-roster-size');
@@ -39,7 +39,7 @@ function render(){
   controls.append(E('label','','Effectif'),selector,button(record?'Compléter les numéros':'Créer les accès de cette classe','cw-accent',async()=>{
    const response=await api('teacher_class_prepare',{class_id:cl.id,roster_size:Number(selector.value)},null,true);
    if(response.freshPins?.length)cache.set(cl.id,response.freshPins);
-   notice(response.freshPins?.length?'Accès créés. Téléchargez les nouveaux PIN maintenant.':'PIN déjà préparés : aucun code existant n’a été modifié.');
+   notice(response.freshPins?.length?'Accès créés. Téléchargez les PIN provisoires : chaque élève doit activer son espace avec ce code puis choisir son PIN personnel.':'Accès existants conservés : aucun PIN personnel n’a été modifié.');
    await refresh();
   }));
   card.append(controls);
@@ -57,7 +57,7 @@ function render(){
    const newPins=cache.get(cl.id);
    if(newPins?.length){
     const panel=E('div','cw-pin-notice'),grid=E('div','cw-pin-table');
-    panel.append(E('strong','','Nouveaux PIN : conservez cette liste'));
+    panel.append(E('strong','','PIN provisoires : à remettre individuellement aux élèves'));
     newPins.forEach(p=>grid.append(E('span','','Élève n°'+p.number+' · '+p.pin)));
     panel.append(grid,button('Télécharger les PIN (CSV)','cw-accent',()=>downloadPins(newPins,cl.code)));share.append(panel);
    }
@@ -66,7 +66,7 @@ function render(){
    reset.append(number,button('Renouveler son PIN','cw-secondary',async()=>{
     const result=await api('teacher_class_reset_pin',{class_id:cl.id,student_number:Number(number.value)},null,true);
     const list=cache.get(cl.id)||[];cache.set(cl.id,list.filter(x=>x.number!==result.number).concat([result]).sort((a,b)=>a.number-b.number));
-    notice('Nouveau PIN créé pour '+cl.code+', élève n°'+result.number+'. Les anciennes sessions sont désactivées.');
+    notice('Nouveau PIN provisoire créé pour '+cl.code+', élève n°'+result.number+'. L’élève doit réactiver son accès ; les anciennes sessions sont désactivées.');
     render();
    }));share.append(reset);
    card.append(share);

@@ -146,7 +146,7 @@ async function requestAlbert(kind:string,prompt:string){
  try{res=await fetch('https://albert.api.etalab.gouv.fr/v1/chat/completions',{
   method:'POST',signal:AbortSignal.timeout(47000),
   headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},
-  body:JSON.stringify({model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',stream:false,max_tokens:950,
+  body:JSON.stringify({model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',stream:false,max_tokens:1450,
    messages:[{role:'system',content:system},{role:'user',content:prompt}]})
  })}catch{throw Error('TIMEOUT')}
  if(!res.ok){console.error('AlbertGuide.status',res.status);throw Error('MODEL_UNAVAILABLE')}

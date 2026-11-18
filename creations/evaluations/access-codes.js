@@ -110,7 +110,7 @@ function render(state,cl){
   '<div class="access-limit"><label for="access-count">Nombre de numéros</label><div class="access-limit-input"><input id="access-count" type="number" inputmode="numeric" min="1" max="'+MAX_COUNT+'" value="'+total+'"><button class="btn secondary small" data-action="access-set-count" data-id="'+esc(cl.id)+'">Appliquer</button></div></div></div>'+
   '<div class="access-toolbar"><span class="access-counter">'+ready+' comptes élèves initialisés</span><span class="muted small">Le professeur ne voit jamais les PIN.</span></div>'+
   '<div class="access-scroll"><table class="access-table"><thead><tr><th>Numéro</th><th>PIN</th><th>Action professeur</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-  '<div class="access-bottom"><p class="class-qr-warning"><strong>Démo locale uniquement :</strong> les PIN sont enregistrés sous forme de dérivés chiffrés dans ce navigateur, pas sur un serveur. Ils ne sont pas partagés entre appareils. Le premier utilisateur à choisir un numéro peut y créer un PIN : pour de vraies évaluations, il faudra une authentification et une base Supabase protégée.</p></div></div>';
+  '<div class="access-bottom"><p class="class-qr-warning"><strong>Démo locale uniquement :</strong> les PIN sont conservés sous forme d’empreintes dérivées avec sel dans ce navigateur, pas sur un serveur. Ils ne sont pas partagés entre appareils. Le premier utilisateur à choisir un numéro peut y créer un PIN : pour de vraies évaluations, il faudra une authentification et une base Supabase protégée.</p></div></div>';
 }
 return {count,normalizeNumber,record,enroll,verify,reset,setCount,filled,render};
 })();

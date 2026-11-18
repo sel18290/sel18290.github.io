@@ -120,7 +120,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut({scope:'local'});selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

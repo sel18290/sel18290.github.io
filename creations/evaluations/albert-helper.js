@@ -101,8 +101,8 @@
  // Aide professorale flottante à l'extrême gauche du ciel Noctis.
  const launcher=el('button',undefined,'cortex-albert-person');
  launcher.id='cortex-albert-person';launcher.type='button';
- launcher.title='Albert IA · Aide et signalement de bug';launcher.setAttribute('aria-label','Ouvrir Albert, aide du site et signalement de bug');
- launcher.innerHTML='<span class="cortex-albert-buddy" aria-hidden="true"><span class="buddy-antenna"></span><span class="buddy-head"><i></i><i></i></span><span class="buddy-body"></span><span class="buddy-arms"></span><span class="buddy-feet"></span></span><span class="buddy-name">Albert IA</span>';
+ launcher.title='Albert IA · Aide et signalement de bug';launcher.setAttribute('aria-label','Albert IA : je peux t’aider. Clique pour obtenir de l’aide ou signaler un bug.');
+ launcher.innerHTML='<span class="cortex-albert-invite" id="cortex-albert-invite" aria-hidden="true"><strong>Je peux t’aider !</strong><small>Clique ici ✦</small></span><span class="cortex-albert-buddy" aria-hidden="true"><span class="buddy-antenna"></span><span class="buddy-head"><i></i><i></i></span><span class="buddy-body"></span><span class="buddy-arms"></span><span class="buddy-feet"></span></span><span class="buddy-name">Albert IA</span>';
  document.body.append(launcher);
  const dialog=el('dialog',undefined,'cortex-albert-dialog');
  dialog.id='cortex-albert-dialog';

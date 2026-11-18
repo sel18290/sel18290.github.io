@@ -35,7 +35,7 @@
   const retry=add('button','✦ Lancer Albert IA');retry.type='button';
   toolbar.append(close,retry);
   const title=add('h2','✦ Albert IA · Correction de la copie test');
-  const notice=add('div','Test exclusif du contrôle fictif PSE Sommeil : 20 questions et documents de référence. Le serveur dispose des réponses fictives prédéfinies. Aucune vraie copie n’est envoyée et aucune note réelle ne peut être modifiée.','alb-notice');
+  const notice=add('div','Test public, sans connexion : correction du contrôle fictif PSE Sommeil (20 questions). Les réponses et les documents de référence sont déjà fournis côté serveur. Aucune vraie copie ni note officielle n’est transmise. Pour protéger le service, le nombre de tests est limité.','alb-notice');
   const status=add('p','', 'alb-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const results=add('div');results.id='alb-demo-results';
   dialog.append(toolbar,title,notice,status,results);
@@ -45,24 +45,14 @@
   async function run(){
    currentResult=null;results.replaceChildren();retry.disabled=true;
    retry.textContent='Albert corrige la copie…';
-   status.textContent='Connexion sécurisée à Supabase et analyse fictive en cours…';
+   status.textContent='Albert analyse la copie fictive depuis Supabase…';
    try{
-    const [{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY},{createClient}]=await Promise.all([
-     import('../evaluations-academie/config.js?v=1'),
-     import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm')
-    ]);
-    const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-      auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}
-    });
-    const {data,error}=await supabase.auth.getSession();
-    if(error||!data?.session?.access_token){
-     const problem=new Error('Connecte-toi d’abord à CORTEX Académie (espace réel) avec ton compte professeur, puis reviens dans la démo et relance le test.');
-     problem.needLogin=true;throw problem;
-    }
+    // Seul l'identifiant d'une copie fictive prédéfinie est envoyé.
+    // Supabase détient le secret Albert et limite les appels anonymes.
+    const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('../evaluations-academie/config.js?v=1');
     const response=await fetch(SUPABASE_URL+'/functions/v1/cortex-albert-demo',{
      method:'POST',cache:'no-store',
-     headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY,
-              Authorization:'Bearer '+data.session.access_token},
+     headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY},
      body:JSON.stringify({action:'demo_draft',copy_id:COPY_ID})
     });
     const out=await response.json().catch(()=>null);
@@ -74,12 +64,6 @@
     renderResult(out);
    }catch(error){
     status.textContent='✕ '+String(error?.message||error);
-    if(error?.needLogin){
-     const p=add('p');
-     const a=add('a','Ouvrir CORTEX Académie pour me connecter');
-     a.href='../evaluations-academie/';a.target='_blank';a.rel='noopener noreferrer';
-     p.append(a);results.append(p);
-    }
    }finally{retry.disabled=false;retry.textContent='↻ Relancer le test Albert';}
   }
   function renderResult(out){

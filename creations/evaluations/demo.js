@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
 const PSE_DEMO_ASSIGNMENT='demo-pse-sans-compte-60',PSE_DEMO_TOKEN='DEMO-PSE-60-MINUTES',PSE_DEMO_CLASS='2mrc1',PSE_PREVIEW_STORAGE='cortex-pse-preview-session-1';
 function persistPsePreview(){
  try{
@@ -493,22 +493,60 @@ function renderDocumentStudent(e,q,a,answered,remaining){
   '<hr class="divider"><p class="small muted">Les réponses peuvent être modifiées avant la remise. Une sortie de page ne prouve pas une fraude.</p>'+
   btn('Simuler une interruption','simulate-interruption','ghost small full')+'</aside></div>';
 }
-async function processImport(file){
+async function processImport(file,options={}){
  if(!file){showToast('Sélectionne un fichier PDF ou Word.');return;}
+ const useAlbert=options.ai===true;
+ if(useAlbert&&!window.confirm(
+  '✦ PRÉPARATION AVEC ALBERT IA\n\n'+
+  'Le texte extrait de ce PDF ou Word sera transmis à Albert via le serveur Supabase pour identifier les documents et les questions. Le fichier original et ses images restent sur cet appareil.\n\n'+
+  'Vérifie qu’il ne contient pas de données personnelles non autorisées à transmettre ; anonymise si nécessaire. Les propositions devront être vérifiées avant publication.\n\nContinuer ?'
+ ))return;
  const status=document.getElementById('visual-import-status');
+ let parsed=null,aiDraft=null,aiError=null;
  try{
-  if(status)status.textContent='Ouverture visuelle du document original…';
+  if(status)status.textContent='Ouverture du fichier original…';
   const data=await window.CORTEX_VISUAL.inspect(file);
+  if(useAlbert){
+   try{
+    if(status)status.textContent='Extraction locale du texte documentaire…';
+    parsed=await window.CORTEX_DOCS.parseFile(file,t=>{if(status)status.textContent=t;});
+    if(status)status.textContent='Albert IA identifie les documents, les questions et leurs barèmes…';
+    aiDraft=await window.CORTEX_ALBERT_IMPORT.analyze(parsed.pages);
+   }catch(err){aiError=err;console.warn('Albert import indisponible :',err);}
+  }
   const sourceId='original-'+Date.now()+'-'+Math.floor(Math.random()*100000);
   await window.CORTEX_DOCS.storeFile({blob:file,kind:data.kind,filename:file.name,sourceId});
+  const sourceQuestions=aiDraft?window.CORTEX_ALBERT_IMPORT.buildQuestions(aiDraft,parsed):
+    (useAlbert&&parsed?.questions?.length?parsed.questions.slice(0,40).map((q,i)=>({
+      ...q,id:'detected-'+Date.now()+'-'+i,number:i+1,
+      assetIds:[],doc:'',points:Number(q.points)||1
+    })):[]);
+  const questions=sourceQuestions.length?sourceQuestions:
+   [{id:'question-'+Date.now(),prompt:'',type:'text',points:1,page:1,assetIds:[]}];
   const exam={id:'import-'+Date.now()+'-'+Math.floor(Math.random()*10000),
    title:file.name.replace(/\.(pdf|docx)$/i,''),level:'Seconde Bac Pro',chapter:'PSE · Contrôle importé',
    duration:60,code:'DOC'+Math.floor(100000+Math.random()*900000),
-   open:false,doc:'',sourceId,sourceType:data.kind,sourceName:file.name,sourcePages:[],sourcePageCount:data.pages,
-   assets:[],questions:[{id:'question-'+Date.now(),prompt:'',type:'text',points:1,page:1,assetIds:[]}]};
-  state.exams.unshift(exam);importExamId=exam.id;visualPage=1;visualQuestionId=exam.questions[0].id;save();
-  showToast('Document original chargé. Encadre les zones utiles pour tes élèves.');render();
- }catch(error){if(status)status.textContent='Impossible d’ouvrir le document : '+error.message;showToast(error.message);}
+   open:false,doc:'',sourceId,sourceType:data.kind,sourceName:file.name,
+   sourcePages:parsed?.pages?.map(p=>String(p||'').slice(0,2500))||[],sourcePageCount:data.pages,
+   assets:[],questions,
+   aiPrepared:!!aiDraft,detectedDocuments:aiDraft?.documents||[],
+   aiWarnings:aiDraft?.warnings||[]
+  };
+  if(aiDraft&&window.CORTEX_ALBERT_IMPORT.capturePages){
+   try{
+    const stats=await window.CORTEX_ALBERT_IMPORT.capturePages(exam,file,t=>{if(status)status.textContent=t});
+    if(stats.skipped)exam.aiWarnings.push(stats.skipped+' page(s) à associer manuellement aux questions.');
+   }catch(err){exam.aiWarnings.push('Captures automatiques partielles : vérifier les documents originaux.');}
+  }
+  state.exams.unshift(exam);importExamId=exam.id;importNewExamId=exam.id;
+  visualPage=1;visualQuestionId=exam.questions[0].id;save();render();
+  if(aiDraft)showToast('Albert : '+exam.questions.length+' question(s), '+exam.detectedDocuments.length+' document(s). Vérifie avant de publier.');
+  else if(useAlbert)showToast('Albert indisponible : '+String(aiError?.message||'atelier classique ouvert').slice(0,100));
+  else showToast('Document original chargé. Crée tes questions et sélectionne les zones utiles.');
+ }catch(error){
+  if(status)status.textContent='Impossible d’ouvrir le document : '+error.message;
+  showToast(error.message);
+ }
 }
 async function visualRecordCapture(blob,page){
  const exam=examBy(importExamId);
@@ -987,6 +1025,29 @@ if(a==='go-import'){importExamId=null;visualPage=1;visualQuestionId=null;nav('te
 if(a==='choose-pdf'){showToast('L’élève doit scanner le QR code généré par le professeur.');return;}
 if(a==='try-pdf-demo'){const e=examBy('sommeil-pdf-a2');if(e)modalShow('QR du contrôle',window.CORTEX_CLASSES.qrChoices(state,e),btn('Fermer','close-modal','ghost'));return;}
 if(a==='visual-import-file'){processImport(document.getElementById('visual-doc-file')?.files?.[0]);return;}
+if(a==='visual-import-albert'){processImport(document.getElementById('visual-doc-file')?.files?.[0],{ai:true});return;}
+if(a==='visual-clear-selection'){
+ const input=document.getElementById('visual-doc-file');if(input){input.value='';input.click();}
+ const status=document.getElementById('visual-import-status');if(status)status.textContent='Sélectionne le bon document puis choisis ton mode.';
+ return;
+}
+if(a==='visual-jump-page'){
+ const exam=examBy(importExamId);if(!exam)return;
+ visualPage=Math.max(1,Math.min(Number(exam.sourcePageCount)||1,Number(el.dataset.page)||1));
+ render();return;
+}
+if(a==='visual-replace-document'){
+ const ex=examBy(importExamId);
+ if(ex&&ex.id===importNewExamId&&!state.attempts.some(at=>at.examId===ex.id)){
+  if(!window.confirm('Revenir au choix du document ? Le contrôle importé par erreur sera supprimé de cette démonstration locale.'))return;
+  state.exams=state.exams.filter(item=>item.id!==ex.id);
+  window.CORTEX_DOCS.deleteFile(ex.sourceId).catch(()=>{});
+  for(const asset of ex.assets||[])window.CORTEX_VISUAL.removeImage(asset.id).catch(()=>{});
+  save();
+ }
+ importExamId=null;importNewExamId=null;visualPage=1;visualQuestionId=null;
+ nav('teacher','import');return;
+}
 if(a==='import-doc-file'){processImport(document.getElementById('cortex-import-file')?.files?.[0]);return;}
 if(a==='visual-open-existing'){
  const exam=examBy(id);if(!exam?.sourceId)return;

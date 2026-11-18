@@ -463,3 +463,18 @@ html.cortex-phone body.mobile-input-focus .phone-teacher-nav { display:none; }
   html.cortex-phone .class-filters select { min-width:0; }
   html.cortex-phone .review-document-pane,html.cortex-phone .review-response-pane { grid-column:1; }
 }
+
+/* Les onglets spécifiques professeur n'apparaissent que dans son espace. */
+html.cortex-phone:not(.teacher-mobile-active) .phone-teacher-nav,
+html.cortex-phone:not(.teacher-mobile-active) .phone-teacher-more { display:none !important; }
+html.cortex-phone.teacher-mobile-active .top-actions { display:none !important; }
+html.cortex-phone.teacher-mobile-active .phone-teacher-nav { display:grid !important; }
+html.cortex-phone.teacher-mobile-active .workspace .sidebar { display:none !important; }
+html.cortex-phone.teacher-mobile-active .review-question-list { overflow:visible; }
+html.cortex-phone.teacher-mobile-active .review-question-scroll { flex-wrap:nowrap; overflow-x:auto; }
+html.cortex-phone.teacher-mobile-active .review-question-btn { width:auto; min-width:130px; }
+html.cortex-phone.teacher-mobile-active .ed-layout .ed-document,
+html.cortex-phone.teacher-mobile-active .ed-layout .ed-configuration { grid-column:1 / -1; }
+html.cortex-phone .phone-teacher-more[hidden] { display:none !important; }
+html.cortex-phone .phone-teacher-more-grid button:active,
+html.cortex-phone .phone-teacher-shortcuts button:active { transform:scale(.98); }

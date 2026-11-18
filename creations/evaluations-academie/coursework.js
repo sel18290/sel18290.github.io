@@ -1,7 +1,7 @@
 
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
-import {requestAiDraft,formatDraftFeedback} from './ai-correction.js?v=1';
+import {requestAiDraft,formatDraftFeedback} from './ai-correction.js?v=2';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
 const make=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -179,16 +179,29 @@ function display(){
   const label=make('label','cw-release-label'),release=make('input');release.type='checkbox';release.checked=!!copy.released_at;
   label.append(release,make('span','','Publier la note et la correction pour l’élève'));
   const submit=make('button','cw-accent','Enregistrer la correction');submit.type='submit';
-  const aiButton=createButton('✦ Corriger avec l’IA','cw-ai-button',async()=>{
-    if(!window.confirm('L’IA ne propose qu’un brouillon. Le transfert de copies réelles nécessite une autorisation institutionnelle et l’activation du serveur. Continuer ?'))return;
+  const aiButton=createButton('✦ Corriger avec Albert IA','cw-ai-button',async()=>{
+    if(!window.confirm('Albert IA propose uniquement un brouillon. Aucune note ne sera enregistrée. Le transfert de copies réelles exige l’autorisation de l’établissement et du DPO. Continuer ?'))return;
     const draft=await requestAiDraft(copy.assessment_id,copy.student_number);
     grade.value=String(draft.grade);
     feedback.value=formatDraftFeedback(draft);
     release.checked=false;
-    const note=make('div','cw-ai-draft-notice','✦ Brouillon IA non enregistré : vérifiez le barème, puis enregistrez vous-même la correction.');
     form.querySelector('.cw-ai-draft-notice')?.remove();
-    form.prepend(note);
-    message('Proposition IA chargée pour la copie n°'+copy.student_number+'. La note n’est pas publiée.');
+    form.querySelector('.cw-ai-detail')?.remove();
+    const notice=make('div','cw-ai-draft-notice','✦ Proposition Albert non enregistrée : contrôlez chaque question, les documents et le barème avant validation.');
+    const details=make('details','cw-ai-detail');
+    details.open=true;
+    details.append(make('summary','','Albert IA · Correction détaillée des '+draft.questions.length+' questions'));
+    for(const q of draft.questions){
+      const line=make('section','cw-ai-question');
+      line.append(make('strong','','Question '+(q.numero||q.id)+' · '+q.points+' / '+q.max+' point(s)'));
+      if(q.attendu)line.append(make('p','','Réponse attendue : '+q.attendu));
+      line.append(make('p','','Commentaire : '+(q.commentaire||'À vérifier.')));
+      if(q.conseil)line.append(make('p','','Conseil : '+q.conseil));
+      if(q.document)line.append(make('small','','Document utilisé : '+q.document));
+      details.append(line);
+    }
+    form.prepend(notice,details);
+    message('Brouillon Albert chargé pour la copie n°'+copy.student_number+'. La note n’est ni enregistrée ni publiée.');
     grade.focus();
   });
   form.append(aiButton,grade,feedback,label,submit);

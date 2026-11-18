@@ -87,7 +87,12 @@ function display(){
  for(const exam of exams){
   const access=state.access.find(a=>a.assessment_id===exam.id);
   const card=make('article','cw-assessment'),top=make('div','cw-card-head');
-  const title=make('div');title.append(make('strong','',exam.title),make('small','',access?.active?'Les élèves peuvent accéder au contrôle':'Contrôle en préparation'));
+  card.dataset.examId=exam.id;
+  const title=make('div');const classroom=bridge()?.classes?.()?.find(c=>c.id===exam.class_id);
+  const publishScope=exam.content?.publish_scope||'all';
+  const scopeName=publishScope==='g1'?'Groupe 1':publishScope==='g2'?'Groupe 2':'Classe entière';
+  title.append(make('strong','',exam.title),make('small','','Classe : '+(classroom?.code||'Sans classe')+' · '+scopeName),
+   make('small','',access?.active?'Les élèves concernés peuvent accéder au contrôle':'Contrôle en préparation'));
   top.append(title,make('span','cw-pill '+(access?.active?'cw-open':''),access?.active?'● Ouvert':'○ Non ouvert'));card.append(top);
   const fileArea=make('div','cw-upload-row'),input=make('input','cw-subject-input');
   input.type='file';input.accept=types;input.setAttribute('aria-label','Sujet PDF ou Word');
@@ -106,13 +111,18 @@ function display(){
      }));
    card.append(sub);
   }
-  const publish=make('div','cw-publish-row'),select=make('select','cw-roster-size');
+  const publish=make('div','cw-publish-row'),select=make('select','cw-roster-size'),group=make('select','cw-publish-scope');
   for(const n of [15,20,25,30,35,40,45,50,55,60]){
    const opt=make('option','',n+' élèves');opt.value=String(n);opt.selected=n===(access?.roster_size||30);select.append(opt);
   }
   select.setAttribute('aria-label','Nombre de numéros élèves');
-  publish.append(make('label','','Effectif'),select,createButton(access?.active?'Actualiser les accès':'Publier et créer les PIN','cw-accent',async()=>{
-   const out=await api('teacher_publish',{assessment_id:exam.id,roster_size:Number(select.value)},null,true);
+  for(const [value,label] of [['all','Classe entière'],['g1','Groupe 1'],['g2','Groupe 2']]){
+   const option=make('option','',label);option.value=value;option.selected=value===publishScope;group.append(option);
+  }
+  group.disabled=!exam.class_id;group.setAttribute('aria-label','Publier pour la classe ou le demi-groupe');
+  publish.append(make('label','','Effectif'),select,make('label','','Publication'),group,
+   createButton(access?.active?'Actualiser la publication':'Publier et créer les PIN','cw-accent',async()=>{
+   const out=await api('teacher_publish',{assessment_id:exam.id,roster_size:Number(select.value),publish_scope:group.value},null,true);
    if(out.freshPins?.length){state.pins.set(exam.id,out.freshPins);if(out.class_id)window.dispatchEvent(new CustomEvent('cortex:class-pins',{detail:{classId:out.class_id,pins:out.freshPins}}));}
    message(out.freshPins?.length?'Contrôle ouvert. Téléchargez les PIN affichés : ils ne seront plus récupérables après rechargement.':'Contrôle ouvert avec les PIN existants.');
    await reload();
@@ -230,6 +240,24 @@ get('cw-ai-test')?.addEventListener('click',async event=>{
  }finally{button.disabled=false}
 });
 
+window.CORTEX_ACADEMY_COURSEWORK={
+ access:()=>state.access.slice(),
+ publish:async(examId,scope,rosterSize=30)=>{
+  const out=await api('teacher_publish',{assessment_id:examId,roster_size:rosterSize,publish_scope:scope},null,true);
+  if(out.freshPins?.length){
+   state.pins.set(examId,out.freshPins);
+   if(out.class_id)window.dispatchEvent(new CustomEvent('cortex:class-pins',{detail:{classId:out.class_id,pins:out.freshPins}}));
+  }
+  await reload();return out;
+ },
+ close:async examId=>{const out=await api('teacher_close',{assessment_id:examId,active:false},null,true);await reload();return out;},
+ goToQR:examId=>{
+  location.hash='#cw-assessment-cards';
+  const card=[...document.querySelectorAll('#cw-assessment-cards [data-exam-id]')].find(n=>n.dataset.examId===examId);
+  card?.scrollIntoView({block:'start',behavior:'smooth'});
+ },
+ freshPins:examId=>state.pins.get(examId)||[]
+};
 window.addEventListener('cortex:academy-data-ready',()=>reload());
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{

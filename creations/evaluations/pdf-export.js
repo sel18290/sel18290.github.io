@@ -36,79 +36,13 @@ async function loadJsPDF(){
 const cache=new Map();
 async function screenshotHtml(source,key){
  if(cache.has(key))return cache.get(key);
- // Aucun chargement réseau requis : html2canvas est facultatif si déjà présent.
- const node=document.createElement('div');
- node.className='pdf-document-snapshot';
- Object.assign(node.style,{position:'fixed',left:'-12000px',top:'0',width:'760px',background:'#fff',color:'#252525',padding:'10px',zIndex:'-1'});
- node.innerHTML=source;
- document.body.appendChild(node);
- try{
-  let canvas;
-  if(window.html2canvas){
-    try{canvas=await window.html2canvas(node,{backgroundColor:'#ffffff',scale:1.15,logging:false,useCORS:false});}
-    catch(error){canvas=null;}
-  }
-  if(!canvas){
-    // Repli local structuré : conserver paragraphes, titres, listes et lignes de tableaux.
-    // Ne jamais aplatir le document avec replace(/\\s+/g,' ').
-    const blocks=[];
-    const root=node;
-    const blockTags=new Set(['P','DIV','SECTION','ARTICLE','HEADER','H1','H2','H3','H4','H5','H6','LI','TR','BLOCKQUOTE','PRE']);
-    function collect(el,depth=0){
-      if(el.nodeType===Node.TEXT_NODE){
-        const value=(el.textContent||'').replace(/[ \\t\\r\\n]+/g,' ').trim();
-        if(value)blocks.push({text:value,depth,tag:'TEXT'});
-        return;
-      }
-      if(el.nodeType!==Node.ELEMENT_NODE)return;
-      const tag=el.tagName;
-      if(['SCRIPT','STYLE','NOSCRIPT'].includes(tag))return;
-      if(tag==='BR'){blocks.push({break:true});return;}
-      if(tag==='IMG'){blocks.push({text:'[Illustration du document]',tag:'EM'});return;}
-      if(tag==='TABLE'){for(const row of el.querySelectorAll('tr')){const cells=[...row.querySelectorAll('th,td')].map(c=>(c.innerText||c.textContent||'').replace(/\\s+/g,' ').trim());blocks.push({text:cells.join('   |   '),tag:'TR'});}blocks.push({break:true});return;}
-      if(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE'].includes(tag)){
-        const text=(el.innerText||el.textContent||'').replace(/[ \\t]+/g,' ').trim();
-        if(text)blocks.push({text,tag,depth});
-        blocks.push({break:true});return;
-      }
-      if(tag==='DIV'||tag==='SECTION'||tag==='ARTICLE'){
-        for(const child of el.childNodes)collect(child,depth+1);
-        blocks.push({break:true});return;
-      }
-      for(const child of el.childNodes)collect(child,depth);
-    }
-    collect(root);
-    const canvas=document.createElement('canvas'),width=1100,margin=42,limit=width-2*margin;
-    canvas.width=width;
-    const lines=[];
-    const fontFor=tag=>/^H[1-6]$/.test(tag)?'bold 27px Arial':tag==='TR'?'20px Arial':'22px Arial';
-    const probe=document.createElement('canvas').getContext('2d');
-    for(const block of blocks){
-      if(block.break){if(lines.length&&lines[lines.length-1].gap!==true)lines.push({gap:true});continue;}
-      probe.font=fontFor(block.tag);
-      const words=block.text.split(/\\s+/);let line='';
-      for(const word of words){
-        const candidate=line?line+' '+word:word;
-        if(probe.measureText(candidate).width>limit&&line){lines.push({text:line,font:probe.font});line=word;}else line=candidate;
-      }
-      if(line)lines.push({text:line,font:probe.font});
-      if(block.tag==='TR')lines.push({gap:true});
-    }
-    const height=Math.max(140,Math.min(30000,90+lines.reduce((n,l)=>n+(l.gap?15:34),0)));
-    canvas.height=height;
-    const context=canvas.getContext('2d');
-    context.fillStyle='#fff';context.fillRect(0,0,width,height);
-    let y=52;
-    for(const item of lines){
-      if(item.gap){y+=15;continue;}
-      if(y>height-12)break;
-      context.font=item.font;context.fillStyle='#253541';
-      context.fillText(item.text,margin,y);y+=34;
-    }
-  }
-  cache.set(key,canvas);return canvas;
- }finally{node.remove();}
+ if(!window.CORTEX_PDF_SOURCE?.captureHtml)
+  throw new Error('Moteur de capture des documents absent. Recharge CORTEX.');
+ const canvas=await window.CORTEX_PDF_SOURCE.captureHtml(source);
+ cache.set(key,canvas);
+ return canvas;
 }
+
 async function sourceCanvas(exam,q,kind){
  const suffix=kind|| (exam.pdfSource?'sample':exam.sourceType||'manual');
  const key=exam.id+':'+suffix+':'+(exam.pdfSource?q.section:q.page||1);
@@ -216,35 +150,112 @@ function cover(pdf,ctx,copy,exam){
   `Note : ${summary.grade!=null?fmt(summary.grade)+' / 20':'Non validée'}`];
  for(const line of lines)paragraph(pdf,ctx,line,{fontSize:11,lineHeight:6.5,after:1});
  ctx.y+=7;rule(pdf,ctx);
- paragraph(pdf,ctx,'Énoncés, documents remis aux élèves, réponses et corrections disponibles.',{fontSize:9,color:[93,105,118],after:7});
+ paragraph(pdf,ctx,'Documents utilisés par l’élève (si présents), questions, réponses et corrections.',{fontSize:9,color:[93,105,118],after:7});
+}
+function documentPlainText(html){
+ const element=document.createElement('div');
+ element.innerHTML=String(html||'');
+ element.querySelectorAll('script,style,noscript').forEach(node=>node.remove());
+ return (element.innerText||element.textContent||'').trim();
+}
+function documentWarning(pdf,ctx,message){
+ ctx.warnings.push(message);
+ paragraph(pdf,ctx,'DOCUMENT : '+message,{
+  fontSize:9,color:[152,74,69],after:4
+ });
 }
 async function appendSources(pdf,ctx,copy,exam,q,seen){
- const sourceKey=exam.pdfSource?'s'+q.section:exam.sourceId?'p'+(q.page||1):q.doc?'q'+q.id:exam.doc?'main':'';
- if(sourceKey&&!seen.has(sourceKey)){
-  seen.add(sourceKey);
-  try{
-   const canvas=await sourceCanvas(exam,q);
-   if(canvas)picture(pdf,ctx,canvas,exam.pdfSource?'DOCUMENT(S) · PARTIE '+(Number(q.section||0)+1):
-    'DOCUMENT ORIGINAL · PAGE '+(q.page||1));
-   else if(!exam.sourceId&& (q.doc||exam.doc)){
-    paragraph(pdf,ctx,'DOCUMENT DE RÉFÉRENCE',{bold:true,color:[29,107,109]});
-    paragraph(pdf,ctx,firstNonBlank(q.doc,exam.doc),{fontSize:9.5});
-   }else if(exam.sourceId){
-    paragraph(pdf,ctx,'Document original non disponible sur cet appareil.',{fontSize:9,color:[149,78,78]});
+ const sectionIndex=Number(q.section||0);
+ const pageNumber=Number(q.page||1);
+ if(exam.pdfSource){
+  const sourceKey='sample-section:'+sectionIndex;
+  if(!seen.has(sourceKey)){
+   seen.add(sourceKey);
+   const title='DOCUMENT(S) FOURNI(S) À L’ÉLÈVE · PARTIE '+(sectionIndex+1);
+   try{
+    const canvas=await sourceCanvas(exam,q);
+    if(canvas){
+     if(canvas.cortexPdfMethod==='text-transcription')
+      documentWarning(pdf,ctx,'Mise en page originale partiellement indisponible (transcription structurée).');
+     picture(pdf,ctx,canvas,title);
+    }else{
+     const source=window.CORTEX_DOCS?.sections?.[sectionIndex]?.document;
+     if(source){
+      paragraph(pdf,ctx,title,{bold:true,color:[30,101,104]});
+      paragraph(pdf,ctx,documentPlainText(source),{fontSize:9.5});
+      documentWarning(pdf,ctx,'Le document a été retranscrit, sans ses graphiques originaux.');
+     }else documentWarning(pdf,ctx,'Partie '+(sectionIndex+1)+' non retrouvée.');
+    }
+   }catch(error){
+    const source=window.CORTEX_DOCS?.sections?.[sectionIndex]?.document;
+    if(source){
+     paragraph(pdf,ctx,title,{bold:true,color:[30,101,104]});
+     paragraph(pdf,ctx,documentPlainText(source),{fontSize:9.5});
+    }
+    documentWarning(pdf,ctx,'Capture du document de la partie '+(sectionIndex+1)+' impossible : '+(error.message||error));
    }
-  }catch(err){
-   paragraph(pdf,ctx,'Aperçu du document non disponible : '+(err?.message||'erreur'),{fontSize:9,color:[148,75,75]});
+  }
+ }else if(exam.sourceId){
+  const sourceKey='import-page:'+pageNumber;
+  if(!seen.has(sourceKey)){
+   seen.add(sourceKey);
+   const title='DOCUMENT ORIGINAL FOURNI À L’ÉLÈVE · PAGE '+pageNumber+
+    (exam.sourceName?' · '+exam.sourceName:'');
+   try{
+    const canvas=await sourceCanvas(exam,q);
+    if(canvas)picture(pdf,ctx,canvas,title);
+    else{
+     const transcript=exam.sourcePages?.[pageNumber-1]||'';
+     paragraph(pdf,ctx,title,{bold:true,color:[30,101,104]});
+     if(transcript)paragraph(pdf,ctx,transcript,{fontSize:9.5});
+     documentWarning(pdf,ctx,transcript?
+      'Original PDF/Word indisponible sur cet appareil : texte extrait affiché à la place.' :
+      'Original PDF/Word absent de ce navigateur. Réimporte le document depuis le navigateur qui le conserve.');
+    }
+   }catch(error){
+    const transcript=exam.sourcePages?.[pageNumber-1]||'';
+    if(transcript)paragraph(pdf,ctx,transcript,{fontSize:9.5});
+    documentWarning(pdf,ctx,'Impossible de récupérer la page '+pageNumber+' du document original : '+(error.message||error));
+   }
+  }
+ }else{
+  const docs=[
+   {key:'manual-shared',name:'DOCUMENT COMMUN À L’ÉVALUATION',value:exam.doc},
+   {key:'manual-question:'+q.id,name:'DOCUMENT ASSOCIÉ À LA QUESTION '+(q.number||''),value:q.doc}
+  ];
+  for(const doc of docs){
+   if(!String(doc.value||'').trim()||seen.has(doc.key))continue;
+   seen.add(doc.key);
+   try{
+    if(/<\/?[a-z][\s\S]*>/i.test(doc.value)){
+     const canvas=await screenshotHtml(doc.value,'manual:'+exam.id+':'+doc.key);
+     picture(pdf,ctx,canvas,doc.name);
+    }else{
+     paragraph(pdf,ctx,doc.name,{bold:true,color:[30,101,104]});
+     paragraph(pdf,ctx,doc.value,{fontSize:9.5});
+    }
+   }catch(error){
+    paragraph(pdf,ctx,doc.name,{bold:true,color:[30,101,104]});
+    paragraph(pdf,ctx,documentPlainText(doc.value),{fontSize:9.5});
+    documentWarning(pdf,ctx,'Mise en page de '+doc.name+' impossible : '+(error.message||error));
+   }
   }
  }
  for(const imageId of q.assetIds||[]){
+  const assetKey='asset:'+imageId;
+  if(seen.has(assetKey))continue;
+  seen.add(assetKey);
   const meta=exam.assets?.find(a=>a.id===imageId);
   try{
    const canvas=await canvasForAsset(imageId);
    if(canvas)picture(pdf,ctx,canvas,'DOCUMENT ASSOCIÉ · '+(meta?.name||'Capture du contrôle'));
-   else paragraph(pdf,ctx,'Capture associée non retrouvée sur cet appareil : '+(meta?.name||'Image'),{fontSize:9,color:[149,78,78]});
-  }catch(err){paragraph(pdf,ctx,'Capture non lisible : '+String(err.message||err),{fontSize:9,color:[149,78,78]});}
+   else documentWarning(pdf,ctx,'Image liée à la question non retrouvée : '+(meta?.name||imageId));
+  }catch(error){
+   documentWarning(pdf,ctx,'Impossible d’intégrer '+(meta?.name||'une capture')+' : '+(error.message||error));
+  }
  }
 }
+
 async function appendCopy(pdf,ctx,copy,exam,position){
  if(position>0)newPage(pdf,ctx,'COPIE SUIVANTE');
  cover(pdf,ctx,copy,exam);
@@ -279,7 +290,7 @@ function downloadName(copies,scope){
 async function exportCopies(copies,getExam,opts={}){
  if(!Array.isArray(copies)||!copies.length)throw Error('Aucune copie remise à exporter.');
  const ctor=await loadJsPDF(),pdf=new ctor({orientation:'portrait',unit:'mm',format:'a4',compress:true});
- const ctx={layout:getLayout(pdf),y:24};
+ const ctx={layout:getLayout(pdf),y:24,warnings:[]};
  header(pdf,ctx,copies.length>1?'LOT DE COPIES':'COPIE INDIVIDUELLE');
  const good=copies.filter(a=>getExam(a.examId));
  if(!good.length)throw Error('Contrôles introuvables pour les copies sélectionnées.');
@@ -311,7 +322,7 @@ async function exportCopies(copies,getExam,opts={}){
  const name=downloadName(good,opts.scope);
  pdf.save(name);
  cache.clear();
- return {filename:name,count:good.length,pages:total};
+ return {filename:name,count:good.length,pages:total,warnings:ctx.warnings};
 }
 return {exportCopies,summarize,answerFor,downloadName};
 })();

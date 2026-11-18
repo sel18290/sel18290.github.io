@@ -497,30 +497,34 @@ async function processImport(file,options={}){
  if(!file){showToast('Sélectionne un fichier PDF ou Word.');return;}
  const useAlbert=options.ai===true;
  if(useAlbert&&!window.confirm(
-  '✦ PRÉPARATION AVEC ALBERT IA\n\n'+
-  'Le texte extrait de ce PDF ou Word sera transmis à Albert via le serveur Supabase pour identifier les documents et les questions. Le fichier original et ses images restent sur cet appareil.\n\n'+
-  'Vérifie qu’il ne contient pas de données personnelles non autorisées à transmettre ; anonymise si nécessaire. Les propositions devront être vérifiées avant publication.\n\nContinuer ?'
+  '✦ ALBERT IA — ANALYSE VISUELLE DU SUJET\n\n'+
+  'Albert recevra des images des pages originales (tableaux, courbes, schémas inclus) et le texte extrait, via le serveur Supabase. Le PDF/Word original reste sur ton appareil.\n\n'+
+  'Les documents et questions proposés sont à vérifier avant utilisation. N’envoie aucune donnée personnelle d’élève sans cadre et autorisation adaptés.\n\nContinuer ?'
  ))return;
  const status=document.getElementById('visual-import-status');
+ const progress=useAlbert?window.CORTEX_ALBERT_IMPORT.progress('Préparer l’atelier avec Albert IA'):null;
  let parsed=null,aiDraft=null,aiError=null;
  try{
-  if(status)status.textContent='Ouverture du fichier original…';
+  progress?.update('Ouverture du document original…',0,1);
+  if(status)status.textContent='Ouverture du document original…';
   const data=await window.CORTEX_VISUAL.inspect(file);
   if(useAlbert){
    try{
-    if(status)status.textContent='Extraction locale du texte documentaire…';
-    parsed=await window.CORTEX_DOCS.parseFile(file,t=>{if(status)status.textContent=t;});
-    if(status)status.textContent='Albert IA identifie les documents, les questions et leurs barèmes…';
-    aiDraft=await window.CORTEX_ALBERT_IMPORT.analyze(parsed.pages);
-   }catch(err){aiError=err;console.warn('Albert import indisponible :',err);}
+    if(progress.signal.aborted)throw Error('Analyse annulée.');
+    progress.update('Extraction des textes et préparation des pages visuelles…',0,data.pages);
+    parsed=await window.CORTEX_DOCS.parseFile(file,t=>progress.update(t,0,data.pages));
+    aiDraft=await window.CORTEX_ALBERT_IMPORT.analyze(parsed.pages,{
+      file,mode:'demo',progress,signal:progress.signal
+    });
+    progress.update('Albert a répondu. Construction des questions et association des documents…',parsed.pages.length,parsed.pages.length);
+   }catch(err){aiError=err;console.warn('Albert import:',String(err));}
   }
   const sourceId='original-'+Date.now()+'-'+Math.floor(Math.random()*100000);
   await window.CORTEX_DOCS.storeFile({blob:file,kind:data.kind,filename:file.name,sourceId});
   const sourceQuestions=aiDraft?window.CORTEX_ALBERT_IMPORT.buildQuestions(aiDraft,parsed):
-    (useAlbert&&parsed?.questions?.length?parsed.questions.slice(0,40).map((q,i)=>({
-      ...q,id:'detected-'+Date.now()+'-'+i,number:i+1,
-      assetIds:[],doc:'',points:Number(q.points)||1
-    })):[]);
+   (useAlbert&&parsed?.questions?.length?parsed.questions.slice(0,40).map((q,i)=>({
+    ...q,id:'detected-'+Date.now()+'-'+i,number:i+1,assetIds:[],doc:'',points:Number(q.points)||1
+   })):[]);
   const questions=sourceQuestions.length?sourceQuestions:
    [{id:'question-'+Date.now(),prompt:'',type:'text',points:1,page:1,assetIds:[]}];
   const exam={id:'import-'+Date.now()+'-'+Math.floor(Math.random()*10000),
@@ -531,22 +535,37 @@ async function processImport(file,options={}){
    assets:[],questions,
    aiPrepared:!!aiDraft,detectedDocuments:aiDraft?.documents||[],
    aiWarnings:aiDraft?.warnings||[],
-   aiError:useAlbert&&!aiDraft?String(aiError?.message||'Analyse Albert indisponible.'):''
-  };
-  if(aiDraft&&window.CORTEX_ALBERT_IMPORT.capturePages){
+   aiError:useAlbert&&!aiDraft?String(aiError?.message||'Analyse Albert indisponible.'):''};
+  if(aiDraft){
    try{
-    const stats=await window.CORTEX_ALBERT_IMPORT.capturePages(exam,file,t=>{if(status)status.textContent=t});
-    if(stats.skipped)exam.aiWarnings.push(stats.skipped+' page(s) à associer manuellement aux questions.');
-   }catch(err){exam.aiWarnings.push('Captures automatiques partielles : vérifier les documents originaux.');}
+    progress.update('Création des captures des documents détectés…',parsed.pages.length,parsed.pages.length);
+    const made=await window.CORTEX_ALBERT_IMPORT.makeCaptures(file,aiDraft,questions,{
+      max:16,signal:progress.signal,onProgress:txt=>progress.update(txt,parsed.pages.length,parsed.pages.length)
+    });
+    for(const image of made.captures){
+     const captureId='albert-capture-'+Date.now()+'-'+Math.floor(Math.random()*1e8);
+     await window.CORTEX_VISUAL.saveImage(image.blob,captureId);
+     exam.assets.push({id:captureId,name:image.name.slice(0,90),page:image.page,createdAt:Date.now(),aiSuggested:true});
+     const q=exam.questions[image.questionIndex];if(q)q.assetIds.push(captureId);
+    }
+    if(made.skipped)exam.aiWarnings.push(made.skipped+' association(s) documentaire(s) restant à vérifier ou capturer manuellement.');
+   }catch(err){
+    exam.aiWarnings.push('Association automatique des captures incomplète : '+String(err?.message||err).slice(0,120));
+   }
   }
   state.exams.unshift(exam);importExamId=exam.id;importNewExamId=exam.id;
   visualPage=1;visualQuestionId=exam.questions[0].id;save();render();
-  if(aiDraft)showToast('Albert : '+exam.questions.length+' question(s), '+exam.detectedDocuments.length+' document(s). Vérifie avant de publier.');
-  else if(useAlbert)showToast('Albert indisponible : '+String(aiError?.message||'atelier classique ouvert').slice(0,100));
-  else showToast('Document original chargé. Crée tes questions et sélectionne les zones utiles.');
+  if(aiDraft){
+   progress.success('Atelier préparé : '+exam.questions.length+' question(s), '+exam.detectedDocuments.length+' document(s) et '+exam.assets.length+' capture(s).');
+   showToast('Albert : proposition d’atelier prête à vérifier.');
+  }else if(useAlbert){
+   progress.failure(String(aiError?.message||'Analyse indisponible.'));
+   showToast('Albert : échec identifié. Atelier classique prêt avec le document original.');
+  }else showToast('Document original chargé. Crée les questions et captures de l’atelier classique.');
  }catch(error){
-  if(status)status.textContent='Impossible d’ouvrir le document : '+error.message;
-  showToast(error.message);
+  if(status)status.textContent='Impossible d’ouvrir le document : '+String(error?.message||error);
+  progress?.failure(String(error?.message||error));
+  showToast(error?.message||'Importation impossible.');
  }
 }
 async function visualRecordCapture(blob,page){

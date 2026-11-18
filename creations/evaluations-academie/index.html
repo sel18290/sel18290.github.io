@@ -10,7 +10,8 @@
 <script type="module" src="./app.js?v=20"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=2.2"></script>
-<script type="module" src="./real-import.js?v=1.6"></script>
+<script defer src="../evaluations/ai-albert-import.js?v=1.2"></script>
+<script type="module" src="./real-import.js?v=1.7"></script>
 <script type="module" src="./real-manual.js?v=1.3"></script>
 <link rel="stylesheet" href="./real-manual.css?v=1.2">
 <link rel="stylesheet" href="./real-import.css?v=1.5">
@@ -178,10 +179,17 @@
   <div class="ri-upload" id="ri-upload-chooser">
    <label for="ri-file" class="ri-drop-label"><span class="ri-file-icon">⇪</span><strong>Choisir le document original</strong><span>PDF ou Word .docx · 8 Mo max · Le texte sera proposé en questions modifiables</span></label>
    <input type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="ri-file">
+   <div class="ri-import-choices">
+    <button type="button" id="ri-open-classic" class="ri-action secondary"><strong>▧ Atelier classique</strong><small>Ouvrir le fichier et construire mes questions</small></button>
+    <button type="button" id="ri-open-albert" class="ri-action primary"><strong>✦ Préparer avec Albert IA</strong><small>Détecter documents, questions, barèmes et pages</small></button>
+   </div>
+   <button type="button" id="ri-clear-selection" class="ri-action secondary ri-change-selection">↶ Choisir un autre fichier</button>
    <p class="ri-subtle">L'extraction est une aide à la saisie, pas une correction automatique. Vérifie les questions et leurs barèmes avant de publier.</p>
   </div>
   <p id="ri-status" class="ri-status" role="status" aria-live="polite"></p>
   <div id="ri-editor" class="ri-editor" hidden>
+    <div class="ri-editor-quickbar"><button type="button" id="ri-change-file" class="ri-action secondary">← Retour · Changer de document</button><span>Les modifications non enregistrées seront abandonnées.</span></div>
+    <div id="ri-ai-documents" class="ri-ai-documents" hidden></div>
     <div class="ri-overview">
      <label>Titre du contrôle <input id="ri-title" maxlength="180" placeholder="Ex. PSE · Le sommeil"></label>
      <label>Classe <select id="ri-class"><option value="">Sans classe</option></select></label>

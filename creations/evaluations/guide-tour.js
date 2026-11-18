@@ -7,10 +7,10 @@ const steps=[
   targets:['.home-hero .hero-copy','.home-hero'],
   body:'CORTEX réunit l’espace professeur, les contrôles numériques, les documents, les copies et le carnet élève. Albert IA intervient à plusieurs moments : préparation d’un sujet, correction fictive et accompagnement pédagogique.',
   task:'Commencez sans compte. Tout le contenu de démonstration est fictif ; les fonctions de l’espace réel attendent les validations institutionnelles.'},
- {phase:'ALBERT IA',title:'Rencontrer Albert, votre guide IA',eyebrow:'Aide immédiate et signalements',route:'#accueil',icon:'✧',
-  targets:['#cortex-albert-person','.home-hero'],
-  body:'Le petit robot Albert, sur le côté gauche, répond à des questions sur les fonctionnalités de CORTEX. Il présente ses réponses en étapes lisibles et permet aussi de signaler un bug à l’administrateur.',
-  task:'Cliquez sur « Albert IA » puis essayez « Comment publier un contrôle ? » ou l’onglet « Signaler un bug ». N’ajoutez pas de données personnelles.',visitLabel:'Ouvrir Albert ↗',openTarget:true},
+ {phase:'ALBERT IA',title:'Albert est là pour vous aider',eyebrow:'Cliquez sur le robot ou sa bulle lumineuse',route:'#accueil',icon:'✧',
+  targets:['#cortex-albert-person','#cortex-albert-invite','.home-hero'],
+  body:'Vous voyez le petit robot sur la gauche, avec sa bulle « Je peux t’aider ! Clique ici ✦ » ? Cliquez sur le robot OU sur la bulle pour ouvrir Albert. Il vous explique comment utiliser CORTEX étape par étape : créer un contrôle, importer avec l’IA, corriger avec Albert, publier, consulter le carnet élève et signaler un bug.',
+  task:'Appuyez sur « Essayer Albert maintenant » : l’assistant s’ouvre. Demandez-lui « Comment préparer un contrôle avec Albert IA ? ». Vous pouvez aussi sélectionner « Signaler un bug ». Ne communiquez aucune donnée personnelle.',visitLabel:'Essayer Albert maintenant ↗',openTarget:true},
  {phase:'PROFESSEUR',title:'Comprendre le tableau de bord',eyebrow:'Vue d’ensemble des évaluations',route:'#professeur/dashboard',icon:'▦',
   targets:['.workspace-main .stats','.workspace-main .page-head','.workspace-main'],
   body:'Le tableau de bord donne une vue rapide des contrôles, copies et indicateurs. Le menu professeur conduit à Mes classes, Mes contrôles, Importer PDF / Word, Copies & notes et Analyses.',
@@ -158,7 +158,7 @@ function mobileCard(step,last){
    '<div class="ct-tour-mobile-main"><div class="ct-tour-mobile-kicker">'+step.icon+' · '+step.phase+' · ÉTAPE '+String(index+1).padStart(2,'0')+' / '+steps.length+'</div>'+
    '<h2>'+step.title+'</h2><p>'+step.body+'</p>'+
    '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>À essayer dans CORTEX</strong><p>'+step.task+'</p></div></div></div>'+
-   '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">Explorer cet écran <span aria-hidden="true">↗</span></button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
+   '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">'+(step.visitLabel||'Explorer cet écran ↗')+'</button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
    '<div class="ct-tour-mobile-options"><button type="button" data-tour="previous" '+(index===0?'disabled':'')+'>← Retour</button><button type="button" data-tour="list">Toutes les étapes</button><button type="button" data-tour="minimize">Réduire ↑</button></div>'+
    (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Prévisualiser CORTEX Académie (accès restreint) ↗</a>':'')
  )+'</div>';

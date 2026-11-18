@@ -75,5 +75,7 @@ function render(){
  }
 }
 window.addEventListener('cortex:academy-data-ready',refresh);
+window.addEventListener('cortex:academy-class-updated',refresh);
+window.addEventListener('cortex:class-pins',event=>{const id=event.detail?.classId,pins=event.detail?.pins||[];if(!id||!pins.length)return;const old=cache.get(id)||[];cache.set(id,old.filter(x=>!pins.some(p=>p.number===x.number)).concat(pins).sort((x,y)=>x.number-y.number));render()});
 window.addEventListener('cortex:academy-logout',()=>{access=[];cache.clear();$('cw-class-cards')?.replaceChildren()});
 queueMicrotask(()=>{if(B()?.teacher?.())refresh()});

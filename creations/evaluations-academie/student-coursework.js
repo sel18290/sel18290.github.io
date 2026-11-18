@@ -82,6 +82,7 @@ if(qr||globalPortal){
   renderExam();
  }
  function renderClass(){
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!classData)return;
   const header=E('div','cw-student-dashboard-head');

@@ -1,13 +1,69 @@
 /* Espace réel : éditeur pédagogique question par question, inspiré de la démonstration. */
+import {api} from './coursework.js?v=2.0';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);
-const state={questions:[],index:0,editingId:null};
+const state={questions:[],index:0,editingId:null,sourceFile:null,pdf:null,docPage:1,docCount:0,sourceWordText:''};
 const newId=()=> 'q-'+crypto.randomUUID().slice(0,24);
 const blank=()=>({id:newId(),prompt:'',points:1,type:'text',doc:''});
 function current(){return state.questions[state.index];}
 function setHint(value){const el=$('manual-save-hint');if(el)el.textContent=String(value||'');}
 function total(){return state.questions.reduce((v,q)=>v+Number(q.points||0),0);}
+
+const scripts={};
+function loadScript(url){return scripts[url]||(scripts[url]=new Promise((res,rej)=>{
+ const tag=document.createElement('script');tag.src=url;tag.async=true;tag.onload=res;
+ tag.onerror=()=>{delete scripts[url];rej(Error('Lecteur documentaire indisponible. Vérifie ta connexion.'))};
+ document.head.append(tag);
+}));}
+async function renderOriginal(){
+ const stage=$('manual-original-render'),bar=$('manual-doc-pages');stage.replaceChildren();
+ if(!state.sourceFile){stage.hidden=true;bar.hidden=true;return;}
+ stage.hidden=false;
+ if(state.pdf){
+  bar.hidden=false;
+  $('manual-doc-counter').textContent='Page '+state.docPage+' / '+state.docCount;
+  $('manual-doc-prev').disabled=state.docPage<=1;
+  $('manual-doc-next').disabled=state.docPage>=state.docCount;
+  const page=await state.pdf.getPage(state.docPage),scale=Math.min(1.7,Math.max(1.1,window.devicePixelRatio||1));
+  const vp=page.getViewport({scale});
+  const cv=document.createElement('canvas');
+  cv.width=vp.width;cv.height=vp.height;cv.style.width='100%';cv.style.height='auto';
+  stage.append(cv);await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+ }else{
+  bar.hidden=true;
+  const text=document.createElement('div');text.className='real-manual-word';
+  text.textContent=state.sourceWordText||'Texte non reconnu dans le document Word. Le fichier original est tout de même conservé.';
+  stage.append(text);
+ }
+}
+async function previewFile(file){
+ if(file.size<1||file.size>8*1024*1024)throw Error('Document limité à 8 Mo.');
+ const suffix=file.name.split('.').pop().toLowerCase();
+ if(!['pdf','docx'].includes(suffix))throw Error('Format PDF ou Word (.docx) requis.');
+ state.sourceFile=file;state.pdf=null;state.docPage=1;state.docCount=1;state.sourceWordText='';
+ const preview=$('manual-original-render');preview.hidden=false;
+ preview.textContent='Préparation de la prévisualisation…';
+ if(suffix==='pdf'){
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  state.pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+  state.docCount=state.pdf.numPages;
+ }else{
+  await loadScript('https://unpkg.com/mammoth@1.10.0/mammoth.browser.min.js');
+  const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+  state.sourceWordText=result.value||'';
+ }
+ await renderOriginal();
+ setHint('Document prêt : '+file.name+'. Il sera téléversé dans le stockage privé en enregistrant le contrôle.');
+}
+async function uploadSource(id){
+ if(!state.sourceFile)return;
+ if(!id)throw Error('Contrôle non enregistré pour le dépôt du document.');
+ await api('teacher_upload',{assessment_id:id},state.sourceFile,true);
+ state.sourceFile=null;
+}
+
 function paint(){
  const q=current();if(!q)return;
  const num=state.index+1,t=QT(),root=$('manual-question-editor');
@@ -67,7 +123,8 @@ function updateField(target,rerender){
  }
 }
 function reset(){
- state.questions=[blank()];state.index=0;state.editingId=null;
+ state.questions=[blank()];state.index=0;state.editingId=null;state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
+ $('manual-source-file').value='';$('manual-original-render').hidden=true;$('manual-original-render').replaceChildren();$('manual-doc-pages').hidden=true;
  setHint('Nouveau contrôle. Prépare les questions, puis enregistre un brouillon.');
  paint();
 }
@@ -114,5 +171,13 @@ function validated(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit contenir 1 à 40 questions.');
  return state.questions.map((q,i)=>{try{return QT().validate(q)}catch(e){throw Error('Question '+(i+1)+' : '+e.message)}});
 }
-window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,afterSave:()=>{$('exam-form').reset();reset();}};
+$('manual-source-file').addEventListener('change',async event=>{
+ const file=event.target.files?.[0];if(!file)return;
+ try{await previewFile(file)}catch(error){state.sourceFile=null;$('manual-original-render').textContent='';setHint('Document non chargé : '+error.message);}
+});
+$('manual-doc-prev').addEventListener('click',()=>{state.docPage=Math.max(1,state.docPage-1);renderOriginal().catch(error=>setHint(error.message));});
+$('manual-doc-next').addEventListener('click',()=>{state.docPage=Math.min(state.docCount,state.docPage+1);renderOriginal().catch(error=>setHint(error.message));});
+window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,
+ markSaved:id=>{state.editingId=id;},uploadSource,
+ afterSave:()=>{$('exam-form').reset();reset();}};
 reset();

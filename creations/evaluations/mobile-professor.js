@@ -227,6 +227,16 @@
     }
     drawHeader(tab);
     drawContext(tab);
+    const headerTools=app.querySelector('.phone-teacher-header [data-phone-open-tools]');
+    if(headerTools){
+      const menuOpen=!drawer.hidden;
+      headerTools.setAttribute('aria-expanded',String(menuOpen));
+      headerTools.textContent=menuOpen?'✕ Fermer':'☰ Outils';
+    }
+    drawer.querySelectorAll('.phone-teacher-more-grid button[data-tab]').forEach(button=>{
+      if(button.dataset.tab===tab)button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
+    });
     bar.querySelectorAll('button[data-tab]').forEach(button=>{
       if(button.dataset.tab===tab)button.setAttribute('aria-current','page');
       else button.removeAttribute('aria-current');

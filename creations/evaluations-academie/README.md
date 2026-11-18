@@ -62,3 +62,33 @@ Une option booléenne `antiCheat.watermarkCapture` est disponible par contrôle 
 **Limite technique essentielle :** une page web n'est pas autorisée à bloquer ou détecter fiablement les captures faites par Android, iOS ou Windows. Le filigrane est un élément dissuasif et non un blocage. Une éventuelle application Android native dédiée pourrait utiliser `FLAG_SECURE`, sans pour autant empêcher une photo prise avec un second appareil.
 
 Vérifications : parsing JS, affichage du filigrane sur une évaluation fictive, désactivation effective, absence de PIN dans le filigrane, navigation interne de l'espace professeur, versions des assets. Test SQL Supabase sous transaction annulée : enregistrement et modification de `watermarkCapture` dans le JSON du contrôle, avec conservation du sujet. La disponibilité effective des nouveaux fichiers sur GitHub Pages et le rendu réel sur mobile n'ont pas été confirmés depuis le navigateur de test.
+
+
+## Nov. 2026 — flux serveur professeur / élève / professeur
+
+Le bouton « DÉMONSTRATION TEST » de CORTEX Académie renvoie vers ../evaluations/#visite, en conservant la version de démonstration indépendante.
+
+### Parcours déployé
+
+1. L'enseignant crée une classe et un contrôle contenant des consignes et des questions ouvertes.
+2. Il peut joindre un sujet PDF, Word, texte ou image de 8 Mo au maximum. Les fichiers sont stockés dans un bucket Supabase privé.
+3. Il publie le contrôle : un lien/QR code individuel au contrôle et des PIN de six chiffres par numéro d'élève (1 à 60) sont générés. Un CSV des PIN nouvellement créés est proposé une seule fois.
+4. L'élève ouvre le QR, saisit son numéro de liste et son PIN, consulte le document, répond aux questions et/ou joint sa copie, puis confirme la remise.
+5. Le professeur consulte sa boîte de réception, lit ou télécharge le document, note la copie sur 20, ajoute un commentaire et peut publier la correction.
+6. L'élève retrouve l'accusé de réception et sa note/commentaire une fois publiés.
+
+### Sécurité
+
+Le service Edge nommé cortex-coursework vérifie côté serveur les JWT des professeurs, la propriété de chaque contrôle et les tokens de session des élèves. Le secret serveur ne figure pas dans GitHub Pages. Les PIN et les tokens de session sont conservés sous forme de condensats ; le nombre d'essais de PIN est limité. Les sessions expirent au bout de huit heures. Le stockage de documents est privé ; seuls les accès autorisés reçoivent des liens signés de courte durée. Les tables nouvelles sont sous RLS ; les tables sensibles de PIN et de session n'ont aucune permission de consultation directe. Le site test ne partage ni comptes ni notes avec Académie.
+
+Tests réalisés : analyse syntaxique JavaScript/Edge, publication des fichiers sur GitHub, déploiement Edge actif, création des nouvelles tables, bucket privé, contrôle SQL de séparation entre deux enseignants fictifs avec transaction annulée, revue des avis de sécurité Supabase. L'absence de politiques de lecture sur les deux tables sensibles est intentionnelle.
+
+### Limites avant usage réel
+
+- Il n'existe actuellement aucun compte utilisateur enregistré dans le projet Supabase. Une inscription et une confirmation sur une véritable adresse académique restent à tester.
+- Le SMTP personnalisé est nécessaire pour envoyer les e-mails de confirmation aux enseignants hors de l'équipe Supabase : https://supabase.com/docs/guides/auth/auth-smtp
+- Aucun essai intégral multi-appareil du trajet professeur → élève → professeur n'a pu être effectué sur GitHub Pages depuis cet environnement.
+- Faire valider l'usage scolaire par l'établissement et le DPO : RGPD, rétention des notes, sauvegardes, accessibilité et analyse des documents potentiellement dangereux.
+- La parité complète avec la démo n'est pas encore réalisée : moyennes longitudinales, export PDF groupé et certaines fonctions avancées restent à porter.
+
+Ne pas déclarer une utilisation scolaire 100 % validée tant que ces contrôles ne sont pas terminés.

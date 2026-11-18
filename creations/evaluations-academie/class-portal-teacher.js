@@ -4,10 +4,10 @@ const $=id=>document.getElementById(id);
 const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;
 const cache=new Map();
-let access=[],busy=false;
+let access=[],busy=false,pending=false;
 function notice(msg,error=false){const e=$('cw-class-status');if(!e)return;e.hidden=!msg;e.textContent=msg;e.classList.toggle('error',error)}
 function permanentUrl(code){return location.origin+location.pathname+'?classe='+encodeURIComponent(code)}
-async function refresh(){if(busy||!B()?.teacher?.())return;busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];render()}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false}}
+async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;return}busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];render()}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
 function downloadPins(pins,cl){
  const rows=['Numéro;PIN'].concat(pins.map(p=>p.number+';'+p.pin));
  const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});

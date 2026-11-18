@@ -159,3 +159,11 @@
  .ct-tour-actions button{transition:none}
  .ct-tour-highlight{transition:none}
 }
+
+/* The minimized label remains short on mobile. */
+.ct-tour-mini-desktop-label{display:none}
+.ct-tour-mini-mobile-label{display:inline}
+@media (min-width:761px) and (pointer:fine){
+ .ct-tour-mini-desktop-label{display:inline}
+ .ct-tour-mini-mobile-label{display:none}
+}

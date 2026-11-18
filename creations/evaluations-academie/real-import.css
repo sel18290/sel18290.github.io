@@ -133,3 +133,9 @@
  #acad-import-workspace .ri-file-button{font-size:11px}
  #acad-import-workspace .ri-question-dropzone{padding:15px 10px}
 }
+
+/* Copier un énoncé depuis le texte PDF lorsque l'extraction automatique se trompe. */
+#acad-import-workspace .ri-transcript textarea#ri-text-preview{display:block;width:100%;min-height:190px;max-height:330px;overflow:auto;resize:vertical;white-space:pre-wrap;background:#edf3f5;color:#142a37;border:1px solid #7a98a4;border-radius:9px;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;padding:12px;user-select:text;-webkit-user-select:text;touch-action:pan-y}
+#acad-import-workspace .ri-transcript #ri-from-selection{display:block;margin-top:9px;max-width:100%;width:100%}
+#acad-import-workspace .ri-transcript .ri-subtle{margin:11px 0}
+@media(max-width:600px){#acad-import-workspace .ri-transcript textarea#ri-text-preview{min-height:230px;font-size:12px}}

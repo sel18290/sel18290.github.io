@@ -4,6 +4,7 @@
   const app=document.getElementById('app');
   if(!app)return;
   const mobile=window.matchMedia('(max-width:760px)');
+  const onMobile=()=>mobile.matches || document.documentElement.classList.contains('cortex-phone');
   let frame=0;
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   function enhanceTables(){
@@ -22,7 +23,7 @@
     });
   }
   function centreItem(container,item){
-    if(!container||!item||!mobile.matches)return;
+    if(!container||!item||!onMobile())return;
     const containerRect=container.getBoundingClientRect();
     const itemRect=item.getBoundingClientRect();
     const destination=container.scrollLeft + itemRect.left-containerRect.left -
@@ -35,7 +36,7 @@
       if(link.classList.contains('active'))link.setAttribute('aria-current','page');
       else link.removeAttribute('aria-current');
     });
-    if(!mobile.matches)return;
+    if(!onMobile())return;
     const nav=app.querySelector('.side-menu');
     const selected=nav?.querySelector('.side-item.active');
     if(nav&&selected&&nav.dataset.mobileSelected!==selected.dataset.tab){
@@ -70,7 +71,7 @@
   // Le navigateur ne change pas de route entre deux questions.
   const questionActions=new Set(['question-next','question-prev','question-jump','review-next','review-prev','review-select','editor-next','editor-prev','editor-select']);
   document.addEventListener('click',event=>{
-    if(!mobile.matches)return;
+    if(!onMobile())return;
     const button=event.target.closest('[data-action]');
     if(!button||!questionActions.has(button.dataset.action))return;
     requestAnimationFrame(()=>{
@@ -83,14 +84,14 @@
   });
   // Au changement d'espace ou d'onglet, montrer le titre de la nouvelle page.
   window.addEventListener('hashchange',()=>{
-    if(!mobile.matches)return;
+    if(!onMobile())return;
     requestAnimationFrame(()=>{window.scrollTo(0,0);schedule();});
   });
   function isWriting(element){
     return !!element&&element.matches?.('input:not([type="checkbox"]):not([type="radio"]),textarea,select,[contenteditable="true"]');
   }
   document.addEventListener('focusin',event=>{
-    if(mobile.matches&&isWriting(event.target))document.body.classList.add('mobile-input-focus');
+    if(onMobile()&&isWriting(event.target))document.body.classList.add('mobile-input-focus');
   });
   document.addEventListener('focusout',()=>{
     requestAnimationFrame(()=>{

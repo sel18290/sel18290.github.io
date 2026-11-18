@@ -1,6 +1,6 @@
 
 /* CORTEX Académie — accès élève sécurisé QR + PIN, remise de réponses et fichier. */
-import { api } from './coursework.js?v=1.0';
+import { api } from './coursework.js?v=1.1';
 const params=new URLSearchParams(location.search),joinCode=params.get('join');
 if(joinCode){
  const $=id=>document.getElementById(id);

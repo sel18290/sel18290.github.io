@@ -413,7 +413,7 @@ function portalAction(kind,el){
  const P=window.CORTEX_PORTAL,id=el.dataset.id;
  if(kind==='portal-login'){portalLogin();return;}
  if(kind==='portal-demo'){
-  portalPreviewState=P.previewData();const cl=portalPreviewState.classes[0];
+  portalPreviewState=P.previewData(makeSeed());const cl=portalPreviewState.classes[0];
   portalSession={demo:true,classId:cl.id,number:'12',expiresAt:Date.now()+20*60*1000};
   portalPeriod='s1';portalYear=P.keyYear(Date.now())-1;portalCopyId=null;
   nav('student','espace');return;

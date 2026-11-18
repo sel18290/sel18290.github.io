@@ -48,3 +48,6 @@ body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exa
 .cortex-publish-actions button{cursor:pointer}
 @media(max-width:930px){#prof-assessments .tile-grid{grid-template-columns:1fr}}
 @media(max-width:590px){#prof-assessments .cortex-tiles-filter{align-items:stretch;flex-direction:column}#prof-assessments .cortex-tiles-filter select{width:100%}#prof-assessments .cortex-tiles-toolbar input{width:100%}#prof-assessments .tile{padding:15px}.cortex-publish-actions{flex-direction:column}.cortex-publish-actions button{width:100%}}
+
+/* Atelier de création isolé : même navigation test / réel */
+body.academy-authenticated[data-acad-view="creer"] #prof-content>:not(#prof-assessments){display:none!important}

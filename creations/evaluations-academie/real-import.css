@@ -1,0 +1,86 @@
+/* Atelier documentaire réel — direction artistique CORTEX Noctis. */
+#acad-import-workspace{scroll-margin-top:105px;min-width:0;color:#edf6ff}
+#acad-import-workspace *{box-sizing:border-box}
+#acad-import-workspace[hidden],#ri-editor[hidden],#ri-upload-chooser[hidden],#ri-selection[hidden]{display:none!important}
+#acad-import-workspace .ri-head{display:flex;align-items:start;justify-content:space-between;gap:20px;margin-bottom:22px}
+#acad-import-workspace .ri-head h2{font-size:clamp(25px,3.2vw,38px);line-height:1.2;margin:7px 0 10px;color:#f7faff;letter-spacing:-.03em}
+#acad-import-workspace .ri-head h2 em{font-style:normal;color:#92e6dc}
+#acad-import-workspace .ri-head p{color:#a7bfd7;font-size:13px;line-height:1.65;max-width:770px;margin:0}
+#acad-import-workspace .ri-live-chip{background:#193d3d;color:#92f5d8;border:1px solid #4d9d8c;padding:8px 13px;font-size:11px;font-weight:800;white-space:nowrap;border-radius:999px}
+#acad-import-workspace .ri-upload{border:1px dashed #7297bb;background:linear-gradient(155deg,#182f48,#101e31);border-radius:18px;text-align:center;padding:25px;display:grid;gap:15px;place-items:center}
+#acad-import-workspace .ri-drop-label{display:grid;gap:7px;justify-items:center;cursor:pointer}
+#acad-import-workspace .ri-drop-label strong{font-size:18px;color:#f4f9ff}
+#acad-import-workspace .ri-drop-label span:not(.ri-file-icon){font-size:13px;color:#a9bfd6}
+#acad-import-workspace .ri-file-icon{font-size:35px;background:#163e49;color:#93f4e3;border-radius:16px;width:72px;height:72px;display:grid;place-items:center}
+#acad-import-workspace input[type=file]{width:min(100%,450px);font-size:12px;color:#b9cbe4;max-width:100%}
+#acad-import-workspace input[type=file]::file-selector-button{cursor:pointer;margin-right:12px;border:1px solid #548d98;background:#254653;color:#dffcfb;border-radius:10px;padding:10px}
+#acad-import-workspace .ri-status{margin:16px 0;padding:10px 13px;border-radius:10px;background:#173b3b;color:#a4ffe6;border-left:3px solid #65bba9;font-size:13px;line-height:1.5}
+#acad-import-workspace .ri-status:empty{display:none}
+#acad-import-workspace .ri-status.error{background:#4a2935;color:#ffcfcd;border-color:#e18795}
+#acad-import-workspace .ri-overview{display:grid;grid-template-columns:minmax(0,2fr) minmax(150px,1fr);gap:13px;background:#0f2035;border:1px solid #34536a;border-radius:15px;padding:17px;margin-bottom:18px}
+#acad-import-workspace label{display:grid;gap:6px;color:#c1d7e7;font-size:12px;font-weight:650;min-width:0}
+#acad-import-workspace .ri-full{grid-column:1/-1}
+#acad-import-workspace input:not([type=file]):not([type=checkbox]),#acad-import-workspace select,#acad-import-workspace textarea{min-width:0;min-height:41px;width:100%;border:1px solid #42647d;border-radius:9px;padding:10px 12px;background:#142e47;color:#f0f9ff;font:inherit;font-size:13px;outline-offset:3px}
+#acad-import-workspace textarea{resize:vertical;line-height:1.48}
+#acad-import-workspace input:focus-visible,#acad-import-workspace textarea:focus-visible,#acad-import-workspace select:focus-visible{outline:2px solid #96e4d2}
+#acad-import-workspace .ri-panels{display:grid;grid-template-columns:minmax(0,1.07fr) minmax(0,1fr);gap:16px;align-items:start}
+#acad-import-workspace .ri-panel{min-width:0;background:#102036;border:1px solid #35516b;border-radius:16px;padding:17px}
+#acad-import-workspace .ri-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+#acad-import-workspace .ri-panel-heading span{font-size:10px;color:#89e3d3;letter-spacing:.12em;font-weight:800}
+#acad-import-workspace .ri-panel-heading h3{margin:5px 0 0;font-size:19px;color:#f2f7ff}
+#acad-import-workspace .ri-subtle{font-size:12px;line-height:1.55;color:#a2b9cf;margin:10px 0}
+#acad-import-workspace .ri-pagination{display:flex;align-items:center;gap:8px}
+#acad-import-workspace .ri-pagination strong{font-size:11px;color:#dcecf5;white-space:nowrap}
+#acad-import-workspace .ri-pagination button{border-radius:9px;width:34px;height:34px;border:1px solid #5a7891;background:#1a354e;color:#f8ffff;cursor:pointer}
+#acad-import-workspace .ri-source-page{position:relative;width:100%;min-width:0;border:1px solid #4d6a81;border-radius:11px;background:#e8edf3;overflow:hidden;cursor:crosshair;touch-action:none;user-select:none}
+#acad-import-workspace .ri-source-canvas{width:100%;position:relative;min-height:200px}
+#acad-import-workspace .ri-source-canvas canvas{width:100%!important;height:auto!important;display:block;background:white}
+#acad-import-workspace .ri-selection{pointer-events:none;position:absolute;z-index:5;border:3px solid #4affbc;background:#4affbc3b;box-shadow:0 0 0 9999px #12243c47}
+#acad-import-workspace .ri-word-page{background:white;color:#172637;padding:30px;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+#acad-import-workspace .ri-word-page img{max-width:100%;height:auto}
+#acad-import-workspace .ri-word-page table{max-width:100%;width:100%;border-collapse:collapse}
+#acad-import-workspace .ri-word-page td,#acad-import-workspace .ri-word-page th{border:1px solid #aaa;padding:4px}
+#acad-import-workspace .ri-transcript{margin-top:12px;border:1px solid #3c5872;border-radius:10px;padding:10px 12px;color:#c4d6ec;font-size:12px}
+#acad-import-workspace .ri-transcript summary{cursor:pointer}
+#acad-import-workspace .ri-transcript pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:11px;line-height:1.55;color:#d1e0ea}
+#acad-import-workspace .ri-capture-actions{margin-top:16px;display:grid;gap:9px}
+#acad-import-workspace button.ri-action,#acad-import-workspace .ri-capture-actions>button{font:inherit;font-size:12px;min-height:43px;font-weight:750;padding:10px 13px;border-radius:10px;border:1px solid #72b7a6;background:#80e4ce;color:#092f3f;cursor:pointer}
+#acad-import-workspace button.ri-action.secondary,#acad-import-workspace .ri-capture-actions>button.secondary{color:#cce3f1;background:#1e394d;border-color:#506f84}
+#acad-import-workspace button.ri-action.subtle{background:transparent;color:#aac6dd;border:1px solid #405971;font-size:11px;min-height:32px;padding:6px 10px}
+#acad-import-workspace button:disabled{opacity:.48;cursor:not-allowed}
+#acad-import-workspace .ri-asset-bank{margin-top:18px;padding-top:12px;border-top:1px solid #36536c}
+#acad-import-workspace .ri-asset-bank h4{font-size:14px;color:#eaf9ff;margin:2px 0 13px}
+#acad-import-workspace .ri-asset-row{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid #36536b;border-radius:10px;margin:8px 0}
+#acad-import-workspace .ri-asset-thumb{width:66px;height:62px;object-fit:contain;background:#e6edf2;border-radius:7px}
+#acad-import-workspace .ri-asset-desc{flex:1;min-width:0;display:grid;gap:3px;overflow-wrap:anywhere;font-size:11px}
+#acad-import-workspace .ri-asset-desc strong{color:#e8f6fe}
+#acad-import-workspace .ri-asset-desc small{color:#93aabe}
+#acad-import-workspace .ri-question-list{display:grid;gap:12px;margin:14px 0}
+#acad-import-workspace .ri-question{background:#182e45;border:1px solid #3d5d77;border-radius:12px;padding:12px;min-width:0;display:grid;gap:10px}
+#acad-import-workspace .ri-q-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#acad-import-workspace .ri-q-header strong{font-size:12px;color:#8debd9}
+#acad-import-workspace .ri-q-header small{font-size:10px;color:#b4c6d9}
+#acad-import-workspace .ri-q-header button{margin-left:auto}
+#acad-import-workspace .ri-q-meta{display:grid;grid-template-columns:minmax(0,1.4fr) 75px minmax(0,1.4fr);gap:5px 8px;align-items:center}
+#acad-import-workspace .ri-q-meta label{grid-row:1;font-size:10px}
+#acad-import-workspace .ri-q-meta input,#acad-import-workspace .ri-q-meta select{grid-row:2}
+#acad-import-workspace .ri-points{padding:7px 11px;border:1px solid #4c8e82;border-radius:100px;background:#19443d;color:#a9ffe2;font-size:11px}
+#acad-import-workspace .ri-footer{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:17px;padding:17px;background:#102f3c;border:1px solid #3a716f;border-radius:15px}
+#acad-import-workspace .ri-footer p{font-size:11px;line-height:1.5;color:#abcadd;max-width:450px;margin:0}
+#acad-import-workspace .ri-footer-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:1050px){#acad-import-workspace .ri-panels{grid-template-columns:1fr}#acad-import-workspace .ri-source-page{max-width:720px;margin:auto}#acad-import-workspace .ri-footer{flex-wrap:wrap}}
+@media(max-width:600px){
+ #acad-import-workspace .ri-head{flex-direction:column;gap:10px}
+ #acad-import-workspace .ri-live-chip{align-self:start}
+ #acad-import-workspace .ri-overview{grid-template-columns:1fr;padding:12px}
+ #acad-import-workspace .ri-panel{padding:12px}
+ #acad-import-workspace .ri-question{padding:10px}
+ #acad-import-workspace .ri-q-meta{grid-template-columns:minmax(0,1fr) 68px;gap:5px}
+ #acad-import-workspace .ri-q-meta label:nth-of-type(3){grid-row:3;grid-column:1/-1}
+ #acad-import-workspace .ri-q-meta select:last-child{grid-row:4;grid-column:1/-1}
+ #acad-import-workspace .ri-footer{display:block}
+ #acad-import-workspace .ri-footer-actions{display:grid;margin-top:12px}
+ #acad-import-workspace .ri-footer-actions button{width:100%}
+ #acad-import-workspace .ri-upload{padding:17px 10px}
+ #acad-import-workspace .ri-word-page{padding:14px;font-size:12px}
+}

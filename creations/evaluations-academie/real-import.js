@@ -46,7 +46,7 @@ function extractQuestions(pages){
   const lines=String(pages[pi]||'').split(/\r?\n/).map(normalize).filter(Boolean);
   for(let i=0;i<lines.length&&out.length<max;i++){
    let line=lines[i];if(stop.test(line))continue;
-   let m=line.match(marker),num,rest,numberOnly=false;
+   let m=line.match(marker)||line.match(/^(?:Question|Q)\s*(\d{1,2}(?:[.,]\d{1,2})?)\s+(.+)$/i),num,rest,numberOnly=false;
    if(m){num=m[1];rest=m[2];}
    else if(lone.test(line)){num=line.match(lone)[1];rest='';numberOnly=true;}
    else continue;
@@ -326,7 +326,7 @@ async function paint(){
  const previous=state.page;
  by('ri-current-page').textContent='Page '+state.page+' / '+state.sourceCount;
  by('ri-prev').disabled=state.page===1;by('ri-next').disabled=state.page===state.sourceCount;
- plain.textContent=state.pages[state.page-1]||'Aucun texte reconnu. Les schémas restent disponibles dans le document original.';
+ plain.value=state.pages[state.page-1]||'Aucun texte reconnu. Les schémas restent disponibles dans le document original.';
  canvas.replaceChildren();state.selected=null;showSelection();
  if(!state.file)return;
  if(state.kind==='pdf'&&state.pdf){
@@ -525,6 +525,20 @@ by('ri-image-file').addEventListener('change',e=>{
  const file=e.target.files?.[0];if(file)operation(()=>importImage(file));e.target.value='';
 });
 by('ri-paste-image').addEventListener('click',()=>operation(pasteImage));
+by('ri-from-selection').addEventListener('click',()=>{
+ if(state.published){msg('Un contrôle publié est en lecture seule.',true);return;}
+ if(state.questions.length>=40){msg('Limite de 40 questions.',true);return;}
+ const area=by('ri-text-preview'),start=area.selectionStart,end=area.selectionEnd;
+ if(start===end){msg('Sélectionne le texte de la question dans la transcription avant de cliquer sur « Créer ».',true);return;}
+ let prompt=area.value.slice(start,end).replace(/\s+/g,' ').trim();
+ prompt=prompt.replace(/^(?:(?:Question|Q)\s*)?\d{1,2}(?:[.,]\d+)?\s*[).:\-–—]?\s*/i,'').trim();
+ if(prompt.length<5||prompt.length>1200){msg('Sélectionne uniquement l’énoncé de la question (5 à 1200 caractères).',true);return;}
+ state.questions.push({...emptyQuestion(state.page),prompt});
+ renderQuestions();
+ const last=by('ri-questions')?.lastElementChild;
+ last?.scrollIntoView({block:'nearest',behavior:'smooth'});
+ msg('Question ajoutée depuis la page '+state.page+'. Vérifie son énoncé et son barème.');
+});
 by('ri-redetect').addEventListener('click',()=>{
  if(state.published||!state.file){msg('Aucun document modifiable chargé.',true);return;}
  if(state.assets.some(a=>a.questionId||(!a.pending))) {

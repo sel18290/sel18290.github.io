@@ -811,6 +811,18 @@ body.cortex-noctis .student-exam .exam-nav .btn{
     animation-duration:.01ms!important;transition-duration:.01ms!important;
   }
 }
+
+/* Print and PDF exports use the document styles, not the decorative space scene. */
+@media print{
+  body.cortex-noctis{background:#fff!important;color:#111!important}
+  body.cortex-noctis::before{display:none!important}
+  body.cortex-noctis :is(.home-hero,.portal-welcome,.cw-student-hero,.workspace-main>.page-head){
+    background-image:none!important;box-shadow:none!important;
+  }
+  body.cortex-noctis :is(.ct-tour,.ct-command-backdrop,.phone-teacher-nav,.phone-teacher-more){
+    display:none!important;
+  }
+}
 @media(forced-colors:active){
   body.cortex-noctis :is(.sidebar,.stat,.class-card,.role-card,.panel){background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}
   body.cortex-noctis :is(.side-item.active,.btn,.top-link.active){outline:2px solid Highlight}

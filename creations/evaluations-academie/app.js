@@ -309,7 +309,7 @@ async function duplicateRealExam(exam){
 function publicationDialog(exam){
  if(!exam.class_id){status('Affecte une classe au contrôle avant publication.',true);return;}
  const d=el('dialog','cortex-publish-dialog'),form=el('form','cortex-publish-body');
- form.append(el('h3','','Publier · '+exam.title),el('p','','La diffusion est vérifiée par le serveur pour chaque élève.'));
+ form.append(el('h3','','Publier · '+exam.title),el('p','cortex-publish-class-line','▣ '+classTitle(exam)+' · Choisis les destinataires du contrôle.'),el('p','','La diffusion est vérifiée par le serveur pour chaque élève.'));
  const cls=el('label','','Classe : '+classTitle(exam)),scopeLabel=el('label','','Destinataires');
  const scope=el('select','');
  for(const [id,label] of [['all','Classe entière'],['g1','Groupe 1 uniquement'],['g2','Groupe 2 uniquement']]){
@@ -369,7 +369,7 @@ function drawRealExamTiles(){
    el('span','cortex-class-tag','CLASSE : '+classTitle(exam)),el('span','small muted',groupTitle(exam)));
   const detail=el('div','');
   const qs=exam.content?.questions||[];
-  detail.append(el('h3','',exam.title),el('p','',
+  detail.append(el('h3','',exam.title),el('div','cortex-exam-class-heading','▣ '+classTitle(exam)+' · '+groupTitle(exam)),el('p','',
    (exam.content?.level||'Bac professionnel')+' · '+qs.length+' questions · '+
    qs.reduce((n,q)=>n+(Number(q.points)||0),0)+' points · '+(exam.content?.duration||60)+' min'));
   const foot=el('div','tile-foot'),row1=el('div','btn-row'),row2=el('div','btn-row');

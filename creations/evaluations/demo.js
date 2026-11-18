@@ -38,6 +38,24 @@ try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&
 return makeSeed();
 }
 let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
+const PSE_DEMO_ASSIGNMENT='demo-pse-sans-compte-60',PSE_DEMO_TOKEN='DEMO-PSE-60-MINUTES',PSE_DEMO_CLASS='2mrc1',PSE_PREVIEW_STORAGE='cortex-pse-preview-session-1';
+function persistPsePreview(){
+ try{
+  if(studentSession?.demoPreview)sessionStorage.setItem(PSE_PREVIEW_STORAGE,JSON.stringify({assignmentId:studentSession.assignmentId,number:studentSession.number,at:Date.now()}));
+  else sessionStorage.removeItem(PSE_PREVIEW_STORAGE);
+ }catch{}
+}
+function restorePsePreview(){
+ try{
+  const v=JSON.parse(sessionStorage.getItem(PSE_PREVIEW_STORAGE)||'null');
+  if(v?.assignmentId!==PSE_DEMO_ASSIGNMENT||v.number!=='12'||Date.now()-Number(v.at)>3*60*60*1000)return;
+  const a=state.assignments.find(x=>x.id===PSE_DEMO_ASSIGNMENT&&x.examId==='sommeil-pdf-a2'&&x.token===PSE_DEMO_TOKEN&&x.classId===PSE_DEMO_CLASS&&x.active);
+  if(!a)return;
+  studentSession={demoPreview:true,assignmentId:a.id,classId:a.classId,number:'12'};
+  studentAssignmentId=a.id;studentQrToken=a.token;studentRollNumber='12';
+ }catch{}
+}
+restorePsePreview();
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -71,8 +89,8 @@ if(view==='student'&&(tab==='examen'||tab==='termine')){
    else tab='accueil';
   }
 }
-if(view!=='student'){studentSession=null;portalSession=null;hiddenSince=null;}
-if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';studentSession=null;}
+if(view!=='student'){studentSession=null;portalSession=null;hiddenSince=null;persistPsePreview();}
+if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';studentSession=null;persistPsePreview();}
 render();
 }
 function header(){
@@ -267,7 +285,36 @@ return pageHead('Analyses pédagogiques','Un aperçu des résultats pour cibler 
 <div class="two-col"><section class="panel"><div class="panel-head"><h2>Répartition des notes</h2>${pill('Notes validées','live')}</div><div class="bars">${bins.map((n,i)=>`<div class="bar-row"><span>${i*5}–${i===3?'20':i*5+4} / 20</span><div class="bar-bg"><span style="width:${graded.length?(n/graded.length*100):0}%"></span></div><b>${n}</b></div>`).join('')}</div></section><section class="panel"><div class="panel-head"><h2>Idées de remédiation</h2></div><p class="small muted">Exemples de suggestions pédagogiques, non générées par une IA dans cette démonstration.</p><div class="preview-list"><div class="summary-answer"><strong>Sommeil</strong><p>Revoir les conséquences du manque de sommeil avec une carte mentale.</p></div><div class="summary-answer"><strong>Réponses rédigées</strong><p>Entraîner les élèves à justifier avec une notion scientifique et un exemple.</p></div></div></section></div>`;
 }
 function portalData(){return portalSession?.demo&&portalPreviewState?portalPreviewState:state;}
+function studentPseDiscovery(){
+ const exam=examBy('sommeil-pdf-a2')||window.CORTEX_DOCS?.demoExam;
+ return '<section class="pse-discovery">'+
+  '<div class="pse-discovery-header"><span class="pse-discovery-kicker">STATION NOCTIS · SECONDE PROFESSIONNELLE</span>'+
+  '<h1>Ton contrôle de PSE.<br><em>60 minutes pour comprendre le sommeil.</em></h1>'+
+  '<p>Découvre le contrôle de référence dans les mêmes conditions qu’un élève : les documents, 20 questions et un compte à rebours.</p>'+
+  '<div class="pse-discovery-facts"><span>◷ <strong>60 minutes</strong></span><span>▤ <strong>20 questions</strong></span><span>✧ <strong>Sans compte</strong></span></div></div>'+
+  '<div class="pse-discovery-entry"><div><h2>Entrer dans le contrôle</h2><p>Il s’agit de données fictives, enregistrées sur cet appareil uniquement. Le chronomètre ne commence qu’après avoir appuyé sur <strong>« Démarrer le contrôle »</strong>.</p>'+
+  '<p class="pse-discovery-subject">'+esc(exam?.title||'Le sommeil, un rythme essentiel — PSE')+'</p></div>'+
+  '<button type="button" class="btn pse-discovery-start" data-action="demo-pse-entry">Entrer sans connexion <span aria-hidden="true">↗</span></button>'+
+  '<button type="button" class="btn secondary pse-discovery-back" data-action="student">← Retour à l’espace élève</button></div></section>';
+}
+function prepareDemoPse(){
+ let exam=examBy('sommeil-pdf-a2');
+ if(!exam&&window.CORTEX_DOCS?.demoExam){
+   exam=JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam));state.exams.unshift(exam);
+ }
+ const cl=window.CORTEX_CLASSES.byId(state,PSE_DEMO_CLASS);
+ if(!exam||!cl){showToast('Contrôle PSE de référence introuvable. Restaure la démonstration depuis le professeur.');return;}
+ exam.open=true;cl.archived=false;
+ let ass=state.assignments.find(x=>x.id===PSE_DEMO_ASSIGNMENT);
+ if(ass)Object.assign(ass,{examId:exam.id,classId:cl.id,token:PSE_DEMO_TOKEN,groupId:null,active:true});
+ else{ass={id:PSE_DEMO_ASSIGNMENT,examId:exam.id,classId:cl.id,groupId:null,token:PSE_DEMO_TOKEN,active:true,createdAt:Date.now()};state.assignments.push(ass)}
+ studentAssignmentId=ass.id;studentQrToken=ass.token;studentRollNumber='12';
+ studentSession={demoPreview:true,assignmentId:ass.id,classId:ass.classId,number:'12'};
+ currentQuestion=0;save();persistPsePreview();
+ nav('student','pret/'+encodeURIComponent(ass.id)+'/'+encodeURIComponent(ass.token));
+}
 function studentShell(){
+ if(tab==='decouverte')return studentPseDiscovery();
  if(tab==='accueil')return window.CORTEX_PORTAL.studentLogin(state);
  if(tab==='espace'){
   if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
@@ -403,6 +450,9 @@ function authorized(a,number){
  if(!a||!studentSession)return false;
  const cl=window.CORTEX_CLASSES.byId(state,a.classId),normalized=window.CORTEX_ACCESS.normalizeNumber(number,cl);
  if(!cl||!normalized||studentSession.assignmentId!==a.id||studentSession.classId!==cl.id||studentSession.number!==normalized)return false;
+ if(studentSession.demoPreview){
+  return a.id===PSE_DEMO_ASSIGNMENT&&a.examId==='sommeil-pdf-a2'&&a.token===PSE_DEMO_TOKEN&&a.classId===PSE_DEMO_CLASS&&a.active&&normalized==='12';
+ }
  const record=window.CORTEX_ACCESS.record(state,cl,normalized);
  return !!record&&record.hash===studentSession.hash;
 }
@@ -586,8 +636,8 @@ function startExam(){
  }
  studentRollNumber=number;
  const previous=state.attempts.find(at=>at.assignmentId===assignment.id&&at.studentNumber===number);
- if(previous?.status==='submitted'){showToast('Une copie a déjà été rendue pour ce numéro et ce contrôle. Contacte le professeur.');return;}
- if(previous?.status==='progress'){
+ if(previous?.status==='submitted'&&!studentSession?.demoPreview){showToast('Une copie a déjà été rendue pour ce numéro et ce contrôle. Contacte le professeur.');return;}
+ if(previous?.status==='progress'&&!studentSession?.demoPreview){
   state.activeAttemptId=previous.id;currentQuestion=0;save();nav('student','examen');return;
  }
  const name='Élève n° '+number;
@@ -917,6 +967,8 @@ if(a==='pdf-download-batch'){
 if(a.startsWith('portal-')){portalAction(a,el);return;}
 if(a.startsWith('access-')){handleAccessAction(a,id,el);return;}
 if(a.startsWith('class-')&&classAction(a,id,el))return;
+if(a==='demo-pse-open'){nav('student','decouverte');return;}
+if(a==='demo-pse-entry'){prepareDemoPse();return;}
 if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
@@ -1139,7 +1191,7 @@ if(a==='simulate-interruption'){registerInterruption('simulation');showToast('In
 if(a==='review-exam'){reviewExam();return;}
 if(a==='confirm-submit'){hiddenSince=null;const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
-if(a==='confirm-reset'){studentSession=null;portalSession=null;portalPreviewState=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
+if(a==='confirm-reset'){studentSession=null;persistPsePreview();portalSession=null;portalPreviewState=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&['portal-number','portal-classcode','portal-pin'].includes(e.target?.id)){

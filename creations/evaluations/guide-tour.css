@@ -59,3 +59,17 @@
 }
 @media(max-height:600px) and (min-width:761px){.ct-tour{max-height:87vh;bottom:8px}}
 @media(prefers-reduced-motion:reduce){.ct-tour-progress span,.ct-tour-highlight{transition:none}}
+
+
+/* Le site test utilise une barre de navigation fixe en bas sur mobile.
+   Garder le parcours au-dessus de cette barre et son bouton de relance en haut. */
+@media(max-width:760px){
+ .topbar::after{display:none!important}
+ #ct-tour-launch{position:fixed;top:10px;right:12px;bottom:auto;left:auto;z-index:85;min-height:41px;padding:9px 12px;background:#74354d;border-color:#c57686;color:#ffe8ed;box-shadow:0 4px 18px #13071155}
+ .ct-tour{bottom:calc(86px + env(safe-area-inset-bottom,0px));max-height:calc(100dvh - 170px)}
+ .ct-tour-minimized{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:380px){
+ #ct-tour-launch{right:7px;top:11px;padding:8px;font-size:9px;min-height:39px}
+ .ct-tour{left:6px;right:6px;max-height:calc(100dvh - 164px)}
+}

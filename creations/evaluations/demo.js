@@ -462,10 +462,7 @@ function authorizedAttempt(a){
 }
 function studentDocuments(e,q,a,answered){
  const attached=window.CORTEX_VISUAL?.renderAssets(e,q,'student')||'';
- const answerField=q.type==='choice'?'<div class="exam-choices">'+(q.choices||[]).map((choice,i)=>
-    '<label class="choice"><input type="radio" name="choice" value="'+i+'" data-answer="'+esc(q.id)+'" '+
-    (String(a.answers[q.id]??'')===String(i)?'checked':'')+'><span>'+esc(choice)+'</span></label>').join('')+'</div>':
-    '<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="'+esc(q.id)+'" placeholder="Rédige ta réponse ici…">'+esc(a.answers[q.id]||'')+'</textarea></div>';
+ const answerField=window.CORTEX_QUESTION_TYPES.studentFields(q,a.answers[q.id]);
  const form='<div class="doc-question-response"><div class="question-number">QUESTION '+(currentQuestion+1)+' / '+e.questions.length+' · '+q.points+' PT</div><h2>'+esc(q.prompt)+'</h2>'+answerField+'</div>';
  if(e.pdfSource){
   const original=window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered);
@@ -610,7 +607,7 @@ ${window.CORTEX_CLOCK.render(e,a)}
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
 <div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${(q.doc||e.doc)?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(q.doc||e.doc)}</div>`:''}
 ${window.CORTEX_VISUAL?.renderAssets(e,q,'student')||''}
-${q.type==='choice'?`<div class="exam-choices">${(q.choices||[]).map((c,i)=>`<label class="choice"><input type="radio" name="choice" value="${i}" data-answer="${esc(q.id)}" ${ans===String(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}</div>`:`<div class="field"><label for="student-answer">Ta réponse</label><textarea id="student-answer" rows="6" data-answer="${esc(q.id)}" placeholder="Rédige ta réponse ici…">${esc(ans)}</textarea><small>Tu peux modifier ta réponse avant de rendre le contrôle.</small></div>`}
+${window.CORTEX_QUESTION_TYPES.studentFields(q,ans)}
 <div class="exam-nav"><button class="btn ghost" data-action="question-prev" ${currentQuestion===0?'disabled':''}>← Précédent</button>${currentQuestion===e.questions.length-1?btn('Relire et terminer →','review-exam',''):btn('Question suivante →','question-next','')}</div></section>
 <aside class="panel sidebar-note"><div class="panel-head"><h2>Mes questions</h2>${pill( Math.round(answered/e.questions.length*100)+' %','ok')}</div><div class="question-dots">${e.questions.map((other,i)=>`<button class="question-dot ${i===currentQuestion?'current':''} ${String(a.answers[other.id]??'').trim()?'answered':''}" title="Question ${i+1}" aria-label="Aller à la question ${i+1}" data-action="question-jump" data-index="${i}">${i+1}</button>`).join('')}</div><hr class="divider"><p class="small muted">Le passage à une autre application peut être détecté comme une interruption. Ce signal n'est jamais une preuve de triche.</p><button class="btn ghost small full" data-action="simulate-interruption">Simuler une interruption</button><p class="tiny muted" style="margin-top:13px">Fonction de démonstration. Elle n'identifie pas l'application ouverte.</p></aside></div>`;
 }
@@ -1133,11 +1130,7 @@ if(!editor.questions.every(q=>q.prompt.trim())){showToast('Complète les énonc�
 if(!editor.questions.every(q=>Number(q.points)>=0.25&&Number(q.points)<=20)){
  showToast('Chaque question doit avoir entre 0,25 et 20 points.');return;
 }
-if(editor.questions.some(q=>q.type==='choice'&&!editor.pdfSource&&
-(!Array.isArray(q.choices)||q.choices.length<2||!Number.isInteger(Number(q.correct??0))||
-Number(q.correct??0)<0||Number(q.correct??0)>=q.choices.length))){
- showToast('Vérifie les choix et la bonne réponse des QCM.');return;
-}
+try{for(const q of editor.questions)if(!editor.pdfSource)window.CORTEX_QUESTION_TYPES.validate(q);}catch(error){showToast(error.message||'Question invalide.');return;}
 const existing=state.exams.findIndex(e=>e.id===editor.id);
 const clean=JSON.parse(JSON.stringify(editor));delete clean.isNew;
 if(existing>=0)state.exams[existing]=clean;else state.exams.unshift(clean);
@@ -1212,10 +1205,11 @@ if(t.hasAttribute('data-editor')&&editor){editor[t.dataset.editor]=t.dataset.edi
 if(t.hasAttribute('data-question')&&editor){
  const q=editor.questions[Number(t.dataset.question)];if(!q)return;
  const name=t.dataset.qfield;
- q[name]=['points','correct','section','page'].includes(name)?Number(t.value):
-  name==='choices'?t.value.split(';').map(v=>v.trim()).filter(Boolean):t.value;
+ if(['choices','tableRows','tableColumns','blanks','matchingLeft','matchingRight','correctIndices','unit'].includes(name))window.CORTEX_QUESTION_TYPES.applyField(q,name,t.value);
+ else q[name]=['points','correct','section','page'].includes(name)?Number(t.value):t.value;
 }
 if(t.hasAttribute('data-answer')&&t.tagName==='TEXTAREA')setAnswer(t.dataset.answer,t.value);
+ const cq=t.closest?.('[data-cortex-q]');if(cq){const exam=examBy(activeAttempt()?.examId),question=exam?.questions.find(q=>q.id===cq.dataset.cortexQ);if(question)setAnswer(question.id,window.CORTEX_QUESTION_TYPES.readAnswer(cq,question));}
 if(t.hasAttribute('data-import-q')&&pendingImport){const q=pendingImport.questions[Number(t.dataset.importQ)];if(q)q.prompt=t.value;}
 if(t.hasAttribute('data-doc-fill')){
   const at=activeAttempt(),id=t.dataset.docFill;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}
@@ -1255,17 +1249,16 @@ if(t.hasAttribute('data-question')&&editor){
  const q=editor.questions[Number(t.dataset.question)],name=t.dataset.qfield;
  if(!q)return;
  if(name==='type'){
-   q.type=t.value;
-   if(t.value==='choice'&&!q.choices)q.choices=['Proposition A','Proposition B'];
-   if(t.value==='choice'&&!Number.isInteger(Number(q.correct)))q.correct=0;
+   window.CORTEX_QUESTION_TYPES.initialize(q,t.value);
    render();return;
  }
  if(name==='section'||name==='page'){q[name]=Number(t.value);render();return;}
  if(name==='points'){q.points=Number(t.value);render();return;}
- if(name==='choices'){q.choices=t.value.split(';').map(v=>v.trim()).filter(Boolean);q.correct=Math.min(Number(q.correct||0),Math.max(q.choices.length-1,0));render();return;}
+ if(['choices','tableRows','tableColumns','blanks','matchingLeft','matchingRight','correctIndices','unit'].includes(name)){window.CORTEX_QUESTION_TYPES.applyField(q,name,t.value);if(name==='choices'){q.correct=Math.min(Number(q.correct||0),Math.max(q.choices.length-1,0));render();}return;}
  if(name==='correct'){q.correct=Number(t.value);return;}
 }
 if(t.hasAttribute('data-answer')&&t.type==='radio'){setAnswer(t.dataset.answer,t.value);render();}
+ const cq=t.closest?.('[data-cortex-q]');if(cq){const exam=examBy(activeAttempt()?.examId),question=exam?.questions.find(q=>q.id===cq.dataset.cortexQ);if(question)setAnswer(question.id,window.CORTEX_QUESTION_TYPES.readAnswer(cq,question));}
 if(t.id==='review-points'){setReviewPoints(t.value);return;}
 if(t.hasAttribute('data-doc-sub')){const at=activeAttempt(),id=t.dataset.docSub;if(at){const parts=String(at.answers[id]||'').split(' | ');parts[Number(t.dataset.subkey)]=t.value;setAnswer(id,parts.join(' | '));}}
 

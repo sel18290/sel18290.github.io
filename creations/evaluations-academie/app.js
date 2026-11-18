@@ -95,6 +95,7 @@ let teacherId=null;
 let myClasses=[];
 let myExams=[];
 let myIncidents=[];
+let selectedIntegrityExamId='';
 const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
 function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked,watermarkCapture:$('exam-integrity-watermark').checked};}
@@ -132,11 +133,57 @@ async function saveAntiCheat(exam,key,checked,checkbox){
   exam.content={...previous,antiCheat:next};
   const chip=document.getElementById('anti-status-'+exam.id);
   if(chip)chip.textContent=next.enabled?'Mode intégrité activé':'Mode désactivé';
-  status('Protections du contrôle enregistrées dans Supabase. Elles seront appliquées aux élèves après raccordement du moteur serveur.');
+  drawAcademyTools();
+  status('Paramètre enregistré pour « '+exam.title+' ». Il sera appliqué aux élèves après raccordement du moteur serveur.');
  }catch(err){
   checkbox.checked=!checked;status(safeError(err),true);
  }finally{checkbox.disabled=false;}
 }
+
+const directTools=[
+ {key:'blockPaste',icon:'⇩',name:'Blocage du collage',detail:'Empêche les collages dans les champs de réponse.',limit:'Un texte saisi à la main reste possible.'},
+ {key:'blockCopy',icon:'▤',name:'Copie du sujet',detail:'Limite copier / couper dans la page du contrôle.',limit:'N’empêche ni photos ni captures.'},
+ {key:'trackVisibility',icon:'◷',name:'Sorties de page',detail:'Signale une page masquée plus de deux secondes.',limit:'Appels et notifications peuvent produire de faux positifs.'},
+ {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message lorsqu’une action est refusée.',limit:'Aucune sanction automatique.'},
+ {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Affiche classe, numéro et message « aide IA interdite ».',limit:'N’empêche pas les captures ; une IA peut ignorer le texte.'}
+];
+function drawAcademyTools(){
+ const selector=$('acad-tools-exam'),panel=$('acad-tools-panel');
+ if(!selector||!panel)return;
+ selector.replaceChildren();panel.replaceChildren();
+ if(!myExams.length){
+  selector.disabled=true;const blank=el('option','','Aucun contrôle');blank.value='';selector.append(blank);
+  panel.append(el('p','empty','Crée d’abord une évaluation pour configurer ses protections.'));
+  return;
+ }
+ selector.disabled=false;
+ if(!myExams.some(e=>e.id===selectedIntegrityExamId))selectedIntegrityExamId=myExams[0].id;
+ for(const e of myExams){const opt=el('option','',e.title);opt.value=e.id;selector.append(opt);}
+ selector.value=selectedIntegrityExamId;
+ const exam=myExams.find(e=>e.id===selectedIntegrityExamId),cfg=antiConfig(exam);
+ function makeButton(key,value){
+  const on=!!value,button=el('button','acad-action-toggle'+(on?' is-on':''),on?'Désactiver':'Activer');
+  button.type='button';button.setAttribute('aria-pressed',String(on));
+  button.addEventListener('click',()=>saveAntiCheat(exam,key,!antiConfig(exam)[key],button));
+  return button;
+ }
+ const master=el('div','acad-tool-master');
+ const masterText=el('div','');
+ masterText.append(el('strong','','Mode anti-triche général'),el('p','',cfg.enabled?'Activé : les outils cochés ci-dessous sont prêts pour le moteur élève.':'Éteint : les outils peuvent être configurés mais ne s’appliquent pas encore.'));
+ master.append(masterText,makeButton('enabled',cfg.enabled));panel.append(master);
+ const grid=el('div','acad-tools-grid');
+ for(const tool of directTools){
+  const on=cfg[tool.key],active=cfg.enabled&&on;
+  const item=el('article','acad-tool-card'+(active?' is-active':''));
+  const icon=el('span','acad-tool-icon',tool.icon),body=el('div','acad-tool-text');
+  body.append(el('strong','',tool.name),el('p','',tool.detail),el('small','',tool.limit));
+  const foot=el('div','acad-tool-actions');
+  const current=el('span','acad-tool-state'+(active?' is-active':''),active?'Actif':on?'Prêt (mode éteint)':'Désactivé');
+  foot.append(current,makeButton(tool.key,on));item.append(icon,body,foot);grid.append(item);
+ }
+ panel.append(grid);
+}
+
 function drawTeacherData(){
  $('class-list').replaceChildren();$('exam-list').replaceChildren();
  $('classes-count').textContent=myClasses.length+' classe(s)';
@@ -201,6 +248,7 @@ function drawTeacherData(){
     if(event.kind==='tab_hidden'&&event.duration_ms)desc.append(el('small','','Durée : '+Math.round(event.duration_ms/1000)+' s'));
     card.append(desc);list.append(card);
   }
+  drawAcademyTools();
 }
 function requireTeacher(){
  if(!supabase||!teacherId)throw Error('Session académique absente. Reconnectez-vous.');
@@ -226,6 +274,7 @@ async function removeExam(exam){
   status('Contrôle supprimé.');
  }catch(err){status(safeError(err),true);}
 }
+$('acad-tools-exam').addEventListener('change',()=>{selectedIntegrityExamId=$('acad-tools-exam').value;drawAcademyTools();});
 $('class-form').addEventListener('submit',async event=>{
  event.preventDefault();
  const button=event.submitter;
@@ -295,7 +344,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

@@ -330,7 +330,10 @@ window.CORTEX_PORTAL=(function(){
     grade:17.75,publishedToStudent:true,
     reviewedAt:Date.now()-8*24*60*60*1000,
     feedback:'Copie sérieuse et bien structurée : 17,75/20. Tu sais lire les documents et effectuer les calculs. Pour progresser, distingue davantage les conséquences scolaires et sociales et justifie les conseils de prévention.',
-    marks:fullMarks,answers:JSON.parse(JSON.stringify(sourceCopy.answers||{}))
+    marks:fullMarks,
+    answers:{...JSON.parse(JSON.stringify(sourceCopy.answers||{})),
+     pdfq3:'Il se concentre moins bien en classe et devient irritable.',
+     pdfq13:'Il se dispute avec ses amis.'}
    });
    attempts.push({
     id:'exemple-attente-albert',examId:'sommeil-pdf-a2',classId:cl.id,className:cl.name,

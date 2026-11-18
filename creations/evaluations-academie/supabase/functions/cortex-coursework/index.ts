@@ -214,13 +214,33 @@ async function teacherAction(action,body,form,req){
   if(access.error||subs.error)throw Error('Impossible de charger les remises.');
   const {data:classAccess,error:caErr}=await admin.from('cortex_academy_class_access').select('class_id,portal_code,active,roster_size').eq('teacher_id',teacher.id);
   if(caErr)throw Error('Impossible de charger les accès des classes.');
-  return ret({ok:true,access:access.data||[],classAccess:classAccess||[],submissions:subs.data||[]});
+  const classIds=(classAccess||[]).map(x=>x.class_id);
+  let enrollments=[];
+  if(classIds.length){
+   const {data,error:rosterErr}=await admin.from('cortex_academy_class_roster')
+    .select('class_id,student_number,demi_groupe,activated_at')
+    .in('class_id',classIds).order('student_number',{ascending:true}).limit(2500);
+   if(rosterErr)throw Error('Impossible de charger les élèves de vos classes.');
+   enrollments=data||[];
+  }
+  return ret({ok:true,access:access.data||[],classAccess:classAccess||[],enrollments,submissions:subs.data||[]});
  }
  if(action==='teacher_class_prepare'){
   const id=String(body.class_id||''),size=Number(body.roster_size||30);
   if(!Number.isInteger(size)||size<1||size>60)throw Error('Effectif invalide (1 à 60).');
   const {access,freshPins}=await classAccess(teacher,id,size);
   return ret({ok:true,portal_code:access.portal_code,roster_size:access.roster_size,freshPins});
+ }
+ if(action==='teacher_class_set_group'){
+  const classId=String(body.class_id||''),n=Number(body.student_number),g=Number(body.demi_groupe||0);
+  await classOwned(teacher,classId);
+  if(!Number.isInteger(n)||n<1||n>60||![0,1,2].includes(g))throw Error('Numéro ou demi-groupe invalide.');
+  const {data,error}=await admin.from('cortex_academy_class_roster')
+   .update({demi_groupe:g||null,updated_at:new Date().toISOString()})
+   .eq('class_id',classId).eq('student_number',n).not('activated_at','is',null)
+   .select('student_number,demi_groupe').maybeSingle();
+  if(error||!data)throw Error('Élève non activé ou numéro introuvable.');
+  return ret({ok:true,student_number:n,demi_groupe:data.demi_groupe});
  }
  if(action==='teacher_class_reset_pin'){
   const classId=String(body.class_id||''),number=Number(body.student_number);
@@ -318,23 +338,30 @@ async function teacherAction(action,body,form,req){
 }
 async function studentAction(action,body,form){
  if(action==='student_classes'){
-  // Les noms de classe sont publics ; aucune identité d'élève, note ou PIN n'est renvoyé.
-  const {data:access,error}=await admin.from('cortex_academy_class_access').select('class_id,portal_code,roster_size,teacher_id').eq('active',true).limit(1000);
-  if(error)throw Error('Liste des classes inaccessible.');
-  if(!access?.length)return ret({ok:true,classes:[]});
-  const ids=access.map(x=>x.class_id);
-  const {data:classes,error:clsError}=await admin.from('cortex_teacher_classes').select('id,code,display_name,archived').in('id',ids);
-  if(clsError)throw Error('Liste des classes inaccessible.');
-  const byId=new Map((classes||[]).filter(c=>!c.archived).map(c=>[c.id,c]));
-  const list=access.filter(x=>byId.has(x.class_id)).map(x=>({
-   code:x.portal_code,label:String(byId.get(x.class_id).code||byId.get(x.class_id).display_name).slice(0,45),
-   display_name:String(byId.get(x.class_id).display_name||'').slice(0,80),suffix:x.portal_code.slice(-4).toUpperCase()
-  })).sort((a,b)=>a.label.localeCompare(b.label,'fr')).slice(0,1000);
+  // Le catalogue affiche aussi les classes préparées dans l'espace professeur,
+  // sans divulguer de PIN, d'identité d'élève ni de notes.
+  const [available,classes]=await Promise.all([
+   admin.from('cortex_academy_class_access').select('class_id,portal_code,teacher_id,active').eq('active',true).limit(1000),
+   admin.from('cortex_teacher_classes').select('id,code,display_name,teacher_id,archived').eq('archived',false).order('code',{ascending:true}).limit(1000)
+  ]);
+  if(available.error||classes.error)throw Error('Liste des classes temporairement inaccessible.');
+  const prepared=new Map((available.data||[]).map(a=>[a.class_id,a]));
+  const list=(classes.data||[]).map(c=>{
+   const access=prepared.get(c.id);
+   return {code:access?.portal_code||'catalog:'+c.id,
+    label:String(c.code||c.display_name).slice(0,45),
+    display_name:String(c.display_name||'').slice(0,80),
+    suffix:access?.portal_code?.slice(-4).toUpperCase()||'',
+    ready:!!access};
+  }).sort((a,b)=>a.label.localeCompare(b.label,'fr')).slice(0,1000);
   return ret({ok:true,classes:list});
  }
  if(action==='student_activate'){
   const classCode=String(body.class_code||'').toLowerCase(),joinCode=String(body.join_code||'').toLowerCase();
   const number=Number(body.student_number),temporary=String(body.initial_pin||''),personal=String(body.new_pin||'');
+  const group=Number(body.demi_groupe);
+  if(![0,1,2].includes(group)||body.demi_groupe===''||body.demi_groupe===undefined||body.demi_groupe===null)
+   throw Error('Choisissez votre demi-groupe (1, 2 ou classe entière).');
   if(!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(temporary)||!/^\d{6}$/.test(personal)||temporary===personal||
      /^(012345|123456|654321|000000|111111|222222|333333|444444|555555|666666|777777|888888|999999)$/.test(personal))
    throw Error('PIN provisoire et nouveau PIN différents requis (6 chiffres, sans suite évidente).');
@@ -348,7 +375,8 @@ async function studentAction(action,body,form){
    const {data:ex}=await admin.from('cortex_teacher_assessments').select('class_id,teacher_id,published').eq('id',examAccess.assessment_id).eq('teacher_id',examAccess.teacher_id).eq('published',true).maybeSingle();
    if(!ex?.class_id)throw Error('Ce contrôle n’a pas de PIN commun par classe. Demandez le PIN au professeur.');
    classId=ex.class_id;teacherId=ex.teacher_id;
-  }else throw Error('Classe ou QR code invalide.');
+  }else if(classCode.startsWith('catalog:'))throw Error('Cette classe figure dans CORTEX, mais le professeur doit préparer les PIN provisoires avant la première inscription.');
+  else throw Error('Classe ou QR code invalide.');
   const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classId).eq('teacher_id',teacherId).eq('active',true).maybeSingle();
   if(!access)throw Error('Cette classe n’est pas ouverte.');
   const {data:cred}=await admin.from('cortex_academy_class_roster').select('activated_at,pin_digest').eq('class_id',classId).eq('student_number',number).maybeSingle();
@@ -357,14 +385,14 @@ async function studentAction(action,body,form){
   await verifyClassPin(access,number,temporary,false);
   const nextDigest=await pinHash(classId,number,personal);
   const {data:updated,error}=await admin.from('cortex_academy_class_roster')
-   .update({pin_digest:nextDigest,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
+   .update({pin_digest:nextDigest,demi_groupe:group||null,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
    .eq('class_id',classId).eq('student_number',number).eq('pin_digest',cred.pin_digest).is('activated_at',null).select('student_number').maybeSingle();
   if(error||!updated)throw Error('Activation impossible ou déjà effectuée. Demandez un nouveau PIN provisoire au professeur.');
   // Révoque toute session éventuellement ouverte avec les identifiants provisoires.
   await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',number);
   const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacherId);
   if(exams?.length)await admin.from('cortex_academy_sessions').delete().in('assessment_id',exams.map(x=>x.id)).eq('student_number',number);
-  return ret({ok:true,activated:true,student_number:number});
+  return ret({ok:true,activated:true,student_number:number,demi_groupe:group||null});
  }
  if(action==='student_class_login'){
   const portal=String(body.class_code||'').toLowerCase(),number=Number(body.student_number),plain=String(body.pin||'');
@@ -379,13 +407,14 @@ async function studentAction(action,body,form){
  }
  if(action==='student_class_list'){
   const {session,access}=await activeClassStudent(String(body.session||''));
-  const [exams,links,submissions,cl]=await Promise.all([
+  const [exams,links,submissions,cl,placement]=await Promise.all([
    admin.from('cortex_teacher_assessments').select('id,title,published,created_at').eq('class_id',access.class_id).eq('teacher_id',access.teacher_id).order('created_at',{ascending:false}),
    admin.from('cortex_academy_access').select('assessment_id,active').eq('teacher_id',access.teacher_id),
    admin.from('cortex_academy_submissions').select('assessment_id,submitted_at,grade,feedback,released_at').eq('teacher_id',access.teacher_id).eq('student_number',session.student_number),
-   admin.from('cortex_teacher_classes').select('code,display_name').eq('id',access.class_id).eq('teacher_id',access.teacher_id).maybeSingle()
+   admin.from('cortex_teacher_classes').select('code,display_name').eq('id',access.class_id).eq('teacher_id',access.teacher_id).maybeSingle(),
+   admin.from('cortex_academy_class_roster').select('demi_groupe').eq('class_id',access.class_id).eq('student_number',session.student_number).maybeSingle()
   ]);
-  if(exams.error||links.error||submissions.error||cl.error)throw Error('Impossible de récupérer vos contrôles.');
+  if(exams.error||links.error||submissions.error||cl.error||placement.error)throw Error('Impossible de récupérer vos contrôles.');
   const byAccess=new Map((links.data||[]).map(x=>[x.assessment_id,x]));
   const bySubmission=new Map((submissions.data||[]).map(x=>[x.assessment_id,x]));
   const cards=(exams.data||[]).map(e=>{
@@ -396,7 +425,7 @@ async function studentAction(action,body,form){
     grade:submitted?.released_at?submitted.grade:null,feedback:submitted?.released_at?submitted.feedback:null};
   }).filter(Boolean);
   return ret({ok:true,class:{code:cl.data?.code||'Classe',name:cl.data?.display_name||'Classe'},
-   student_number:session.student_number,assessments:cards});
+   student_number:session.student_number,demi_groupe:placement.data?.demi_groupe||null,assessments:cards});
  }
  if(action==='student_login'){
   const code=String(body.code||''),number=Number(body.student_number),plain=String(body.pin||'');

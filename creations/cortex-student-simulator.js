@@ -10,7 +10,7 @@ window.CORTEX_STUDENT_SIMULATOR=(function(){
  const printClock=s=>{const n=Math.max(0,Math.ceil(s/1000));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');};
  const scopeName=x=>x==='g1'?'Groupe 1':x==='g2'?'Groupe 2':'Classe entière';
  let current=null;
- function open({exam,classe='Sans classe',scope='all',assets=[],subject=null}={}){
+ function open({exam,classe='Sans classe',scope='all',assets=[],subject=null,layout='paged'}={}){
   if(!exam||!Array.isArray(exam.questions)||!exam.questions.length)throw Error('Ce contrôle ne contient aucune question à tester.');
   if(current)current.close();
   const d=create('dialog','cortex-sim-dialog');d.setAttribute('aria-label','Simulation du contrôle côté élève');
@@ -24,8 +24,16 @@ window.CORTEX_STUDENT_SIMULATOR=(function(){
   const questions=exam.questions,assetMap=new Map(assets.filter(a=>a?.id).map(a=>[a.id,a]));
   const read=()=>{
    if(!startedAt||ended)return;
-   const q=questions[index],wrapper=body.querySelector('[data-cortex-q]');
-   if(wrapper)answers[q.id]=Q().readAnswer(wrapper,q);
+   if(layout==='all'){
+    const wrappers=[...body.querySelectorAll('[data-cortex-q]')];
+    for(const q of questions){
+     const wrapper=wrappers.find(el=>el.dataset.cortexQ===q.id);
+     if(wrapper)answers[q.id]=Q().readAnswer(wrapper,q);
+    }
+   }else{
+    const q=questions[index],wrapper=body.querySelector('[data-cortex-q]');
+    if(wrapper)answers[q.id]=Q().readAnswer(wrapper,q);
+   }
   };
   const remain=()=>duration*60000-(startedAt?Date.now()-startedAt:0);
   function frame(){
@@ -45,6 +53,30 @@ window.CORTEX_STUDENT_SIMULATOR=(function(){
    const status=create('div','cortex-sim-status'),clock=create('strong','cortex-sim-clock',printClock(time));
    clock.id='cortex-sim-clock';clock.setAttribute('role','timer');
    status.append(create('span','','QUESTION '+(index+1)+' / '+questions.length),clock);body.append(status);
+   if(layout==='all'){
+    const group=create('div','cortex-sim-all-questions');
+    for(let i=0;i<questions.length;i++){
+     const q=questions[i],article=create('article','cortex-sim-question');
+     article.append(create('h3','',(i+1)+'. '+(q.prompt||'Question '+(i+1))),create('small','',String(Number(q.points)||0)+' point(s)'));
+     const refs=(q.assetIds||[]).map(id=>assetMap.get(id)).filter(a=>a?.url);
+     if(refs.length){
+      const images=create('div','cortex-sim-docs');
+      images.append(create('strong','','Documents fournis pour cette question'));
+      for(const a of refs){const figure=create('figure'),img=create('img');img.src=a.url;img.alt='Document pédagogique : '+(a.name||'Capture');figure.append(img,create('figcaption','',a.name||'Document'));images.append(figure);}
+      article.append(images);
+     }
+     if(q.doc)article.append(create('div','cortex-sim-doc-text',q.doc));
+     if(q.page&&subject?.url){const link=create('a','cortex-sim-subject','Consulter le document original · page '+q.page);link.href=subject.url;link.target='_blank';link.rel='noopener noreferrer';article.append(link);}
+     const fields=create('div','cortex-sim-fields');fields.innerHTML=Q().studentFields(q,answers[q.id]||'');article.append(fields);
+     group.append(article);
+    }
+    const attachment=create('label','cortex-sim-file','Joindre ma copie (facultatif, non envoyée)');
+    const file=create('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';file.onchange=()=>{extraFile=file.files?.[0]?.name||null;};
+    attachment.append(file);group.append(attachment);body.append(group);
+    const submit=create('button','cortex-sim-main','Remettre définitivement mon contrôle →');
+    submit.onclick=()=>{read();review();};footer.append(submit);
+    return;
+   }
    const q=questions[index],article=create('article','cortex-sim-question');
    article.append(create('div','cortex-sim-progress',questions.filter(x=>String(answers[x.id]||'').trim()).length+' réponse(s) sur '+questions.length),
     create('h3','',q.prompt||'Question '+(index+1)),create('small','',''+(Number(q.points)||0)+' point(s)'));
@@ -77,7 +109,7 @@ window.CORTEX_STUDENT_SIMULATOR=(function(){
    const ul=create('div','cortex-sim-review');
    for(let i=0;i<questions.length;i++){const b=create('button','cortex-sim-review-row','Question '+(i+1)+' · '+(String(answers[questions[i].id]||'').trim()?'Réponse saisie':'Sans réponse'));b.onclick=()=>{index=i;frame();};ul.append(b)}
    body.append(ul);
-   const back=create('button','cortex-sim-secondary','← Retour aux questions');back.onclick=frame;
+   const back=create('button','cortex-sim-secondary','← Retour au contrôle');back.onclick=frame;
    const send=create('button','cortex-sim-main','✓ Simuler la remise de ma copie');send.onclick=()=>finish(false);
    footer.append(back,send);
   }

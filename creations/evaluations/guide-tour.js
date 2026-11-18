@@ -93,7 +93,7 @@ const steps=[
   task:'Vous pouvez refaire cette visite à tout moment. CORTEX Académie (espace réel) reste en attente des autorisations institutionnelles nécessaires, notamment pour les données personnelles.'}
 ];
 const targetCandidates=steps.map(step=>step.targets||[step.selector]);
-let active=false,index=0,minimized=false,showList=false,root=null,highlighted=null,refocus=null,dockChoice='auto';
+let active=false,index=0,minimized=false,showList=false,root=null,highlighted=null,refocus=null,dockChoice='auto',tourDemoEntered=false;
 const clamp=n=>Math.max(0,Math.min(steps.length-1,n));
 function read(){try{return JSON.parse(sessionStorage.getItem(STORAGE)||'null')}catch{return null}}
 function store(){try{if(active)sessionStorage.setItem(STORAGE,JSON.stringify({index,minimized,dockChoice}));else sessionStorage.removeItem(STORAGE)}catch{}}
@@ -138,12 +138,13 @@ function route(){
  const step=steps[index],hash=step.route,expected=index;
  // Entrer automatiquement dans le seul carnet FICTIF lors de la visite guidée.
  // Cela n'ouvre aucun compte réel et ne demande ni PIN ni données personnelles.
- if(step.enterDemoPortal&&location.hash!=='#eleve/espace'){
+ if(step.enterDemoPortal&&!tourDemoEntered){
+  // La visite installe le carnet fictif une fois ; elle ne lit pas un compte réel.
   if(location.hash!=='#eleve/accueil')location.hash='#eleve/accueil';
   window.setTimeout(()=>{
    if(!active||index!==expected)return;
    const button=document.querySelector('[data-action="portal-demo"]');
-   if(button)button.click();
+   if(button){button.click();tourDemoEntered=true}
   },190);
  }else if(location.hash!==hash)location.hash=hash;
  window.setTimeout(()=>{if(active&&index===expected){highlight();scrollToTarget(expected)}},370);
@@ -159,7 +160,7 @@ function mobileCard(step,last){
    '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>À essayer dans CORTEX</strong><p>'+step.task+'</p></div></div></div>'+
    '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">Explorer cet écran <span aria-hidden="true">↗</span></button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
    '<div class="ct-tour-mobile-options"><button type="button" data-tour="previous" '+(index===0?'disabled':'')+'>← Retour</button><button type="button" data-tour="list">Toutes les étapes</button><button type="button" data-tour="minimize">Réduire ↑</button></div>'+
-   (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Retour à CORTEX Académie ↗</a>':'')
+   (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Prévisualiser CORTEX Académie (accès restreint) ↗</a>':'')
  )+'</div>';
 }
 function content(){
@@ -177,7 +178,7 @@ function content(){
   '<div class="ct-tour-desktop-hint"><span class="ct-tour-hint-pulse" aria-hidden="true"></span><span>L’élément à découvrir est entouré en rose. Vous pouvez cliquer directement dessus.</span></div>')+
  '<div class="ct-tour-actions"><button type="button" class="ct-tour-secondary" data-tour="previous" '+(first?'disabled':'')+'>← Retour</button><button type="button" class="ct-tour-visit" data-tour="visit">Essayer sur la page ↗</button><button type="button" class="ct-tour-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
  '<div class="ct-tour-desktop-foot"><button type="button" class="ct-tour-dock" data-tour="dock">⇄ Déplacer le guide</button><span>Clavier : ← → pour naviguer · Échap pour fermer</span></div>'+
- (last?'<a class="ct-tour-academy" href="../evaluations-academie/">Revenir à CORTEX Académie ↗</a>':'')+'</div>'+mobileCard(step,last));
+ (last?'<a class="ct-tour-academy" href="../evaluations-academie/">Prévisualiser CORTEX Académie (accès restreint) ↗</a>':'')+'</div>'+mobileCard(step,last));
 }
 function draw(){
  if(!active)return;
@@ -187,7 +188,7 @@ function draw(){
  root.innerHTML=content();store();highlight();
 }
 function jump(n){index=clamp(n);minimized=false;showList=false;draw();route()}
-function start(){if(!active){refocus=document.activeElement}active=true;index=0;minimized=false;showList=false;jump(0);const close=root?.querySelector('[data-tour="close"]');close?.focus?.()}
+function start(){if(!active){refocus=document.activeElement}active=true;index=0;minimized=false;showList=false;tourDemoEntered=false;jump(0);const close=root?.querySelector('[data-tour="close"]');close?.focus?.()}
 function close(){active=false;minimized=false;showList=false;store();if(highlighted){highlighted.classList.remove('ct-tour-highlight');highlighted=null}if(root){root.remove();root=null}document.getElementById('ct-tour-launch')?.focus?.()}
 function handle(action,el){
  if(action==='close'||action==='finish'){close();return}
@@ -220,6 +221,6 @@ document.addEventListener('keydown',event=>{
 window.addEventListener('hashchange',()=>{if(active)window.setTimeout(highlight,90)});
 const existing=read();
 if(location.hash==='#visite'||location.hash==='#demonstration'){start()}
-else if(existing&&Number.isInteger(existing.index)){active=true;index=clamp(existing.index);minimized=!!existing.minimized;dockChoice=['left','right'].includes(existing.dockChoice)?existing.dockChoice:'auto';draw()}
+else if(existing&&Number.isInteger(existing.index)){active=true;index=clamp(existing.index);minimized=!!existing.minimized;dockChoice=['left','right'].includes(existing.dockChoice)?existing.dockChoice:'auto';draw();route()}
 window.CORTEX_TOUR={start,stop:close,steps:steps.length,sections:[...new Set(steps.map(step=>step.phase))]};
 })();

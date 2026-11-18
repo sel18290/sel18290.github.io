@@ -4,13 +4,14 @@
 <meta name="theme-color" content="#0d1628">
 <meta name="description" content="CORTEX Académie — accès enseignants de l'académie de Paris.">
 <title>CORTEX Académie · Espace enseignant</title>
-<link rel="stylesheet" href="./style.css?v=9">
-<script type="module" src="./app.js?v=10"></script>
+<link rel="stylesheet" href="./style.css?v=10">
+<script type="module" src="./app.js?v=11"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.1"></script>
-<script type="module" src="./student-coursework.js?v=1.1"></script>
+<script type="module" src="./student-coursework.js?v=2.0"></script>
+<script type="module" src="./class-portal-teacher.js?v=1.0"></script>
 </head><body>
-<header class="top"><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></header>
+<header class="top"><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><div class="academy-header-actions"><a class="academy-student-entry" href="./?espace=eleve"><span aria-hidden="true">🎓</span><span>Espace élève</span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></div></header>
 <main class="layout">
 <section class="hero"><div class="overline">BIOSPHÈRE GENESIS · PLATEFORME ENSEIGNANTE</div><h1>Évaluer.<br><em>Accompagner.</em><br>Faire progresser.</h1><p>Une plateforme pédagogique pensée pour les enseignants de l’académie de Paris : contrôles, corrections, parcours des élèves et résultats, au même endroit.</p>
 <div class="academy-tour-banner"><span class="academy-tour-icon" aria-hidden="true">✦</span><div><strong>Première visite ? Explorez CORTEX pas à pas.</strong><p>13 étapes interactives : classes, contrôles, QR codes, copies, corrections et sécurité.</p></div><a href="../evaluations/#visite" class="academy-tour-link">Démarrer la démo guidée →</a></div>
@@ -35,10 +36,16 @@
 <nav class="academie-prof-nav" aria-label="Accès rapide aux outils"><a href="#prof-classes">Mes classes</a><a href="#prof-assessments">Mes évaluations</a><a href="#acad-live-workflow">◈ Dépôts & copies</a><a href="#acad-integrity">◈ Anti-triche</a></nav><div id="prof-content">
 <section class="prof-sec cw-workspace" id="acad-live-workflow">
  <div class="prof-head"><div><span class="eyebrow">PASSATION RÉELLE · SUPABASE</span><h3>Déposer un sujet, recevoir les copies.</h3></div><button type="button" id="cw-refresh" class="cw-refresh">Actualiser les copies ↻</button></div>
- <p class="cw-intro">Choisissez un contrôle créé ci-dessous, joignez votre PDF ou Word, publiez-le puis partagez le QR code et les PIN des élèves. Chaque remise arrive dans cet espace, avec les réponses et le fichier éventuel.</p>
+ <p class="cw-intro">Préparez une seule fois les PIN de votre classe, puis créez autant de contrôles que nécessaire. Chaque QR code ouvre directement le bon contrôle ; l’Espace élève permet de retrouver toutes les évaluations et corrections après connexion.</p>
  <div id="cw-status" role="status" aria-live="polite" class="cw-status" hidden></div>
- <div id="cw-assessment-cards" class="cw-assessments"><p class="empty">Connexion au service des évaluations…</p></div>
- <div class="cw-copies-head"><h4>Copies remises par les élèves</h4><span id="cw-copy-count" class="chip">0 copie</span></div>
+ <section class="cw-class-workspace" id="cw-persistent-classes"><h4>1. Accès permanent des élèves par classe</h4>
+   <p>Chaque élève conserve le même PIN et le même numéro dans une classe. Vous pouvez lui transmettre le lien de sa classe, ou lui indiquer de cliquer sur « Espace élève » depuis la page d’accueil.</p>
+   <div id="cw-class-status" role="status" aria-live="polite" class="cw-status" hidden></div>
+   <div id="cw-class-cards" class="cw-class-cards"><p class="empty">Chargement des classes…</p></div>
+  </section>
+  <h4 class="cw-workflow-subtitle">2. Contrôles et QR codes par évaluation</h4>
+  <div id="cw-assessment-cards" class="cw-assessments"><p class="empty">Connexion au service des évaluations…</p></div>
+ <div class="cw-copies-head"><h4>3. Copies remises par les élèves</h4><span id="cw-copy-count" class="chip">0 copie</span></div>
  <div id="cw-copy-list" class="cw-copies"><p class="empty">Aucune copie reçue pour le moment.</p></div>
  <p class="cw-safety">Les documents sont stockés dans un espace privé. Les accès élèves se font par QR code, numéro sur la liste et PIN personnel. L’usage scolaire réel nécessite les validations de l’établissement et du DPO, ainsi que des tests en conditions réelles.</p>
 </section>

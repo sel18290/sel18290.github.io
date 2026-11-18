@@ -36,7 +36,25 @@
 <form id="exam-form" class="prof-exam-form"><div class="field"><label for="exam-title">Titre du contrôle</label><input id="exam-title" maxlength="180" placeholder="Ex. Le sommeil" required></div>
 <div class="field"><label for="exam-class">Classe</label><select id="exam-class"><option value="">Sans classe</option></select></div>
 <div class="field"><label for="exam-description">Consignes et document de travail</label><textarea id="exam-description" rows="4" maxlength="12000" placeholder="Consignes de l’évaluation, questions…"></textarea></div>
-<button type="submit">Enregistrer l’évaluation</button></form><div id="exam-list" class="prof-list"></div></section>
+<fieldset class="academie-integrity-field"><legend>◈ Anti-triche · mode intégrité</legend>
+<p>Choisis les protections prévues pour ce contrôle. Les réglages sont sauvegardés dans Supabase. Le parcours élève serveur n’est pas encore relié : ils ne bloquent donc pas encore les élèves de la version Académie.</p>
+<label><input id="exam-integrity-on" type="checkbox"> <span><strong>Activer le mode intégrité</strong><small>Informer les élèves avant le contrôle</small></span></label>
+<label><input id="exam-integrity-paste" type="checkbox" checked> <span><strong>Bloquer le collage</strong><small>Dans les champs de réponse</small></span></label>
+<label><input id="exam-integrity-copy" type="checkbox" checked> <span><strong>Limiter la copie du sujet</strong><small>Commandes de copie dans la page</small></span></label>
+<label><input id="exam-integrity-tabs" type="checkbox" checked> <span><strong>Signaler les sorties de page</strong><small>Durée approximative, aucun contenu capturé</small></span></label>
+<label><input id="exam-integrity-warn" type="checkbox" checked> <span><strong>Avertir l'élève</strong><small>Information sans sanction automatique</small></span></label></fieldset>
+<button type="submit">Enregistrer l’évaluation et ses protections</button></form><div id="exam-list" class="prof-list"></div></section>
+<section class="prof-sec academie-integrity-area"><div class="prof-head"><div><span class="eyebrow">03 / INTÉGRITÉ DES ÉVALUATIONS</span><h3>Comprendre les outils anti-triche</h3></div><span class="chip">Sans sanction automatique</span></div>
+<p>Chaque réglage s’active séparément par contrôle. Il vise à limiter les interruptions et préserver l’équité, sans conclure automatiquement à une fraude.</p>
+<div class="academie-integrity-guide">
+<article><span>⇩</span><strong>Collage</strong><p>Peut intercepter une tentative de collage dans une réponse. Il ne reconnaît pas les réponses dictées ou recopiées manuellement.</p></article>
+<article><span>▤</span><strong>Copie du sujet</strong><p>Peut empêcher la commande de copie dans la page, mais jamais une photo ou une capture d’écran.</p></article>
+<article><span>◷</span><strong>Sorties de page</strong><p>Une page masquée plus de deux secondes sera signalée. Notifications et aides techniques peuvent générer de faux positifs.</p></article>
+<article><span>◇</span><strong>Journal d’incidents</strong><p>Seuls le type, la date et la durée éventuelle sont retenus. Pas de webcam, ni de lecture du presse-papiers.</p></article></div>
+<div class="academie-safety-notice"><strong>Confidentialité et accessibilité</strong><p>Le professeur analyse les alertes, sans sanction automatique. Des aménagements sont nécessaires pour certains élèves. Enregistrement réel des événements côté Académie : en attente du service élève authentifié et de validation RGPD.</p></div>
+<div class="prof-head"><h3>Journal serveur</h3><span id="integrity-count" class="chip">0 événement</span></div>
+<div id="integrity-server-events" class="prof-list"><p class="empty">Aucun incident serveur enregistré.</p></div>
+<a class="academie-demo-link" href="../evaluations/#professeur/integrite" target="_blank" rel="noopener">Découvrir les outils interactifs sur le site test ↗</a></section>
 <div class="setup-notice"><strong>Utilisation pédagogique réelle non activée</strong><p>Les comptes et les contrôles sont protégés par Supabase Auth et RLS. Les connexions élèves, les copies, les notes et les PDF nécessitent encore leur sécurisation serveur et la validation institutionnelle avant tout usage réel.</p></div></div>
 <button type="button" class="submit secondary" id="logout">Se déconnecter</button></div>
 <div class="setup-notice" id="setup-notice"><strong>Connexion à Supabase en préparation</strong><p>Cette nouvelle adresse est indépendante du site de démonstration. L’inscription sera activée après création du projet Supabase, configuration de l’e-mail académique et mise en place des règles de sécurité serveur.</p></div>

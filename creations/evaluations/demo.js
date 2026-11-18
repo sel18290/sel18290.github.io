@@ -658,6 +658,64 @@ function openClassQR(id){
  modalShow('QR code de la classe',window.CORTEX_CLASSES.qrModal(state,a,exam,url),btn('Fermer','close-modal','ghost'));
  Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(url,'class-qr-image')).catch(err=>showToast(err.message));
 }
+function openAccessCodes(id){
+ const a=state.assignments.find(x=>x.id===id&&x.active),e=examBy(a?.examId);
+ if(!a||!e){showToast('Contrôle ou affectation introuvable.');return;}
+ modalShow('Codes individuels des élèves',window.CORTEX_ACCESS.render(state,a,e),btn('Fermer','close-modal','ghost'));
+}
+function handleAccessAction(kind,id,el){
+ const a=state.assignments.find(x=>x.id===id&&x.active),A=window.CORTEX_ACCESS;
+ if(!a){showToast('Cette affectation est introuvable.');return;}
+ if(kind==='access-manage'){openAccessCodes(id);return;}
+ try{
+  if(kind==='access-set-count'){
+   const size=Number(document.getElementById('access-count')?.value);
+   const maxUsed=Math.max(0,...state.attempts.filter(at=>at.assignmentId===id).map(at=>Number(at.studentNumber)||0));
+   if(size<maxUsed)throw Error('Une copie utilise déjà un numéro supérieur à cette limite.');
+   A.setCount(a,size);save();openAccessCodes(id);showToast('Liste mise à jour.');return;
+  }
+  if(kind==='access-generate-missing'){
+   const n=A.generateMissing(a);save();openAccessCodes(id);showToast(n?n+' codes générés.':'Tous les codes étaient déjà générés.');return;
+  }
+  if(kind==='access-create-one'){
+   A.create(a,el.dataset.number);save();openAccessCodes(id);showToast('Code du numéro '+el.dataset.number+' généré.');return;
+  }
+  if(kind==='access-ask-one'){
+   const number=el.dataset.number;
+   modalShow('Régénérer le code n° '+esc(number)+' ?','<p>Le code actuel ne fonctionnera plus. Le nouveau code devra être remis à cet élève.</p>'+
+    '<p class="class-qr-warning">Attention : si l’élève a commencé un contrôle, la reprise avec son ancien code ne sera plus possible.</p>',
+    '<button type="button" class="btn danger" data-action="access-confirm-one" data-id="'+esc(id)+'" data-number="'+esc(number)+'">Confirmer la régénération</button>'+
+    '<button type="button" class="btn secondary" data-action="access-manage" data-id="'+esc(id)+'">Annuler</button>');
+   return;
+  }
+  if(kind==='access-confirm-one'){
+   A.create(a,el.dataset.number,true);save();openAccessCodes(id);showToast('Nouveau code pour le n° '+el.dataset.number+'.');return;
+  }
+  if(kind==='access-ask-all'){
+   modalShow('Régénérer TOUS les codes ?','<p>Tous les anciens codes deviendront invalides. Il faudra redistribuer les nouveaux codes à chaque élève.</p>'+
+    '<p class="class-qr-warning">Cette action peut bloquer la reprise des contrôles déjà commencés.</p>',
+    '<button class="btn danger" data-action="access-confirm-all" data-id="'+esc(id)+'">Oui, remplacer tous les codes</button>'+
+    '<button class="btn secondary" data-action="access-manage" data-id="'+esc(id)+'">Annuler</button>');
+   return;
+  }
+  if(kind==='access-confirm-all'){
+   A.regenerateAll(a);save();openAccessCodes(id);showToast('Tous les codes ont été renouvelés.');return;
+  }
+  if(kind==='access-copy'){
+   if(!navigator.clipboard?.writeText){showToast('Copie indisponible. Utilise Télécharger CSV.');return;}
+   navigator.clipboard.writeText(A.listText(a)).then(()=>showToast('Liste copiée.')).catch(()=>showToast('Copie impossible sur ce navigateur.'));
+   return;
+  }
+  if(kind==='access-csv'){
+   const name=window.CORTEX_CLASSES.classLabel(state,a.classId).replace(/[^a-zA-Z0-9_-]/g,'_');
+   const blob=new Blob([A.csv(a)],{type:'text/csv;charset=utf-8'});
+   const href=URL.createObjectURL(blob),link=document.createElement('a');
+   link.href=href;link.download='CORTEX-Codes-'+name+'-'+a.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.csv';
+   document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),15000);
+   showToast('Codes téléchargés au format CSV.');return;
+  }
+ }catch(err){showToast(err?.message||'Opération impossible.');}
+}
 let pdfExportBusy=false;
 async function downloadPDFCopies(copies,scopeLabel=''){
  if(pdfExportBusy){showToast('Un export PDF est déjà en cours.');return;}
@@ -699,6 +757,7 @@ if(a==='pdf-download-batch'){
    .sort((x,y)=>String(x.className||'').localeCompare(String(y.className||''),'fr')||String(x.groupName||'').localeCompare(String(y.groupName||''),'fr')||String(x.studentNumber||'').localeCompare(String(y.studentNumber||''),'fr',{numeric:true}));
  downloadPDFCopies(list,(teacherClassFilter?window.CORTEX_CLASSES.classLabel(state,teacherClassFilter):'Toutes_classes')+(teacherGroupFilter?'_'+window.CORTEX_CLASSES.groupLabel(state,teacherClassFilter,teacherGroupFilter):''));return;
 }
+if(a.startsWith('access-')){handleAccessAction(a,id,el);return;}
 if(a.startsWith('class-')&&classAction(a,id,el))return;
 if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}

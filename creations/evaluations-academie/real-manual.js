@@ -219,6 +219,7 @@ function updateField(target,rerender){
 function reset(){
  releaseAssets();state.questions=[blank()];state.index=0;state.editingId=null;state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
  $('manual-source-file').value='';$('manual-original-render').hidden=true;$('manual-original-render').replaceChildren();$('manual-doc-pages').hidden=true;
+ $('exam-publish-scope').value='all';
  setHint('Nouveau contrôle. Prépare les questions, puis enregistre un brouillon.');
  paint();
 }
@@ -234,6 +235,7 @@ function edit(exam){
  state.index=0;
  $('exam-title').value=(exam.title||'')+(isPublished?' (nouvelle version)':'');
  $('exam-class').value=exam.class_id||'';
+ $('exam-publish-scope').value=['all','g1','g2'].includes(exam.content?.publish_scope)?exam.content.publish_scope:'all';
  $('exam-description').value=exam.content?.description||'';
  // Migration non destructive : anciens textes communs copiés vers les questions qui n'ont aucun document.
  const oldCommon=String(exam.content?.doc||'').trim();

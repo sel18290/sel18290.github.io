@@ -154,3 +154,16 @@ body.academy-authenticated #acad-professor-workspace #class-form input{border-co
  body.academy-authenticated #acad-professor-workspace .class-card-bottom{font-size:9px}
  body.academy-authenticated #acad-professor-workspace #class-form{padding:12px}
 }
+
+
+/* Mes contrôles : cartes réelles en grille, cohérentes avec les tuiles de la démo. */
+body.academy-authenticated #acad-professor-workspace #exam-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;align-items:stretch}
+body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item{display:flex;align-items:stretch;flex-direction:column;gap:11px;min-width:0;padding:18px;background:linear-gradient(137deg,#1b3044,#101e30);border:1px solid #3a5670;border-radius:15px}
+body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item:hover{border-color:#67b5a6}
+body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item>.prof-item-main{flex:1;min-width:0}
+body.academy-authenticated #acad-professor-workspace #exam-list .prof-item-main>strong{color:#f0f7ff;font-size:17px;line-height:1.4}
+body.academy-authenticated #acad-professor-workspace #exam-list .prof-item-main>small{color:#b6cbdb}
+body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item>.prof-delete{align-self:flex-end;min-height:37px;background:#4c2632;border:1px solid #985161;color:#ffced8;border-radius:9px;padding:8px 12px}
+body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item>.academie-anti-wrap{width:100%}
+body.academy-authenticated #acad-professor-workspace .acad-live-recent-exams .empty{min-height:110px}
+@media(max-width:900px){body.academy-authenticated #acad-professor-workspace #exam-list{grid-template-columns:1fr}}

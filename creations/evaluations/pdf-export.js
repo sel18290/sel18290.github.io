@@ -119,6 +119,11 @@ function picture(pdf,ctx,canvas,title){
  if(!canvas?.width||!canvas?.height)return;
  const L=ctx.layout,pxPerMm=canvas.width/L.content;
  let from=0;const safety=4;
+ // Garder le document sur une page entière quand la place restante ne suffit pas.
+ // On ne colle plus le début d'un graphique au bas de la page de garde.
+ const sourceHeight=canvas.height/pxPerMm;
+ const room=L.height-L.bottom-ctx.y-safety-11;
+ if(sourceHeight>room&&ctx.y>L.top+14)newPage(pdf,ctx,'DOCUMENTS FOURNIS À L’ÉLÈVE');
  if(title){paragraph(pdf,ctx,title,{bold:true,fontSize:9,color:[30,101,104],after:2});}
  while(from<canvas.height){
   if(ctx.y+24>L.height-L.bottom)newPage(pdf,ctx,'DOCUMENT ASSOCIÉ');

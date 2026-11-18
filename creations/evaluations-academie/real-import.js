@@ -150,7 +150,7 @@ function renderQuestions(){
   const item=node('article','ri-question ri-question-drop');
   item.dataset.questionId=q.id;
   item.addEventListener('dragover',ev=>{
-   if(state.published||!ev.dataTransfer?.types?.includes('application/x-cortex-capture'))return;
+   if(state.published||!Array.from(ev.dataTransfer?.types||[]).includes('application/x-cortex-capture'))return;
    ev.preventDefault();ev.dataTransfer.dropEffect='copy';item.classList.add('ri-drop-active');
   });
   item.addEventListener('dragleave',ev=>{if(!item.contains(ev.relatedTarget))item.classList.remove('ri-drop-active');});
@@ -270,6 +270,11 @@ async function attachCapture(id,questionId){
  if(!a||!q)throw Error('Capture ou question introuvable.');
  if(a.pending){
   if(!state.id){a.questionId=q.id;renderQuestions();msg('Capture affectée. Enregistre le contrôle pour la synchroniser.');return;}
+  const known=bridge()?.exams?.()?.find(e=>e.id===state.id);
+  if(known&&!known.content?.questions?.some(item=>item.id===q.id)){
+   // Une nouvelle question doit d'abord exister en base pour recevoir une capture.
+   await save();
+  }
   const file=new File([a.blob],a.name,{type:a.blob.type||'image/jpeg'});
   const result=await api('teacher_asset_upload',{assessment_id:state.id,question_id:q.id,page:a.page},file,true);
   if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
@@ -396,7 +401,7 @@ async function pasteImage(){
  for(const item of items)for(const type of item.types){
   if(type.startsWith('image/')){
    const blob=await item.getType(type);
-   return importImage(new File([blob],'Capture_collee.png',{type:blob.type}));
+   return importImage(new File([blob],'Capture_collee.'+(blob.type==='image/jpeg'?'jpg':blob.type.split('/')[1]),{type:blob.type}));
   }
  }
  throw Error('Aucune image trouvée dans le presse-papiers.');

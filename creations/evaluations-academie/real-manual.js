@@ -3,7 +3,7 @@ import {api} from './coursework.js?v=2.0';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);
-const state={questions:[],index:0,editingId:null,sourceFile:null,pdf:null,docPage:1,docCount:0,sourceWordText:''};
+const state={questions:[],index:0,editingId:null,sourceFile:null,pdf:null,docPage:1,docCount:0,sourceWordText:'',assets:[]};
 const newId=()=> 'q-'+crypto.randomUUID().slice(0,24);
 const blank=()=>({id:newId(),prompt:'',points:1,type:'text',doc:''});
 function current(){return state.questions[state.index];}
@@ -64,6 +64,77 @@ async function uploadSource(id){
  state.sourceFile=null;
 }
 
+async function uploadAssets(id){
+ if(!id)throw Error('Contrôle non enregistré.');
+ const pending=state.assets.filter(a=>a.pending);
+ for(const asset of pending){
+  const question=state.questions.find(q=>q.id===asset.questionId);
+  if(!question)throw Error('Une capture ne possède plus de question destinataire. Supprime-la puis réessaie.');
+  const file=new File([asset.blob],asset.name,{type:asset.blob.type});
+  const result=await api('teacher_asset_upload',{
+   assessment_id:id,question_id:question.id,page:1
+  },file,true);
+  question.assetIds=[...new Set([...(question.assetIds||[]),result.asset.id])];
+  if(asset.previewUrl)URL.revokeObjectURL(asset.previewUrl);
+  Object.assign(asset,{id:result.asset.id,name:result.asset.name,url:result.asset.url,pending:false,previewUrl:null,blob:null});
+ }
+}
+function releaseAssets(){
+ for(const a of state.assets)if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
+ state.assets=[];
+}
+function addCapture(blob,name){
+ if(!blob||!['image/png','image/jpeg','image/webp'].includes(blob.type))
+  throw Error('La capture doit être au format PNG, JPEG ou WebP.');
+ if(blob.size<1||blob.size>8*1024*1024)throw Error('Capture de 8 Mo maximum.');
+ if(state.assets.length>=60)throw Error('Limite de 60 captures atteinte pour ce contrôle.');
+ const q=current();if(!q)throw Error('Sélectionne d’abord une question.');
+ const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';
+ state.assets.push({id:'pending-'+newId(),questionId:q.id,
+  name:(name||'Capture_question_'+(state.index+1)+'.'+ext).slice(0,120),
+  page:1,pending:true,blob,previewUrl:URL.createObjectURL(blob)});
+ paint();
+ setHint('✓ Capture liée à la question '+(state.index+1)+'. Enregistre le contrôle pour la rendre disponible aux élèves.');
+}
+async function pasteCaptureFromClipboard(){
+ if(!navigator.clipboard?.read)throw Error('Lecture du presse-papiers indisponible. Clique dans la zone documentaire et utilise Ctrl+V, ou choisis une image.');
+ const items=await navigator.clipboard.read();
+ for(const item of items){
+  const type=item.types.find(t=>['image/png','image/jpeg','image/webp'].includes(t));
+  if(!type)continue;
+  addCapture(await item.getType(type));
+  return;
+ }
+ throw Error('Aucune image dans le presse-papiers. Fais une capture d’écran puis réessaie.');
+}
+function pasteCaptureEvent(event){
+ const item=[...(event.clipboardData?.items||[])].find(x=>x.kind==='file'&&/^image\/(png|jpeg|webp)$/.test(x.type));
+ if(!item)return;
+ event.preventDefault();
+ try{const file=item.getAsFile();if(file)addCapture(file);}
+ catch(error){setHint('Capture non collée : '+(error?.message||error));}
+}
+async function removeCapture(id){
+ const asset=state.assets.find(a=>a.id===id);
+ if(!asset)return;
+ if(!asset.pending){
+  if(!state.editingId){setHint('Enregistre la nouvelle version avant de modifier les anciennes captures.');return;}
+  await api('teacher_asset_delete',{assessment_id:state.editingId,asset_id:id},null,true);
+  for(const q of state.questions)q.assetIds=(q.assetIds||[]).filter(x=>x!==id);
+ }else if(asset.previewUrl)URL.revokeObjectURL(asset.previewUrl);
+ state.assets=state.assets.filter(a=>a!==asset);
+ paint();
+ setHint('Capture retirée de la question.');
+}
+async function loadExistingAssets(id){
+ try{
+  const data=await api('teacher_asset_list',{assessment_id:id},null,true);
+  if(state.editingId!==id)return;
+  state.assets=(data.assets||[]).filter(a=>a.id&&a.url).map(a=>({...a,pending:false}));
+  preview();
+ }catch(err){if(state.editingId===id)setHint('Captures existantes non disponibles : '+(err?.message||err));}
+}
+
 function paint(){
  const q=current();if(!q)return;
  const num=state.index+1,t=QT(),root=$('manual-question-editor');
@@ -95,16 +166,43 @@ function paint(){
  preview();
 }
 function preview(){
- const common=$('exam-common-doc')?.value||'',specific=current()?.doc||'',node=$('manual-source-preview');
+ const q=current(),specific=String(q?.doc||'').trim(),node=$('manual-source-preview');
  node.replaceChildren();
- const title=document.createElement('strong');title.textContent=specific?'Document spécifique à la question':common?'Document commun au contrôle':'Aucun document renseigné';
- const p=document.createElement('p');
- p.textContent=specific||common||'Tu peux ajouter le texte d’un document commun au-dessus, ou un document spécifique dans la question.';
- node.append(title,p);
+ const title=document.createElement('strong');
+ title.textContent='Document de la question '+(state.index+1);
+ node.append(title);
+ if(specific){
+  const p=document.createElement('p');p.textContent=specific;node.append(p);
+ }
+ const items=state.assets.filter(a=>a.questionId===q?.id||(q?.assetIds||[]).includes(a.id));
+ if(items.length){
+  const gallery=document.createElement('div');gallery.className='real-manual-capture-gallery';
+  for(const asset of items){
+   const figure=document.createElement('figure');figure.className='real-manual-capture';
+   const img=document.createElement('img');img.src=asset.previewUrl||asset.url||'';
+   img.alt='Capture documentaire : '+asset.name;img.loading='lazy';
+   const legend=document.createElement('figcaption');legend.textContent=asset.name+(asset.pending?' · à enregistrer':' · enregistrée');
+   const remove=document.createElement('button');remove.type='button';remove.className='real-manual-remove-capture';
+   remove.textContent='Retirer';remove.setAttribute('aria-label','Retirer '+asset.name);
+   remove.addEventListener('click',()=>removeCapture(asset.id).catch(error=>setHint('Suppression impossible : '+(error?.message||error))));
+   figure.append(img,legend,remove);gallery.append(figure);
+  }
+  node.append(gallery);
+ }
+ if(!specific&&!items.length){
+  const p=document.createElement('p');
+  p.textContent='Aucun document associé à cette question. Colle une capture ici (Ctrl+V) ou choisis une image. Tu peux aussi saisir un texte documentaire à droite.';
+  node.append(p);
+ }
 }
 function runAction(action){
  const q=current(),i=state.index;
- if(action==='delete'){if(state.questions.length<2)return;state.questions.splice(i,1);state.index=Math.min(i,state.questions.length-1);}
+ if(action==='delete'){if(state.questions.length<2)return;
+  if(state.assets.some(a=>a.questionId===q.id&&!a.pending)){setHint('Retire d’abord les captures enregistrées de cette question.');return;}
+  for(const a of state.assets.filter(a=>a.questionId===q.id)){if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);}
+  state.assets=state.assets.filter(a=>a.questionId!==q.id);
+  state.questions.splice(i,1);state.index=Math.min(i,state.questions.length-1);
+ }
  else if(action==='duplicate'){if(state.questions.length>=40){setHint('Limite : 40 questions.');return;}state.questions.splice(i+1,0,{...structuredClone(q),id:newId()});state.index=i+1;}
  else if(action==='move-up'&&i>0){[state.questions[i-1],state.questions[i]]=[state.questions[i],state.questions[i-1]];state.index--;}
  else if(action==='move-down'&&i<state.questions.length-1){[state.questions[i+1],state.questions[i]]=[state.questions[i],state.questions[i+1]];state.index++;}
@@ -123,14 +221,14 @@ function updateField(target,rerender){
  }
 }
 function reset(){
- state.questions=[blank()];state.index=0;state.editingId=null;state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
+ releaseAssets();state.questions=[blank()];state.index=0;state.editingId=null;state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
  $('manual-source-file').value='';$('manual-original-render').hidden=true;$('manual-original-render').replaceChildren();$('manual-doc-pages').hidden=true;
  setHint('Nouveau contrôle. Prépare les questions, puis enregistre un brouillon.');
  paint();
 }
 function edit(exam){
  if(!exam)return;
- state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
+ releaseAssets();state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
  $('manual-source-file').value='';$('manual-original-render').replaceChildren();$('manual-original-render').hidden=true;$('manual-doc-pages').hidden=true;
  const isPublished=!!exam.published;
  state.editingId=isPublished?null:exam.id;
@@ -143,7 +241,6 @@ function edit(exam){
  $('exam-level').value=exam.content?.level||'Bac professionnel';
  $('exam-chapter').value=exam.content?.chapter||'';
  $('exam-duration').value=Number(exam.content?.duration||60);
- $('exam-common-doc').value=exam.content?.doc||'';
  const anti=exam.content?.antiCheat||{};
  const cfg={enabled:'exam-integrity-on',blockPaste:'exam-integrity-paste',blockCopy:'exam-integrity-copy',
  trackVisibility:'exam-integrity-tabs',warnStudent:'exam-integrity-warn',watermarkCapture:'exam-integrity-watermark'};
@@ -153,6 +250,7 @@ function edit(exam){
  location.hash='#exam-form';
  document.body.dataset.acadView='creer';
  $('prof-assessments')?.scrollIntoView({behavior:'smooth',block:'start'});
+ if(!isPublished)loadExistingAssets(exam.id);
 }
 $('manual-add')?.addEventListener('click',()=>{
  if(state.questions.length>=40){setHint('Limite : 40 questions par contrôle.');return;}
@@ -168,7 +266,6 @@ $('manual-question-editor')?.addEventListener('change',event=>{
  const t=event.target;
  if(t.dataset.manualField&&['type','correct','choices','tableRows','tableColumns','blanks','matchingLeft','matchingRight','correctIndices'].includes(t.dataset.manualField))updateField(t,t.dataset.manualField==='type');
 });
-$('exam-common-doc')?.addEventListener('input',preview);
 function validated(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit contenir 1 à 40 questions.');
  return state.questions.map((q,i)=>{try{return QT().validate(q)}catch(e){throw Error('Question '+(i+1)+' : '+e.message)}});
@@ -177,9 +274,19 @@ $('manual-source-file').addEventListener('change',async event=>{
  const file=event.target.files?.[0];if(!file)return;
  try{await previewFile(file)}catch(error){state.sourceFile=null;$('manual-original-render').textContent='';setHint('Document non chargé : '+error.message);}
 });
+$('manual-paste-image').addEventListener('click',async()=>{
+ try{await pasteCaptureFromClipboard();}
+ catch(error){setHint('Collage impossible : '+(error?.message||error));}
+});
+$('manual-capture-file').addEventListener('change',event=>{
+ const image=event.target.files?.[0];event.target.value='';
+ if(!image)return;
+ try{addCapture(image,image.name);}catch(error){setHint('Image non ajoutée : '+(error?.message||error));}
+});
+$('manual-source-preview').addEventListener('paste',pasteCaptureEvent);
 $('manual-doc-prev').addEventListener('click',()=>{state.docPage=Math.max(1,state.docPage-1);renderOriginal().catch(error=>setHint(error.message));});
 $('manual-doc-next').addEventListener('click',()=>{state.docPage=Math.min(state.docCount,state.docPage+1);renderOriginal().catch(error=>setHint(error.message));});
 window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,
- markSaved:id=>{state.editingId=id;},uploadSource,
+ markSaved:id=>{state.editingId=id;},uploadSource,uploadAssets,
  afterSave:()=>{$('exam-form').reset();reset();}};
 reset();

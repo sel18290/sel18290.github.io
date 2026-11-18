@@ -27,23 +27,52 @@ async function operation(task){
 function titleGuess(name){return String(name||'Contrôle').replace(/\.(pdf|docx)$/i,'').replace(/[_-]+/g,' ').trim().slice(0,180);}
 function qId(){return 'q-'+crypto.randomUUID().slice(0,22);}
 function emptyQuestion(page=1){return {id:qId(),prompt:'',type:'text',points:1,page,assetIds:[],choices:[],correct:0};}
+/* Détection prudente de questions : numéro + consigne, pas les tableaux numérotés. */
 function extractQuestions(pages){
- const out=[];
- for(let pi=0;pi<pages.length;pi++){
-  const lines=String(pages[pi]||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  for(let i=0;i<lines.length;i++){
-   const l=lines[i];
-   const match=l.match(/^(?:Question\s*)?([1-9]|[1-3]\d|40)\s*[).:\s-]+\s*(.{12,})$/i);
-   if(!match)continue;
-   let prompt=match[2].replace(/\s+[\d,.]+\s*pts?\.?\s*$/i,'').trim();
-   if(prompt.length<12||/^(?:document|source|page|partie)\b/i.test(prompt))continue;
-   if(!/[.?!]$/.test(prompt)){
+ const out=[],seen=new Set(),max=40;
+ const normalize=t=>String(t||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim();
+ const marker=/^(?:(?:question|q)\s*\.?\s*)?(\d{1,2}(?:[.,]\d{1,2})?)\s*(?:[).:\-\u2013\u2014]|\s+[).:\-\u2013\u2014])\s*(.*)$/i;
+ const lone=/^(?:(?:question|q)\s*\.?\s*)?(\d{1,2})\s*[).:\-\u2013\u2014]?\s*$/i;
+ const stop=/^(?:documents?\s*(?:n[°ºo.]?\s*)?\d+|partie\s*\d+|sources?\s*:|bibliographie|annexe|bar[èe]me|comp[ée]tence|objectif|dur[ée]e|consignes?\s*g[ée]n[ée]rales?|page\s+\d+|chapitre\s+\d+|nom\s*:|pr[ée]nom\s*:|classe\s*:|date\s*:|correction\s*:)/i;
+ const action=/^(?:[àa]\s*(?:partir|l['’]aide)|en\s+(?:utilisant|vous\s+aidant)|selon|dans\s+le\s+document|d['’]apr[èe]s|quelle?s?\b|quels?\b|comment\b|pourquoi\b|combien\b|que\b|qui\b|o[uù]\b|citer\b|relever\b|indiquer\b|nommer\b|identifier\b|pr[ée]ciser\b|expliquer\b|justifier\b|d[ée]crire\b|calculer\b|compl[ée]ter\b|proposer\b|choisir\b|classer\b|associer\b|cocher\b|tracer\b|d[ée]terminer\b|formuler\b|pr[ée]senter\b|analyser\b|comparer\b|d[ée]finir\b|donner\b|entourer\b|souligner\b|r[ée]diger\b|mettre\b|exprimer\b|[ée]num[ée]rer\b|transformer\b|caract[ée]riser\b|rep[ée]rer\b|[ée]tablir\b|lister\b)/i;
+ const likely=t=>t.length>=10&&(action.test(t)||/[?？]\s*$/.test(t)||/\b(?:citer|relever|indiquer|calculer|expliquer|identifier|compl[ée]ter|proposer|justifier|comparer|d[ée]finir|pourquoi|comment)\b/i.test(t.slice(0,110)));
+ const pointsFrom=t=>{
+  const m=t.match(/(?:\(|\[|\b)(\d{1,2}(?:[.,]\d{1,2})?)\s*(?:pts?|points?)\b\s*[)\]]?\s*$/i);
+  if(!m)return null;
+  const x=Number(m[1].replace(',','.'));return x>0&&x<=20?x:null;
+ };
+ const removePoints=t=>normalize(t.replace(/\s*(?:\(|\[)?\d{1,2}(?:[.,]\d{1,2})?\s*(?:pts?|points?)(?:\)|\])?\s*$/i,''));
+ for(let pi=0;pi<pages.length&&out.length<max;pi++){
+  const lines=String(pages[pi]||'').split(/\r?\n/).map(normalize).filter(Boolean);
+  for(let i=0;i<lines.length&&out.length<max;i++){
+   let line=lines[i];if(stop.test(line))continue;
+   let m=line.match(marker),num,rest,numberOnly=false;
+   if(m){num=m[1];rest=m[2];}
+   else if(lone.test(line)){num=line.match(lone)[1];rest='';numberOnly=true;}
+   else continue;
+   if(!num||Number(num.split(/[.,]/)[0])>40)continue;
+   if(!rest){
     const next=lines[i+1]||'';
-    if(next.length>12&&!/^(?:Question\s*)?\d{1,2}\s*[).:\s-]|^(?:DOCUMENT|PARTIE|Source\s*:)/i.test(next))prompt+=' '+next;
+    if(!next||stop.test(next)||marker.test(next)||!likely(next))continue;
+    rest=next;i++;numberOnly=true;
    }
-   if(out.some(q=>q.prompt===prompt))continue;
-   out.push({...emptyQuestion(pi+1),prompt});
-   if(out.length===40)return out;
+   if(stop.test(rest))continue;
+   let prompt=rest,rawParts=[rest],added=0;
+   while(i+1<lines.length&&added<3){
+    const next=lines[i+1];
+    if(marker.test(next)||stop.test(next)||lone.test(next)||/^\s*(?:\d+\s*(?:pts?|points?)|total\s*[:=]|document\s*[:=])/i.test(next))break;
+    if(prompt.length+next.length>800||next.length>220)break;
+    if(/[?!]\s*$/.test(prompt))break;
+    if(/[.]\s*$/.test(prompt)&&likely(prompt))break;
+    if(!likely(prompt)||/\b(?:puis|et|de|du|des|sur|pour|[àa])\s*$/i.test(prompt)||/[,:;]\s*$/.test(prompt)){
+     rawParts.push(next);prompt+=' '+next;i++;added++;
+    }else break;
+   }
+   prompt=removePoints(prompt);if(!likely(prompt)||prompt.length>1200)continue;
+   const normalized=prompt.toLocaleLowerCase('fr').replace(/\s+/g,' ');
+   if(seen.has(normalized))continue;seen.add(normalized);
+   const raw=rawParts.join(' ');
+   out.push({...emptyQuestion(pi+1),prompt,points:pointsFrom(raw)||1,detectedNo:num,detected:true});
   }
  }
  return out;

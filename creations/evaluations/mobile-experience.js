@@ -84,7 +84,7 @@
   // Au changement d'espace ou d'onglet, montrer le titre de la nouvelle page.
   window.addEventListener('hashchange',()=>{
     if(!mobile.matches)return;
-    requestAnimationFrame(()=>{window.scrollTo({top:0,behavior:'instant'});schedule();});
+    requestAnimationFrame(()=>{window.scrollTo(0,0);schedule();});
   });
   function isWriting(element){
     return !!element&&element.matches?.('input:not([type="checkbox"]):not([type="radio"]),textarea,select,[contenteditable="true"]');

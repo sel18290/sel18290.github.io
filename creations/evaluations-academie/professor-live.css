@@ -82,7 +82,7 @@ body.academy-authenticated #acad-professor-workspace #acad-live-monitoring .pane
 body.academy-authenticated[data-acad-view="suivi"] #prof-content>:not(#acad-live-monitoring),
 body.academy-authenticated[data-acad-view="analyses"] #prof-content>:not(#acad-live-analytics),
 body.academy-authenticated[data-acad-view="creer"] #prof-content>:not(#prof-assessments),
-body.academy-authenticated[data-acad-view="import"] #prof-content>:not(#acad-live-workflow){display:none!important}
+body.academy-authenticated[data-acad-view="import"] #prof-content>:not(#acad-import-workspace){display:none!important}
 body.academy-authenticated[data-acad-view="import"] #cw-persistent-classes,
 body.academy-authenticated[data-acad-view="import"] #cw-copies-head,
 body.academy-authenticated[data-acad-view="import"] #cw-copy-list,

@@ -124,7 +124,7 @@ function display(){
    const fresh=state.pins.get(exam.id);
    if(fresh?.length){
     const pinBox=make('div','cw-pin-notice');
-    pinBox.append(make('strong','','PIN élèves à sauvegarder maintenant'));
+    pinBox.append(make('strong','','PIN provisoires élèves à distribuer individuellement'));
     const table=make('div','cw-pin-table');
     for(const x of fresh)table.append(make('span','','N° '+x.number+' · PIN '+x.pin));
     pinBox.append(table,createButton('Télécharger les PIN en CSV','cw-accent',()=>downloadPins(fresh,exam.title)));share.append(pinBox);

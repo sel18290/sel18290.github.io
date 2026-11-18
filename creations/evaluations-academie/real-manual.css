@@ -36,3 +36,15 @@
 @media(max-width:1120px){.real-manual-columns{grid-template-columns: minmax(180px,.8fr) minmax(0,1.25fr)}.real-manual-config{grid-column:1/-1}}
 @media(max-width:740px){.real-manual-columns{grid-template-columns:1fr}.real-manual-config{grid-column:auto}.real-manual-general{grid-template-columns:1fr 1fr}.real-manual-general label:has(textarea){grid-column:1/-1}.real-manual-settings{padding:12px}.real-manual-columns>nav,.real-manual-columns>section{padding:12px}.real-manual-qgrid{grid-template-columns:1fr 110px}.real-manual-question-tabs{max-height:205px}.real-manual-head{gap:7px}}
 @media(max-width:420px){.real-manual-general{grid-template-columns:1fr}.real-manual-general .real-manual-wide{grid-column:1}.real-manual-qgrid{grid-template-columns:1fr}.real-manual-stats{font-size:11px}.real-manual-stats strong{font-size:15px}}
+
+.real-manual-attach{display:grid;gap:8px;background:#19374b;border:1px dashed #7191a8;border-radius:12px;padding:13px;margin:12px 0;color:#d3e8f2;font-size:12px}
+.real-manual-attach input[type=file]{font-size:12px;max-width:100%;color:#d8effc;background:#142b41;border:1px solid #54768b;border-radius:8px;padding:10px}
+.real-manual-attach small{font-size:11px;color:#aec8d8;line-height:1.6}
+.real-manual-page-bar{display:flex;justify-content:center;align-items:center;gap:10px;margin:12px 0;color:#d2eaf6;font-size:12px}
+.real-manual-page-bar[hidden],.real-manual-original[hidden]{display:none!important}
+.real-manual-page-bar button{background:#213d56;color:#e6f9ff;border:1px solid #54849c;border-radius:9px;min-width:40px;min-height:38px;cursor:pointer}
+.real-manual-page-bar button:disabled{opacity:.4}
+.real-manual-original{overflow:auto;max-height:600px;border:1px solid #4b6d80;border-radius:12px;background:#eef1f4;padding:6px;line-height:1.5}
+.real-manual-original canvas{display:block;width:100%!important;height:auto!important}
+.real-manual-word{padding:12px;color:#173444;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f2f5f8}
+@media(max-width:740px){.real-manual-original{max-height:430px}.real-manual-attach{padding:10px}}

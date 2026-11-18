@@ -21,7 +21,7 @@ function watermark(exam,attempt){
   Array.from({length:9},(_,i)=>'<span>'+esc(i%3===0?line:identity+' · AIDE IA INTERDITE')+'</span>').join('')+
   '</div>';
 }
-function toggle(exam,key,title,desc){const checked=config(exam)[key];return '<label class="integrity-toggle"><span><strong>'+esc(title)+'</strong><small>'+esc(desc)+'</small></span><input type="checkbox" data-integrity-toggle="'+key+'" data-exam="'+esc(exam.id)+'" '+(checked?'checked':'')+'><span class="integrity-switch" aria-hidden="true"></span></label>';}
+function toggle(exam,key,title,desc){const checked=config(exam)[key];return '<label class="integrity-toggle integrity-tool-row"><span><strong>'+esc(title)+'</strong><small>'+esc(desc)+'</small></span><span class="integrity-tool-control"><span class="integrity-tool-state '+(checked?'is-on':'is-off')+'">'+(checked?'Activé':'Désactivé')+'</span><input type="checkbox" aria-label="'+(checked?'Désactiver ':'Activer ')+esc(title)+'" data-integrity-toggle="'+key+'" data-exam="'+esc(exam.id)+'" '+(checked?'checked':'')+'><span class="integrity-switch" aria-hidden="true"></span></span></label>';}
 function settings(exam){
  const c=config(exam);
  return '<div class="integrity-settings integrity-v2-settings">'+

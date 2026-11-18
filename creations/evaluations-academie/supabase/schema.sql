@@ -1,4 +1,4 @@
--- CORTEX Académie — schéma préparatoire, NON appliqué (projet Supabase non disponible)
+-- CORTEX Académie — schéma de départ déployé sur CORTEX Evaluations Paris (eu-west-3)
 -- IMPORTANT : activer d'abord Auth -> Email -> Confirm Email + SMTP personnalisé.
 -- Aucun nom/prénom d'élève ni INE n'est requis dans ces tables.
 -- Ce schéma est volontairement fermé aux accès élèves/anon :

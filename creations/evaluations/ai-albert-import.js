@@ -278,7 +278,7 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   for(let i=0;i<questions.length;i++){
    const q=questions[i],refs=docs.filter(d=>(q.docRefs||[]).includes(d.id));
    if(refs.length){for(const d of refs)relevant.push({doc:d,questionIndex:i})}
-   else relevant.push({doc:{id:'page-'+q.page,title:'Page '+q.page,page:q.page,bbox:null},questionIndex:i});
+   else if(!options.onlyReferenced)relevant.push({doc:{id:'page-'+q.page,title:'Page '+q.page,page:q.page,bbox:null},questionIndex:i});
   }
   const selected=relevant.slice(0,max),skipped=relevant.length-selected.length;
   const rend=(file.name||'').toLowerCase().endsWith('.pdf')?await pdfRenderer(file):await wordRenderer(file);

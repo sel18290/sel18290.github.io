@@ -106,6 +106,11 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+if(view==='teacher'&&tab==='creer'&&editor){
+ window.CORTEX_DEMO_REAL_WORKSHOP.mount(editor,state.classes,editorIndex,async()=>{
+  action({dataset:{action:'save-exam'}});
+ });
+}
 if(view==='teacher'&&tab==='import'){
  const ve=examBy(importExamId);
  if(ve?.sourceId)Promise.resolve().then(()=>window.CORTEX_VISUAL.showOriginal(ve,visualPage,visualRecordCapture));
@@ -244,7 +249,9 @@ function editorFor(id){
 function teacherEditor(){
   if(!editor)editor=editorFor(null);
   editorIndex=Math.max(0,Math.min(editorIndex,editor.questions.length-1));
-  return window.CORTEX_EDITOR.render({exam:editor,index:editorIndex,docTab:editorDocTab});
+  // Atelier de création : formulaire identique à celui de l'espace réel.
+  // Seul le moteur de persistance diffère (navigateur local en démonstration).
+  return window.CORTEX_DEMO_REAL_WORKSHOP.render();
 }
 
 function teacherCodes(){

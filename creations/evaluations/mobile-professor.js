@@ -17,13 +17,14 @@
   const more=[
     {tab:'codes',label:'PIN élèves',icon:'⌑',detail:'Suivre et réinitialiser les PIN personnels'},
     {tab:'suivi',label:'Suivi des épreuves',icon:'◷',detail:'Épreuves en cours et interruptions'},
+     {tab:'integrite',label:'Anti-triche',icon:'◈',detail:'Réglages et journal des incidents'},
     {tab:'analyses',label:'Analyses',icon:'▥',detail:'Résultats et indicateurs'},
     {tab:'import',label:'Importer un PDF / Word',icon:'⇪',detail:'Créer depuis un document'},
     {tab:'creer',label:'Créer un contrôle',icon:'＋',detail:'Énoncés, documents et barème'}
   ];
   const labels={
     dashboard:'Mon espace',classes:'Mes classes',codes:'PIN des élèves',controles:'Mes contrôles',
-    copies:'Copies et notes',suivi:'Suivi des épreuves',
+    copies:'Copies et notes',suivi:'Suivi des épreuves',integrite:'Mode anti-triche',
     analyses:'Analyses pédagogiques',import:'Importer un contrôle',
     creer:'Créer un contrôle',corriger:'Corriger une copie'
   };

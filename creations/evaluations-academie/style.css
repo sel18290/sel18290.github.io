@@ -400,3 +400,111 @@ body.cw-student-active .layout,body.cw-student-active .bottom{display:none!impor
  .auth-helpbox-body>p{font-size:11px}
  .auth-confirm-link-form button,.auth-resend{width:100%;min-height:52px}
 }
+
+
+/* CORTEX Académie v14 — espace professeur pleine largeur.
+   L'ancienne page d'authentification reste inchangée pour les visiteurs non connectés. */
+body.academy-authenticated .layout{display:block;width:100%;max-width:1450px;min-height:0;margin:0 auto;padding:14px 30px 64px}
+body.academy-authenticated .hero,body.academy-authenticated .tabbar{display:none!important}
+body.academy-authenticated .access{display:block;width:100%;max-width:none;min-width:0}
+body.academy-authenticated .panel{width:100%;min-width:0;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+body.academy-authenticated #account-view{width:100%;min-width:0}
+body.academy-authenticated .top{max-width:1450px}
+body.academy-authenticated .bottom{margin-top:10px}
+.acad-prof-welcome{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;border:1px solid #485b75;border-radius:18px;background:linear-gradient(120deg,#1b3448,#152338 64%,#292438);box-shadow:0 12px 30px #030a1655}
+.acad-prof-welcome .eyebrow{color:#fda9b8;font-size:10px;letter-spacing:.14em}
+.acad-prof-welcome h2{font-size:clamp(24px,3.3vw,38px);line-height:1.12;color:#f9fcff;letter-spacing:-.04em;margin:10px 0 8px}
+.acad-prof-dot{color:#f77e96}
+.acad-prof-welcome>div:first-child>p{color:#bfd1df;font-size:12px;line-height:1.6;margin:0}
+.acad-prof-user{min-width:240px;max-width:390px;padding:14px 17px;background:#10243a;border:1px solid #4c6179;border-radius:13px;display:grid;gap:8px}
+.acad-prof-user>span{font-weight:850;color:#d6b0c1;font-size:9px;letter-spacing:.12em}
+.acad-prof-user .account-email{font-size:12px;color:#d4fff2!important;overflow-wrap:anywhere}
+.acad-prof-logout{display:inline-flex;min-height:43px;align-items:center;justify-content:center;padding:9px 13px;background:#33263b;border:1px solid #8e526d;border-radius:9px;color:#ffd4df;font-size:11px;font-weight:830;cursor:pointer}
+.acad-prof-logout:hover{filter:brightness(1.12)}
+body.academy-authenticated .academie-prof-nav{position:sticky;top:0;z-index:40;display:flex;gap:7px;align-items:center;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#885269 transparent;margin:14px 0 16px;padding:10px;background:#111b2df5;border:1px solid #58617a;border-radius:14px;box-shadow:0 8px 21px #02091680}
+body.academy-authenticated .academie-prof-nav>a{min-height:46px;flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:10px 14px;white-space:nowrap;font-size:11px;color:#e3e2ee;border:1px solid #485b76;background:#202c42;border-radius:10px;scroll-snap-align:start}
+body.academy-authenticated .academie-prof-nav>a span{color:#f4a2af;font-size:17px}
+body.academy-authenticated .academie-prof-nav>a.is-active{border-color:#fc9bae;background:linear-gradient(118deg,#f37c92,#df5574);color:#24101e;box-shadow:0 3px 14px #f4798740}
+body.academy-authenticated .academie-prof-nav>a.is-active span{color:#37132b}
+body.academy-authenticated .academie-prof-nav>a:not(.is-active):hover{background:#3a314b}
+body.academy-authenticated .academie-prof-nav>a:last-child:not(.is-active){color:#ffd7e2;border-color:#99546c;background:#482e42}
+body.academy-authenticated #prof-content{margin-top:6px}
+body.academy-authenticated #prof-content>.prof-sec{margin-top:12px;scroll-margin-top:100px}
+body.academy-authenticated #acad-live-workflow{margin-top:12px}
+.acad-overview{display:grid;gap:18px}
+.acad-overview[hidden]{display:none!important}
+.acad-overview-head{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;padding:17px 3px 4px}
+.acad-overview-head .eyebrow{color:#f99aaf}
+.acad-overview-head h3{font-size:clamp(22px,3vw,29px);color:#fff;margin:8px 0 7px;letter-spacing:-.035em}
+.acad-overview-head p{max-width:670px;font-size:12px;color:#bdd2dd;line-height:1.7;margin:0}
+.acad-live-label{border:1px solid #4c8578;color:#b8fce2;background:#1c423f;padding:9px 12px;border-radius:99px;font-size:10px;font-weight:800;white-space:nowrap}
+.acad-overview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.acad-overview-stats>a{display:grid;align-content:center;min-height:138px;gap:8px;border:1px solid #52627b;border-radius:15px;background:linear-gradient(135deg,#1d3347,#1a2539);padding:15px 19px;transition:transform .15s,border-color .15s}
+.acad-overview-stats>a:hover{transform:translateY(-3px);border-color:#f28b9e}
+.acad-overview-stats>a>span{font-size:22px;color:#f4a4b6}
+.acad-overview-stats>a>strong{font-size:32px;color:#fff;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
+.acad-overview-stats>a>small{font-size:11px;color:#bcd1e1;font-weight:750}
+.acad-overview>h4{color:#f3f8ff;font-size:17px;margin:3px 0 -6px}
+.acad-overview-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.acad-overview-actions>a{display:grid;grid-template-columns:39px minmax(0,1fr) 18px;grid-template-rows:23px auto;gap:5px 10px;padding:18px;border:1px solid #526078;background:#182b40;border-radius:14px;min-height:110px;align-content:center;transition:transform .15s,border-color .15s}
+.acad-overview-actions>a:hover{border-color:#e28b9b;background:#292d43;transform:translateY(-2px)}
+.acad-overview-actions>a>span{grid-row:span 2;display:grid;place-items:center;font-size:23px;width:38px;height:38px;background:#4c3048;border-radius:10px;color:#ffbdcc}
+.acad-overview-actions>a>strong{grid-column:2;font-size:13px;color:#f5f9ff;align-self:end}
+.acad-overview-actions>a>small{grid-column:2;font-size:10px;color:#aec4d3;line-height:1.5}
+.acad-overview-actions>a>b{grid-column:3;grid-row:1/3;color:#f4a4b6;align-self:center;font-size:16px}
+.acad-overview-help{font-size:10px;color:#a3b6c6;line-height:1.7;padding:14px;border:1px solid #44566b;background:#121f31;border-radius:11px;margin:0}
+/* One destination at a time. No source forms or teacher data are removed. */
+body.academy-authenticated[data-acad-view="overview"] #prof-content{display:none!important}
+body.academy-authenticated[data-acad-view="classes"] #prof-content>:not(#prof-classes),
+body.academy-authenticated[data-acad-view="assessments"] #prof-content>:not(#prof-assessments),
+body.academy-authenticated[data-acad-view="integrity"] #prof-content>:not(#acad-integrity),
+body.academy-authenticated[data-acad-view="pins"] #prof-content>:not(#acad-live-workflow),
+body.academy-authenticated[data-acad-view="qr"] #prof-content>:not(#acad-live-workflow),
+body.academy-authenticated[data-acad-view="copies"] #prof-content>:not(#acad-live-workflow){display:none!important}
+body.academy-authenticated[data-acad-view="pins"] #acad-live-workflow>.prof-head,
+body.academy-authenticated[data-acad-view="pins"] #acad-live-workflow>.cw-intro,
+body.academy-authenticated[data-acad-view="pins"] #acad-live-workflow>.cw-workflow-subtitle,
+body.academy-authenticated[data-acad-view="pins"] #cw-assessment-cards,
+body.academy-authenticated[data-acad-view="pins"] #cw-copies-head,
+body.academy-authenticated[data-acad-view="pins"] #cw-copy-list{display:none!important}
+body.academy-authenticated[data-acad-view="qr"] #cw-persistent-classes,
+body.academy-authenticated[data-acad-view="qr"] #cw-copies-head,
+body.academy-authenticated[data-acad-view="qr"] #cw-copy-list{display:none!important}
+body.academy-authenticated[data-acad-view="copies"] #cw-persistent-classes,
+body.academy-authenticated[data-acad-view="copies"] #acad-live-workflow>.cw-intro,
+body.academy-authenticated[data-acad-view="copies"] #acad-live-workflow>.cw-workflow-subtitle,
+body.academy-authenticated[data-acad-view="copies"] #cw-assessment-cards{display:none!important}
+@media(max-width:1050px){
+ .acad-overview-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .acad-prof-welcome{padding:20px}
+}
+@media(max-width:740px){
+ body.academy-authenticated .layout{display:block;padding:5px 12px 44px;max-width:none}
+ body.academy-authenticated .panel{padding:0}
+ .acad-prof-welcome{display:grid;gap:15px;padding:18px 15px;border-radius:14px}
+ .acad-prof-welcome h2{font-size:27px;margin:8px 0 5px}
+ .acad-prof-welcome>div:first-child>p{font-size:11px}
+ .acad-prof-user{max-width:none;min-width:0;padding:11px 13px;grid-template-columns:1fr auto;align-items:center;column-gap:8px}
+ .acad-prof-user>span{grid-column:1;align-self:end}
+ .acad-prof-user .account-email{grid-column:1;font-size:11px;align-self:start;min-width:0}
+ .acad-prof-logout{grid-column:2;grid-row:1/3;min-height:46px;padding:8px 9px;font-size:10px}
+ body.academy-authenticated .academie-prof-nav{margin:11px -3px 14px;padding:7px;gap:6px;border-radius:12px}
+ body.academy-authenticated .academie-prof-nav>a{min-height:49px;padding:11px 12px;font-size:11px}
+ body.academy-authenticated .academie-prof-nav>a span{font-size:17px}
+ .acad-overview{gap:13px}
+ .acad-overview-head{padding:9px 1px 0;display:grid;gap:9px}
+ .acad-overview-head h3{font-size:22px}
+ .acad-overview-head p{font-size:11px}
+ .acad-live-label{width:max-content;padding:7px 10px}
+ .acad-overview-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .acad-overview-stats>a{min-height:112px;padding:12px 14px}
+ .acad-overview-stats>a>span{font-size:19px}
+ .acad-overview-stats>a>strong{font-size:27px}
+ .acad-overview-actions{grid-template-columns:1fr;gap:8px}
+ .acad-overview-actions>a{min-height:79px;padding:12px 14px;grid-template-columns:38px minmax(0,1fr) 16px}
+ .acad-overview>h4{font-size:16px}
+ body.academy-authenticated #prof-content>.prof-sec{margin-top:9px;padding:15px;scroll-margin-top:90px}
+}
+@media(prefers-reduced-motion:reduce){
+ .acad-overview-stats>a,.acad-overview-actions>a{transition:none}
+}

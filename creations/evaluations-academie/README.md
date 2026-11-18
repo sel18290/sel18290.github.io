@@ -151,3 +151,17 @@ Implémentation : professor-live.css (styles calqués sur la démo), professor-l
 Limites explicites : les rubriques reposent sur les fonctions Académie existantes ; l'éditeur avancé de la démo, la surveillance instantanée des élèves, les exports PDF de lot et toutes les interactions du moteur de démonstration ne sont pas encore reproduits à l'identique. Le suivi serveur n'affiche pas de faux « élèves en cours ». Tester le rendu réel et le parcours avec deux appareils avant de déclarer une parité fonctionnelle complète.
 
 Tests réalisés : syntaxe des scripts, équilibre et unicité de la structure HTML, styles CSS, présence de toutes les ressources, navigation entre les dix rubriques et rendu calculé à partir d'une simulation de données réelles.
+
+
+## Albert API — brouillons de correction (18 novembre 2026)
+
+- Supabase Edge Function cortex-ai-correction, version 2 (projet CORTEX Evaluations / Paris). Source versionnée : supabase/functions/cortex-ai-correction/index.ts.
+- Bouton « Corriger avec Albert IA » dans l’espace professeur / Copies & notes, sous connexion académique et autorisation du profil enseignant.
+- Endpoint : POST https://albert.api.etalab.gouv.fr/v1/chat/completions. Modèle par défaut : openai/gpt-oss-120b.
+- Brouillon sur 20 avec, pour chaque question : points, réponse attendue, commentaire, conseil et documents utilisés. Validation humaine obligatoire ; aucune note publiée automatiquement.
+- Documents textuels communs et spécifiques envoyés ; sujets PDF/Word/images et copies jointes bloqués tant que l’analyse documentaire complète n’existe pas.
+- Secret Edge ALBERT_API_KEY : clé Albert privée à créer à nouveau, puis enregistrer dans Supabase > Edge Functions > Secrets, jamais dans GitHub ou les fichiers JS publics.
+- Secret Edge CORTEX_AI_ENABLED : mettre à true uniquement après l’accord institutionnel / DPO pour transmettre des copies réelles. Sans cela aucune donnée n’est envoyée.
+- Secret facultatif ALBERT_MODEL : choisir un autre modèle Albert si nécessaire.
+- La clé photographiée dans une conversation doit être révoquée.
+- Aucune vraie copie n’était enregistrée dans Supabase lors de l’intégration ; tests de bout en bout et validation RGPD restent à effectuer.

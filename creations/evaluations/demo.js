@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,currentQrAssignmentId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -63,6 +63,7 @@ if(view==='student'&&(tab==='rejoindre'||tab==='pin'||tab==='pret')){
  // Un QR public de la démo doit aussi fonctionner dans un navigateur vierge.
  if(tab==='rejoindre' && bits.length>=7 && window.CORTEX_CLASSES.hydrateQrDemo(state,bits.slice(2,7)))save();
 }
+if(view==='student'&&(tab==='espace'||tab==='correction')&&!portalAuthorized()){portalSession=null;tab='accueil';}
 if(view==='student'&&(tab==='examen'||tab==='termine')){
   const ongoing=attemptBy(state.activeAttemptId),assignment=state.assignments.find(a=>a.id===ongoing?.assignmentId);
   if(!ongoing||!authorized(assignment,ongoing.studentNumber)){
@@ -70,7 +71,7 @@ if(view==='student'&&(tab==='examen'||tab==='termine')){
    else tab='accueil';
   }
 }
-if(view!=='student'){studentSession=null;}
+if(view!=='student'){studentSession=null;portalSession=null;}
 if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';studentSession=null;}
 render();
 }
@@ -261,8 +262,117 @@ return pageHead('Analyses pédagogiques','Un aperçu des résultats pour cibler 
 <div class="two-col"><section class="panel"><div class="panel-head"><h2>Répartition des notes</h2>${pill('Notes validées','live')}</div><div class="bars">${bins.map((n,i)=>`<div class="bar-row"><span>${i*5}–${i===3?'20':i*5+4} / 20</span><div class="bar-bg"><span style="width:${graded.length?(n/graded.length*100):0}%"></span></div><b>${n}</b></div>`).join('')}</div></section><section class="panel"><div class="panel-head"><h2>Idées de remédiation</h2></div><p class="small muted">Exemples de suggestions pédagogiques, non générées par une IA dans cette démonstration.</p><div class="preview-list"><div class="summary-answer"><strong>Sommeil</strong><p>Revoir les conséquences du manque de sommeil avec une carte mentale.</p></div><div class="summary-answer"><strong>Réponses rédigées</strong><p>Entraîner les élèves à justifier avec une notion scientifique et un exemple.</p></div></div></section></div>`;
 }
 function studentShell(){
-return `<div class="student-shell">${tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome()}</div>`;
+ if(tab==='accueil')return window.CORTEX_PORTAL.studentLogin(state);
+ if(tab==='espace'){
+  if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
+  return window.CORTEX_PORTAL.dashboard(state,portalSession,{period:portalPeriod,year:portalYear});
+ }
+ if(tab==='correction'){
+  if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
+  return window.CORTEX_PORTAL.correction(state,portalSession,portalCopyId);
+ }
+ return '<div class="student-shell">'+(tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
 }
+
+function portalAuthorized(){
+ if(!portalSession||Date.now()>portalSession.expiresAt)return false;
+ const cl=window.CORTEX_CLASSES.byId(state,portalSession.classId),A=window.CORTEX_ACCESS,P=window.CORTEX_PORTAL;
+ if(!cl||cl.archived||A.normalizeNumber(portalSession.number,cl)!==portalSession.number)return false;
+ const record=A.record(state,cl,portalSession.number);
+ return !!record&&record.hash===portalSession.hash&&P.getClassCode(state,cl)===portalSession.classCode;
+}
+function portalTouch(){if(portalAuthorized())portalSession.expiresAt=Date.now()+20*60*1000;}
+async function portalLogin(){
+ if(portalLoginBusy)return;
+ const id=document.getElementById('portal-class')?.value,cl=window.CORTEX_CLASSES.byId(state,id),
+   selectedLevel=document.getElementById('portal-level')?.value,number=window.CORTEX_ACCESS.normalizeNumber(document.getElementById('portal-number')?.value,cl),
+   classCode=String(document.getElementById('portal-classcode')?.value||'').trim().toUpperCase().replace(/\s+/g,''),
+   pin=String(document.getElementById('portal-pin')?.value||'');
+ const P=window.CORTEX_PORTAL,A=window.CORTEX_ACCESS;
+ if(!cl||cl.archived||!number||selectedLevel!==P.level(cl.name)||!/^\d{6}$/.test(pin)){
+  showToast('Vérifie ton niveau, ta classe, ton numéro de liste et ton PIN.');return;
+ }
+ const expected=P.getClassCode(state,cl);
+ if(!expected||classCode!==expected){showToast('Identifiants incorrects. Vérifie le code communiqué par ton professeur.');return;}
+ const button=document.querySelector('[data-action="portal-login"]');
+ portalLoginBusy=true;
+ if(button){button.disabled=true;button.textContent='Connexion en cours…';}
+ try{
+  await A.verify(state,cl,number,pin);save();
+  const record=A.record(state,cl,number);
+  if(!record||view!=='student'||tab!=='accueil')return;
+  portalSession={classId:cl.id,number,hash:record.hash,classCode:expected,expiresAt:Date.now()+20*60*1000};
+  portalPeriod='s1';portalYear=P.keyYear(Date.now());portalCopyId=null;
+  nav('student','espace');showToast('Bienvenue dans ton espace CORTEX.');
+ }catch(err){
+  save();showToast(err?.message||'Impossible de se connecter.');
+  if(button?.isConnected){button.disabled=false;button.innerHTML='Accéder à mon espace ↗';}
+ }finally{portalLoginBusy=false;}
+}
+function portalAction(kind,el){
+ const P=window.CORTEX_PORTAL,id=el.dataset.id;
+ if(kind==='portal-login'){portalLogin();return;}
+ if(kind==='portal-toggle-pin'){
+  const input=document.getElementById('portal-pin');if(!input)return;
+  input.type=input.type==='password'?'text':'password';
+  el.textContent=input.type==='password'?'Afficher':'Masquer';input.focus();return;
+ }
+ if(kind==='portal-open'){portalSession=null;portalCopyId=null;nav('student','accueil');return;}
+ if(kind==='portal-logout'){portalSession=null;portalCopyId=null;nav('student','accueil');showToast('Déconnexion effectuée.');return;}
+ if(kind==='portal-class-code'||kind==='portal-create-class-code'||kind==='portal-copy-class-code'||kind==='portal-ask-rotate-code'||kind==='portal-confirm-rotate-code'){
+  const cl=window.CORTEX_CLASSES.byId(state,id);if(!cl||cl.archived){showToast('Classe introuvable.');return;}
+  if(kind==='portal-create-class-code'){
+   try{P.makeCode(state,cl);save();}catch(err){showToast(err.message);return;}
+  }
+  if(kind==='portal-copy-class-code'){
+   const code=P.getClassCode(state,cl);
+   if(navigator.clipboard?.writeText)navigator.clipboard.writeText(code).then(()=>showToast('Code de classe copié.')).catch(()=>showToast('Sélectionne le code affiché.'));
+   else showToast('Sélectionne le code affiché pour le copier.');
+   return;
+  }
+  if(kind==='portal-ask-rotate-code'){
+   modalShow('Renouveler le code de classe ?','<p>Le précédent code de '+esc(cl.name)+' ne permettra plus d’accéder à Mon CORTEX. Les PIN et copies restent conservés.</p>',
+    '<button class="btn danger" data-action="portal-confirm-rotate-code" data-id="'+esc(cl.id)+'">Confirmer</button>'+
+    '<button class="btn secondary" data-action="portal-class-code" data-id="'+esc(cl.id)+'">Annuler</button>');return;
+  }
+  if(kind==='portal-confirm-rotate-code'){
+   try{P.makeCode(state,cl,true);save();}catch(err){showToast(err.message);return;}
+  }
+  modalShow('Code de classe · '+esc(cl.name),P.classPanel(state,cl),btn('Fermer','close-modal','ghost'));
+  return;
+ }
+ if(!portalAuthorized()){portalSession=null;nav('student','accueil');showToast('Session expirée. Reconnecte-toi.');return;}
+ portalTouch();
+ if(kind==='portal-period'){portalPeriod=el.dataset.period==='s2'?'s2':'s1';render();return;}
+ if(kind==='portal-back'){portalCopyId=null;nav('student','espace');return;}
+ if(kind==='portal-copy'){
+  if(!P.candidate(state,portalSession.classId,portalSession.number,id)){showToast('Cette correction n’est pas disponible.');return;}
+  portalCopyId=id;nav('student','correction');return;
+ }
+ if(kind==='portal-revision'){
+  const at=P.candidate(state,portalSession.classId,portalSession.number,el.dataset.attempt),q=state.exams.find(e=>e.id===at?.examId)?.questions.find(x=>x.id===el.dataset.question);
+  if(!at||!q||typeof at.marks?.[q.id]?.points!=='number'){showToast('Question indisponible.');return;}
+  state.studentReviewFlags ||= {};
+  const cl=(state.studentReviewFlags[portalSession.classId]||={});
+  const student=(cl[portalSession.number]||={});
+  const questions=(student[at.id]||={});
+  questions[q.id]=!questions[q.id];save();render();return;
+ }
+ if(kind==='portal-show-results'||kind==='portal-show-revision'){
+  document.getElementById(kind==='portal-show-results'?'portal-results':'portal-revisions')?.scrollIntoView({behavior:'smooth',block:'start'});return;
+ }
+ if(kind==='portal-print'){window.print?.();return;}
+ if(kind==='portal-export'){
+  const csv=P.exportCsv(state,portalSession);
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;
+  link.download='CORTEX-bilan-'+portalSession.classId+'-'+portalSession.number+'.csv';
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+  showToast('Bilan téléchargé.');return;
+ }
+}
+
 function studentWelcome(){
  const a=state.assignments.find(x=>x.id===studentAssignmentId);
  const valid=a&&a.active&&a.token===studentQrToken&&!window.CORTEX_CLASSES.byId(state,a.classId)?.archived&&(!a.groupId||!window.CORTEX_CLASSES.group(state,a.classId,a.groupId)?.archived);

@@ -1,0 +1,223 @@
+/*
+ * CORTEX · audit ergonomie téléphone — version 1
+ * Important : toutes les règles sont limitées aux terminaux à pointeur tactile.
+ * L'interface ordinateur, y compris ses grilles et son ciel animé, reste intacte.
+ */
+@media (max-width:760px) and (pointer:coarse){
+ html:has(body.cortex-noctis){max-width:100%;overflow-x:clip}
+ body.cortex-noctis{max-width:100%;overflow-x:clip}
+ body.cortex-noctis :is(#app,.shell,.layout,.workspace,.workspace-main,
+  .portal-root,.cw-student-portal,#acad-import-workspace,#prof-assessments){min-width:0}
+ body.cortex-noctis :is(img,canvas,video){max-width:100%}
+
+ /* 1. Navigation DEMO : quatre premiers accès + recherche + retour sans débordement */
+ body.cortex-noctis .topbar{gap:7px 8px;padding:7px 9px}
+ body.cortex-noctis .topbar>.brand{flex:0 1 auto;min-width:0}
+ body.cortex-noctis .topbar .brand span:last-child{min-width:0}
+ body.cortex-noctis .topbar .brand strong{white-space:nowrap}
+ body.cortex-noctis .topbar #ct-tour-launch-mobile{
+  min-height:44px;min-width:78px;padding:8px 9px;
+  line-height:1.2;flex:0 0 auto
+ }
+ body.cortex-noctis .topbar>.cortex-traffic{box-sizing:border-box;min-width:0}
+ body.cortex-noctis .topbar .cortex-traffic-metric{min-width:0}
+ body.cortex-noctis .topbar .cortex-traffic-data{min-width:0}
+ body.cortex-noctis .topbar .cortex-traffic-data strong{font-size:16px}
+ body.cortex-noctis .topbar .cortex-traffic-data small{
+  white-space:normal;font-size:10px;line-height:1.2
+ }
+ body.cortex-noctis .topbar .top-actions>*{min-width:0}
+ body.cortex-noctis .topbar .top-actions .top-link,
+ body.cortex-noctis .topbar .top-actions .top-exit,
+ body.cortex-noctis .topbar .top-actions .ct-quicknav-trigger{
+  min-height:53px;touch-action:manipulation
+ }
+ body.cortex-noctis #app{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+ body.cortex-noctis .topbar:has(~ #app .workspace)~#app{padding-bottom:calc(102px + env(safe-area-inset-bottom,0px))}
+
+ /* 2. Albert : accessible, sans masquer les champs quand le clavier apparaît.
+  * Corrige également le top:37% de la décoration de robot, plus spécifique que
+  * l'ancienne règle mobile et qui annulait le placement au bas de l'écran.
+  */
+ body.cortex-noctis #cortex-albert-person{
+  position:fixed;top:auto!important;bottom:calc(89px + env(safe-area-inset-bottom,0px))!important;
+  left:max(5px,env(safe-area-inset-left,0px));width:60px;min-height:72px;
+  z-index:58;transform:none;opacity:.96
+ }
+ body.cortex-noctis #cortex-albert-person .cortex-albert-invite{
+  left:0;bottom:calc(100% + 9px);width:136px;padding:9px 10px;
+  max-width:calc(100vw - 20px)
+ }
+ body.cortex-noctis #cortex-albert-person .cortex-albert-invite strong{font-size:12px}
+ body.cortex-noctis #cortex-albert-person .cortex-albert-invite small{font-size:10px}
+ body.cortex-noctis:has(.student-exam) #cortex-albert-person .cortex-albert-invite,
+ body.cortex-noctis:has(.portal-correction) #cortex-albert-person .cortex-albert-invite,
+ body.cortex-noctis:has(.review-workspace) #cortex-albert-person .cortex-albert-invite{
+  display:none
+ }
+ body.cortex-noctis.mobile-input-focus #cortex-albert-person{display:none}
+ body.cortex-noctis .cortex-albert-dialog,
+ body.cortex-noctis .cortex-albert-wait{
+  box-sizing:border-box;max-width:calc(100vw - 18px);
+  max-height:calc(100dvh - 22px);overscroll-behavior:contain
+ }
+ body.cortex-noctis .cortex-albert-dialog-content{padding:15px}
+ body.cortex-noctis .cortex-albert-dialog :is(button,textarea){touch-action:manipulation}
+ body.cortex-noctis .cortex-albert-dialog .cortex-albert-close{width:44px;height:44px}
+ body.cortex-noctis .cortex-albert-examples button{min-height:44px}
+ body.cortex-noctis .cortex-albert-tabs{gap:6px}
+ body.cortex-noctis .cortex-albert-tabs button{min-height:47px;line-height:1.35}
+
+ /* 3. Visite guidée : panneau défilant et commandes hors de la zone couverte
+  * par la navigation inférieure du téléphone. */
+ body.cortex-noctis .ct-tour{
+  max-width:calc(100vw - 14px);
+  max-height:min(58dvh,450px);
+  bottom:calc(82px + env(safe-area-inset-bottom,0px));
+  overscroll-behavior:contain
+ }
+ body.cortex-noctis .ct-tour-mobile-main>p,
+ body.cortex-noctis .ct-tour-mobile-hint p{overflow-wrap:anywhere;line-height:1.55}
+ body.cortex-noctis .ct-tour-mobile-primary button{min-height:47px}
+ body.cortex-noctis .ct-tour-mini-help,
+ body.cortex-noctis .ct-tour-mini-next{min-height:44px}
+
+ /* 4. Carnet élève : cartes de copies avec estimation Albert en pleine largeur */
+ body.cortex-noctis .portal-root :is(.portal-section,.portal-stat,.portal-result,
+  .portal-demo-gateway,.portal-welcome){max-width:100%;box-sizing:border-box}
+ body.cortex-noctis .portal-login-form .portal-demo-gateway{
+  padding:16px 12px;margin:0 0 18px
+ }
+ body.cortex-noctis .portal-login-form .portal-preview-button{
+  width:100%;min-width:0;min-height:68px
+ }
+ body.cortex-noctis .portal-preview-copy{min-width:0}
+ body.cortex-noctis .portal-preview-copy strong{overflow-wrap:anywhere}
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate){
+  display:grid;grid-template-columns:36px minmax(0,1fr);
+  gap:9px;padding:12px
+ }
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate) .portal-result-icon{
+  width:35px;height:35px;grid-column:1;grid-row:1
+ }
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate) .portal-result-content{
+  grid-column:2;grid-row:1;min-width:0
+ }
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate) .portal-result-end{
+  grid-column:1/-1;grid-row:2;
+  display:grid;justify-items:stretch;gap:10px;
+  width:100%;max-width:none;min-width:0;text-align:left
+ }
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate) .portal-albert-estimate{
+  display:block;width:100%;max-width:none;min-height:48px
+ }
+ body.cortex-noctis .portal-result:has(.portal-albert-estimate) .cortex-estimate-result{
+  width:100%;max-width:none;min-width:0
+ }
+ body.cortex-noctis .portal-revision{min-width:0}
+ body.cortex-noctis .portal-revision p{overflow-wrap:anywhere}
+ body.cortex-noctis .portal-albert-tips>button{
+  width:100%;max-width:100%;min-height:48px;text-align:center
+ }
+
+ /* 5. Import et correction : ne jamais créer de débordement horizontal sur les
+  * documents, tout en conservant le défilement intérieur d'un tableau. */
+ body.cortex-noctis :is(.visual-workspace,.visual-origin,.visual-bank,
+  .visual-page-stage,.review-workspace,.review-layout,.ed-layout,
+  .real-manual-columns,.real-manual-document,
+  .cw-student-frame,#acad-import-workspace){max-width:100%;min-width:0}
+ body.cortex-noctis :is(.visual-page-stage,.source-body,
+  .real-manual-original,.cw-student-source-snippets,
+  .table-wrap){-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+ body.cortex-noctis :is(.visual-word-body,.source-document,
+  .review-source-content) :is(img,canvas,video){max-width:100%;height:auto}
+ body.cortex-noctis :is(.source-body,.visual-word-body,.cw-student-subject) table{
+  display:block;max-width:100%;overflow-x:auto
+ }
+ body.cortex-noctis :is(.real-manual-columns>nav,.real-manual-columns>section){
+  box-sizing:border-box;max-width:100%;min-width:0
+ }
+ body.cortex-noctis :is(.real-manual-workshop,.prof-exam-form,
+  #acad-import-workspace,.visual-import-start) :is(button,select,input,textarea){
+  max-width:100%;box-sizing:border-box
+ }
+ body.cortex-noctis :is(.real-manual-workshop,.prof-exam-form,
+  #acad-import-workspace,.visual-import-start) :is(button,select){
+  min-height:44px
+ }
+ body.cortex-noctis :is(input:not([type=checkbox]):not([type=radio]),
+  textarea,select){font-size:max(16px,1rem)}
+ body.cortex-noctis :is(.real-manual-question-tabs,
+  .review-question-scroll,.visual-steps,.cw-student-dashboard-tools){
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch
+ }
+
+ /* 6. Académie réelle : header sur deux étages, classe / étudiant visibles
+  * sans forcer un débordement sur 320-430px. */
+ body.cortex-noctis .top{
+  box-sizing:border-box;width:100%;max-width:100%;
+  padding:10px 12px;gap:9px;
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  align-items:center;justify-items:stretch
+ }
+ body.cortex-noctis .top>.cortex-creations-link{
+  grid-column:1;grid-row:1;justify-self:start;min-width:0
+ }
+ body.cortex-noctis .top>.brand{
+  grid-column:2;grid-row:1;min-width:0;justify-self:end;
+  margin:0
+ }
+ body.cortex-noctis .top>.brand strong{font-size:15px;white-space:nowrap}
+ body.cortex-noctis .top>.brand small{font-size:8px}
+ body.cortex-noctis .top>.cortex-traffic{
+  grid-column:1/-1;grid-row:2;
+  width:100%;margin:0;min-width:0;
+  justify-content:space-around
+ }
+ body.cortex-noctis .top>.academy-header-actions{
+  grid-column:1/-1;grid-row:3;width:100%;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
+  gap:8px;margin:0;min-width:0
+ }
+ body.cortex-noctis .top .academy-header-actions>a{
+  min-width:0;width:100%;box-sizing:border-box;
+  min-height:49px;white-space:normal;text-align:center
+ }
+ body.cortex-noctis .top .demo-primary .demo-label{
+  min-width:0;overflow-wrap:anywhere
+ }
+ body.cortex-noctis #cortex-real-entry{
+  box-sizing:border-box;padding:calc(12px + env(safe-area-inset-top,0px)) 12px
+ }
+ body.cortex-noctis .cortex-entry-card{width:100%;min-width:0;max-width:100%}
+ body.cortex-noctis .cortex-entry-links a{min-height:44px;box-sizing:border-box}
+ body.cortex-noctis .cw-student-portal :is(input,select,textarea){
+  width:100%;max-width:100%;min-width:0;box-sizing:border-box
+ }
+ body.cortex-noctis .cw-student-dashboard-tools>*{min-height:44px}
+}
+@media (max-width:370px) and (pointer:coarse){
+ body.cortex-noctis .topbar .brand small{display:none}
+ body.cortex-noctis .topbar .brand strong{font-size:14px}
+ body.cortex-noctis .topbar #ct-tour-launch-mobile{font-size:10px;padding:7px;min-width:75px}
+ body.cortex-noctis .topbar>.cortex-traffic{gap:2px}
+ body.cortex-noctis .topbar .cortex-traffic-symbol{width:22px;height:22px}
+ body.cortex-noctis .portal-demo-gateway-main{grid-template-columns:minmax(0,1fr) 44px}
+ body.cortex-noctis .portal-demo-orbit{width:44px}
+ body.cortex-noctis .portal-result{gap:8px;padding:10px}
+ body.cortex-noctis .top .academy-header-actions{grid-template-columns:1fr}
+ body.cortex-noctis .top .demo.demo-primary{justify-content:center}
+}
+/* Smartphone horizontal : correction légère du panneau guidé et des boutons. */
+@media (min-width:761px) and (max-width:950px) and (max-height:520px) and (pointer:coarse){
+ body.cortex-noctis .ct-tour{
+  max-height:calc(100dvh - 16px);bottom:8px;right:8px
+ }
+ body.cortex-noctis .ct-tour-mobile-primary button{min-height:44px}
+ body.cortex-noctis .topbar .top-actions{
+  flex-wrap:wrap;gap:4px
+ }
+ body.cortex-noctis :is(.cortex-albert-dialog,.cortex-albert-wait){
+  max-height:calc(100dvh - 12px)
+ }
+}

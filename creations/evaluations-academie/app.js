@@ -13,7 +13,7 @@ const acadRoutes={
  overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',
  assessments:'prof-assessments',copies:'cw-copies-head',suivi:'acad-live-monitoring',
  integrity:'acad-integrity',analyses:'acad-live-analytics',
- import:'cw-assessment-cards',creer:'exam-form',qr:'cw-assessment-cards'
+ import:'acad-import-workspace',creer:'exam-form',qr:'cw-assessment-cards'
 };
 function currentAcadView(){
  const hash=decodeURIComponent(String(location.hash||'').replace(/^#/,''));
@@ -42,7 +42,7 @@ document.addEventListener('click',event=>{
  showAcadSection(view);
  if(location.hash!==('#'+acadRoutes[view]))location.hash='#'+acadRoutes[view];
  requestAnimationFrame(()=>{
-  const id=view==='overview'?'prof-overview':(['pins','import','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
+  const id=view==='overview'?'prof-overview':(['pins','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
   document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
 });
@@ -298,6 +298,13 @@ function drawTeacherData(){
       input.setAttribute('aria-label',(input.checked?'Désactiver ':'Activer ')+title);
     });
     label.append(text,status,input);settings.append(label);
+  }
+  if(['pdf','docx'].includes(exam.content?.sourceType)){
+   const edit=el('button','btn secondary small',exam.published?'Consulter les documents':'Ouvrir l’atelier PDF/Word');
+   edit.type='button';edit.addEventListener('click',()=>{
+    if(!window.CORTEX_REAL_IMPORT?.openExisting){status('Atelier indisponible. Recharge la page.',true);return;}
+    window.CORTEX_REAL_IMPORT.openExisting(exam.id);
+   });detail.append(edit);
   }
   const tool=el('div','academie-anti-wrap');tool.append(settings);
   row.append(detail,action);$('exam-list').append(row,tool);

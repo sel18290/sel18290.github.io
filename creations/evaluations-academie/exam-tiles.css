@@ -51,3 +51,11 @@ body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exa
 
 /* Atelier de création isolé : même navigation test / réel */
 body.academy-authenticated[data-acad-view="creer"] #prof-content>:not(#prof-assessments){display:none!important}
+
+/* Parité visuelle des cartes Mes contrôles avec la station Noctis test */
+#prof-assessments .tile-grid{align-items:stretch}
+#prof-assessments .tile{background:linear-gradient(145deg,rgba(70,103,133,.76),rgba(40,66,98,.79));border:1.5px solid rgba(178,212,234,.84);border-radius:20px;box-shadow:0 12px 35px rgba(3,15,35,.2)}
+#prof-assessments .tile h3{font-size:clamp(15px,1.4vw,18px);font-weight:850}
+#prof-assessments .tile .tile-foot{margin-top:auto;border-top-color:rgba(203,230,243,.35)}
+#prof-assessments .cortex-exam-class-heading{display:inline-flex;align-items:center;max-width:100%;padding:7px 10px;border:1px solid rgba(160,234,221,.66);border-radius:9px;background:rgba(17,58,71,.48);font-size:12px;font-weight:850;color:#d0ffed;overflow-wrap:anywhere}
+.cortex-publish-body .cortex-publish-class-line{font-size:14px;color:#baffea;font-weight:800}

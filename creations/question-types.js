@@ -104,7 +104,7 @@ function readAnswer(root,q){
 }
 function summary(q,answer){
  const t=type(q),val=String(answer||''),data=parsed(val);
- if(t==='choice')return arr(q.choices)[Number(val)]||'Sans réponse';
+ if(t==='choice')return val===''?'Sans réponse':(arr(q.choices)[Number(val)]||'Sans réponse');
  if(t==='boolean')return val==='0'?'Vrai':val==='1'?'Faux':'Sans réponse';
  if(t==='multi')return data.map(i=>arr(q.choices)[Number(i)]||'').filter(Boolean).join(' ; ')||'Sans réponse';
  if(t==='table'){const cols=arr(q.tableColumns);return arr(q.tableRows).map((row,i)=>row+' : '+cols.map((col,j)=>col+' = '+(data[i*cols.length+j]||'—')).join(' ; ')).join('\n');}

@@ -1,0 +1,10 @@
+/* Passerelles NOCTIS / CORTEX - même identité sur test et réel. */
+.cortex-creations-link{display:inline-flex;align-items:center;gap:9px;flex:none;max-width:225px;min-width:0;padding:9px 12px;border:1px solid #7c9cab;border-radius:12px;color:#e1f7ff;text-decoration:none;background:linear-gradient(125deg,#17394a,#132a42);box-shadow:0 2px 14px #0005;line-height:1.1}
+.cortex-creations-link:hover,.cortex-creations-link:focus-visible{background:#245467;color:#faffff;border-color:#a1e8e0}
+.cortex-creations-link .cortex-creations-emblem{display:grid;place-items:center;width:27px;height:27px;flex:none;border-radius:8px;background:linear-gradient(145deg,#a0f0dd,#78a5d0);font-size:17px;color:#10354b;font-weight:900}
+.cortex-creations-link strong{display:block;font-size:12px;font-weight:850;white-space:nowrap}
+.cortex-creations-link small{display:block;font-size:9px;color:#abced7;font-weight:600;white-space:nowrap;margin-top:4px}
+.topbar .cortex-creations-link{margin-right:8px}
+.top .cortex-creations-link{margin-right:14px}
+@media(max-width:940px){.cortex-creations-link{padding:8px 9px;gap:6px}.cortex-creations-link small{display:none}.cortex-creations-link strong{font-size:11px}.cortex-creations-link .cortex-creations-emblem{width:24px;height:24px}}
+@media(max-width:620px){.cortex-creations-link{padding:6px 7px;min-width:34px;flex:none}.cortex-creations-link small{display:none}.cortex-creations-link strong{display:none}.cortex-creations-link .cortex-creations-emblem{width:25px;height:25px}}

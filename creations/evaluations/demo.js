@@ -105,6 +105,7 @@ header();
 if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
+if(view==='student'&&window.CORTEX_ALBERT_TOOLS?.hydrate)window.CORTEX_ALBERT_TOOLS.hydrate();
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
 if(view==='teacher'&&tab==='creer'&&editor){
  window.CORTEX_DEMO_REAL_WORKSHOP.mount(editor,state.classes,editorIndex,async()=>{

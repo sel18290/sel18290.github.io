@@ -7,6 +7,7 @@ const tabs=[...document.querySelectorAll('[data-tab]')];
 let supabase=null;
 let mode='login';
 let busy=false;
+let recoveringPassword=false;
 const redirectUrl=location.origin+location.pathname;
 
 function status(text,error=false){
@@ -53,11 +54,17 @@ async function init(){
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
   $('setup-notice').hidden=true;
   supabase.auth.onAuthStateChange((event)=>{
-   if(event==='PASSWORD_RECOVERY')queueMicrotask(()=>selectMode('update'));
+   if(event==='PASSWORD_RECOVERY'){
+    recoveringPassword=true;
+    queueMicrotask(()=>selectMode('update'));
+   }else if(event==='SIGNED_OUT'){
+    teacherId=null;myClasses=[];myExams=[];
+    if(!$('account-view').hidden)queueMicrotask(()=>selectMode('login'));
+   }
   });
   const {data:{user},error}=await supabase.auth.getUser();
   if(error&&!['Auth session missing!','Auth session missing'].includes(error.message||''))status('Vérification de session : '+error.message,true);
-  if(user)await showUser(user);
+  if(user&&!recoveringPassword)await showUser(user);
  }catch(err){
   $('submit').disabled=true;
   status('Chargement du service d’authentification impossible. '+(err?.message||'Réessayez plus tard.'),true);
@@ -66,8 +73,8 @@ async function init(){
 async function showUser(user){
  if(!academicEmail(user.email)||!user.email_confirmed_at){
   await supabase?.auth.signOut();
-  status('Une adresse @ac-paris.fr confirmée est obligatoire.',true);
   selectMode('login');
+  status('Une adresse @ac-paris.fr confirmée est obligatoire.',true);
   return;
  }
  $('account-email').textContent=user.email;
@@ -213,6 +220,7 @@ $('auth-form').addEventListener('submit',async ev=>{
   }else if(mode==='update'){
    const {error}=await supabase.auth.updateUser({password});
    if(error)throw error;
+   recoveringPassword=false;
    status('Mot de passe mis à jour. Vous pouvez maintenant utiliser votre nouveau mot de passe.');
    const {data:{user}}=await supabase.auth.getUser();
    if(user)await showUser(user);

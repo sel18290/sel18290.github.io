@@ -530,7 +530,8 @@ async function processImport(file,options={}){
    sourcePages:parsed?.pages?.map(p=>String(p||'').slice(0,2500))||[],sourcePageCount:data.pages,
    assets:[],questions,
    aiPrepared:!!aiDraft,detectedDocuments:aiDraft?.documents||[],
-   aiWarnings:aiDraft?.warnings||[]
+   aiWarnings:aiDraft?.warnings||[],
+   aiError:useAlbert&&!aiDraft?String(aiError?.message||'Analyse Albert indisponible.'):''
   };
   if(aiDraft&&window.CORTEX_ALBERT_IMPORT.capturePages){
    try{

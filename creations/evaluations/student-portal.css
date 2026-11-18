@@ -245,3 +245,7 @@
  .portal-week-chart{min-width:0!important;grid-auto-columns:minmax(0,1fr)}
  .portal-demo-warning{display:none!important}
 }
+
+.portal-preview-button{width:100%;padding:12px 16px;margin:4px 0 17px;border:1px dashed #70b5aa;border-radius:11px;background:#193a43;color:#b3ffea;font-size:12px;font-weight:780}
+.portal-preview-button:hover{background:#21535d}
+.portal-demo-ribbon{display:flex;align-items:center;justify-content:center;text-align:center;border-radius:11px;background:#284a45;border:1px solid #67aa93;color:#d4ffe9;font-size:11px;letter-spacing:.08em;font-weight:850;padding:11px;margin:0 0 11px}

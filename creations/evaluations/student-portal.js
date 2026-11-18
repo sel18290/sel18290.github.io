@@ -174,7 +174,10 @@ window.CORTEX_PORTAL=(function(){
    const badge=pub?'<span class="portal-status ready">✓ Corrigé et publié</span>':open?'<span class="portal-status wait">En cours</span>':'<span class="portal-status wait">Correction en attente</span>';
    return '<article class="portal-result"><div class="portal-result-icon" aria-hidden="true">'+(pub?'✓':open?'◷':'·')+'</div>'+
     '<div class="portal-result-content"><strong>'+esc(ex?.title||'Évaluation')+'</strong><small>'+esc(date(at.submittedAt||at.startedAt))+' · '+esc(at.groupName||cl.name)+'</small>'+badge+'</div>'+
-    '<div class="portal-result-end">'+(pub?'<div class="portal-grade">'+grade(at.grade)+'<span>/20</span></div><button class="portal-link" data-action="portal-copy" data-id="'+esc(at.id)+'">Voir ma correction ↗</button>':open?'<span class="portal-pending">Brouillon en cours</span>':
+    '<div class="portal-result-end">'+(pub?'<div class="portal-grade">'+grade(at.grade)+'<span>/20</span></div><button class="portal-link" data-action="portal-copy" data-id="'+esc(at.id)+'">Voir ma correction ↗</button>'+
+      (opts.preview?'<p class="portal-albert-hook">✦ Pour comprendre tes réussites et progresser, Albert peut relire ta correction.</p>'+
+       '<button class="portal-albert-corrected" type="button" data-action="portal-albert-corrected" data-id="'+esc(at.id)+'">✦ Albert m’aide à comprendre ma copie</button>'+
+       '<div class="portal-albert-corrected-slot" data-albert-copy="'+esc(at.id)+'" aria-live="polite" role="status"></div>':''):open?'<span class="portal-pending">Brouillon en cours</span>':
     opts.preview&&at.id==='exemple-attente-albert'?
       '<span class="portal-pending">En attente de la correction du professeur</span>'+
       '<button type="button" class="portal-albert-estimate" data-action="portal-albert-estimate" data-id="'+esc(at.id)+'">✦ Estimer ma note avec Albert IA</button>'+
@@ -208,15 +211,15 @@ window.CORTEX_PORTAL=(function(){
    '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">02 / TES ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
    '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
-   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>Des aides rédigées par Albert à partir d’un parcours fictif, sans jugement ni note supplémentaire. Aucune réponse personnelle n’est envoyée.</p></div>'+
+   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.</p></div>'+
    '<span class="portal-count">✦ Aides Albert</span></div>'+
    '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Générer mes aides avec Albert IA</button>'+
     '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
      (Array.isArray(window.CORTEX_ALBERT_TOOLS?.tips)?
        window.CORTEX_ALBERT_TOOLS.tips.map((tip,i)=>'<article class="portal-revision cortex-albert-tip"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div><div><span class="portal-kicker">'+esc(tip.topic)+'</span><strong>'+esc(tip.title)+'</strong><p>'+esc(tip.advice)+'</p></div></article>').join(''):
-       '<p class="portal-empty">Albert proposera trois aides de révision issues d’un parcours scolaire fictif. Aucun conseil n’est prérempli.</p>')+
+       '<p class="portal-empty">Albert analysera les contrôles corrigés pour identifier les réussites, les difficultés récurrentes et les prochaines étapes.</p>')+
      '</div></div>'+
-    '<p class="portal-revision-note">Ces aides sont générées par Albert sur un profil de démonstration, pas sur tes réponses personnelles. Elles ne modifient pas la note ni la correction de ton professeur.</p></section>'+
+    '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p></section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+
@@ -245,6 +248,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-correction-head"><button type="button" data-action="portal-back" class="portal-back">← Mon espace</button><span class="portal-tag">CORRECTION PUBLIÉE</span></div>'+
    '<div class="portal-correction-hero"><div><span class="portal-kicker">'+esc(date(at.submittedAt||at.startedAt))+' · '+esc(at.className||'Classe')+'</span><h1>'+esc(exam.title)+'</h1><p>Lis les retours question par question. L’important est de comprendre comment progresser.</p></div><div class="portal-correction-grade">'+grade(at.grade)+'<small>/20</small></div></div>'+
    (general?'<div class="portal-general"><span>APPRÉCIATION GÉNÉRALE</span><p>'+esc(general)+'</p></div>':'')+
+   (id.startsWith('exemple-')?'<section class="portal-corrected-invitation"><div><span class="portal-kicker">✦ CONSEILS PERSONNALISÉS · ALBERT</span><h2>Et si tu allais plus loin que la note ?</h2><p>Albert lit ta correction déjà publiée et t’explique ce que tu réussis, ce que tu peux améliorer et comment progresser. Il ne change jamais les points du professeur.</p></div><button class="portal-albert-corrected" data-action="portal-albert-corrected" data-id="'+esc(at.id)+'">Découvrir les conseils d’Albert ✦</button><div class="portal-albert-corrected-slot" data-albert-copy="'+esc(at.id)+'" role="status" aria-live="polite"></div></section>':'')+
    '<div class="portal-section-head"><div><span class="portal-kicker">TON TRAVAIL</span><h2>La correction en détail.</h2></div><span class="portal-count">'+exam.questions.length+' question(s)</span></div>'+
    '<div class="portal-question-grid">'+questions+'</div>'+
    (exam.sourceId?'<div class="portal-footer-tools"><button type="button" class="portal-secondary-button" data-action="portal-original" data-id="'+esc(at.id)+'">▤ Voir le document original</button></div>':'')+
@@ -294,6 +298,44 @@ window.CORTEX_PORTAL=(function(){
   if(sourceExam&&sourceCopy&&Array.isArray(sourceExam.questions)&&sourceExam.questions.length===20){
    exams.push(JSON.parse(JSON.stringify(sourceExam)));
    const stamp=Date.now()-25*60*1000;
+   // Copie PSE fictive de référence : correction VALIDÉE PAR LE PROFESSEUR,
+   // 20 questions avec points, commentaires précis et appréciation globale.
+   const assigned=[1,1,.75,1,.75,1.5,.5,.5,1,1,1.25,1,.5,1,.75,1,.75,1,1,.5];
+   const comments=[
+    'Calcul exact : 8 − 4 = 4 heures de déficit chaque nuit de cours.',
+    'Les deux comportements retardant le sommeil sont correctement identifiés.',
+    'La conséquence scolaire est correcte. Précise une conséquence relationnelle distincte.',
+    'La problématique est formulée sous forme d’une question pertinente.',
+    'Les deux définitions sont présentes ; précise la notion de périodicité.',
+    'Les rythmes ultradien, circadien et infradien sont bien classés.',
+    'Tu distingues correctement le rythme social d’un mécanisme biologique.',
+    'La durée moyenne d’un cycle de sommeil est bien indiquée.',
+    'Le calcul est justifié : 450 ÷ 90 = 5 cycles.',
+    'Le sommeil lent profond et le sommeil paradoxal sont bien associés aux fonctions demandées.',
+    'L’explication est correcte ; développe le rôle du sommeil dans la consolidation des apprentissages.',
+    'Deux effets pertinents sont relevés.',
+    'Une seule conséquence sociale est clairement donnée. Ajoute un deuxième exemple.',
+    'Les informations du document sont identifiées avec précision.',
+    'Le danger professionnel est pertinent ; illustre-le par un exemple concret.',
+    'Tu expliques correctement la mélatonine et la perturbation liée à la lumière.',
+    'La différence entre les horaires est repérée ; explicite le décalage de l’horloge biologique.',
+    'Les difficultés de sommeil et de vie sociale sont bien repérées.',
+    'La contrepartie et le principe du compte professionnel de prévention sont présents.',
+    'Deux conseils sont cités, mais il faut préciser quand éteindre les écrans et proposer une mesure adaptée à Dylan.'
+   ];
+   const fullMarks=Object.fromEntries(sourceExam.questions.map((q,i)=>[q.id,{
+    points:assigned[i],comment:comments[i]
+   }]));
+   attempts.push({
+    id:'exemple-corrige-sommeil',examId:'sommeil-pdf-a2',classId:cl.id,className:cl.name,
+    studentNumber:'12',groupName:'Classe entière',status:'submitted',
+    submittedAt:Date.now()-9*24*60*60*1000,
+    startedAt:Date.now()-9*24*60*60*1000-60*60*1000,
+    grade:17.75,publishedToStudent:true,
+    reviewedAt:Date.now()-8*24*60*60*1000,
+    feedback:'Copie sérieuse et bien structurée : 17,75/20. Tu sais lire les documents et effectuer les calculs. Pour progresser, distingue davantage les conséquences scolaires et sociales et justifie les conseils de prévention.',
+    marks:fullMarks,answers:JSON.parse(JSON.stringify(sourceCopy.answers||{}))
+   });
    attempts.push({
     id:'exemple-attente-albert',examId:'sommeil-pdf-a2',classId:cl.id,className:cl.name,
     studentNumber:'12',groupName:'Classe entière',status:'submitted',

@@ -299,6 +299,17 @@ tbody tr:hover{background:#25415b}
 .ct-command-footer{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-start;padding:13px 24px;background:#14243a;border-top:1px solid #3e6077;color:#b8cdda;font-size:11px}
 .ct-command-footer span{white-space:nowrap}
 /* Keep mobile layout that is already optimized — apply only safe ergonomic deltas. */
+@media(min-width:901px) and (max-width:1100px){
+ .ct-quicknav-label{display:none}
+ .ct-quicknav-trigger{gap:7px;padding:8px 9px}
+ .ct-quicknav-trigger kbd{font-size:9px}
+ .topbar{gap:14px}
+ .top-actions{gap:4px}
+}
+@media(min-width:901px) and (max-width:980px){
+ .ct-quicknav-trigger kbd{display:none}
+ .ct-quicknav-trigger{width:43px;justify-content:center}
+}
 @media(max-width:900px){
  .ct-quicknav-trigger{display:none}
  .page-head p:not(.eyebrow){max-width:100%}

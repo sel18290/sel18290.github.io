@@ -55,18 +55,19 @@ if(qr||globalPortal){
    const select=$('cw-student-class');select.replaceChildren();
    const blank=E('option','','Choisir ma classe');blank.value='';select.append(blank);
    for(const cl of classList){
-    const opt=E('option','',cl.label+' · '+cl.display_name+(cl.ready?'':' · PIN à préparer par le professeur'));opt.value=cl.code;select.append(opt);
+    const opt=E('option','',cl.label+' · '+cl.display_name+(cl.ready?' · Accès '+cl.suffix:' · PIN à préparer par le professeur'));opt.value=cl.code;select.append(opt);
    }
    const activationSelect=$('cw-activation-class');
    if(activationSelect){
     activationSelect.replaceChildren();
     const empty=E('option','','Choisir ma classe');empty.value='';activationSelect.append(empty);
-    for(const cl of classList){const option=E('option','',cl.label+' · '+cl.display_name+(cl.ready?'':' · PIN à préparer par le professeur'));option.value=cl.code;activationSelect.append(option)}
+    for(const cl of classList){const option=E('option','',cl.label+' · '+cl.display_name+(cl.ready?' · Accès '+cl.suffix:' · PIN à préparer par le professeur'));option.value=cl.code;activationSelect.append(option)}
    }
    if(classPrefill&&classList.some(x=>x.code===classPrefill)){select.value=classPrefill;if(activationSelect)activationSelect.value=classPrefill}
    if(!classList.length)message('Aucune classe n’est enregistrée. Contacte ton professeur.',true);
    else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Le professeur doit encore distribuer les PIN provisoires avant leur activation.',true);
    else if(classPrefill&&!classList.some(x=>x.code===classPrefill))message('Ce lien de classe est indisponible. Choisis une classe dans la liste.',true);
+   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe, mais le professeur doit encore créer les PIN provisoires avant l’inscription.',true);
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){

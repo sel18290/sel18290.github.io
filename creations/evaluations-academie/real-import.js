@@ -132,6 +132,7 @@ function clearEditor(){
  for(const inputId of ['ri-title','ri-class','ri-description'])by(inputId).disabled=false;
  by('ri-save').disabled=false;
  by('ri-editor').hidden=true;by('ri-file').value='';
+ by('ri-ai-documents')?.replaceChildren();if(by('ri-ai-documents'))by('ri-ai-documents').hidden=true;
  by('ri-title').value='';by('ri-description').value='';
  by('ri-canvas').replaceChildren();by('ri-assets').replaceChildren();msg('');
 }
@@ -169,6 +170,14 @@ function renderQuestions(){
   ta.placeholder='Énoncé de la question';ta.disabled=state.published;ta.setAttribute('aria-label','Énoncé de la question '+(i+1));
   ta.oninput=()=>{q.prompt=ta.value;};
   item.append(ta);
+  const docLabel=node('label','ri-linked-document-label');
+  docLabel.append(node('strong','','Document associé à la question (modifiable)'));
+  const docArea=node('textarea','ri-question-text ri-linked-document');
+  docArea.value=String(q.doc||'');docArea.rows=3;docArea.maxLength=5000;
+  docArea.placeholder='Extrait documentaire ou référence à fournir aux élèves (facultatif).';
+  docArea.disabled=state.published;
+  docArea.oninput=()=>{q.doc=docArea.value;};
+  docLabel.append(docArea);item.append(docLabel);
   const metadata=node('div','ri-q-meta');
   const type=node('select','ri-select');
   const types=window.CORTEX_QUESTION_TYPES;
@@ -466,17 +475,62 @@ async function save(){
  await bridge().refresh();await paint();
  renderQuestions();
 }
-async function initial(file){
+function displayAiDocuments(docs){
+ const holder=by('ri-ai-documents');if(!holder)return;
+ holder.replaceChildren();
+ if(!Array.isArray(docs)||!docs.length){holder.hidden=true;return;}
+ holder.hidden=false;
+ holder.append(node('strong','','✦ Albert IA · '+docs.length+' document(s) repéré(s)'));
+ holder.append(node('p','ri-subtle','Titres et pages suggérés. Ouvre l’original pour vérifier chaque association.'));
+ for(const d of docs){
+  const button=node('button','ri-action secondary',String(d.title||'Document')+' · page '+Number(d.page||1)+' →');
+  button.type='button';
+  button.onclick=()=>{
+   state.page=Math.max(1,Math.min(state.sourceCount,Number(d.page)||1));
+   paint().catch(err=>msg(err?.message||'Page indisponible.',true));
+  };
+  holder.append(button);
+ }
+}
+async function initial(file,options={}){
+ const useAlbert=options.ai===true;
+ if(useAlbert&&!window.confirm(
+  '✦ ANALYSE ALBERT IA — ESPACE ACADÉMIE\n\n'+
+  'Le texte extrait de ton sujet PDF/Word sera transmis à Albert via Supabase. Le fichier original reste stocké dans ton espace professeur uniquement après enregistrement.\n\n'+
+  'N’envoie pas de données personnelles d’élèves sans cadre juridique et autorisation institutionnelle adéquats. Anonymise le contenu si nécessaire ; les questions et documents détectés devront être vérifiés avant publication.\n\nContinuer ?'
+ ))return;
  await operation(async()=>{
   clearEditor();await inspect(file);
-  state.questions=extractQuestions(state.pages);
-  if(!state.questions.length)state.questions=[emptyQuestion()];
+  const localQuestions=extractQuestions(state.pages);
+  let aiDraft=null,aiError=null;
+  if(useAlbert){
+   try{
+    const client=bridge()?.client?.();
+    const {data,error}=await client.auth.getSession();
+    if(error||!data?.session?.access_token)throw Error('Session professeur expirée. Reconnecte-toi.');
+    msg('Albert IA identifie les documents, les consignes, les questions et les barèmes…');
+    aiDraft=await window.CORTEX_ALBERT_IMPORT.analyze(state.pages,{
+     mode:'academy',accessToken:data.session.access_token
+    });
+   }catch(err){aiError=err;console.warn('Albert Académie :',err);}
+  }
+  const questions=aiDraft?window.CORTEX_ALBERT_IMPORT.buildQuestions(aiDraft,{pages:state.pages}):localQuestions;
+  state.questions=questions.length?questions:[emptyQuestion()];
   by('ri-title').value=titleGuess(file.name);
   by('ri-description').value='Lire attentivement les documents et justifier les réponses à partir des sources fournies.';
   populateClasses();
+  by('ri-upload-chooser').hidden=true;
   by('ri-editor').hidden=false;by('ri-save').textContent='Enregistrer le contrôle et son document';
-  await paint();renderQuestions();updateDetectionHint(state.questions.filter(q=>q.detected).length);
-  msg('Original chargé : '+state.sourceCount+' page(s), '+state.questions.length+' question(s) détectée(s). Vérifie les énoncés et les barèmes avant enregistrement.');
+  displayAiDocuments(aiDraft?.documents||[]);
+  await paint();renderQuestions();
+  updateDetectionHint(state.questions.length);
+  if(aiDraft)msg('Albert : '+state.questions.length+' question(s) et '+(aiDraft.documents||[]).length+
+   ' document(s) détectés. Vérifie les énoncés, barèmes et pages avant enregistrement.'+
+   (aiDraft.warnings?.length?' Limites : '+aiDraft.warnings.join(' ; '):''));
+  else if(useAlbert)msg('Analyse Albert indisponible : '+String(aiError?.message||'Erreur de service')+
+   '. Détection locale des questions chargée dans l’atelier classique.',true);
+  else msg('Atelier classique : original chargé ('+state.sourceCount+' page(s)), '+
+   state.questions.length+' question(s) proposées. Vérifie avant enregistrement.');
  });
 }
 async function openExisting(id){
@@ -513,7 +567,17 @@ async function openExisting(id){
  }catch(e){msg(e?.message||'Ouverture impossible.',true);}
  finally{state.busy=false;}
 }
-by('ri-file').addEventListener('change',async e=>{const f=e.target.files?.[0];if(f){by('ri-upload-chooser').hidden=false;await initial(f);}});
+by('ri-file').addEventListener('change',event=>{
+ const file=event.target.files?.[0];if(file)msg('Document sélectionné : '+file.name+'. Choisis « Atelier classique » ou « Préparer avec Albert IA ».');
+});
+by('ri-open-classic').addEventListener('click',()=>{const file=by('ri-file').files?.[0];if(!file)return msg('Choisis un PDF ou Word.',true);initial(file);});
+by('ri-open-albert').addEventListener('click',()=>{const file=by('ri-file').files?.[0];if(!file)return msg('Choisis un PDF ou Word.',true);initial(file,{ai:true});});
+by('ri-clear-selection').addEventListener('click',()=>{by('ri-file').value='';msg('Choisis un autre document.');by('ri-file').click();});
+by('ri-change-file').addEventListener('click',()=>{
+ if(!window.confirm('Changer de document ? Les modifications non enregistrées dans cet atelier seront abandonnées. Le contrôle déjà sauvegardé dans Supabase restera intact.'))return;
+ clearEditor();by('ri-upload-chooser').hidden=false;
+ by('ri-file').click();
+});
 by('ri-prev').addEventListener('click',()=>selectPage(-1));
 by('ri-next').addEventListener('click',()=>selectPage(1));
 by('ri-add-question').addEventListener('click',()=>{

@@ -197,6 +197,7 @@ function renderQuestions(){
   page.onchange=()=>{q.page=Number(page.value);state.page=q.page;paint().catch(e=>msg(e.message,true));};
   metadata.append(node('label','','Type de réponse'),type,node('label','','Points'),pts,node('label','','Source'),page);
   if(q.pointsToVerify)metadata.append(node('small','ri-subtle','⚠ Barème provisoire : 1 pt par défaut. À vérifier.'));
+  if(q.correctToVerify)metadata.append(node('small','ri-subtle','⚠ QCM : sélectionne la bonne réponse avant publication.'));
   item.append(metadata);
   const drop=node('div','ri-question-dropzone','⇩ Glisse un extrait ici, ou sélectionne cette question dans la banque documentaire.');
   drop.setAttribute('aria-label','Déposer un extrait sur la question '+(i+1));

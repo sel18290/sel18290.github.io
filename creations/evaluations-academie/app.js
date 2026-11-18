@@ -247,13 +247,19 @@ function drawTeacherData(){
  if($('acad-overview-classes'))$('acad-overview-classes').textContent=String(myClasses.length);
  if($('acad-overview-exams'))$('acad-overview-exams').textContent=String(myExams.length);
  if(!myClasses.length)$('class-list').append(el('p','empty','Aucune classe enregistrée.'));
+ $('class-list').classList.add('class-grid');
  for(const c of myClasses){
-  const row=el('div','prof-item'),detail=el('div','prof-item-main');
-  const groupSummary=el('small','acad-class-group-summary',summaryText(c.id));groupSummary.id='class-group-'+c.id;
-  detail.append(el('strong','',c.display_name),el('small','',c.code),groupSummary);
-  const action=el('button','prof-delete','Supprimer');action.type='button';
-  action.addEventListener('click',()=>removeClass(c));
-  row.append(detail,action);$('class-list').append(row);
+  const card=el('article','class-card');
+  const note=el('span','class-card-note',c.display_name);
+  const groupSummary=el('span','class-card-note',summaryText(c.id));groupSummary.id='class-group-'+c.id;
+  const counts=el('span','class-card-bottom');
+  counts.append(el('span','',myExams.filter(e=>e.class_id===c.id).length+' contrôle(s)'),el('span','','Numéros et demi-groupes dans « PIN élèves »'));
+  const actions=el('div','acad-class-tile-actions');
+  const access=el('a','btn secondary small','Gérer les PIN →');access.href='#cw-persistent-classes';access.dataset.acadView='pins';
+  const deleteButton=el('button','btn ghost small','Supprimer');deleteButton.type='button';deleteButton.addEventListener('click',()=>removeClass(c));
+  actions.append(access,deleteButton);
+  card.append(el('span','class-card-upper','CLASSE · PSE'),el('strong','',c.code),note,groupSummary,counts,actions);
+  $('class-list').append(card);
  }
  $('exam-class').replaceChildren();
  const blank=el('option','','Sans classe');blank.value='';$('exam-class').append(blank);

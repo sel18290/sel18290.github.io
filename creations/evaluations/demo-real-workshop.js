@@ -97,6 +97,8 @@ function addCapture(blob,name){
  state.assets.push({id:'pending-'+newId(),questionId:q.id,
   name:(name||'Capture_question_'+(state.index+1)+'.'+ext).slice(0,120),
   page:1,pending:true,blob,previewUrl:URL.createObjectURL(blob)});
+ // Garder les captures non enregistrées lors d'une navigation dans la démo.
+ exam.assets=state.assets;
  paint();
  setHint('✓ Capture liée à la question '+(state.index+1)+'. Enregistre le contrôle pour la rendre disponible aux élèves.');
 }
@@ -129,11 +131,14 @@ async function removeCapture(id){
   }
  }
  state.assets=state.assets.filter(a=>a!==asset);
- exam.assets=state.assets.map(a=>({id:a.id,name:a.name,page:a.page||1}));
+ exam.assets=state.assets;
  paint();setHint('Capture retirée de cette question.');
 }async function loadExistingAssets(){
- state.assets=(exam.assets||[]).map(a=>({...a,questionId:null,pending:false,previewUrl:null,url:null}));
+ state.assets=(exam.assets||[]).map(a=>({...a,
+  questionId:a.questionId||null,pending:!!a.pending,
+  previewUrl:a.previewUrl||null,url:a.url||null}));
  for(const asset of state.assets){
+  if(asset.pending)continue;
   try{
    asset.url=await window.CORTEX_VISUAL.imageUrl(asset.id);
   }catch(e){console.warn('Capture démo indisponible',e);}

@@ -167,3 +167,13 @@ body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item>.prof
 body.academy-authenticated #acad-professor-workspace #exam-list>.prof-item>.academie-anti-wrap{width:100%}
 body.academy-authenticated #acad-professor-workspace .acad-live-recent-exams .empty{min-height:110px}
 @media(max-width:900px){body.academy-authenticated #acad-professor-workspace #exam-list{grid-template-columns:1fr}}
+
+
+/* Le compte réel doit pouvoir se déconnecter aussi sur mobile, contrairement à la démo. */
+@media(max-width:760px){
+ body.academy-authenticated #acad-professor-workspace .side-bottom{display:flex;align-items:center;gap:9px;margin-top:5px;padding:7px 2px 0;border:0;min-height:39px}
+ body.academy-authenticated #acad-professor-workspace .side-bottom>span{font-size:10px;white-space:nowrap;margin:0;color:#9ee4d9}
+ body.academy-authenticated #acad-professor-workspace .side-bottom .acad-profile-email{display:none}
+ body.academy-authenticated #acad-professor-workspace .side-bottom>p{display:none}
+ body.academy-authenticated #acad-professor-workspace .acad-sidebar-logout{margin-left:auto;width:auto;min-height:35px;padding:7px 12px;font-size:10px}
+}

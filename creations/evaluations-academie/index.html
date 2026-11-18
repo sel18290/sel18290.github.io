@@ -142,9 +142,18 @@
   </nav>
   <section class="real-manual-document">
    <div class="real-manual-panel-title"><strong>02 / DOCUMENT ASSOCIÉ</strong><small>Ce que verra l’élève</small></div>
-   <div id="manual-source-preview" class="real-manual-source-content" tabindex="0" aria-label="Documents associés à la question : coller une capture avec Ctrl+V"></div>
-   <div class="real-manual-capture-controls"><label class="real-manual-capture-upload" for="manual-capture-file">＋ Choisir une image</label><input id="manual-capture-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="manual-paste-image" type="button" class="real-manual-secondary">▣ Coller une capture</button></div>
-   <p class="real-manual-capture-hint">Capture d’écran : clique sur « Coller une capture » ou sélectionne la zone documentaire et fais Ctrl+V. La capture est liée à la question sélectionnée.</p>
+   <div class="cortex-unified-document">
+    <label class="cortex-unified-doc-label" for="manual-question-doc">Texte / données du document (facultatif)</label>
+    <textarea id="manual-question-doc" rows="4" maxlength="5000" data-manual-field="doc" placeholder="Colle ici le texte ou les données destinées à l’élève pour cette question…"></textarea>
+    <p class="cortex-unified-doc-hint">Texte associé uniquement à la question sélectionnée et visible par l’élève.</p>
+    <div id="manual-source-preview" class="real-manual-source-content cortex-unified-image-preview" tabindex="0" aria-label="Coller ou déposer une image pour cette question"></div>
+    <div class="real-manual-capture-controls cortex-unified-buttons">
+     <label class="real-manual-capture-upload" for="manual-capture-file">＋ Choisir une image</label>
+     <input id="manual-capture-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+     <button id="manual-paste-image" type="button" class="real-manual-secondary">▣ Coller une capture</button>
+    </div>
+    <p class="cortex-unified-doc-hint">Windows + Maj + S, puis Ctrl + V ici ; ou utilise les boutons. Chaque capture est liée à cette question.</p>
+   </div>
    <label class="real-manual-attach"><strong>Ajouter un document original au contrôle</strong>
     <input id="manual-source-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
     <small>PDF ou Word (.docx), 8 Mo maximum. Le document est stocké en privé lors de l’enregistrement et accessible aux élèves après publication.</small>

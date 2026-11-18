@@ -64,7 +64,7 @@ function extractQuestions(pages){
     if(prompt.length+next.length>800||next.length>220)break;
     if(/[?!]\s*$/.test(prompt))break;
     if(/[.]\s*$/.test(prompt)&&likely(prompt))break;
-    if(!likely(prompt)||/\b(?:puis|et|de|du|des|sur|pour|[àa])\s*$/i.test(prompt)||/[,:;]\s*$/.test(prompt)){
+    if((!/[.?!]\s*$/.test(prompt)&&next.length<140&&!/^\s*(?:\d+\s*(?:pts?|points?)|[A-ZÀ-Ý][A-ZÀ-Ý ]{6,})\s*$/.test(next))||!likely(prompt)||/\b(?:puis|et|de|du|des|sur|pour|[àa])\s*$/i.test(prompt)||/[,:;]\s*$/.test(prompt)){
      rawParts.push(next);prompt+=' '+next;i++;added++;
     }else break;
    }

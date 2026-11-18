@@ -94,6 +94,10 @@ function safeAuthMessage(error){
 let teacherId=null;
 let myClasses=[];
 let myExams=[];
+let myIncidents=[];
+const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true};
+function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
+function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked};}
 const el=(tag,cls,txt)=>{
  const node=document.createElement(tag);
  if(cls)node.className=cls;
@@ -106,14 +110,32 @@ function safeError(err){
 async function loadTeacherData(id){
  teacherId=id;
  try{
-  const [cls,ex]=await Promise.all([
+  const [cls,ex,incident]=await Promise.all([
    supabase.from('cortex_teacher_classes').select('id,code,display_name,archived,created_at').eq('teacher_id',id).order('created_at',{ascending:false}),
-   supabase.from('cortex_teacher_assessments').select('id,title,class_id,published,created_at,content').eq('teacher_id',id).order('created_at',{ascending:false})
+   supabase.from('cortex_teacher_assessments').select('id,title,class_id,published,created_at,content').eq('teacher_id',id).order('created_at',{ascending:false}),
+   supabase.from('cortex_integrity_events').select('id,assessment_id,roster_number,kind,occurred_at,duration_ms').eq('teacher_id',id).order('occurred_at',{ascending:false}).limit(100)
   ]);
-  if(cls.error)throw cls.error;if(ex.error)throw ex.error;
-  myClasses=cls.data||[];myExams=ex.data||[];
+  if(cls.error)throw cls.error;if(ex.error)throw ex.error;if(incident.error)throw incident.error;
+  myClasses=cls.data||[];myExams=ex.data||[];myIncidents=incident.data||[];
   drawTeacherData();
  }catch(err){status('Impossible de charger les données du professeur : '+safeError(err),true);}
+}
+async function saveAntiCheat(exam,key,checked,checkbox){
+ const id=requireTeacher(),previous=exam.content||{},current=antiConfig(exam);
+ const next={...current,[key]:checked};
+ checkbox.disabled=true;
+ try{
+  const {error}=await supabase.from('cortex_teacher_assessments')
+    .update({content:{...previous,antiCheat:next}})
+    .eq('id',exam.id).eq('teacher_id',id);
+  if(error)throw error;
+  exam.content={...previous,antiCheat:next};
+  const chip=document.getElementById('anti-status-'+exam.id);
+  if(chip)chip.textContent=next.enabled?'Mode intégrité activé':'Mode désactivé';
+  status('Protections du contrôle enregistrées dans Supabase. Elles seront appliquées aux élèves après raccordement du moteur serveur.');
+ }catch(err){
+  checkbox.checked=!checked;status(safeError(err),true);
+ }finally{checkbox.disabled=false;}
 }
 function drawTeacherData(){
  $('class-list').replaceChildren();$('exam-list').replaceChildren();
@@ -137,9 +159,40 @@ function drawTeacherData(){
   const row=el('div','prof-item'),detail=el('div','prof-item-main');
   const cl=myClasses.find(c=>c.id===exam.class_id);
   detail.append(el('strong','',exam.title),el('small','',cl?.display_name||'Sans classe'));
+  const chip=el('span','academie-integrity-chip',antiConfig(exam).enabled?'Mode intégrité activé':'Mode désactivé');
+  chip.id='anti-status-'+exam.id;detail.append(chip);
   const action=el('button','prof-delete','Supprimer');action.type='button';action.addEventListener('click',()=>removeExam(exam));
-  row.append(detail,action);$('exam-list').append(row);
+  const settings=el('details','academie-anti-detail');
+  settings.append(el('summary','','◈ Configurer l’anti-triche'));
+  const defs=[
+    ['enabled','Activer le mode intégrité','Affiche les règles aux élèves lorsque le moteur élève sera raccordé'],
+    ['blockPaste','Bloquer le collage','Réponses saisies dans les champs'],
+    ['blockCopy','Limiter la copie du sujet','Ne bloque pas captures ou photos'],
+    ['trackVisibility','Signaler les sorties de page','Signale les pages masquées plus de deux secondes'],
+    ['warnStudent','Avertir l’élève','Aucune sanction automatique']
+  ];
+  for(const [key,title,detailText] of defs){
+    const label=el('label','academie-anti-choice');
+    const input=el('input','');input.type='checkbox';input.checked=antiConfig(exam)[key];
+    input.addEventListener('change',()=>saveAntiCheat(exam,key,input.checked,input));
+    const text=el('span','');
+    text.append(el('strong','',title),el('small','',detailText));
+    label.append(input,text);settings.append(label);
+  }
+  const tool=el('div','academie-anti-wrap');tool.append(settings);
+  row.append(detail,action);$('exam-list').append(row,tool);
  }
+  const list=$('integrity-server-events');list.replaceChildren();
+  $('integrity-count').textContent=myIncidents.length+' événement(s)';
+  if(!myIncidents.length)list.append(el('p','empty','Aucun événement enregistré. Le moteur élève Supabase n’est pas encore connecté.'));
+  for(const event of myIncidents){
+    const card=el('div','prof-item'),desc=el('div','prof-item-main');
+    const names={paste_blocked:'Collage bloqué',copy_blocked:'Copie limitée',tab_hidden:'Page masquée'};
+    const exam=myExams.find(x=>x.id===event.assessment_id),date=new Date(event.occurred_at);
+    desc.append(el('strong','',names[event.kind]||'Événement'),el('small','',(exam?.title||'Contrôle')+' · N° '+event.roster_number+' · '+(Number.isNaN(date.getTime())?'Date indisponible':date.toLocaleString('fr-FR'))));
+    if(event.kind==='tab_hidden'&&event.duration_ms)desc.append(el('small','','Durée : '+Math.round(event.duration_ms/1000)+' s'));
+    card.append(desc);list.append(card);
+  }
 }
 function requireTeacher(){
  if(!supabase||!teacherId)throw Error('Session académique absente. Reconnectez-vous.');
@@ -187,7 +240,7 @@ $('exam-form').addEventListener('submit',async event=>{
   if(!title||title.length>180)throw Error('Le titre du contrôle est obligatoire.');
   const class_id=$('exam-class').value||null;
   const description=$('exam-description').value.trim();
-  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions:[]},published:false});
+  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions:[],antiCheat:antiCreateConfig()},published:false});
   if(error)throw error;
   $('exam-form').reset();await loadTeacherData(id);
   status('Contrôle enregistré dans Supabase.');
@@ -234,7 +287,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

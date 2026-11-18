@@ -124,10 +124,11 @@
    event.preventDefault();if(visible[activeIndex])go(visible[activeIndex][0]);return;
   }
   if(event.key==='Tab'){
-   const focusable=[input,panel.querySelector('.ct-command-close')];
-   const idx=focusable.indexOf(document.activeElement);
-   if(event.shiftKey&&idx===0){event.preventDefault();focusable[1].focus()}
-   else if(!event.shiftKey&&idx===1){event.preventDefault();focusable[0].focus()}
+   const focusable=[panel.querySelector('.ct-command-close'),input,...panel.querySelectorAll('button[data-command]')].filter(Boolean);
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+   else if(!panel.contains(document.activeElement)){event.preventDefault();input.focus()}
   }
  });
  document.addEventListener('input',event=>{if(panel&&event.target===input){activeIndex=0;render()}});

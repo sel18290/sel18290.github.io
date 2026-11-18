@@ -170,40 +170,54 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   const headers={'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY};
   if(mode==='academy')headers.Authorization='Bearer '+options.accessToken;
   const documents=[],questions=[],warnings=[];
+  const tasks=[];
+  for(let start=0;start<pages.length;start+=BATCH)
+   tasks.push({start,end:Math.min(pages.length,start+BATCH)});
+  let completed=0;
   try{
-   for(let start=0;start<pages.length;start+=BATCH){
+   while(tasks.length){
     if(signal?.aborted)throw Error('Analyse annulée.');
-    const selected=pages.slice(start,start+BATCH);
-    const prepared=[];
+    const {start,end}=tasks.shift(),selected=pages.slice(start,end),prepared=[];
     for(let j=0;j<selected.length;j++){
      const pageNo=start+j+1;
-     status('Lecture visuelle de la page '+pageNo+' / '+pages.length+'…',start,pages.length);
+     status('Préparation visuelle de la page '+pageNo+' / '+pages.length+'…',completed,pages.length);
      const image=await renderer.jpeg(extension==='pdf'?pageNo:1,signal);
      const text=String(selected[j]||'').slice(0,3400);
      prepared.push({page:pageNo,text,image});
-     if(String(selected[j]||'').length>3400)warnings.push('Page '+pageNo+' : texte extrait abrégé ; image complète analysée.');
+     if(String(selected[j]||'').length>3400)warnings.push('Page '+pageNo+' : texte extrait abrégé ; image complète transmise.');
     }
-    status('Albert examine les graphiques, tableaux et questions (pages '+(start+1)+' à '+(start+prepared.length)+')…',start,pages.length);
-    let output;
-    for(let attempt=0;attempt<2;attempt++){
-     if(signal?.aborted)throw Error('Analyse annulée.');
-     const response=await fetch(SUPABASE_URL+'/functions/v1/'+ENDPOINT,{
-      method:'POST',cache:'no-store',headers,
-      body:JSON.stringify({action:'analyze_subject',mode,pages:prepared}),signal
-     });
-     const result=await response.json().catch(()=>null);
-     if(response.status===429&&attempt===0){
-      status('Albert limite les appels successifs. Nouvelle tentative après le délai de sécurité…',start,pages.length);
-      await wait(mode==='demo'?22000:4000);
+    status('Albert examine les graphiques et documents (pages '+(start+1)+' à '+end+')…',completed,pages.length);
+    let output=null,analysisError=null;
+    try{
+     for(let attempt=0;attempt<2;attempt++){
+      if(signal?.aborted)throw Error('Analyse annulée.');
+      const response=await fetch(SUPABASE_URL+'/functions/v1/'+ENDPOINT,{
+       method:'POST',cache:'no-store',headers,
+       body:JSON.stringify({action:'analyze_subject',mode,pages:prepared}),signal
+      });
+      const result=await response.json().catch(()=>null);
+      if(response.status===429&&attempt===0){
+       status('Quota de fréquence Albert : reprise après le délai de sécurité…',completed,pages.length);
+       await wait(mode==='demo'?22000:4000);
+       continue;
+      }
+      if(!response.ok||!result?.ok){
+       const code=String(result?.code||'HTTP_'+response.status),ref=result?.requestId?' [réf. '+result.requestId+']':'';
+       throw Error((result?.error||'Erreur de communication Albert')+' ('+code+')'+ref);
+      }
+      output=result;break;
+     }
+     if(!output)throw Error('Aucune réponse exploitable du serveur.');
+    }catch(err){analysisError=err}
+    if(analysisError){
+     if(prepared.length>1&&/ALBERT_TIMEOUT|MODEL_FORMAT|ALBERT_HTTP_5\d\d|UPSTREAM_JSON/.test(String(analysisError?.message||''))){
+      status('Analyse de deux pages trop lourde. Albert réessaie chaque page séparément…',completed,pages.length);
+      tasks.unshift({start:start+1,end});
+      tasks.unshift({start,end:start+1});
       continue;
      }
-     if(!response.ok||!result?.ok){
-      const code=String(result?.code||'HTTP_'+response.status),ref=result?.requestId?' [réf. '+result.requestId+']':'';
-      throw Error((result?.error||'Erreur de communication Albert')+' ('+code+')'+ref);
-     }
-     output=result;break;
+     throw analysisError;
     }
-    if(!output)throw Error('Albert n’a pas retourné de résultat.');
     const documentMap=new Map();
     for(const d of output.documents||[]){
      const localId='p'+(d.page||start+1)+'-'+String(d.id||id()).slice(0,20);
@@ -215,8 +229,9 @@ window.CORTEX_ALBERT_IMPORT=(function(){
       documentIds:(q.documentIds||[]).map(did=>documentMap.get(String(did))).filter(Boolean)});
     }
     warnings.push(...(output.warnings||[]));
-    status('Pages '+(start+1)+' à '+(start+prepared.length)+' analysées. '+questions.length+' question(s) repérée(s).',
-      start+prepared.length,pages.length);
+    completed+=prepared.length;
+    status('Pages '+(start+1)+' à '+end+' terminées · '+questions.length+' question(s) trouvée(s).',
+      completed,pages.length);
    }
   }finally{await renderer.close?.()}
   if(!questions.length)throw Error('Albert a examiné le document mais n’a reconnu aucune question. Vérifie que le sujet comporte des consignes.');

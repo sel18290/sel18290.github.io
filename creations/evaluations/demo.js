@@ -1206,7 +1206,7 @@ window.addEventListener('cortex:demo-albert-apply',event=>{
   marks[question.id]={points:m.points,comment:[
    'Réponse attendue : '+String(m.attendu||'—'),
    '',
-   String(m.commentaire||'—').replace(/^\\s*Commentaire(?:\\s+Albert)?\\s*:\\s*/i,'').trim(),
+   String(m.commentaire||'—').replace(/^\s*Commentaire(?:\s+Albert)?\s*:\s*/i,'').trim(),
    '',
    'Conseil : '+String(m.conseil||'—'),
    'Source : '+String(m.document||'—')

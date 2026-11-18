@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',currentQrAssignmentId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentAccessCode='',currentQrAssignmentId=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -58,12 +58,12 @@ tab=bits[1]|| (view==='teacher'?'dashboard':'accueil');
 if(view==='teacher'&&tab==='corriger')reviewAttemptId=bits[2]||reviewAttemptId;
 if(view==='student'&&(tab==='rejoindre'||tab==='pret')){
  const nextAssignment=bits[2]||null,nextToken=bits[3]||null;
- if(studentAssignmentId!==nextAssignment||studentQrToken!==nextToken)studentRollNumber='';
+ if(studentAssignmentId!==nextAssignment||studentQrToken!==nextToken){studentRollNumber='';studentAccessCode='';}
  studentAssignmentId=nextAssignment;studentQrToken=nextToken;
  // Un QR public de la démo doit aussi fonctionner dans un navigateur vierge.
  if(tab==='rejoindre' && bits.length>=7 && window.CORTEX_CLASSES.hydrateQrDemo(state,bits.slice(2,7)))save();
 }
-if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';}
+if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';studentAccessCode='';}
 render();
 }
 function header(){
@@ -123,14 +123,14 @@ return `<div class="home"><section class="home-hero"><div class="hero-copy"><p c
 <article class="card role-card eleve"><div class="role-icon" aria-hidden="true">✎</div><div><h2>Je suis élève</h2><p>Un parcours simple et agréable pour lire les documents, répondre aux questions, enregistrer sa progression et rendre son contrôle.</p></div><div class="btn-row">${btn('Tester un contrôle →','student','secondary')}<span class="small muted">Code SOMMEILPDF</span></div></article></div></section>
 <section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Ouvre le contrôle avec son code et réponds comme dans une vraie évaluation.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
 }
-const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
+const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['codes','⌑','Codes élèves'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherReviewFull(){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
  return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex});
 }
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
-const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
+const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
 function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}
@@ -204,6 +204,20 @@ function teacherEditor(){
   return window.CORTEX_EDITOR.render({exam:editor,index:editorIndex,docTab:editorDocTab});
 }
 
+function teacherCodes(){
+ const active=state.assignments.filter(a=>a.active&&!window.CORTEX_CLASSES.byId(state,a.classId)?.archived);
+ const visible=active.filter(a=>!teacherClassFilter||(a.classId===teacherClassFilter&&(!teacherGroupFilter||a.groupId===teacherGroupFilter)));
+ const cards=visible.map(a=>{
+  const e=examBy(a.examId),C=window.CORTEX_CLASSES,A=window.CORTEX_ACCESS;
+  return '<article class="access-card"><div><span class="access-counter">'+A.filled(a)+' / '+A.count(a)+' codes générés</span>'+
+   '<h3>'+esc(e?.title||'Contrôle')+'</h3><p>'+esc(C.assignmentLabel(state,a))+'</p></div>'+
+   '<button type="button" class="btn" data-action="access-manage" data-id="'+esc(a.id)+'">Générer / gérer les codes →</button></article>';
+ }).join('');
+ return pageHead('Codes individuels','Génère un code unique à 6 chiffres pour chaque numéro de liste, par classe et par contrôle.',btn('Mes classes →','class-open-manager','secondary'))+
+  '<div class="access-page">'+window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)+
+  '<div class="access-intro"><strong>Un numéro + un code individuel</strong><p>Le numéro identifie la copie ; le code autorise l’accès dans cette simulation. Les codes sont conservés localement, non synchronisés, et ne remplacent pas une authentification sécurisée.</p></div>'+
+  '<div class="access-grid">'+(cards||'<div class="empty">Aucun contrôle affecté. Depuis Mes classes, affecte d’abord une évaluation et crée son QR code.</div>')+'</div></div>';
+}
 function teacherCopies(){
  const submitted=state.attempts.filter(a=>a.status==='submitted'&&window.CORTEX_CLASSES.copyMatch(a,teacherClassFilter,teacherGroupFilter))
  .sort((a,b)=>String(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId)).localeCompare(String(b.className||window.CORTEX_CLASSES.classLabel(state,b.classId)),'fr')||
@@ -247,7 +261,7 @@ function studentWelcome(){
  const a=state.assignments.find(x=>x.id===studentAssignmentId);
  const valid=a&&a.active&&a.token===studentQrToken&&!window.CORTEX_CLASSES.byId(state,a.classId)?.archived&&(!a.groupId||!window.CORTEX_CLASSES.group(state,a.classId,a.groupId)?.archived);
  const e=valid?examBy(a.examId):null;
- return window.CORTEX_CLASSES.landing(state,valid?a:null,e,!valid||!e,{step:tab==='pret'?'ready':'identify',number:studentRollNumber});
+ return window.CORTEX_CLASSES.landing(state,valid?a:null,e,!valid||!e,{step:tab==='pret'?'ready':'identify',number:studentRollNumber,verified:!!(valid&&window.CORTEX_ACCESS.verify(a,studentRollNumber,studentAccessCode))});
 }
 function activeAttempt(){return attemptBy(state.activeAttemptId);}
 function studentDocuments(e,q,a,answered){
@@ -420,10 +434,17 @@ function startExam(){
  if(!assignment||!e?.open||!cl||cl.archived||(assignment.groupId&&(!gr||gr.archived))){
    showToast('Accès QR invalide ou contrôle non publié. Demande un nouveau QR au professeur.');return;
  }
- const existing=activeAttempt();
- if(existing&&existing.status==='progress'&&existing.assignmentId===assignment.id&&existing.studentNumber===studentRollNumber){nav('student','examen');return;}
- if(!/^\d{1,4}$/.test(studentRollNumber)||tab!=='pret'){showToast('Saisis ton numéro d’élève avant de commencer.');return;}
- const name='Élève n° '+studentRollNumber;
+ const number=window.CORTEX_ACCESS.normalizeNumber(studentRollNumber,assignment);
+ if(tab!=='pret'||!number||!window.CORTEX_ACCESS.verify(assignment,number,studentAccessCode)){
+  showToast('Numéro ou code individuel invalide. Recommence la vérification.');return;
+ }
+ studentRollNumber=number;
+ const previous=state.attempts.find(at=>at.assignmentId===assignment.id&&at.studentNumber===number);
+ if(previous?.status==='submitted'){showToast('Une copie a déjà été rendue pour ce numéro et ce contrôle. Contacte le professeur.');return;}
+ if(previous?.status==='progress'){
+  state.activeAttemptId=previous.id;currentQuestion=0;save();nav('student','examen');return;
+ }
+ const name='Élève n° '+number;
  const at={id:'attempt-'+Date.now()+'-'+Math.floor(Math.random()*99999),examId:e.id,assignmentId:assignment.id,
   classId:cl.id,className:cl.name,groupId:assignment.groupId||null,groupName:gr?.name||'Classe entière',
   name,studentNumber:studentRollNumber,status:'progress',startedAt:Date.now(),durationMinutes:Number(e.duration)||60,submittedAt:null,
@@ -610,18 +631,20 @@ function classAction(action,id,el){
  }
  if(action==='class-student-identify'){
   const input=document.getElementById('student-number');
-  const value=String(input?.value||'').trim();
-  if(!/^\d{1,4}$/.test(value)){
-   if(input){input.setAttribute?.('aria-invalid','true');input.focus?.();}
-   showToast('Saisis ton numéro de liste : 1 à 4 chiffres (exemple : 003).');return true;
-  }
+  const codeInput=document.getElementById('student-access-code');
   const assignment=state.assignments.find(a=>a.id===studentAssignmentId&&a.token===studentQrToken&&a.active);
   if(!assignment||!examBy(assignment.examId)?.open){showToast('Ce contrôle n’est pas accessible.');return true;}
-  studentRollNumber=value;
+  const number=window.CORTEX_ACCESS.normalizeNumber(input?.value,assignment);
+  const code=String(codeInput?.value||'').trim();
+  if(!number){input?.focus?.();showToast('Entre ton numéro sur la liste de classe (de 1 à '+window.CORTEX_ACCESS.count(assignment)+').');return true;}
+  if(!window.CORTEX_ACCESS.verify(assignment,number,code)){
+   codeInput?.focus?.();showToast('Numéro ou code individuel incorrect. Demande ton code au professeur.');return true;
+  }
+  studentRollNumber=number;studentAccessCode=code;
   nav('student','pret/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
  }
  if(action==='class-student-edit-number'){
-  studentRollNumber='';
+  studentRollNumber='';studentAccessCode='';
   nav('student','rejoindre/'+encodeURIComponent(studentAssignmentId)+'/'+encodeURIComponent(studentQrToken));return true;
  }
  if(action==='class-student-start'){startExam();return true;}
@@ -884,7 +907,7 @@ if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les cont
 if(a==='confirm-reset'){state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('keydown',e=>{
- if(e.key==='Enter'&&e.target?.id==='student-number'){
+ if(e.key==='Enter'&&['student-number','student-access-code'].includes(e.target?.id)){
   e.preventDefault();
   const trigger=document.querySelector('[data-action="class-student-identify"]');
   if(trigger&&!trigger.disabled)action(trigger);

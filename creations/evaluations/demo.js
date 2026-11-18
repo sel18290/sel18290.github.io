@@ -240,12 +240,13 @@ function teacherCopies(){
  <div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2>
  <p>Conserve le contexte classe et demi-groupe même après un archivage.</p></div>
  ${btn('Réinitialiser la démo','reset-demo','ghost small')}</div>
- <div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Classe / groupe</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Action</th></tr></thead>
+ <div class="table-wrap"><table><thead><tr><th>Élève fictif</th><th>Classe / groupe</th><th>Contrôle</th><th>Remise</th><th>Note</th><th>Visible dans Mon CORTEX</th><th>Action</th></tr></thead>
  <tbody>${submitted.map(a=>`<tr><td><strong>${esc(a.name)}</strong>${a.studentNumber?`<div class="small muted">Numéro d'élève : ${esc(a.studentNumber)}</div>`:''}</td>
  <td><span class="class-copy-badge">${esc(a.className||window.CORTEX_CLASSES.classLabel(state,a.classId,'Sans classe'))}</span>
  <div class="small muted">${esc(a.groupName||window.CORTEX_CLASSES.groupLabel(state,a.classId,a.groupId,'Groupe archivé'))}</div></td>
  <td>${esc(examBy(a.examId)?.title||'Contrôle')}</td><td>${date(a.submittedAt)}</td>
  <td>${a.grade==null?pill('À corriger','warn'):`<strong>${esc(a.grade)} / 20</strong>`}</td>
+ <td>${a.publishedToStudent===true?pill('Publiée','ok'):pill('Non publiée','warn')}<div class="small" style="margin-top:6px"><button type="button" class="btn ghost small" data-action="teacher-toggle-publish" data-id="${esc(a.id)}" ${a.grade==null?'disabled':''}>${a.publishedToStudent===true?'Masquer':'Publier'}</button></div></td>
  <td><div class="btn-row"><button class="table-action" data-action="review-copy" data-id="${esc(a.id)}">Corriger ↗</button><button type="button" class="btn secondary small" data-action="pdf-download-copy" data-id="${esc(a.id)}">↓ PDF</button></div></td></tr>`).join('')}</tbody></table></div>
  ${submitted.length===0?'<p class="empty">Aucune copie pour cette sélection. Vérifie le filtre ou fais un essai depuis un QR code.</p>':''}</div>`;
 }
@@ -613,6 +614,7 @@ function setReviewPoints(value){
    if(!Number.isFinite(n)||n<0||n>max){showToast('Choisis une valeur entre 0 et '+max+' point(s).');return;}
    at.marks[q.id].points=Math.round(n*100)/100;
  }
+ at.publishedToStudent=false;at.reviewedAt=null;
  save();render();
 }
 function classAction(action,id,el){
@@ -884,6 +886,7 @@ if(a==='pdf-download-batch'){
    .sort((x,y)=>String(x.className||'').localeCompare(String(y.className||''),'fr')||String(x.groupName||'').localeCompare(String(y.groupName||''),'fr')||String(x.studentNumber||'').localeCompare(String(y.studentNumber||''),'fr',{numeric:true}));
  downloadPDFCopies(list,(teacherClassFilter?window.CORTEX_CLASSES.classLabel(state,teacherClassFilter):'Toutes_classes')+(teacherGroupFilter?'_'+window.CORTEX_CLASSES.groupLabel(state,teacherClassFilter,teacherGroupFilter):''));return;
 }
+if(a.startsWith('portal-')){portalAction(a,el);return;}
 if(a.startsWith('access-')){handleAccessAction(a,id,el);return;}
 if(a.startsWith('class-')&&classAction(a,id,el))return;
 if(a==='home'){nav('home');return;}
@@ -1072,14 +1075,21 @@ if(a==='review-validate'){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);if(!at||!e)return;
  const totals=window.CORTEX_REVIEW.totals(at,e);
  if(!totals.ready){showToast('Corrige toutes les questions avant de valider la note.');return;}
- at.grade=totals.grade;at.reviewedAt=Date.now();save();
- showToast('Note validée dans la démonstration : '+totals.grade+'/20');render();return;
+ at.grade=totals.grade;at.reviewedAt=Date.now();at.publishedToStudent=true;save();
+ showToast('Correction validée et publiée à l’élève : '+totals.grade+'/20');render();return;
 }
 if(a==='review-original'){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
  if(e?.sourceId)openSavedOriginal(e.sourceId);return;
 }
-if(a==='save-grade'){const at=attemptBy(id);const grade=Number(document.getElementById('manual-grade')?.value);const original=document.getElementById('manual-grade')?.value;if(!at||original===''||!Number.isFinite(grade)||grade<0||grade>20){showToast('Saisis une note entre 0 et 20.');return;}at.grade=grade;at.feedback=document.getElementById('manual-feedback')?.value||'';save();closeModal();showToast('Note enregistrée dans la démonstration.');render();return;}
+if(a==='teacher-toggle-publish'){
+ const at=attemptBy(id);
+ if(!at||at.status!=='submitted'||at.grade==null){showToast('Il faut d’abord attribuer une note pour publier.');return;}
+ at.publishedToStudent=at.publishedToStudent!==true;
+ if(at.publishedToStudent&&!at.reviewedAt)at.reviewedAt=Date.now();
+ save();render();showToast(at.publishedToStudent?'Correction publiée dans Mon CORTEX.':'Correction masquée à l’élève.');return;
+}
+if(a==='save-grade'){const at=attemptBy(id);const grade=Number(document.getElementById('manual-grade')?.value);const original=document.getElementById('manual-grade')?.value;if(!at||original===''||!Number.isFinite(grade)||grade<0||grade>20){showToast('Saisis une note entre 0 et 20.');return;}at.grade=grade;at.feedback=document.getElementById('manual-feedback')?.value||'';at.reviewedAt=Date.now();at.publishedToStudent=true;save();closeModal();showToast('Note et appréciation publiées dans Mon CORTEX.');render();return;}
 if(a==='choose-sleep'){chosenCode='SOMMEILPDF';render();return;}
 if(a==='choose-code'){chosenCode=el.dataset.code;render();return;}
 if(a==='start-exam'){startExam();return;}
@@ -1090,9 +1100,12 @@ if(a==='simulate-interruption'){registerInterruption('simulation');showToast('In
 if(a==='review-exam'){reviewExam();return;}
 if(a==='confirm-submit'){const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
-if(a==='confirm-reset'){studentSession=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
+if(a==='confirm-reset'){studentSession=null;portalSession=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
 document.addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&['portal-number','portal-classcode','portal-pin'].includes(e.target?.id)){
+  e.preventDefault();const trigger=document.querySelector('[data-action="portal-login"]');if(trigger&&!trigger.disabled)action(trigger);return;
+ }
  if(e.key==='Enter'&&['student-number','student-pin','student-pin-confirm'].includes(e.target?.id)){
   e.preventDefault();
   const trigger=document.querySelector('[data-action="class-student-number"], [data-action="class-student-pin"]');
@@ -1118,15 +1131,24 @@ if(t.hasAttribute('data-doc-fill')){
 }
 if(t.hasAttribute('data-review-comment')){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId),q=e?.questions[reviewIndex];
- if(at&&q){at.marks ||= {};at.marks[q.id] ||= {};at.marks[q.id].comment=t.value;save();}
+ if(at&&q){at.marks ||= {};at.marks[q.id] ||= {};at.marks[q.id].comment=t.value;at.publishedToStudent=false;save();}
 }
 if(t.hasAttribute('data-review-general')){
- const at=attemptBy(reviewAttemptId);if(at){at.feedback=t.value;save();}
+ const at=attemptBy(reviewAttemptId);if(at){at.feedback=t.value;at.publishedToStudent=false;save();}
 }
 if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.querySelectorAll('#exam-tiles [data-search]').forEach(card=>card.hidden=!card.dataset.search.toLowerCase().includes(search));}
 });
 document.addEventListener('change',e=>{
 const t=e.target;
+if(t.id==='portal-level'){
+ const opts=document.querySelectorAll('#portal-class option[data-level]');
+ for(const option of opts){const allowed=!t.value||option.dataset.level===t.value;option.hidden=!allowed;option.disabled=!allowed;}
+ const cls=document.getElementById('portal-class');if(cls)cls.value='';return;
+}
+if(t.id==='portal-year'){
+ if(!portalAuthorized()){portalSession=null;nav('student','accueil');return;}
+ portalYear=Number(t.value)||window.CORTEX_PORTAL.keyYear(Date.now());portalTouch();render();return;
+}
 if(t.hasAttribute('data-class-filter')){
  teacherClassFilter=t.value||'';teacherGroupFilter='';render();return;
 }

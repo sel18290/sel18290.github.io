@@ -1,0 +1,49 @@
+/* Petit Albert, à gauche du ciel Noctis. Discret, accessible et responsive. */
+#cortex-albert-person{position:fixed;left:max(7px,env(safe-area-inset-left));top:41%;z-index:58;display:flex;flex-direction:column;align-items:center;gap:3px;width:70px;padding:7px 4px 8px;border-radius:16px;background:linear-gradient(140deg,#0b243be9,#183b57e8);border:1px solid #74b3c9;box-shadow:0 5px 27px #0009;color:#d5f7fb;cursor:pointer;transition:transform .2s ease,box-shadow .2s}
+#cortex-albert-person:hover{transform:translateX(3px);box-shadow:0 8px 28px #2a9cc066}
+#cortex-albert-person:focus-visible{outline:3px solid #aae9f5;outline-offset:3px}
+.cortex-albert-buddy{width:36px;height:49px;position:relative;display:block;filter:drop-shadow(0 0 9px #4ac3dcaa)}
+.cortex-albert-buddy .buddy-antenna{position:absolute;top:0;left:17px;width:3px;height:8px;background:#aad2f9;border-radius:3px}
+.cortex-albert-buddy .buddy-antenna:before{content:'';position:absolute;top:-4px;left:-2px;width:7px;height:7px;border-radius:50%;background:#77f1db}
+.cortex-albert-buddy .buddy-head{position:absolute;top:8px;left:4px;width:28px;height:23px;border-radius:9px 9px 7px 7px;background:linear-gradient(135deg,#d5f2ff,#7ad6f5);border:2px solid #4e9bc5;display:flex;align-items:center;justify-content:center;gap:6px}
+.cortex-albert-buddy .buddy-head i{width:5px;height:6px;background:#102a45;border-radius:3px}
+.cortex-albert-buddy .buddy-body{position:absolute;top:33px;left:9px;width:18px;height:12px;background:#a7dbf3;border-radius:5px 5px 4px 4px}
+.cortex-albert-buddy .buddy-arms:before,.cortex-albert-buddy .buddy-arms:after{content:'';position:absolute;top:34px;width:5px;height:13px;border-radius:4px;background:#9bd6e8}
+.cortex-albert-buddy .buddy-arms:before{left:2px;transform:rotate(18deg)}.cortex-albert-buddy .buddy-arms:after{right:2px;transform:rotate(-18deg)}
+.cortex-albert-buddy .buddy-feet:before,.cortex-albert-buddy .buddy-feet:after{content:'';position:absolute;bottom:0;width:7px;height:5px;background:#77abc8;border-radius:2px}
+.cortex-albert-buddy .buddy-feet:before{left:10px}.cortex-albert-buddy .buddy-feet:after{right:10px}
+#cortex-albert-person .buddy-name{font-size:10px;font-weight:800;letter-spacing:.04em}
+.cortex-albert-dialog{width:min(570px,calc(100vw - 24px));max-height:88dvh;overflow:auto;border:1px solid #79aec6;border-radius:20px;background:linear-gradient(145deg,#102c47,#07182b);box-shadow:0 30px 90px #000c;color:#e4f3fd;padding:0}
+.cortex-albert-dialog::backdrop{background:#000b;backdrop-filter:blur(7px)}
+.cortex-albert-dialog-content{padding:clamp(16px,4vw,25px);display:grid;gap:16px}
+.cortex-albert-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.cortex-albert-kicker{font-size:10px;letter-spacing:.19em;color:#9ae9d6;font-weight:850}
+.cortex-albert-dialog h2{margin:8px 0 0;font-size:clamp(20px,3vw,29px);color:#f0faff}
+.cortex-albert-dialog .cortex-albert-close{border:1px solid #7999b1;background:#183950;color:#e8f5ff;width:38px;height:38px;border-radius:9px;font-weight:850;flex:none}
+.cortex-albert-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cortex-albert-tabs button{border:1px solid #57768b;background:#10283c;border-radius:10px;color:#d4e9fc;padding:12px 8px;font-weight:750}
+.cortex-albert-tabs button[aria-selected=true]{border-color:#a4f2db;background:#23524d;color:#f4fff9}
+.cortex-albert-panel{display:grid;gap:12px;min-width:0}
+.cortex-albert-panel[hidden]{display:none}
+.cortex-albert-panel textarea{width:100%;box-sizing:border-box;min-height:90px;max-width:100%;resize:vertical;border:1px solid #749ab4;border-radius:11px;padding:12px;color:#effbff;background:#142e45;line-height:1.5}
+.cortex-albert-examples{display:flex;flex-wrap:wrap;gap:7px}
+.cortex-albert-examples button{font-size:11px;border:1px solid #57748a;background:#153148;color:#d7eefb;border-radius:9px;padding:8px;text-align:left}
+.cortex-albert-send{background:linear-gradient(110deg,#a3efde,#83c7e6);border:0;border-radius:10px;color:#103047;padding:12px 14px;font-weight:850;min-height:43px}
+.cortex-albert-send:disabled{opacity:.55;cursor:wait}
+.cortex-albert-answer{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;color:#d7f0fc}
+.cortex-albert-answer:not(:empty){padding:13px;border:1px solid #436e88;border-radius:11px;background:#132d43}
+.cortex-albert-muted{font-size:12px;line-height:1.65;color:#bfd4e5;margin:0}
+.cortex-albert-warning{font-size:12px;line-height:1.5;color:#f5cf9e;margin:0}
+.portal-albert-tips{display:grid;gap:10px}
+.portal-albert-tips>button{max-width:max-content;border:1px solid #82e6d2;color:#dffff8;background:#1a4c4d;border-radius:11px;font-weight:850;padding:12px 15px}
+.portal-albert-tips>button:disabled,.portal-albert-estimate:disabled{opacity:.55;cursor:wait}
+.portal-albert-tips-slot{display:grid;gap:12px;color:#d8effb}
+.portal-result-end .portal-albert-estimate{border:1px solid #73dfc6;border-radius:10px;padding:9px 12px;color:#ddfff3;background:#174949;font-size:12px;font-weight:850;max-width:245px;white-space:normal}
+.cortex-estimate-result{font-size:12px;line-height:1.5;width:min(470px,100%);color:#d6eff7;display:grid;gap:6px;text-align:left}
+.cortex-estimate-grade{font-size:20px;font-weight:900;color:#a2f2da}
+.cortex-estimate-line{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cortex-estimate-disclaimer{color:#f6d8ac;font-size:11px;line-height:1.4}
+.portal-result:has(.portal-albert-estimate){border-color:#5b999d;background:linear-gradient(110deg,#122b41,#193c48)}
+.portal-result:has(.portal-albert-estimate) .portal-result-end{max-width:480px;display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+@media(max-width:680px){#cortex-albert-person{top:auto;bottom:max(74px,env(safe-area-inset-bottom));left:max(6px,env(safe-area-inset-left));width:59px;z-index:59;opacity:.94}.cortex-albert-buddy{transform:scale(.85);margin:-4px}.portal-result:has(.portal-albert-estimate) .portal-result-end{align-items:stretch;width:100%;max-width:none}.portal-result-end .portal-albert-estimate{max-width:none}.cortex-albert-dialog{max-height:88dvh}.cortex-albert-dialog-content{padding:16px}}
+@media(prefers-reduced-motion:reduce){#cortex-albert-person{transition:none}}

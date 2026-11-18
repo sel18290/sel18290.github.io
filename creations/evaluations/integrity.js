@@ -37,7 +37,36 @@ function settings(exam){
  '<div class="integrity-watermark-preview"><div><span class="integrity-kicker">APERÇU DU FILIGRANE</span><strong>'+esc(exam.title)+'</strong><small>CORTEX · 2MRC2 · N° 12 · AIDE IA INTERDITE</small></div><p>'+(c.enabled&&c.watermarkCapture?'Activé : le filigrane sera visible pendant le contrôle.':'Désactivé : cet aperçu montre l’effet possible.')+' Une IA peut ignorer ce message : il n’impose aucun refus et ne bloque pas les captures.</p></div>'+
  '<p class="integrity-caution"><strong>Important :</strong> Android, iOS et Windows gardent le contrôle des captures d’écran. Un site ne peut pas les bloquer ni les détecter fiablement. Les alertes de navigation peuvent avoir des causes légitimes ; aucune sanction automatique.</p></div>';
 }
-function summary(state,filter=''){
+const tools=[
+ {key:'blockPaste',icon:'⇩',title:'Collage des réponses',desc:'Empêche le collage de texte dans les champs de réponse pendant le contrôle.',limit:'Ne repère pas un texte retapé à la main.'},
+ {key:'blockCopy',icon:'▤',title:'Copie du sujet',desc:'Intercepte les commandes copier et couper sur la page du sujet.',limit:'N’empêche ni les photos ni les captures d’écran.'},
+ {key:'trackVisibility',icon:'◷',title:'Sorties de page',desc:'Note une page masquée plus de deux secondes et sa durée approximative.',limit:'Une notification ou une aide technique peut déclencher une alerte.'},
+ {key:'warnStudent',icon:'!',title:'Avertissements élèves',desc:'Explique immédiatement lorsqu’un collage ou une copie est refusé.',limit:'Aucune sanction ni note de suspicion automatique.'},
+ {key:'watermarkCapture',icon:'▧',title:'Filigrane anti-partage / IA',desc:'Ajoute la classe, le numéro de liste et un message « aide IA interdite ».',limit:'Une capture reste possible et une IA peut ignorer le message.'}
+];
+function setupControl(exam,tool,enabled){
+ const c=config(exam),on=!!c[tool.key],effective=enabled&&on;
+ const tag=effective?'Actif':on?'Prêt, mode général éteint':'Désactivé';
+ return '<article class="integrity-tool-panel-card'+(effective?' is-active':'')+'">'+
+  '<div class="integrity-tool-panel-icon" aria-hidden="true">'+esc(tool.icon)+'</div>'+
+  '<div class="integrity-tool-panel-copy"><strong>'+esc(tool.title)+'</strong><p>'+esc(tool.desc)+'</p><small>'+esc(tool.limit)+'</small></div>'+
+  '<div class="integrity-tool-panel-control"><span class="integrity-tool-panel-status'+(effective?' is-active':'')+'">'+esc(tag)+'</span>'+
+  '<button type="button" class="integrity-tool-panel-button'+(on?' is-on':'')+'" data-action="integrity-quick-toggle" data-id="'+esc(exam.id)+'" data-tool="'+esc(tool.key)+'" aria-pressed="'+String(on)+'" aria-label="'+(on?'Désactiver ':'Activer ')+esc(tool.title)+'">'+(on?'Désactiver':'Activer')+'</button></div></article>';
+}
+function setupPanel(exams,chosenId){
+ const exam=exams.find(x=>x.id===chosenId)||exams[0];
+ if(!exam)return '<div class="integrity-empty"><strong>Ajoutez d’abord un contrôle.</strong><p>Vous pourrez ensuite activer chaque protection individuellement.</p></div>';
+ const c=config(exam);
+ const opts=exams.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===exam.id?'selected':'')+'>'+esc(x.title)+'</option>').join('');
+ return '<div class="integrity-tool-panel" id="integrity-tool-panel">'+
+  '<div class="integrity-tool-panel-header"><div><span class="integrity-kicker">RÉGLAGES IMMÉDIATS</span><h4>Activer chaque outil</h4><p>Choisissez le contrôle, puis activez uniquement les protections souhaitées.</p></div>'+
+  '<label for="integrity-setup-exam">Contrôle à configurer<select id="integrity-setup-exam">'+opts+'</select></label></div>'+
+  '<div class="integrity-tool-master"><div><strong>Mode anti-triche général</strong><p>'+ (c.enabled?'Le mode est actif : les outils activés ci-dessous s’appliquent à ce contrôle.':'Le mode est éteint : les outils ci-dessous peuvent être préparés, mais ne s’appliquent pas encore aux élèves.')+'</p></div>'+
+  '<button type="button" class="integrity-master-button'+(c.enabled?' is-on':'')+'" data-action="integrity-quick-toggle" data-id="'+esc(exam.id)+'" data-tool="enabled" aria-pressed="'+String(c.enabled)+'">'+(c.enabled?'Désactiver le mode':'Activer le mode')+'</button></div>'+
+  '<div class="integrity-tool-panel-grid">'+tools.map(x=>setupControl(exam,x,c.enabled)).join('')+'</div>'+
+  '<p class="integrity-tool-panel-footer">Enregistrement automatique pour ce contrôle uniquement. Les protections de navigateur sont contournables et les alertes ne prouvent pas une fraude. Des aménagements d’accessibilité restent possibles.</p></div>';
+}
+function summary(state,filter='',selectedExamId=''){
  const exams=state.exams||[],allAttempts=state.attempts||[],events=(state.events||[]).filter(e=>e.kind in types),active=exams.filter(e=>config(e).enabled).length;
  const countAffected=new Set(events.map(e=>e.attemptId)).size;
  const cards=exams.map(e=>{
@@ -57,7 +86,7 @@ function summary(state,filter=''){
  return '<div class="integrity-page integrity-v2">'+
  '<section class="integrity-hero"><div class="integrity-hero-copy"><span class="integrity-kicker"><span class="integrity-red-dot"></span> CORTEX · CENTRE DE CONTRÔLE</span><h2>Évaluations <em>protégées.</em></h2><p>Configurez des règles adaptées à vos élèves, suivez les incidents et gardez toujours la décision humaine.</p><div class="integrity-hero-actions"><button type="button" data-action="integrity-scroll-controls" class="integrity-primary-link">Configurer mes contrôles <span aria-hidden="true">↗</span></button><button type="button" data-action="integrity-scroll-journal" class="integrity-ghost-link">Voir les événements ↓</button></div></div><div class="integrity-hero-emblem" aria-hidden="true"><div class="integrity-emblem-ring"><span>◈</span></div><div class="integrity-emblem-caption">MODE INTÉGRITÉ</div></div></section>'+
  '<section class="integrity-stats" aria-label="Indicateurs des contrôles"><div><span class="integrity-stat-icon">◈</span><strong>'+active+'</strong><span>Contrôles protégés</span><small>Sur '+exams.length+' contrôles</small></div><div><span class="integrity-stat-icon red">!</span><strong>'+events.length+'</strong><span>Événements relevés</span><small>Sans jugement automatique</small></div><div><span class="integrity-stat-icon">▤</span><strong>'+countAffected+'</strong><span>Copies concernées</span><small>À examiner individuellement</small></div></section>'+
- '<section class="integrity-section" id="integrity-controls"><div class="integrity-section-head"><div><span class="integrity-kicker">01 — CONFIGURATION</span><h3>Protection par contrôle</h3><p>Des options indépendantes, activables à tout moment.</p></div><span class="integrity-section-chip">'+exams.length+' contrôle(s)</span></div><div class="integrity-grid">'+(cards||'<p class="integrity-empty">Aucun contrôle. Créez une évaluation pour activer les protections.</p>')+'</div></section>'+
+ '<section class="integrity-section" id="integrity-controls"><div class="integrity-section-head"><div><span class="integrity-kicker">01 — CONFIGURATION</span><h3>Protection par contrôle</h3><p>Un bouton par outil, avec ses effets et ses limites.</p></div><span class="integrity-section-chip">'+exams.length+' contrôle(s)</span></div>'+setupPanel(exams,selectedExamId)+'<div class="integrity-other-exams"><h4>Mes contrôles</h4><p>Accès rapide aux autres évaluations et à leurs paramètres avancés.</p></div><div class="integrity-grid">'+(cards||'<p class="integrity-empty">Aucun contrôle. Créez une évaluation pour activer les protections.</p>')+'</div></section>'+
  '<section class="integrity-section"><div class="integrity-section-head"><div><span class="integrity-kicker">02 — COMPRENDRE</span><h3>Des outils transparents.</h3><p>Ce qui est possible, ce qui ne l’est pas et ce que le professeur peut réellement observer.</p></div></div><div class="integrity-explain">'+
  '<article><span class="integrity-explain-icon">⇩</span><strong>Collage des réponses</strong><p>Les collages peuvent être refusés dans les réponses, mais un élève peut saisir du texte à la main.</p><small>LIMITATION D’ACTION</small></article>'+
  '<article><span class="integrity-explain-icon">▤</span><strong>Copie du sujet</strong><p>Limitation des commandes de copie et découpage dans la page, sans empêcher les photos.</p><small>LIMITATION D’ACTION</small></article>'+

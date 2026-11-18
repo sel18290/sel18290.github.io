@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='documents',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
 const PSE_DEMO_ASSIGNMENT='demo-pse-sans-compte-60',PSE_DEMO_TOKEN='DEMO-PSE-60-MINUTES',PSE_DEMO_CLASS='2mrc1',PSE_PREVIEW_STORAGE='cortex-pse-preview-session-1';
 function persistPsePreview(){
  try{
@@ -115,7 +115,7 @@ if(view==='teacher'&&tab==='qr'&&window.CORTEX_CLASSES){
  const ass=state.assignments.find(a=>a.id===currentQrAssignmentId);
  if(ass)Promise.resolve().then(()=>window.CORTEX_CLASSES.drawQr(window.CORTEX_CLASSES.qrLink(ass),'class-qr-image').catch(e=>showToast(e.message)));
 }
-if(view==='teacher'&&tab==='creer'&&editorDocTab==='source'&&editor?.sourceId&&editor.sourceType==='docx'){
+if(view==='teacher'&&tab==='creer'&&editor?.sourceId&&editor.sourceType==='docx'){
  Promise.resolve().then(()=>window.CORTEX_VISUAL.showWordSource(editor.sourceId,'editor-word-canvas'));
 }
 if(view==='teacher'&&tab==='corriger'){
@@ -228,7 +228,19 @@ return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et pas
 `<div>${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}</div><div class="toolbar"><span class="muted small">${visibleExams.length} contrôle(s) ${teacherClassFilter?'affecté(s) à la classe':'dans la démo'}</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
 <div class="tile-grid" id="exam-tiles">${visibleExams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Accès QR':'Brouillon',e.open?'ok':'warn')}<span class="small muted">${esc(e.chapter)}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="toggle-exam" data-id="${e.id}">${e.open?'Fermer':'Publier'}</button>${e.sourceId?`<button class="table-action" data-action="visual-open-existing" data-id="${esc(e.id)}">Découper ↗</button>`:''}<button class="table-action" data-action="class-qr-list" data-id="${esc(e.id)}">▣ QR codes</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="table-action" data-action="integrity-settings" data-id="${esc(e.id)}">◈ Anti-triche</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${visibleExams.length===0?'<div class="empty">Aucun contrôle pour cette sélection. Affecte-en un depuis « Mes classes » ou efface le filtre.</div>':''}</div>`;
 }
-function editorFor(id){const e=examBy(id);return e?JSON.parse(JSON.stringify(e)):{id:'demo-'+Date.now(),title:'',level:'Seconde Bac Pro',chapter:'PSE · Nouveau chapitre',duration:45,code:'DEMO'+Math.floor(Math.random()*9000+1000),open:false,doc:'',questions:[{id:'q-'+Date.now(),type:'text',prompt:'',points:4}]};}
+function editorFor(id){
+ const e=examBy(id);
+ const exam=e?JSON.parse(JSON.stringify(e)):{
+  id:'demo-'+Date.now(),title:'',level:'Seconde Bac Pro',chapter:'PSE · Nouveau chapitre',
+  duration:45,code:'DEMO'+Math.floor(Math.random()*9000+1000),open:false,doc:'',
+  questions:[{id:'q-'+Date.now(),type:'text',prompt:'',points:4,doc:''}]
+ };
+ // Préserve les anciens sujets : convertit le document commun en documents par question.
+ const previous=String(exam.doc||'').trim();
+ if(previous)for(const q of exam.questions||[])if(!String(q.doc||'').trim())q.doc=previous.slice(0,5000);
+ exam.doc='';
+ return exam;
+}
 function teacherEditor(){
   if(!editor)editor=editorFor(null);
   editorIndex=Math.max(0,Math.min(editorIndex,editor.questions.length-1));

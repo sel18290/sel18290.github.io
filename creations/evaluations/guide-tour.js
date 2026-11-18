@@ -58,7 +58,7 @@ function placeGuide(){
  root.dataset.tourSide=penalty(left)+4000<penalty(right)?'left':'right';
 }
 function scrollToTarget(stepIndex=index){
- if(!active||index!==stepIndex||minimized)return;
+ if(!isDesktop()||!active||index!==stepIndex||minimized)return;
  const node=target();if(!node)return;
  const b=node.getBoundingClientRect();
  if(b.bottom<155||b.top>window.innerHeight-125||b.top<90){

@@ -148,3 +148,15 @@
  .ct-tour-mobile-primary button{font-size:11px}
  .ct-tour-mini-help,.ct-tour-mini-next{padding:6px 8px;font-size:11px}
 }
+
+
+/* Téléphone tenu à l'horizontale : éviter le grand panneau de bureau. */
+@media (min-width:761px) and (max-width:1000px) and (max-height:520px) and (pointer:coarse){
+ .ct-tour{left:auto;right:9px;bottom:9px;width:min(430px,52vw);max-height:calc(100dvh - 18px)}
+ .ct-tour-desktop{display:none}
+ .ct-tour-mobile{display:block}
+ .ct-tour-mobile-primary button{min-height:44px}
+ .ct-tour-minimized{top:9px;bottom:auto;max-height:75px}
+ .ct-tour-minimized .ct-tour-top{display:none}
+ .ct-tour-highlight{scroll-margin-top:95px}
+}

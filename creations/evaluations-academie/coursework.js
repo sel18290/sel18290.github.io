@@ -163,7 +163,7 @@ function display(){
   }
   if(copy.file_name)card.append(createButton('📎 Ouvrir la copie jointe : '+copy.file_name,'cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
   const form=make('form','cw-grade-form'),grade=make('input');
-  grade.type='number';grade.min='0';grade.max='20';grade.step='0.25';grade.required=true;grade.placeholder='Note sur 20';grade.value=copy.grade??'';
+  grade.type='number';grade.min='0';grade.max='20';grade.step='0.01';grade.required=true;grade.placeholder='Note sur 20';grade.value=copy.grade??'';
   grade.setAttribute('aria-label','Note sur 20');
   const feedback=make('textarea');feedback.rows=3;feedback.maxLength=4000;feedback.placeholder='Conseils et correction';feedback.value=copy.feedback||'';
   feedback.setAttribute('aria-label','Commentaire professeur');

@@ -253,3 +253,79 @@
 .portal-document{margin-top:13px;border:1px solid #45687b;border-radius:10px;background:#10263a;padding:12px 14px}
 .portal-document summary{cursor:pointer;color:#b6edec;font-size:12px;font-weight:780}
 .portal-document p{color:#bbd0dc;font-size:12px;line-height:1.7;margin:11px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+
+
+/* CORTEX · Portail de découverte Mon CORTEX : DA Noctis bleu profond / violet stellaire. */
+.portal-login-form .portal-demo-gateway{
+ position:relative;isolation:isolate;overflow:hidden;margin:0 0 24px;padding:19px;
+ border:1px solid #8882d9;border-radius:19px;
+ background:radial-gradient(ellipse at 89% 16%,#6658bd3b,transparent 43%),
+ radial-gradient(ellipse at 10% 100%,#24599c3b,transparent 59%),
+ linear-gradient(133deg,#121a39 0%,#141e40 51%,#0d233c 100%);
+ box-shadow:inset 0 1px #f0eeff2c,0 19px 43px #0208178a,0 0 32px #7475d01c;
+}
+.portal-demo-gateway:before{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.42;
+ background-image:radial-gradient(#ebedff 1px,transparent 1px),radial-gradient(#b4cbff 1px,transparent 1px);
+ background-size:44px 49px,79px 87px;background-position:3px 11px,33px 37px}
+.portal-demo-gateway:after{content:'';position:absolute;right:-28px;top:-75px;width:225px;height:225px;
+ border-radius:50%;border:1px solid #a7a5eb44;box-shadow:0 0 0 19px #bdb1f009,0 0 0 55px #8c94fc06;
+ transform:rotate(-18deg) scaleY(.74);pointer-events:none;z-index:-1}
+.portal-demo-gateway-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.portal-demo-status{display:inline-flex;align-items:center;gap:7px;color:#f1daff;font-size:10px;letter-spacing:.11em;font-weight:850}
+.portal-demo-status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#bb9bff;box-shadow:0 0 0 4px #bb9bff1e,0 0 13px #b995ff}
+.portal-demo-noctis{font-size:9px;letter-spacing:.12em;font-weight:750;color:#a4b6e5}
+.portal-demo-gateway-main{display:grid;grid-template-columns:minmax(0,1fr) 106px;gap:6px;align-items:center;margin:15px 0 17px}
+.portal-demo-kicker{color:#b6b0ff;font-size:10px;font-weight:900;letter-spacing:.15em}
+.portal-login-form .portal-demo-gateway h2{margin:8px 0 9px;font-size:clamp(26px,3vw,33px);line-height:1.1;
+ font-weight:900;letter-spacing:-.045em;color:#fbfaff}
+.portal-demo-gateway h2 em{font-style:normal;background:linear-gradient(100deg,#c8b5ff,#8acaff);
+ background-clip:text;-webkit-background-clip:text;color:transparent}
+.portal-demo-gateway-copy>p{margin:0;max-width:340px;font-size:12px;line-height:1.65;color:#c5d5f3}
+.portal-demo-orbit{width:106px;height:106px;display:grid;place-items:center;position:relative;flex:none}
+.portal-demo-orbit:before,.portal-demo-orbit:after{content:'';position:absolute;inset:5px;border:1px solid #afa6f56c;border-radius:50%;transform:rotate(-34deg) scaleY(.57)}
+.portal-demo-orbit:after{inset:-8px;border-color:#a1b7ff2b;transform:rotate(33deg) scaleY(.75)}
+.portal-demo-orbit-core{position:relative;display:grid;place-items:center;width:64px;height:64px;border-radius:19px;
+ background:linear-gradient(139deg,#d6cbff 0%,#8d9fff 54%,#4469a9 100%);
+ border:1px solid #e9ddff;color:#102146;font-size:30px;font-weight:900;letter-spacing:-.1em;
+ box-shadow:0 0 37px #9599fb4d,inset 0 1px #fff9}
+.portal-demo-orbit-core span{color:#374c99}
+.portal-demo-star{position:absolute;width:5px;height:5px;border-radius:50%;background:#f8d8ff;box-shadow:0 0 10px #dccbff}
+.portal-demo-star.star-one{left:10px;top:15px}.portal-demo-star.star-two{right:3px;bottom:21px}
+.portal-demo-star.star-three{left:7px;bottom:26px;width:3px;height:3px}
+.portal-login-form .portal-preview-button{display:flex;align-items:center;gap:11px;width:100%;min-height:75px;
+ margin:0;padding:12px 13px;text-align:left;border:1px solid #c7bdff;border-radius:13px;
+ background:linear-gradient(106deg,#dcd3ff 0%,#b8c8ff 56%,#9fc4ff 100%);
+ color:#172449;box-shadow:0 5px 0 #4a4b99,0 12px 30px #8f9cfb4a;
+ font-size:14px;font-weight:900;cursor:pointer;
+ transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+.portal-login-form .portal-preview-button:hover{background:linear-gradient(106deg,#ebe3ff,#cad5ff,#b4d4ff);
+ transform:translateY(-3px);box-shadow:0 8px 0 #4a4b99,0 20px 35px #8892ef70}
+.portal-login-form .portal-preview-button:active{transform:translateY(1px);box-shadow:0 3px 0 #4a4b99}
+.portal-login-form .portal-preview-button:focus-visible{outline:3px solid #f6e7ff;outline-offset:4px}
+.portal-preview-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;
+ flex:none;background:#5a5da7;color:#faf0ff;font-size:24px;box-shadow:inset 0 1px #ffffff44}
+.portal-preview-copy{display:grid;min-width:0;gap:3px;flex:1;line-height:1.2}
+.portal-preview-copy strong{font-size:14px;letter-spacing:-.015em;color:#152549}
+.portal-preview-copy small{font-size:10px;line-height:1.4;font-weight:700;color:#3c4b70}
+.portal-preview-arrow{display:grid;place-items:center;width:31px;height:31px;border-radius:50%;
+ flex:none;color:#eef5ff;background:#344d96;font-size:20px}
+.portal-demo-features{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.portal-demo-features span{display:inline-flex;align-items:center;min-height:27px;padding:5px 9px;
+ font-size:10px;font-weight:700;color:#e3e4ff;border:1px solid #878dce82;border-radius:8px;
+ background:#9b9fdb17}
+@media(max-width:950px){.portal-login-form .portal-demo-gateway{padding:16px}
+ .portal-demo-gateway-main{grid-template-columns:minmax(0,1fr) 80px}
+ .portal-demo-orbit{width:80px;height:80px}.portal-demo-orbit-core{width:51px;height:51px;font-size:24px;border-radius:15px}
+ .portal-login-form .portal-demo-gateway h2{font-size:27px}}
+@media(max-width:500px){.portal-login-form .portal-demo-gateway{padding:17px 14px;border-radius:16px}
+ .portal-demo-gateway-main{grid-template-columns:minmax(0,1fr) 60px;gap:5px}
+ .portal-demo-orbit{width:60px;height:74px}.portal-demo-orbit-core{width:43px;height:43px;font-size:20px;border-radius:13px}
+ .portal-demo-gateway:after{width:150px;height:150px}
+ .portal-demo-noctis{font-size:8px}
+ .portal-login-form .portal-demo-gateway h2{font-size:26px}
+ .portal-login-form .portal-preview-button{min-height:70px;gap:9px;padding:11px}
+ .portal-preview-icon{width:35px;height:35px}
+ .portal-preview-copy strong{font-size:13px}
+ .portal-preview-arrow{width:27px;height:27px;font-size:17px}
+ .portal-demo-features{gap:5px}.portal-demo-features span{font-size:9px;padding:5px 7px}}
+@media(prefers-reduced-motion:reduce){.portal-login-form .portal-preview-button{transition:none}}

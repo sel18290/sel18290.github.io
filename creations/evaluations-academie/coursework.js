@@ -1,7 +1,7 @@
 
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
-import {requestAiDraft,formatDraftFeedback} from './ai-correction.js?v=2';
+import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
 const make=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -217,6 +217,19 @@ function display(){
  }
 }
 get('cw-refresh')?.addEventListener('click',()=>reload(true));
+
+get('cw-ai-test')?.addEventListener('click',async event=>{
+ const button=event.currentTarget,status=get('cw-ai-test-status');
+ button.disabled=true;
+ if(status)status.textContent='Vérification de la clé et du modèle Albert…';
+ try{
+  const out=await testAlbertConnection();
+  if(status)status.textContent='✓ '+String(out.message||'Albert API opérationnel.');
+ }catch(err){
+  if(status)status.textContent='✕ '+String(err?.message||'Test Albert échoué.');
+ }finally{button.disabled=false}
+});
+
 window.addEventListener('cortex:academy-data-ready',()=>reload());
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{

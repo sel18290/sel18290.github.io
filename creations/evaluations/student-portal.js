@@ -92,7 +92,7 @@ window.CORTEX_PORTAL=(function(){
   const classes=(state.classes||[]).filter(c=>!c.archived);
   const levels=[['3e','Troisième'],['seconde','Seconde'],['première','Première'],['terminale','Terminale'],['autre','Autre']];
   return '<div class="portal-root portal-login"><section class="portal-login-visual">'+
-   '<div class="portal-symbol" aria-hidden="true">C<span>·</span></div><p class="portal-kicker">BIOSPHERE GENESIS / MON CORTEX</p>'+
+   '<div class="portal-symbol" aria-hidden="true">C<span>·</span></div><p class="portal-kicker">STATION NOCTIS / MON CORTEX</p>'+
    '<h1>Ta progression.<br><em>Ton univers.</em></h1><p>Retrouve tes contrôles corrigés, comprends tes erreurs et observe tes progrès au fil des semaines.</p>'+
    '<div class="portal-illustration" aria-hidden="true"><div class="portal-illustration-glow"></div><div class="portal-planet">20<span>points</span></div><div class="portal-small-orbit">✦</div></div>'+
    '<div class="portal-visual-foot">Une note ne résume pas ce que tu sais. Chaque correction est une occasion d’avancer.</div></section>'+
@@ -180,7 +180,7 @@ window.CORTEX_PORTAL=(function(){
   const periodLabel=period==='s1'?'Septembre → janvier':'Février → juin';
   return '<div class="portal-root portal-dashboard">'+
    (opts.preview?'<div class="portal-demo-ribbon">✧ APERÇU FICTIF · AUCUNE NOTE RÉELLE</div>':'')+
-   '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>BIOSPHÈRE GENESIS</span></div></div>'+
+   '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>STATION NOCTIS · ÉLÈVE</span></div></div>'+
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion ↗</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div><span class="portal-tag">TON ESPACE D’APPRENTISSAGE</span>'+
    '<h1>Chaque progrès<br><em>compte.</em></h1><p>Des résultats pour comprendre, des corrections pour avancer. Voici ton parcours personnel.</p>'+

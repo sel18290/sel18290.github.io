@@ -92,3 +92,17 @@ Tests réalisés : analyse syntaxique JavaScript/Edge, publication des fichiers 
 - La parité complète avec la démo n'est pas encore réalisée : moyennes longitudinales, export PDF groupé et certaines fonctions avancées restent à porter.
 
 Ne pas déclarer une utilisation scolaire 100 % validée tant que ces contrôles ne sont pas terminés.
+
+## Novembre 2026 — QR par contrôle et Espace élève permanent
+
+Deux accès élèves complémentaires sont prévus :
+
+- Le QR code propre à chaque contrôle (paramètre ?join=...) ouvre directement ce contrôle. L’élève confirme son numéro sur la liste et son PIN de classe.
+- Le bouton « Espace élève » dans l’en-tête ouvre la page ?espace=eleve. L’élève choisit sa classe dans une liste, indique son numéro puis son PIN. Le serveur lui retourne uniquement les contrôles de cette classe, ses copies remises et les notes/commentaires effectivement publiés. La moyenne indiquée porte sur les seules notes publiées.
+- Le professeur peut partager un lien spécifique de classe (?classe=...) qui présélectionne la classe mais exige également numéro et PIN.
+
+Chaque professeur prépare une fois des PIN stables par classe, et les réutilise pour tous les contrôles de cette classe. Le professeur peut réinitialiser un PIN individuel, ce qui révoque les sessions concernées. Les anciens contrôles sans classe conservent les anciens PIN par évaluation.
+
+Implémentation : Edge Function cortex-coursework version 4, nouvelle API de classes, tables privées cortex_academy_class_access, cortex_academy_class_roster, cortex_academy_class_sessions avec RLS. Test SQL réussi : séparation des données de deux enseignants fictifs ; aucune lecture directe du stockage PIN/session. Tests d’interface simulés : sélection de classe, connexion, liste des contrôles, ouverture d’un contrôle ; voie QR directe préservée.
+
+Limitation d’architecture : l’identité est actuellement propre à une classe dans le compte de chaque enseignant. Deux enseignants créant chacun « 2MRC2 » ont encore deux espaces et deux jeux de PIN distincts. Il faudrait une gestion des classes et identités commune à l’établissement pour un accès multi-professeurs unifié. La liste publique contient des noms de classes, pas de noms d’élèves ni de notes. L’inscription académique, le SMTP, le parcours sur deux téléphones et la validation RGPD/DPO restent à effectuer avant utilisation réelle.

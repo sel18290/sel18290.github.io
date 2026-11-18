@@ -15,14 +15,14 @@
     {tab:'copies',label:'Copies',icon:'✎'}
   ];
   const more=[
-    {tab:'codes',label:'Codes individuels',icon:'⌑',detail:'Générer les codes de chaque élève'},
+    {tab:'codes',label:'PIN élèves',icon:'⌑',detail:'Suivre et réinitialiser les PIN personnels'},
     {tab:'suivi',label:'Suivi des épreuves',icon:'◷',detail:'Épreuves en cours et interruptions'},
     {tab:'analyses',label:'Analyses',icon:'▥',detail:'Résultats et indicateurs'},
     {tab:'import',label:'Importer un PDF / Word',icon:'⇪',detail:'Créer depuis un document'},
     {tab:'creer',label:'Créer un contrôle',icon:'＋',detail:'Énoncés, documents et barème'}
   ];
   const labels={
-    dashboard:'Mon espace',classes:'Mes classes',codes:'Codes individuels',controles:'Mes contrôles',
+    dashboard:'Mon espace',classes:'Mes classes',codes:'PIN des élèves',controles:'Mes contrôles',
     copies:'Copies et notes',suivi:'Suivi des épreuves',
     analyses:'Analyses pédagogiques',import:'Importer un contrôle',
     creer:'Créer un contrôle',corriger:'Corriger une copie'

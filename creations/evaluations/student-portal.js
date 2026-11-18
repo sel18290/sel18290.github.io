@@ -208,17 +208,15 @@ window.CORTEX_PORTAL=(function(){
    '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">02 / TES ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
    '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
-   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Transformer tes erreurs en progrès.</h2><p>Des pistes de travail extraites de tes questions corrigées, sans jugement ni note supplémentaire.</p></div>'+
-   '<span class="portal-count">'+doneCount+' / '+reviewList.length+' revu(s)</span></div>'+
-   (opts.preview?
-    '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Générer mes aides avec Albert IA</button>'+
+   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>Des aides rédigées par Albert à partir d’un parcours fictif, sans jugement ni note supplémentaire. Aucune réponse personnelle n’est envoyée.</p></div>'+
+   '<span class="portal-count">✦ Aides Albert</span></div>'+
+   '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Générer mes aides avec Albert IA</button>'+
     '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
      (Array.isArray(window.CORTEX_ALBERT_TOOLS?.tips)?
        window.CORTEX_ALBERT_TOOLS.tips.map((tip,i)=>'<article class="portal-revision cortex-albert-tip"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div><div><span class="portal-kicker">'+esc(tip.topic)+'</span><strong>'+esc(tip.title)+'</strong><p>'+esc(tip.advice)+'</p></div></article>').join(''):
-       '<p class="portal-empty">Albert générera trois conseils pédagogiques pour ce profil entièrement fictif. Aucun conseil n’est prérempli.</p>')+
-     '</div></div>':
-    (suggestions?'<div class="portal-revisions">'+suggestions+'</div>':'<div class="portal-empty">Les priorités de révision apparaîtront lorsque le professeur aura attribué des points aux questions.</div>')+
-    '<p class="portal-revision-note">Pour le profil fictif, Albert génère des pistes de travail. Les notes et les conseils ne modifient pas les décisions de l’enseignant.</p>')+'</section>'+
+       '<p class="portal-empty">Albert proposera trois aides de révision issues d’un parcours scolaire fictif. Aucun conseil n’est prérempli.</p>')+
+     '</div></div>'+
+    '<p class="portal-revision-note">Ces aides sont générées par Albert sur un profil de démonstration, pas sur tes réponses personnelles. Elles ne modifient pas la note ni la correction de ton professeur.</p></section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+

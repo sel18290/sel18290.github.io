@@ -144,3 +144,41 @@
  .acad-tool-card{padding:12px}
  .acad-action-toggle{min-height:43px}
 }
+
+
+/* Parcours découverte : CTA haut de page + entrée guidée sur la landing Académie. */
+.top .demo.demo-primary{display:inline-flex;align-items:center;gap:12px;padding:11px 15px;border:1px solid #ff9a9e;background:linear-gradient(112deg,#df4b65,#ba3455);color:#fff7f7;border-radius:13px;box-shadow:0 6px 24px #d72f583d;white-space:nowrap;transition:transform .18s,box-shadow .18s,filter .18s;flex-shrink:0;min-height:56px}
+.top .demo.demo-primary:hover{filter:brightness(1.09);transform:translateY(-2px);box-shadow:0 10px 29px #e32b5e59}
+.top .demo-primary .demo-play{display:grid;place-items:center;height:33px;width:33px;flex:0 0 33px;border-radius:10px;border:1px solid #ffb6ba;background:#ffffff24;font-size:15px}
+.top .demo-primary .demo-label{display:grid;gap:4px}
+.top .demo-primary .demo-label strong{font-size:13px;letter-spacing:.055em;font-weight:850;color:#fff}
+.top .demo-primary .demo-label small{font-size:10px;letter-spacing:.015em;color:#ffe0e4}
+.top .demo-primary .demo-arrow{font-size:18px;color:#ffe1e5;margin-left:5px}
+.academy-tour-banner{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:24px 0 8px;padding:14px 15px;background:linear-gradient(115deg,#46283d,#19283b);border:1px solid #925369;border-radius:14px;box-shadow:0 10px 24px #050b1740}
+.academy-tour-icon{display:grid;place-items:center;width:39px;height:39px;flex:0 0 39px;border-radius:12px;border:1px solid #b9687f;background:#6a324d;color:#ffc6d3;font-size:22px}
+.academy-tour-banner>div{min-width:155px;flex:1}
+.academy-tour-banner strong{font-size:12px;color:#ffe1e8}
+.academy-tour-banner p{font-size:10px;line-height:1.55;margin:5px 0 0;color:#e0bfcd}
+.academy-tour-link{display:inline-flex;justify-content:center;align-items:center;text-align:center;padding:11px 13px;border-radius:9px;background:#fb7286;color:#250d1b;border:1px solid #ffa3ac;font-weight:850;font-size:11px;min-height:40px;white-space:nowrap}
+.academy-tour-link:hover{background:#ff97a1}
+@media(max-width:980px){.academy-tour-link{width:100%}}
+@media(max-width:740px){
+ .top{gap:6px}
+ .top .demo.demo-primary{padding:8px 9px;gap:6px;min-height:43px;border-radius:10px}
+ .top .demo-primary .demo-play{height:26px;width:26px;flex-basis:26px;border-radius:7px;font-size:12px}
+ .top .demo-primary .demo-label strong{font-size:10px;letter-spacing:0}
+ .top .demo-primary .demo-label small{font-size:8px}
+ .top .demo-primary .demo-arrow{display:none}
+ .academy-tour-banner{padding:12px;gap:9px;margin:17px 0 4px}
+ .academy-tour-icon{width:32px;height:32px;flex-basis:32px}
+ .academy-tour-banner>div{min-width:0}
+ .academy-tour-banner strong{font-size:11px}
+ .academy-tour-banner p{font-size:10px}
+ .academy-tour-link{width:100%}
+}
+@media(max-width:365px){
+ .top .demo-primary .demo-play{display:none}
+ .top .demo-primary .demo-label strong{font-size:9px}
+ .top .demo-primary .demo-label small{font-size:7px}
+}
+@media(prefers-reduced-motion:reduce){.top .demo.demo-primary{transition:none}}

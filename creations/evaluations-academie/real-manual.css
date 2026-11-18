@@ -1,0 +1,38 @@
+/* CORTEX — Atelier manuel réel, modèle ergonomique de la démonstration. */
+.real-manual-workshop{display:block;max-width:100%;margin:16px 0}
+.real-manual-head{display:flex;gap:15px;justify-content:space-between;align-items:start;flex-wrap:wrap;margin-bottom:16px}
+.real-manual-head h4{font-size:clamp(17px,2.5vw,24px);margin:5px 0;color:#ecfaff}
+.real-manual-head p{color:#aec4d9;font-size:12px;margin:4px 0}
+.real-manual-settings{border:1px solid #385d77;border-radius:16px;background:#11283c;padding:16px}
+.real-manual-general{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.real-manual-general label,.real-manual-config label{font-size:12px;font-weight:700;color:#b8d3e7;display:grid;gap:7px;min-width:0}
+.real-manual-general .real-manual-wide{grid-column:1/-1}
+.real-manual-general input,.real-manual-general select,.real-manual-general textarea,.real-manual-config textarea,.real-manual-config input,.real-manual-config select{background:#122f49;color:#f0fbff;border:1px solid #51778d;border-radius:10px;padding:11px;font:inherit;font-size:13px;width:100%;min-width:0;max-width:100%}
+.real-manual-general textarea,.real-manual-config textarea{resize:vertical}
+.real-manual-stats{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:14px 0;padding:13px 15px;background:#17384a;border:1px solid #48738b;border-radius:12px;font-size:12px;color:#b2dbe5}
+.real-manual-stats strong{font-size:18px;color:#a8f5e1}
+.real-manual-columns{display:grid;grid-template-columns:minmax(160px,.74fr) minmax(190px,1.1fr) minmax(260px,1.4fr);gap:13px;align-items:start}
+.real-manual-columns>nav,.real-manual-columns>section{min-width:0;border-radius:15px;padding:14px;background:#14273d;border:1px solid #3e5c73}
+.real-manual-panel-title{display:grid;gap:3px;margin-bottom:14px;border-bottom:1px solid #38536e;padding-bottom:12px}
+.real-manual-panel-title strong{color:#85e2d4;font-size:11px;letter-spacing:.1em}
+.real-manual-panel-title small{color:#bfdbed;font-size:14px;font-weight:750}
+.real-manual-question-tabs{display:grid;gap:8px;max-height:520px;overflow:auto;margin:11px 0}
+.real-manual-question-tabs button{display:block;background:#193750;color:#c7ddec;border:1px solid #426381;text-align:left;line-height:1.5;padding:11px;border-radius:10px;cursor:pointer;overflow-wrap:anywhere;font-size:12px;min-height:48px}
+.real-manual-question-tabs button.selected{border-color:#79e4d0;background:#234955;color:#a8ffe7}
+.real-manual-secondary,.real-manual-actions button,.real-manual-qactions button{color:#dcf4fa!important;background:#244354!important;border:1px solid #63879a!important;font-size:12px!important;border-radius:9px!important;cursor:pointer!important;min-height:40px}
+.real-manual-secondary:disabled,.real-manual-actions button:disabled,.real-manual-qactions button:disabled{opacity:.45;cursor:not-allowed!important}
+.real-manual-source-content{padding:18px;min-height:200px;border-radius:12px;background:#eaf0f6;color:#193243;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+.real-manual-source-content p{font-size:13px;color:#244357}
+.real-manual-tip{font-size:11px;color:#a8c1d1;line-height:1.6}
+.real-manual-config #manual-question-editor{display:grid;gap:14px}
+.real-manual-item-head{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#9ce9d4}
+.real-manual-item-head span{color:#b9cee2}
+.real-manual-qgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(78px,.5fr);gap:10px}
+.real-manual-actions,.real-manual-qactions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.real-manual-actions button{padding:8px 10px;min-height:38px}
+.real-manual-qactions button{flex:1}
+.real-manual-save-hint{margin:12px 0;color:#9de5d5;font-size:12px;line-height:1.5}
+.real-manual-workshop fieldset{margin-top:18px}
+@media(max-width:1120px){.real-manual-columns{grid-template-columns: minmax(180px,.8fr) minmax(0,1.25fr)}.real-manual-config{grid-column:1/-1}}
+@media(max-width:740px){.real-manual-columns{grid-template-columns:1fr}.real-manual-config{grid-column:auto}.real-manual-general{grid-template-columns:1fr 1fr}.real-manual-general label:has(textarea){grid-column:1/-1}.real-manual-settings{padding:12px}.real-manual-columns>nav,.real-manual-columns>section{padding:12px}.real-manual-qgrid{grid-template-columns:1fr 110px}.real-manual-question-tabs{max-height:205px}.real-manual-head{gap:7px}}
+@media(max-width:420px){.real-manual-general{grid-template-columns:1fr}.real-manual-general .real-manual-wide{grid-column:1}.real-manual-qgrid{grid-template-columns:1fr}.real-manual-stats{font-size:11px}.real-manual-stats strong{font-size:15px}}

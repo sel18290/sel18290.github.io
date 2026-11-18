@@ -1,0 +1,28 @@
+
+/* CORTEX · même interface documentaire dans l'atelier démo et dans l'espace réel.
+ * Une source par question : texte, captures et accès au document original.
+ */
+.cortex-unified-document{display:grid;gap:10px;min-width:0;align-content:start}
+.cortex-unified-doc-label{display:block;color:#c9e3ec;font-size:12px;font-weight:800;line-height:1.5}
+.cortex-unified-document textarea{box-sizing:border-box;width:100%;max-width:100%;min-height:94px;padding:12px 13px;font:inherit;font-size:13px;line-height:1.55;color:#f4fcff;background:#102d45;border:1px solid #5d819d;border-radius:11px;resize:vertical;overflow-wrap:anywhere}
+.cortex-unified-document textarea:focus-visible,.cortex-unified-image-preview:focus-visible{outline:3px solid #8ddbef;outline-offset:2px}
+.cortex-unified-doc-hint{font-size:11px;line-height:1.55;color:#a8cedf;margin:0}
+.cortex-unified-image-preview{box-sizing:border-box;min-width:0;min-height:95px;border-radius:12px;background:#eaf0f6;color:#233c4e;border:1px solid #c3d4df;padding:13px;display:grid;gap:12px;align-content:start;overflow-wrap:anywhere}
+.cortex-unified-image-preview>.cortex-unified-doc-hint{color:#60778a}
+.cortex-unified-empty{font-size:13px;line-height:1.5;color:#334f66;margin:0}
+.cortex-unified-buttons{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:0}
+.cortex-unified-buttons>.btn,.cortex-unified-buttons button,.cortex-unified-buttons label.real-manual-capture-upload{box-sizing:border-box;flex:1 1 145px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;text-align:center;border-radius:9px;font-weight:750;cursor:pointer}
+.cortex-unified-document .visual-student-docs,.cortex-unified-document .real-manual-capture-gallery{min-width:0;width:100%}
+.cortex-unified-document .visual-student-figure{max-width:100%;overflow-wrap:anywhere}
+.cortex-unified-document .visual-student-figure img{max-width:100%;height:auto;object-fit:contain}
+.cortex-unified-document .ed-original-details,.cortex-unified-document .ed-library-details{border:1px solid #56768b;border-radius:11px;background:#132b3b;overflow:hidden}
+.cortex-unified-document .ed-original-details>summary,.cortex-unified-document .ed-library-details>summary{padding:11px 13px;cursor:pointer;color:#d7eff6;font-weight:700;font-size:12px}
+.cortex-unified-document .ed-original-body{padding:12px;min-width:0}
+.cortex-unified-document .ed-document-reference{padding:12px;border:1px solid #56768b;border-radius:11px}
+.ed-document .ed-document-reference{margin-bottom:12px}
+.cortex-unified-document .ed-library-details .visual-editor-library{display:grid;gap:8px;margin:10px;padding:5px}
+.cortex-unified-document .ed-library-item{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cortex-unified-document .ed-library-item img{height:58px;max-width:110px;object-fit:contain}
+.cortex-unified-document .ed-library-item span{font-size:11px;flex:1;min-width:100px;overflow-wrap:anywhere}
+.cortex-unified-image-preview.cortex-drop-active{outline:3px dashed #48bba3;outline-offset:3px;background:#dcf5ee}
+@media(max-width:620px){.cortex-unified-document{gap:9px}.cortex-unified-buttons{flex-direction:column}.cortex-unified-buttons>.btn,.cortex-unified-buttons button,.cortex-unified-buttons label.real-manual-capture-upload{width:100%;flex:auto}.cortex-unified-image-preview{padding:10px}}

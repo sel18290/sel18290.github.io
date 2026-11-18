@@ -324,7 +324,7 @@ $('auth-form').addEventListener('submit',async ev=>{
   if(mode==='signup'){
    const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:redirectUrl}});
    if(error)throw error;
-   status('Si cette inscription est autorisée, un e-mail de confirmation sera envoyé à votre adresse académique. Vérifiez votre messagerie et ses courriers indésirables.');
+   status('Vérifiez votre messagerie académique. Après avoir ouvert le lien, revenez sur CORTEX et essayez « Connexion ». Si le lien vous envoie vers localhost, votre adresse peut tout de même avoir été confirmée : utilisez la rubrique d’aide juste sous le formulaire.');
   }else if(mode==='login'){
    const {data,error}=await supabase.auth.signInWithPassword({email,password});
    if(error)throw error;
@@ -377,6 +377,7 @@ $('auth-confirm-link-form').addEventListener('submit',async event=>{
    status('Adresse confirmée. Connectez-vous avec votre mot de passe.');
   }
  }catch(error){
+  $('auth-confirm-link').value='';
   const text=String(error?.message||'');
   status(/expired|invalid|otp/i.test(text)
    ? 'Ce lien a expiré ou a déjà servi. Essayez « Connexion » : votre compte peut déjà être confirmé. Sinon, demandez un nouveau lien avant de le copier, sans cliquer dessus.'

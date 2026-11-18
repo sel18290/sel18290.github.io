@@ -74,7 +74,8 @@ function details(s,cl){
  return `<section class="class-details panel" id="class-details">
    <div class="panel-head"><div><p class="eyebrow">FICHE CLASSE</p><h2>${h(cl.name)}</h2>
      <p>${copies.length} copie(s) · ${pending.length} à corriger · ${listed.length} contrôle(s) affecté(s)</p></div>
-     <div class="btn-row"><button class="btn secondary small" data-action="class-show-copies" data-id="${h(cl.id)}">Corriger les copies →</button>
+     <div class="btn-row"><button class="btn secondary small" data-action="access-manage" data-id="${h(cl.id)}">⌑ PIN élèves</button>
+      <button class="btn secondary small" data-action="class-show-copies" data-id="${h(cl.id)}">Corriger les copies →</button>
        <button class="btn danger small" data-action="class-ask-delete" data-id="${h(cl.id)}">Supprimer la classe</button></div></div>
    <div class="class-detail-cols">
      <div class="class-detail-area"><h3>Organisation des demi-groupes</h3><p class="muted small">Par défaut, la classe est entière. Tu peux activer les groupes 1 et 2 ou créer d’autres groupes.</p>
@@ -98,7 +99,7 @@ function details(s,cl){
      const sub=s.attempts.filter(x=>x.assignmentId===a.id&&x.status==='submitted');
      return `<div class="class-assignment-row"><div><strong>${h(e.title)}</strong><small>${h(groupLabel(s,a.classId,a.groupId))} · ${sub.length} copie(s) · ${e.open?'Publié':'Brouillon'}</small></div>
         <div class="btn-row"><button class="btn secondary small" data-action="class-open-qr" data-id="${h(a.id)}">▣ Générer QR</button>
-         <button class="btn secondary small" data-action="access-manage" data-id="${h(a.id)}">⌑ Codes élèves</button>
+         <button class="btn secondary small" data-action="access-manage" data-id="${h(a.id)}">⌑ PIN élèves</button>
         <button class="btn ghost small" data-action="class-assignment-copies" data-id="${h(a.id)}">Copies</button>
         <button class="btn danger small" data-action="class-unassign" data-id="${h(a.id)}">Retirer</button></div></div>`;
      }).join('')}</div>`:'<div class="empty">Aucun contrôle affecté à cette classe.</div>'}</div></section>`;
@@ -148,7 +149,7 @@ function qrModal(s,a,e,url){
   <div class="btn-row"><button class="btn" data-action="class-qr-copy" data-id="${h(a.id)}">Copier le lien</button>
     <button class="btn secondary" data-action="class-qr-download" data-id="${h(a.id)}">Télécharger le QR</button>
     <button class="btn ghost" data-action="class-qr-simulate" data-id="${h(a.id)}">Simuler le scan</button>
-     <button class="btn secondary" data-action="access-manage" data-id="${h(a.id)}">⌑ Générer les codes individuels</button></div>
+     <button class="btn secondary" data-action="access-manage" data-id="${h(a.id)}">⌑ Gérer les PIN élèves</button></div>
   <p class="class-qr-warning">Démonstration GitHub : le QR transmet une destination, pas une authentification sécurisée. Les copies ne sont pas synchronisées entre appareils.</p></div>`;
 }
 async function drawQr(url,selector='class-qr-image'){
@@ -167,34 +168,45 @@ async function drawQr(url,selector='class-qr-image'){
 }
 function landing(s,assignment,exam,invalid=false,options={}){
  if(invalid||!assignment||!exam){
-  return `<div class="qr-student-landing panel"><div class="qr-landing-icon">!</div><h1>QR code non reconnu</h1>
-    <p>Ce lien ne correspond pas à un accès actif sur cet appareil. Dans cette version locale, les contrôles personnalisés ne sont pas partagés entre appareils.</p>
-    <button class="btn secondary" data-action="home">Retour à l’accueil</button></div>`;
+  return '<div class="qr-student-landing panel"><div class="qr-landing-icon">!</div><h1>QR code non reconnu</h1>'+
+   '<p>Ce contrôle n’est pas accessible sur cet appareil. Sans serveur, les contrôles personnalisés ne sont pas synchronisés.</p>'+
+   '<button class="btn secondary" data-action="home">Retour à l’accueil</button></div>';
  }
- const ready=options.step==='ready'&&options.verified===true&&/^\d{1,4}$/.test(String(options.number||''));
- return `<div class="qr-student-landing panel">
-   <span class="chip teal">QR reconnu (démo) · ${h(classLabel(s,assignment.classId))}</span>
-   <h1>${ready?'Ton contrôle est prêt.':'Bienvenue dans ta classe.'}</h1>
-   <h2>${h(classLabel(s,assignment.classId))} · ${h(groupLabel(s,assignment.classId,assignment.groupId))}</h2>
-   ${ready?`<div class="qr-identity-confirm"><span>NUMÉRO D'ÉLÈVE · CODE ACCEPTÉ</span><strong>N° ${h(options.number)}</strong>
-     <button type="button" class="btn ghost small" data-action="class-student-edit-number">Modifier le numéro</button></div>`:
-    `<p class="muted">Saisis ton <strong>numéro sur la liste de classe</strong> (et non ton numéro de téléphone), puis le <strong>code individuel à 6 chiffres</strong> remis par le professeur.</p>
-    <div class="field"><label for="student-number">Mon numéro d'élève</label>
-      <input id="student-number" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" autocomplete="off"
-        placeholder="Ex. 12" aria-describedby="student-number-hint" required>
-      <small id="student-number-hint">Exemple : 12. Le numéro doit figurer dans la liste prévue par le professeur.</small></div>
-     <div class="field"><label for="student-access-code">Code individuel à 6 chiffres</label>
-       <input id="student-access-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="Ex. 583194" aria-describedby="student-access-hint" required>
-       <small id="student-access-hint">Le code correspond uniquement à ton numéro et à cette évaluation.</small></div>`}
-   <div class="qr-landing-exam"><span>TON ÉVALUATION</span><strong>${h(exam.title)}</strong>
-     <small>${exam.questions.length} questions · ${exam.duration} minutes · ${exam.open?'Prête':'Non publiée'}</small></div>
-   ${ready?`<div class="qr-start-notice"><span>◷</span><div><strong>Le chronomètre ne tourne pas encore.</strong>
-      <p>Le décompte de ${Number(exam.duration)||60} minutes commencera lorsque tu appuieras sur « Démarrer le contrôle ».</p></div></div>`:
-     `<p class="muted small">Ton numéro classe ta copie ; le code individuel autorise l’accès dans cette démonstration locale. Le compte à rebours n’a pas commencé.</p>`}
-   <button class="btn full" data-action="${ready?'class-student-start':'class-student-identify'}"
-     ${!exam.open?'disabled':''}>${ready?'Démarrer le contrôle →':'Accéder au contrôle →'}</button>
-   <p class="class-qr-warning">Démo GitHub : les codes et les copies restent sur cet appareil. L’espace professeur est public : ce test n’est pas une véritable authentification. Un autre téléphone ne récupère pas les codes sans serveur.</p>
- </div>`;
+ const cl=byId(s,assignment.classId);
+ const number=window.CORTEX_ACCESS?.normalizeNumber(options.number,cl)||'';
+ const mode=options.step==='ready'&&options.authorized&&number?'ready':options.step==='pin'&&number?'pin':'identify';
+ const registered=mode==='pin'&&!!window.CORTEX_ACCESS?.record(s,cl,number);
+ const head=mode==='ready'?'Ton contrôle est prêt.':mode==='pin'?(registered?'Retrouve ton contrôle.':'Crée ton PIN personnel.'):'Bienvenue dans ta classe.';
+ const label=classLabel(s,assignment.classId),groupName=groupLabel(s,assignment.classId,assignment.groupId);
+ const numberForm='<p class="muted">Saisis ton <strong>numéro sur la liste de classe</strong> (et non ton numéro de téléphone).</p>'+
+  '<div class="field"><label for="student-number">Mon numéro de liste</label>'+
+  '<input id="student-number" type="text" inputmode="numeric" pattern="[0-9]{1,3}" maxlength="3" autocomplete="off"'+
+  ' placeholder="Ex. 12" aria-describedby="student-number-hint" required>'+
+  '<small id="student-number-hint">Entre 1 et '+window.CORTEX_ACCESS.count(cl)+' selon ta classe.</small></div>';
+ const identity='<div class="qr-identity-confirm"><span>NUMÉRO DE LISTE</span><strong>N° '+h(number)+'</strong>'+
+  '<button type="button" class="btn ghost small" data-action="class-student-edit-number">Modifier le numéro</button></div>';
+ const pinForm='<p class="muted">'+(registered?'Un PIN a déjà été créé pour ce numéro. Saisis ton PIN personnel à 6 chiffres pour accéder à tes évaluations.':
+   'Première connexion : choisis toi-même un PIN de <strong>6 chiffres</strong>. Tu le réutiliseras pour les autres contrôles de cette classe.')+'</p>'+
+  '<div class="field"><label for="student-pin">'+(registered?'Mon PIN personnel':'Créer mon PIN à 6 chiffres')+'</label>'+
+  '<input id="student-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="● ● ● ● ● ●" required>'+
+  '<small>Ne partage pas ton PIN avec tes camarades.</small></div>'+
+  (registered?'':'<div class="field"><label for="student-pin-confirm">Confirmer mon PIN</label>'+
+  '<input id="student-pin-confirm" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="● ● ● ● ● ●" required>'+
+  '<small>Retape exactement les 6 chiffres.</small></div>');
+ const readyNote='<div class="qr-start-notice"><span>✓</span><div><strong>PIN validé.</strong>'+
+  '<p>Le décompte de '+(Number(exam.duration)||60)+' minutes commencera lorsque tu appuieras sur « Démarrer le contrôle ».</p></div></div>';
+ const action=mode==='identify'?'class-student-number':mode==='pin'?'class-student-pin':'class-student-start';
+ const actionLabel=mode==='identify'?'Continuer →':mode==='pin'?(registered?'Valider mon PIN →':'Créer mon PIN et continuer →'):'Démarrer le contrôle →';
+ return '<div class="qr-student-landing panel">'+
+  '<span class="chip teal">QR reconnu (démo) · '+h(label)+'</span>'+
+  '<h1>'+head+'</h1><h2>'+h(label)+' · '+h(groupName)+'</h2>'+
+  (mode==='identify'?numberForm:identity+(mode==='pin'?pinForm:''))+
+  '<div class="qr-landing-exam"><span>TON ÉVALUATION</span><strong>'+h(exam.title)+'</strong>'+
+  '<small>'+exam.questions.length+' questions · '+exam.duration+' minutes · '+(exam.open?'Prête':'Non publiée')+'</small></div>'+
+  (mode==='ready'?readyNote:'')+
+  '<button class="btn full" data-action="'+action+'" '+(!exam.open?'disabled':'')+'>'+actionLabel+'</button>'+
+  '<p class="class-qr-warning">Démo GitHub : le PIN et la copie restent sur cet appareil, et la première connexion ne vérifie pas l’identité. Impossible de retrouver les PIN sur un autre téléphone sans serveur.</p>'+
+  '</div>';
 }
 return {NAMES,classes,init,byId,group,classLabel,groupLabel,assignmentLabel,assignments,assignedTo,copyMatch,
  classSelect,groupSelect,filterBar,overview,qrChoices,qrLink,hydrateQrDemo,qrModal,drawQr,landing,codeName,id};

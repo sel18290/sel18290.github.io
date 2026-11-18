@@ -1,0 +1,329 @@
+/* CORTEX Noctis — return to live Academy + PSE 60 minute discovery flow.
+   Dedicated CSS for the demonstration only. */
+body.cortex-noctis .top-exit,
+body.cortex-noctis .top-actions .top-exit{
+  background:linear-gradient(118deg,#f7fdff,#c6e9ff);
+  border:1px solid #fff;
+  color:#10334f;
+  font-size:12px;
+  font-weight:900;
+  border-radius:11px;
+  min-height:45px;
+  padding:10px 15px;
+  box-shadow:0 7px 21px #55bcff31,inset 0 1px #fff;
+  white-space:nowrap;
+}
+body.cortex-noctis .top-exit span{color:#10334f}
+body.cortex-noctis .top-exit:hover{
+  color:#061d33;
+  border-color:#fff;
+  background:#fff;
+  transform:translateY(-1px);
+}
+body.cortex-noctis .demo-notice{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+body.cortex-noctis .demo-notice>span:nth-child(2){flex:1 1 365px}
+body.cortex-noctis .demo-back-real-inline{
+  flex:0 0 auto;
+  min-height:39px;
+  display:inline-flex;
+  align-items:center;
+  padding:9px 13px;
+  border:1px solid #b8e9ff;
+  border-radius:9px;
+  background:#d9f2ff;
+  color:#123853;
+  font-weight:850;
+  font-size:11px;
+  text-decoration:none;
+  line-height:1.35;
+}
+body.cortex-noctis .demo-back-real-inline:hover{background:#fff;border-color:#fff;color:#092c47}
+.cortex-real-return{display:none}
+body.cortex-noctis .portal-pse-teaser{
+  border:1px solid #a7cfe8;
+  border-radius:17px;
+  padding:19px 19px 18px;
+  margin:-5px 0 20px;
+  background:linear-gradient(138deg,#0c2c4c,#143f59 61%,#091d36);
+  color:#f5fbff;
+  box-shadow:0 15px 34px #030a1b36;
+}
+body.cortex-noctis .portal-pse-teaser-mark{
+  display:inline-flex;
+  padding:6px 11px;
+  border:1px solid #8eeaff;
+  border-radius:99px;
+  background:#c1eaff20;
+  color:#c0f1ff;
+  letter-spacing:.13em;
+  font-size:10px;
+  font-weight:950;
+}
+body.cortex-noctis .portal-pse-teaser h2{
+  color:#fff;
+  font-size:clamp(19px,2vw,24px);
+  line-height:1.22;
+  margin:13px 0 8px;
+}
+body.cortex-noctis .portal-pse-teaser p{
+  color:#d6ebf8;
+  font-size:12px;
+  line-height:1.7;
+  margin:0 0 16px;
+}
+body.cortex-noctis .portal-pse-teaser-action{
+  width:100%;
+  min-height:54px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  border:1px solid #fff;
+  border-radius:11px;
+  padding:12px 16px;
+  background:linear-gradient(120deg,#f8fdff,#b5e5ff);
+  color:#0e314c;
+  font-size:14px;
+  font-weight:900;
+  text-align:left;
+}
+body.cortex-noctis .portal-pse-teaser-action:hover{
+  filter:brightness(1.07);
+  box-shadow:0 0 0 3px #a5ebff3b;
+}
+body.cortex-noctis .portal-login-divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:0 0 15px;
+  color:#426076;
+  letter-spacing:.1em;
+  font-size:10px;
+  font-weight:900;
+}
+body.cortex-noctis .portal-login-divider::before,
+body.cortex-noctis .portal-login-divider::after{
+  content:"";
+  height:1px;
+  flex:1 1 0;
+  background:#acc5d6;
+}
+body.cortex-noctis .pse-discovery{
+  isolation:isolate;
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
+  gap:24px;
+  align-items:center;
+  width:min(1200px,calc(100% - 40px));
+  min-height:570px;
+  margin:26px auto 70px;
+  padding:clamp(25px,5vw,65px);
+  border:1px solid #d9f3ff;
+  border-radius:25px;
+  background-image:
+   linear-gradient(90deg,#061326f7 0%,#081e38e3 37%,#0b2745b9 62%,#0d2c4b80),
+   url("../cortex-noctis-corridor.svg");
+  background-position:center,65% 51%;
+  background-size:cover;
+  box-shadow:0 25px 100px #020715ca,inset 0 1px #fff5;
+}
+body.cortex-noctis .pse-discovery::before{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(0deg,#030d20bd,transparent 35%);
+  pointer-events:none;
+}
+body.cortex-noctis .pse-discovery>*{position:relative;z-index:1;min-width:0}
+body.cortex-noctis .pse-discovery-kicker{
+  display:inline-flex;
+  color:#c0f0ff;
+  border:1px solid #83b8d6;
+  border-radius:99px;
+  background:#07233d91;
+  padding:8px 12px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+body.cortex-noctis .pse-discovery h1{
+  font-size:clamp(35px,4.5vw,58px);
+  line-height:1.09;
+  letter-spacing:-.05em;
+  color:#fff;
+  margin:21px 0;
+  max-width:640px;
+  text-shadow:0 3px 24px #000b;
+}
+body.cortex-noctis .pse-discovery h1 em{
+  font-style:normal;
+  color:#b9eaff;
+}
+body.cortex-noctis .pse-discovery-header>p{
+  max-width:540px;
+  font-size:14px;
+  line-height:1.75;
+  color:#deedf8;
+}
+body.cortex-noctis .pse-discovery-facts{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:9px;
+  margin-top:26px;
+}
+body.cortex-noctis .pse-discovery-facts>span{
+  min-height:43px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 12px;
+  border:1px solid #a4d4ed;
+  border-radius:11px;
+  background:#12324ebd;
+  color:#e6f8ff;
+  font-size:12px;
+  font-weight:700;
+}
+body.cortex-noctis .pse-discovery-facts strong{color:#fff}
+body.cortex-noctis .pse-discovery-entry{
+  display:grid;
+  gap:12px;
+  border:1px solid #fff;
+  border-radius:19px;
+  background:linear-gradient(145deg,#f9fdff,#d8eaf6);
+  padding:clamp(20px,2.8vw,32px);
+  box-shadow:0 18px 46px #000b;
+  color:#19374e;
+}
+body.cortex-noctis .pse-discovery-entry h2{
+  font-size:clamp(22px,2.6vw,29px);
+  line-height:1.2;
+  color:#16354b;
+  margin:0 0 10px;
+}
+body.cortex-noctis .pse-discovery-entry p{
+  color:#31536a;
+  font-size:13px;
+  line-height:1.75;
+  margin:0 0 12px;
+}
+body.cortex-noctis .pse-discovery-entry p strong{color:#143d5b}
+body.cortex-noctis .pse-discovery-subject{
+  padding:12px 13px;
+  border:1px solid #a5c6db;
+  border-radius:9px;
+  background:#ebf8ff;
+  color:#143d5b!important;
+  font-weight:800;
+}
+body.cortex-noctis .pse-discovery-start{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  width:100%;
+  min-height:56px;
+  padding:12px 15px;
+  font-size:14px;
+}
+body.cortex-noctis .pse-discovery-back{
+  min-height:48px;
+  width:100%;
+  padding:11px 13px;
+  background:#244a62!important;
+  color:#f0fbff!important;
+  border-color:#4e86a3!important;
+}
+body.cortex-noctis .qr-student-landing{
+  border-color:#d5f2ff;
+  box-shadow:0 21px 60px #020714a8;
+}
+body.cortex-noctis .qr-start-notice{
+  border-color:#8bd9d3;
+}
+@media(max-width:1000px){
+ body.cortex-noctis .pse-discovery{grid-template-columns:1fr;min-height:0;max-width:740px}
+}
+@media(max-width:760px){
+ body.cortex-noctis .top-actions .top-exit{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:0;padding:5px 2px;min-height:54px;
+  line-height:1.2;
+  border-color:#fff;
+  border-radius:11px;
+ }
+ body.cortex-noctis .top-actions .top-exit span{
+  font-size:10px;
+  letter-spacing:-.015em;
+  white-space:nowrap;
+  color:#0f344d;
+ }
+ body.cortex-noctis .top-actions .top-exit::before{
+  content:"↖";
+  display:block;
+  color:#113b5c;
+  font-size:21px;
+  line-height:22px;
+ }
+ body.cortex-noctis .demo-back-real-inline{
+  width:100%;
+  justify-content:center;
+  flex:1 1 100%;
+  min-height:42px;
+ }
+ body.cortex-noctis .portal-pse-teaser{padding:16px;margin:0 0 17px;border-radius:14px}
+ body.cortex-noctis .portal-pse-teaser h2{font-size:22px}
+ body.cortex-noctis .pse-discovery{
+  width:calc(100% - 24px);
+  margin:11px auto 30px;
+  border-radius:16px;
+  padding:20px 15px;
+  gap:18px;
+  background-position:65% center;
+ }
+ body.cortex-noctis .pse-discovery h1{font-size:32px;margin:18px 0}
+ body.cortex-noctis .pse-discovery-header>p{font-size:12px}
+ body.cortex-noctis .pse-discovery-facts{gap:7px;margin-top:19px}
+ body.cortex-noctis .pse-discovery-facts>span{font-size:10px;min-height:39px;padding:8px 9px}
+ body.cortex-noctis .pse-discovery-entry{padding:20px 15px;border-radius:15px}
+ body.cortex-noctis .pse-discovery-start{min-height:55px}
+ /* In standalone pupil mode the main topbar may be hidden by platform CSS.
+    This fixed control must remain visible outside the app mount. */
+ body.cortex-noctis:has(.portal-root) .cortex-real-return{
+  position:fixed;
+  display:inline-flex;
+  top:max(11px,env(safe-area-inset-top));
+  right:12px;
+  z-index:10020;
+  min-height:45px;
+  align-items:center;
+  padding:10px 13px;
+  border-radius:99px;
+  background:#e7f6ff;
+  color:#0f3452;
+  border:1px solid #fff;
+  box-shadow:0 7px 25px #02091688;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:900;
+ }
+ body.cortex-noctis:has(.portal-root) .portal-login-visual{
+  padding-top:64px;
+ }
+}
+@media(min-width:761px) and (max-width:1080px){
+ body.cortex-noctis .demo-back-real-inline{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ body.cortex-noctis .pse-discovery *,body.cortex-noctis .portal-pse-teaser *{transition:none!important}
+}
+@media print{
+ body.cortex-noctis .cortex-real-return,body.cortex-noctis .top-exit,body.cortex-noctis .demo-back-real-inline{display:none!important}
+}

@@ -11,7 +11,9 @@ let recoveringPassword=false;
 const redirectUrl=location.origin+location.pathname;
 const acadRoutes={
  overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',
- assessments:'prof-assessments',qr:'cw-assessment-cards',copies:'cw-copies-head',integrity:'acad-integrity'
+ assessments:'prof-assessments',copies:'cw-copies-head',suivi:'acad-live-monitoring',
+ integrity:'acad-integrity',analyses:'acad-live-analytics',
+ import:'cw-assessment-cards',creer:'prof-assessments',qr:'cw-assessment-cards'
 };
 function currentAcadView(){
  const hash=decodeURIComponent(String(location.hash||'').replace(/^#/,''));
@@ -26,6 +28,7 @@ function showAcadSection(view){
  for(const link of document.querySelectorAll('.academie-prof-nav [data-acad-view]')){
   const active=link.dataset.acadView===key;
   link.classList.toggle('is-active',active);
+  link.classList.toggle('active',active);
   if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
  }
  const overview=$('prof-overview');if(overview)overview.hidden=key!=='overview';
@@ -39,7 +42,7 @@ document.addEventListener('click',event=>{
  showAcadSection(view);
  if(location.hash!==('#'+acadRoutes[view]))location.hash='#'+acadRoutes[view];
  requestAnimationFrame(()=>{
-  const id=view==='overview'?'prof-overview':(['pins','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
+  const id=view==='overview'?'prof-overview':(['pins','import','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
   document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
 });

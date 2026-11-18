@@ -7,6 +7,7 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   if(!Array.isArray(pages)||!pages.length||pages.length>35)throw Error('Albert accepte 35 pages textuelles maximum.');
   const perPage=Math.max(300,Math.min(2500,Math.floor(30000/pages.length)));
   const texts=pages.map(p=>String(p||'').slice(0,perPage));
+  const pagesTruncated=pages.filter(p=>String(p||'').length>perPage).length;
   if(texts.reduce((a,p)=>a+p.length,0)<70)throw Error('Document probablement scanné : pas assez de texte détecté pour Albert. Ouvre l’atelier classique.');
   const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('../evaluations-academie/config.js?v=1');
   const mode=options.mode==='academy'?'academy':'demo';
@@ -22,6 +23,8 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   const result=await response.json().catch(()=>null);
   if(!response.ok||!result?.ok)throw Error(result?.error||'Albert n’a pas pu analyser le sujet.');
   if(!Array.isArray(result.questions)||!result.questions.length)throw Error('Aucune question fiable détectée.');
+  result.warnings=Array.isArray(result.warnings)?result.warnings:[];
+  if(pagesTruncated)result.warnings.push('Le texte de '+pagesTruncated+' page(s) a été abrégé pour l’IA : vérifie les éléments manquants dans le document original.');
   return result;
  }
  function buildQuestions(result,local){

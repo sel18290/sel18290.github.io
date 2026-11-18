@@ -381,7 +381,7 @@ $('exam-form').addEventListener('submit',async event=>{
   const questions=editor.questions();
   const duration=Number($('exam-duration').value||60);
   if(!Number.isFinite(duration)||duration<5||duration>240)throw Error('Durée comprise entre 5 et 240 minutes.');
-  const content={description,questions,doc:$('exam-common-doc').value.trim().slice(0,12000),
+  const content={description,questions,
    level:$('exam-level').value.trim().slice(0,100),chapter:$('exam-chapter').value.trim().slice(0,180),
    duration,antiCheat:antiCreateConfig()};
   const editingId=editor.editingId();
@@ -390,7 +390,8 @@ $('exam-form').addEventListener('submit',async event=>{
    const original=myExams.find(e=>e.id===editingId);
    if(!original||original.published)throw Error('Impossible de modifier un contrôle déjà publié. Duplique-le.');
    const response=await supabase.from('cortex_teacher_assessments').update({
-    title,class_id,content:{...(original.content||{}),...content}
+    title,class_id,content:{...(original.content||{}),...content,
+     assets:(original.content?.assets||[]).filter(asset=>!editor.removedAssetIds().includes(asset.id))}
    }).eq('id',editingId).eq('teacher_id',id);
    error=response.error;
   }else{
@@ -400,10 +401,10 @@ $('exam-form').addEventListener('submit',async event=>{
   }
   if(error||!savedId)throw error||Error('Enregistrement impossible.');
   editor.markSaved(savedId);
-  try{await editor.uploadSource(savedId);}
+  try{await editor.uploadSource(savedId);await editor.uploadAssets(savedId);}
   catch(fileError){
    await loadTeacherData(id);
-   throw Error('Le contrôle a bien été enregistré, mais le document n’a pas été joint : '+(fileError?.message||'erreur de téléversement')+'. Réessaie sans recréer de contrôle.');
+   throw Error('Le contrôle a été enregistré, mais certains documents ou captures n’ont pas été joints : '+(fileError?.message||'erreur de téléversement')+'. Tu peux réessayer sans recréer le contrôle.');
   }
   editor.afterSave();await loadTeacherData(id);
   status('Contrôle et documents enregistrés dans Supabase.');

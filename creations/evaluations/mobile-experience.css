@@ -670,3 +670,41 @@ html.cortex-phone body.mobile-input-focus .phone-teacher-nav { display:none !imp
   html.cortex-phone .phone-teacher-nav *,
   html.cortex-phone .phone-teacher-more-grid button { transition:none !important; }
 }
+
+
+/* Documents pédagogiques et saisie : lecture confortable sans modifier les sources PDF. */
+html.cortex-phone .source-document,
+html.cortex-phone .visual-word-body,
+html.cortex-phone .review-source-content {
+  max-width:100%;
+}
+html.cortex-phone .source-document .source-body {
+  overflow-x:auto; overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+}
+html.cortex-phone .source-document table,
+html.cortex-phone .visual-word-body table {
+  width:100%; min-width:0; table-layout:auto;
+}
+html.cortex-phone .source-document td,
+html.cortex-phone .source-document th,
+html.cortex-phone .visual-word-body td,
+html.cortex-phone .visual-word-body th {
+  padding:8px 6px; font-size:11px;
+  overflow-wrap:anywhere;
+}
+html.cortex-phone .class-addbar .field { max-width:none; min-width:0; width:100%; }
+html.cortex-phone .class-filters { min-width:0; width:100%; }
+html.cortex-phone .class-filters select { min-width:0; max-width:none; }
+html.cortex-phone .qr-student-landing .btn[data-action="start-exam"] {
+  width:100%; min-height:54px; font-size:15px;
+}
+html.cortex-phone .visual-workspace-head .btn-row,
+html.cortex-phone .review-head-actions,
+html.cortex-phone .ed-header .review-head-actions { max-width:100%; }
+html.cortex-phone .visual-workspace-head .btn-row > .btn { flex:1 1 155px; }
+html.cortex-phone .review-question-scroll { scrollbar-width:none; }
+html.cortex-phone .doc-question-response textarea { min-height:160px; }
+html.cortex-phone .page-head .btn-row { max-width:100%; }
+html.cortex-phone .pdf-export-status { overflow-wrap:anywhere; }
+html.cortex-phone .review-nextline > span { font-variant-numeric:tabular-nums; }

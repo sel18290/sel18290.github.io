@@ -266,55 +266,7 @@ function drawTeacherData(){
  for(const c of myClasses){
   const option=el('option','',c.display_name+' · '+c.code);option.value=c.id;$('exam-class').append(option);
  }
- if(!myExams.length)$('exam-list').append(el('p','empty','Aucune évaluation enregistrée.'));
- for(const exam of myExams){
-  const row=el('div','prof-item'),detail=el('div','prof-item-main');
-  const cl=myClasses.find(c=>c.id===exam.class_id);
-  detail.append(el('strong','',exam.title),el('small','',cl?.display_name||'Sans classe'));
-  const chip=el('span','academie-integrity-chip',antiConfig(exam).enabled?'Mode intégrité activé':'Mode désactivé');
-  chip.id='anti-status-'+exam.id;detail.append(chip);
-  const action=el('button','prof-delete','Supprimer');action.type='button';action.addEventListener('click',()=>removeExam(exam));
-  const settings=el('details','academie-anti-detail');
-  settings.append(el('summary','','◈ Configurer l’anti-triche'));
-  const defs=[
-    ['enabled','Activer le mode intégrité','Affiche les règles avant la passation élève'],
-    ['blockPaste','Bloquer le collage','Réponses saisies dans les champs'],
-    ['blockCopy','Limiter la copie du sujet','Ne bloque pas captures ou photos'],
-    ['trackVisibility','Signaler les sorties de page','Signale les pages masquées plus de deux secondes'],
-    ['warnStudent','Avertir l’élève','Aucune sanction automatique'],
-    ['watermarkCapture','Filigrane anti-partage / IA','Classe, numéro et demande aux IA de ne pas répondre ; résultat non garanti']
-  ];
-  for(const [key,title,detailText] of defs){
-    const label=el('label','academie-anti-choice');
-    const input=el('input','');input.type='checkbox';input.checked=antiConfig(exam)[key];
-    input.addEventListener('change',()=>saveAntiCheat(exam,key,input.checked,input));
-    const text=el('span','');
-    text.append(el('strong','',title),el('small','',detailText));
-    const status=el('span','academie-anti-state '+(input.checked?'on':'off'),input.checked?'Activé':'Désactivé');
-    input.setAttribute('aria-label',(input.checked?'Désactiver ':'Activer ')+title);
-    input.addEventListener('change',()=>{
-      status.textContent=input.checked?'Activé':'Désactivé';
-      status.className='academie-anti-state '+(input.checked?'on':'off');
-      input.setAttribute('aria-label',(input.checked?'Désactiver ':'Activer ')+title);
-    });
-    label.append(text,status,input);settings.append(label);
-  }
-  if(['pdf','docx'].includes(exam.content?.sourceType)){
-   const edit=el('button','btn secondary small',exam.published?'Consulter les documents':'Ouvrir l’atelier PDF/Word');
-   edit.type='button';edit.addEventListener('click',()=>{
-    if(!window.CORTEX_REAL_IMPORT?.openExisting){status('Atelier indisponible. Recharge la page.',true);return;}
-    window.CORTEX_REAL_IMPORT.openExisting(exam.id);
-   });detail.append(edit);
-  }
-  const editManual=el('button','btn secondary small',exam.published?'Dupliquer dans l’atelier':'Modifier dans l’atelier');
-  editManual.type='button';editManual.addEventListener('click',()=>{
-   if(!window.CORTEX_MANUAL_EDITOR?.edit){status('Atelier indisponible. Recharge la page.',true);return;}
-   window.CORTEX_MANUAL_EDITOR.edit(exam);
-  });
-  detail.append(editManual);
-  const tool=el('div','academie-anti-wrap');tool.append(settings);
-  row.append(detail,action);$('exam-list').append(row,tool);
- }
+ drawRealExamTiles();
   const list=$('integrity-server-events');list.replaceChildren();
   $('integrity-count').textContent=myIncidents.length+' événement(s)';
   if(!myIncidents.length)list.append(el('p','empty','Aucun événement signalé par les élèves pour le moment.'));
@@ -329,6 +281,127 @@ function drawTeacherData(){
   drawAcademyTools();
   window.dispatchEvent(new CustomEvent('cortex:academy-data-ready'));
 }
+
+let examTileClass='',examTileGroup='',examTileSearch='';
+const classTitle=e=>myClasses.find(c=>c.id===e.class_id)?.code||'Sans classe';
+const groupTitle=e=>e.content?.publish_scope==='g1'?'Groupe 1':e.content?.publish_scope==='g2'?'Groupe 2':'Classe entière';
+function tileButton(name,cls,handler){
+ const b=el('button',cls,name);b.type='button';
+ b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;
+  try{await handler()}catch(e){status('Contrôle : '+safeError(e),true)}
+  finally{b.disabled=false}
+ });return b;
+}
+async function duplicateRealExam(exam){
+ const content=structuredClone(exam.content||{});
+ if((content.assets||[]).length||content.sourceType){
+  if(!confirm('Dupliquer ? Les questions et réglages seront copiés, mais les images et fichiers privés devront être ajoutés dans la nouvelle version.'))return;
+ }
+ content.assets=[];content.publish_scope='all';
+ for(const key of ['sourceType','sourceName','sourcePages','sourcePageCount'])delete content[key];
+ for(const q of content.questions||[]){q.id='q-'+crypto.randomUUID();q.assetIds=[];}
+ const {error}=await supabase.from('cortex_teacher_assessments').insert({
+  teacher_id:requireTeacher(),title:exam.title+' (copie)',class_id:exam.class_id,published:false,content
+ });
+ if(error)throw error;
+ await loadTeacherData(requireTeacher());status('Contrôle dupliqué en brouillon.');
+}
+function publicationDialog(exam){
+ if(!exam.class_id){status('Affecte une classe au contrôle avant publication.',true);return;}
+ const d=el('dialog','cortex-publish-dialog'),form=el('form','cortex-publish-body');
+ form.append(el('h3','','Publier · '+exam.title),el('p','','La diffusion est vérifiée par le serveur pour chaque élève.'));
+ const cls=el('label','','Classe : '+classTitle(exam)),scopeLabel=el('label','','Destinataires');
+ const scope=el('select','');
+ for(const [id,label] of [['all','Classe entière'],['g1','Groupe 1 uniquement'],['g2','Groupe 2 uniquement']]){
+  const op=el('option','',label);op.value=id;scope.append(op);
+ }
+ scope.value=exam.content?.publish_scope||'all';scopeLabel.append(scope);
+ const rosterLabel=el('label','','Effectif de la classe'),size=el('input','');
+ size.type='number';size.min='1';size.max='60';size.value='30';size.required=true;rosterLabel.append(size);
+ const help=el('p','cortex-publish-help','Les groupes sont définis dans « PIN élèves ». Les élèves sans demi-groupe ne voient que les contrôles « Classe entière ».');
+ const actions=el('div','cortex-publish-actions');
+ const cancel=el('button','btn secondary','Annuler');cancel.type='button';cancel.onclick=()=>d.close();
+ const publish=el('button','btn','Confirmer la publication');publish.type='submit';
+ actions.append(cancel,publish);
+ form.append(cls,scopeLabel,rosterLabel,help,actions);d.append(form);document.body.append(d);
+ d.addEventListener('close',()=>d.remove(),{once:true});
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();const count=Number(size.value);
+  if(!Number.isInteger(count)||count<1||count>60){size.reportValidity();return}
+  publish.disabled=true;publish.textContent='Publication en cours…';
+  try{
+   const worker=window.CORTEX_ACADEMY_COURSEWORK;
+   if(!worker)throw Error('Service publication indisponible. Recharge la page.');
+   const out=await worker.publish(exam.id,scope.value,count);
+   d.close();await loadTeacherData(requireTeacher());
+   status('Publié pour '+(scope.value==='all'?'la classe entière':scope.value==='g1'?'le groupe 1':'le groupe 2')+
+    ' · '+classTitle(exam)+(out.freshPins?.length?' · PIN provisoires dans « QR codes »':''));
+  }catch(err){help.textContent=safeError(err);help.classList.add('error');publish.disabled=false;publish.textContent='Réessayer'}
+ });
+ d.showModal();
+}
+function drawRealExamTiles(){
+ const root=$('exam-list');if(!root)return;root.replaceChildren();
+ const filters=el('div','cortex-tiles-filter'),help=el('div','cortex-tiles-organize');
+ help.append(el('strong','','ORGANISER PAR CLASSE'),el('p','','Retrouve les contrôles et les groupes sélectionnés.'));
+ const cls=el('select',''),groups=el('select',''),search=el('input','');
+ cls.setAttribute('aria-label','Filtrer par classe');
+ let op=el('option','','Toutes les classes');op.value='';cls.append(op);
+ for(const c of myClasses.filter(c=>!c.archived)){op=el('option','',c.code||c.display_name);op.value=c.id;cls.append(op)}
+ cls.value=examTileClass;
+ groups.setAttribute('aria-label','Filtrer par groupe');
+ for(const [value,name] of [['','Tous les groupes'],['all','Classe entière'],['g1','Groupe 1'],['g2','Groupe 2']]){
+  op=el('option','',name);op.value=value;groups.append(op);
+ }
+ groups.value=examTileGroup;filters.append(help,cls,groups);
+ const bar=el('div','cortex-tiles-toolbar'),total=el('span','',''),tiles=el('div','tile-grid cortex-live-tile-grid');
+ search.type='search';search.placeholder='Rechercher un contrôle…';search.value=examTileSearch;
+ search.setAttribute('aria-label','Rechercher un contrôle');bar.append(total,search);
+ const access=window.CORTEX_ACADEMY_COURSEWORK?.access?.()||[];
+ for(const exam of myExams){
+  const open=exam.published&&access.find(x=>x.assessment_id===exam.id)?.active!==false;
+  const scope=exam.content?.publish_scope||'all';
+  const card=el('article','card tile cortex-live-tile');
+  card.dataset.classId=exam.class_id||'';card.dataset.scope=scope;
+  card.dataset.search=(exam.title+' '+classTitle(exam)+' '+(exam.content?.chapter||'')).toLowerCase();
+  const head=el('div','tile-stats');
+  head.append(el('span','status '+(open?'ok':'warn'),open?'Publié · Accès QR':'Brouillon'),
+   el('span','cortex-class-tag','CLASSE : '+classTitle(exam)),el('span','small muted',groupTitle(exam)));
+  const detail=el('div','');
+  const qs=exam.content?.questions||[];
+  detail.append(el('h3','',exam.title),el('p','',
+   (exam.content?.level||'Bac professionnel')+' · '+qs.length+' questions · '+
+   qs.reduce((n,q)=>n+(Number(q.points)||0),0)+' points · '+(exam.content?.duration||60)+' min'));
+  const foot=el('div','tile-foot'),row1=el('div','btn-row'),row2=el('div','btn-row');
+  row1.append(tileButton('Modifier','btn ghost small',()=>window.CORTEX_MANUAL_EDITOR.edit(exam)),
+   tileButton('Dupliquer','btn ghost small',()=>duplicateRealExam(exam)));
+  row2.append(tileButton(open?'Modifier la publication':'Publier','table-action',()=>publicationDialog(exam)));
+  if(['pdf','docx'].includes(exam.content?.sourceType))
+   row2.append(tileButton('Découper ↗','table-action',()=>window.CORTEX_REAL_IMPORT.openExisting(exam.id)));
+  row2.append(tileButton('▣ QR codes','table-action',()=>window.CORTEX_ACADEMY_COURSEWORK?.goToQR(exam.id)),
+   tileButton('Tester ↗','table-action',()=>window.CORTEX_ACADEMY_COURSEWORK?.goToQR(exam.id)),
+   tileButton('◈ Anti-triche','table-action',()=>{
+    selectedIntegrityExamId=exam.id;location.hash='#acad-integrity';drawAcademyTools();
+   }),
+   tileButton('Supprimer','btn-delete-exam',()=>removeExam(exam)));
+  foot.append(row1,row2);card.append(head,detail,foot);tiles.append(card);
+ }
+ const filter=()=>{
+  examTileClass=cls.value;examTileGroup=groups.value;examTileSearch=search.value;
+  let visible=0;
+  for(const tile of tiles.children){
+   const match=(!cls.value||tile.dataset.classId===cls.value)&&
+    (!groups.value||tile.dataset.scope===groups.value)&&
+    tile.dataset.search.includes(search.value.toLowerCase());
+   tile.hidden=!match;if(match)visible++;
+  }
+  total.textContent=visible+' contrôle(s)'+(cls.value?' pour la classe':'');
+ };
+ cls.addEventListener('change',filter);groups.addEventListener('change',filter);search.addEventListener('input',filter);
+ root.append(filters,bar,tiles);if(!myExams.length)root.append(el('p','empty','Aucun contrôle enregistré.'));
+ filter();
+}
+
 function requireTeacher(){
  if(!supabase||!teacherId)throw Error('Session académique absente. Reconnectez-vous.');
  return teacherId;

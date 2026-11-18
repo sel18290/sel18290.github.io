@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a1020">
+<meta name="theme-color" content="#080f1b">
 <meta name="description" content="CORTEX Évaluations : explorez l'espace professeur et le parcours élève dans une démonstration interactive.">
 <title>CORTEX Évaluations · Démonstration interactive</title>
 <link rel="stylesheet" href="./demo.css?v=1.0">
@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="./integrity.css?v=3.0">
 <link rel="stylesheet" href="./guide-tour.css?v=2.0">
 <link rel="stylesheet" href="./guide-tour-desktop.css?v=1.1">
+<link rel="stylesheet" href="./experience-aurora.css?v=1.0">
 <script defer src="./doc-engine.js?v=1.3"></script>
 <script defer src="./visual-docs.js?v=1.2"></script>
 <script defer src="./classes.js?v=2.2"></script>
@@ -35,6 +36,7 @@
 <script defer src="./mobile-experience.js?v=3.1"></script>
 <script defer src="./mobile-professor.js?v=3.4"></script>
 <script defer src="./guide-tour.js?v=3.2"></script>
+<script defer src="./command-palette.js?v=1.0"></script>
 </head>
 <body>
 <a class="skip-link" href="#app">Aller au contenu</a>
@@ -49,6 +51,7 @@
     <button class="top-link" data-action="home" type="button">Accueil</button>
     <button class="top-link" data-action="teacher" type="button">Professeur</button>
     <button class="top-link" data-action="student" type="button">Élève</button>
+    <button type="button" class="ct-quicknav-trigger" id="ct-command-launch" aria-haspopup="dialog" aria-expanded="false" aria-controls="ct-command-backdrop" aria-keyshortcuts="Control+K Meta+K" title="Naviguer rapidement dans CORTEX (Ctrl + K)"><span class="ct-quicknav-icon" aria-hidden="true">⌕</span> Rechercher <kbd>Ctrl K</kbd></button>
     <button type="button" id="ct-tour-launch" data-tour-launch title="Découvrir CORTEX avec une visite guidée">✦ Visite guidée</button>
     <a class="top-exit" href="../" aria-label="Retour aux créations NOCTIS">← <span>NOCTIS</span></a>
   </nav>

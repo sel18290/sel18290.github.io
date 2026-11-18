@@ -1,0 +1,23 @@
+/* Shared CORTEX question library: teacher settings and student controls */
+.cq-extra-config{display:grid;gap:12px;padding:14px;margin:12px 0;background:#153349;border:1px solid #456783;border-radius:12px;color:#e8f7ff}
+.cq-extra-field{display:grid;gap:6px;font-size:12px;min-width:0}
+.cq-extra-field small{font-weight:750;color:#b5d9e7}
+.cq-extra-field textarea,.cq-extra-field select,.cq-extra-field input{width:100%;max-width:100%;background:#0d2236;color:#f3ffff;border:1px solid #547b91;border-radius:9px;padding:10px;font:inherit;font-size:13px;min-height:40px}
+.cq-extra-field textarea{resize:vertical;min-height:78px}
+.cq-student-answer{display:block;width:100%;min-width:0;margin:12px 0;color:inherit}
+.cq-student-answer textarea,.cq-student-answer input:not([type=radio]):not([type=checkbox]),.cq-student-answer select{font:inherit;font-size:14px;padding:12px;border-radius:10px;background:#142c43;color:#effbff;border:1px solid #54758b;width:100%;max-width:100%;min-height:43px}
+.cq-student-answer textarea{min-height:135px;resize:vertical}
+.cq-answer-choices{display:grid;gap:9px}
+.cq-answer-option{display:flex!important;align-items:center;gap:12px;padding:13px;border:1px solid #46667f;border-radius:11px;background:#1d3247;color:#f0f8ff;cursor:pointer}
+.cq-answer-option input{width:21px!important;height:21px;flex:none;accent-color:#83e9d5}
+.cq-number-answer{display:flex;align-items:center;gap:12px}.cq-number-answer span{white-space:nowrap}
+.cq-table-scroller{overflow-x:auto;max-width:100%;border:1px solid #526d85;border-radius:10px}
+.cq-answer-table{border-collapse:collapse;width:100%;min-width:430px;table-layout:fixed}
+.cq-answer-table th,.cq-answer-table td{padding:9px;border:1px solid #516b82;overflow-wrap:anywhere;font-size:12px;text-align:left}
+.cq-answer-table th{background:#193b50;font-weight:700;color:#e0f9ff}
+.cq-answer-table td{background:#132a40}.cq-answer-table td input{min-width:80px;padding:9px!important;font-size:12px!important}
+.cq-match-grid,.cq-fill-grid{display:grid;gap:10px}
+.cq-match-line{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(160px,1.2fr);gap:10px;align-items:center;padding:11px;border:1px solid #41647e;border-radius:10px;background:#1b354a}
+.cq-match-line>span{color:#dbeaf7;font-size:13px;overflow-wrap:anywhere}
+.cq-answer-label{display:grid!important;gap:6px;font-size:13px;color:#eaf5ff}
+@media(max-width:640px){.cq-match-line{grid-template-columns:1fr}.cq-extra-config{padding:10px}.cq-answer-table{min-width:370px}.cq-answer-option{padding:12px}}

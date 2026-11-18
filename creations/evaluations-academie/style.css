@@ -348,3 +348,27 @@ body.cw-student-active .layout,body.cw-student-active .bottom{display:none!impor
  .cw-student-stats{gap:6px}
  .cw-student-stats span{font-size:10px;padding:7px 9px}
 }
+
+
+/* Activation individuelle par élève — première connexion, lisible sur mobile. */
+.cw-activation-invitation{margin:18px 0 11px;display:grid;gap:9px;border:1px solid #9b5c76;background:linear-gradient(125deg,#402940,#22354a);padding:16px;border-radius:14px}
+.cw-activation-invitation>span{font-size:12px;color:#ead7e2;font-weight:650}
+.cw-activation-invitation button{width:100%;min-height:53px;background:linear-gradient(120deg,#f18198,#e85877);border:1px solid #ffb5c3;border-radius:11px;color:#280e1c;font-size:14px;font-weight:900;padding:12px 14px;cursor:pointer}
+.cw-activation-invitation button:hover{filter:brightness(1.08)}
+.cw-activation-form{border:1px solid #b56b83;border-radius:15px;padding:19px;background:linear-gradient(145deg,#2a3048,#1b2d41);margin-top:15px}
+.cw-activation-heading{display:grid;gap:6px;margin:0 0 6px}
+.cw-activation-heading>span{font-size:10px;letter-spacing:.12em;font-weight:900;color:#ffb9c7}
+.cw-activation-heading h2{font-size:clamp(21px,3.5vw,29px);margin:0;color:#fff}
+.cw-activation-heading p{font-size:12px;line-height:1.7;color:#c9d5e2;margin:2px 0 10px}
+#cw-student-login-form[hidden],#cw-student-activation-form[hidden],#cw-activation-invitation[hidden]{display:none!important}
+.cw-activation-form .cw-return{margin:0;width:100%;min-height:47px}
+.cw-activation-form input[type=password]{letter-spacing:.14em;font-variant-numeric:tabular-nums}
+@media(max-width:740px){
+ .cw-activation-invitation{padding:12px;gap:8px;margin:15px 0 10px}
+ .cw-activation-invitation button{min-height:55px;font-size:13px;line-height:1.35}
+ .cw-activation-form{padding:13px;margin-top:11px;gap:14px}
+ .cw-activation-heading h2{font-size:22px}
+ .cw-activation-heading p{font-size:11px}
+ .cw-activation-form label{font-size:12px;line-height:1.4}
+ .cw-activation-form input,.cw-activation-form select{min-height:52px}
+}

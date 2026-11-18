@@ -174,7 +174,15 @@ window.CORTEX_PORTAL=(function(){
    const badge=pub?'<span class="portal-status ready">✓ Corrigé et publié</span>':open?'<span class="portal-status wait">En cours</span>':'<span class="portal-status wait">Correction en attente</span>';
    return '<article class="portal-result"><div class="portal-result-icon" aria-hidden="true">'+(pub?'✓':open?'◷':'·')+'</div>'+
     '<div class="portal-result-content"><strong>'+esc(ex?.title||'Évaluation')+'</strong><small>'+esc(date(at.submittedAt||at.startedAt))+' · '+esc(at.groupName||cl.name)+'</small>'+badge+'</div>'+
-    '<div class="portal-result-end">'+(pub?'<div class="portal-grade">'+grade(at.grade)+'<span>/20</span></div><button class="portal-link" data-action="portal-copy" data-id="'+esc(at.id)+'">Voir ma correction ↗</button>':open?'<span class="portal-pending">Brouillon en cours</span>':'<span class="portal-pending">Ta note apparaîtra après publication</span>')+'</div></article>';
+    '<div class="portal-result-end">'+(pub?'<div class="portal-grade">'+grade(at.grade)+'<span>/20</span></div><button class="portal-link" data-action="portal-copy" data-id="'+esc(at.id)+'">Voir ma correction ↗</button>':open?'<span class="portal-pending">Brouillon en cours</span>':
+    opts.preview&&at.id==='exemple-attente-albert'?
+      '<span class="portal-pending">En attente de la correction du professeur</span>'+
+      '<button type="button" class="portal-albert-estimate" data-action="portal-albert-estimate" data-id="'+esc(at.id)+'">✦ Estimer ma note avec Albert IA</button>'+
+      '<div id="cortex-estimate-result" class="cortex-estimate-result" role="status" aria-live="polite">'+
+      (window.CORTEX_ALBERT_TOOLS?.estimate?'<div class="cortex-estimate-grade">≈ '+esc(window.CORTEX_ALBERT_TOOLS.estimate.score)+' / 20</div>'+
+      window.CORTEX_ALBERT_TOOLS.estimate.lines.map(line=>'<p class="cortex-estimate-line">'+esc(line)+'</p>').join('')+
+      '<small class="cortex-estimate-disclaimer">Estimation IA non officielle, exclue de la moyenne. Seul le professeur publie la note définitive.</small>':'Appuie pour obtenir un avis indicatif sur la copie fictive.')+'</div>':
+      '<span class="portal-pending">Ta note apparaîtra après publication</span>')+'</div></article>';
   }).join('');
   const suggestions=reviewList.map((s,i)=>'<article class="portal-revision '+(s.done?'is-done':'')+'"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div>'+
    '<div><span class="portal-kicker">'+esc(s.exam)+'</span><strong>'+esc(s.title)+'</strong>'+
@@ -202,8 +210,15 @@ window.CORTEX_PORTAL=(function(){
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
    '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Transformer tes erreurs en progrès.</h2><p>Des pistes de travail extraites de tes questions corrigées, sans jugement ni note supplémentaire.</p></div>'+
    '<span class="portal-count">'+doneCount+' / '+reviewList.length+' revu(s)</span></div>'+
-   (suggestions?'<div class="portal-revisions">'+suggestions+'</div>':'<div class="portal-empty">Les priorités de révision apparaîtront lorsque ton professeur aura attribué des points aux questions. Tu peux déjà relire tes corrections.</div>')+
-   '<p class="portal-revision-note">Le bouton « Revus » est ton repère personnel. Il ne change pas ta note et ne signifie pas que la notion est définitivement maîtrisée.</p></section>'+
+   (opts.preview?
+    '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Générer mes aides avec Albert IA</button>'+
+    '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
+     (Array.isArray(window.CORTEX_ALBERT_TOOLS?.tips)?
+       window.CORTEX_ALBERT_TOOLS.tips.map((tip,i)=>'<article class="portal-revision cortex-albert-tip"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div><div><span class="portal-kicker">'+esc(tip.topic)+'</span><strong>'+esc(tip.title)+'</strong><p>'+esc(tip.advice)+'</p></div></article>').join(''):
+       '<p class="portal-empty">Albert générera trois conseils pédagogiques pour ce profil entièrement fictif. Aucun conseil n’est prérempli.</p>')+
+     '</div></div>':
+    (suggestions?'<div class="portal-revisions">'+suggestions+'</div>':'<div class="portal-empty">Les priorités de révision apparaîtront lorsque le professeur aura attribué des points aux questions.</div>')+
+    '<p class="portal-revision-note">Pour le profil fictif, Albert génère des pistes de travail. Les notes et les conseils ne modifient pas les décisions de l’enseignant.</p>')+'</section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+
@@ -251,7 +266,7 @@ window.CORTEX_PORTAL=(function(){
   return '\ufeff'+rows.join('\r\n');
  }
  
- function previewData(){
+ function previewData(demoSeed){
   const year=keyYear(Date.now())-1,cl={id:'exemple-eleve',name:'2MRC2 · Exemple',archived:false,studentCount:30,groups:[]};
   const topics=['Le sommeil','Les rythmes biologiques','L’alimentation','Le stress','Les risques professionnels','Les addictions','Le système de santé','Les risques auditifs','L’équilibre alimentaire','L’environnement','La prévention'];
   const records=[
@@ -274,6 +289,21 @@ window.CORTEX_PORTAL=(function(){
     marks:{[q1]:{points:q1Points,comment:i%3===0?'Une définition juste, mais il manque une justification ou un exemple.':'Bonne démarche. Tu peux enrichir ton explication.'},[q2]:{points:q2Points,comment:q2Points<7?'Relis la démarche de prévention et explique pourquoi elle est utile.':'Tu identifies correctement la prévention adaptée.'}},
     answers:{[q1]:'Je peux expliquer le principe et proposer une action de prévention.',[q2]:score<14?'0':'1'}});
   });
+  // Copie du contrôle PSE fictif, réellement en attente de validation du professeur.
+  // Le serveur Albert connaît exclusivement ce jeu de 20 réponses fictives.
+  const sourceExam=demoSeed?.exams?.find(e=>e.id==='sommeil-pdf-a2')||window.CORTEX_DOCS?.demoExam;
+  const sourceCopy=demoSeed?.attempts?.find(a=>a.id==='ex-pdf-demo');
+  if(sourceExam&&sourceCopy&&Array.isArray(sourceExam.questions)&&sourceExam.questions.length===20){
+   exams.push(JSON.parse(JSON.stringify(sourceExam)));
+   const stamp=Date.now()-25*60*1000;
+   attempts.push({
+    id:'exemple-attente-albert',examId:'sommeil-pdf-a2',classId:cl.id,className:cl.name,
+    studentNumber:'12',groupName:'Classe entière',status:'submitted',
+    submittedAt:stamp,startedAt:stamp-60*60*1000,
+    grade:null,feedback:'',marks:{},answers:JSON.parse(JSON.stringify(sourceCopy.answers||{})),
+    reviewedAt:null,publishedToStudent:false
+   });
+  }
   return {classes:[cl],exams,attempts,events:[],studentPins:{},studentReviewFlags:{},activeAttemptId:null};
  }
 return {level,getClassCode,makeCode,classPanel,eligible,keyYear,periodBounds,schoolYears,average,periodAttempts,weeks,mine,candidate,studentLogin,dashboard,correction,exportCsv,previewData};

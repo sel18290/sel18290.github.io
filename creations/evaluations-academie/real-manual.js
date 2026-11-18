@@ -130,6 +130,8 @@ function reset(){
 }
 function edit(exam){
  if(!exam)return;
+ state.sourceFile=null;state.pdf=null;state.docPage=1;state.docCount=0;state.sourceWordText='';
+ $('manual-source-file').value='';$('manual-original-render').replaceChildren();$('manual-original-render').hidden=true;$('manual-doc-pages').hidden=true;
  const isPublished=!!exam.published;
  state.editingId=isPublished?null:exam.id;
  state.questions=(Array.isArray(exam.content?.questions)?structuredClone(exam.content.questions):[]).map(q=>QT().initialize(q,q.type||'text'));
@@ -146,7 +148,7 @@ function edit(exam){
  const cfg={enabled:'exam-integrity-on',blockPaste:'exam-integrity-paste',blockCopy:'exam-integrity-copy',
  trackVisibility:'exam-integrity-tabs',warnStudent:'exam-integrity-warn',watermarkCapture:'exam-integrity-watermark'};
  for(const [key,id] of Object.entries(cfg))if(typeof anti[key]==='boolean')$(id).checked=anti[key];
- setHint(isPublished?'Le contrôle publié est préservé : création d’une nouvelle version en brouillon.':'Modification du contrôle existant en brouillon.');
+ setHint(isPublished?'Le contrôle publié est préservé : création d’une nouvelle version en brouillon. Joins à nouveau son PDF/Word d’origine si nécessaire.':'Modification du contrôle existant en brouillon.');
  paint();
  location.hash='#exam-form';
  document.body.dataset.acadView='creer';

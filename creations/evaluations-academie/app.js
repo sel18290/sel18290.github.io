@@ -136,7 +136,7 @@ async function saveAntiCheat(exam,key,checked,checkbox){
   const chip=document.getElementById('anti-status-'+exam.id);
   if(chip)chip.textContent=next.enabled?'Mode intégrité activé':'Mode désactivé';
   drawAcademyTools();
-  status('Paramètre enregistré pour « '+exam.title+' ». Il sera appliqué aux élèves après raccordement du moteur serveur.');
+  status('Paramètre enregistré pour « '+exam.title+' ». Il s’appliquera aux contrôles accessibles aux élèves.');
  }catch(err){
   checkbox.checked=!checked;status(safeError(err),true);
  }finally{checkbox.disabled=false;}
@@ -171,7 +171,7 @@ function drawAcademyTools(){
  }
  const master=el('div','acad-tool-master');
  const masterText=el('div','');
- masterText.append(el('strong','','Mode anti-triche général'),el('p','',cfg.enabled?'Activé : les outils cochés ci-dessous sont prêts pour le moteur élève.':'Éteint : les outils peuvent être configurés mais ne s’appliquent pas encore.'));
+ masterText.append(el('strong','','Mode anti-triche général'),el('p','',cfg.enabled?'Activé : les protections configurées s’appliquent aux contrôles ouverts.':'Éteint : les protections sont configurables mais inactives côté élève.'));
  master.append(masterText,makeButton('enabled',cfg.enabled));panel.append(master);
  const grid=el('div','acad-tools-grid');
  for(const tool of directTools){
@@ -214,7 +214,7 @@ function drawTeacherData(){
   const settings=el('details','academie-anti-detail');
   settings.append(el('summary','','◈ Configurer l’anti-triche'));
   const defs=[
-    ['enabled','Activer le mode intégrité','Affiche les règles aux élèves lorsque le moteur élève sera raccordé'],
+    ['enabled','Activer le mode intégrité','Affiche les règles avant la passation élève'],
     ['blockPaste','Bloquer le collage','Réponses saisies dans les champs'],
     ['blockCopy','Limiter la copie du sujet','Ne bloque pas captures ou photos'],
     ['trackVisibility','Signaler les sorties de page','Signale les pages masquées plus de deux secondes'],
@@ -241,7 +241,7 @@ function drawTeacherData(){
  }
   const list=$('integrity-server-events');list.replaceChildren();
   $('integrity-count').textContent=myIncidents.length+' événement(s)';
-  if(!myIncidents.length)list.append(el('p','empty','Aucun événement enregistré. Le moteur élève Supabase n’est pas encore connecté.'));
+  if(!myIncidents.length)list.append(el('p','empty','Aucun événement signalé par les élèves pour le moment.'));
   for(const event of myIncidents){
     const card=el('div','prof-item'),desc=el('div','prof-item-main');
     const names={paste_blocked:'Collage bloqué',copy_blocked:'Copie limitée',tab_hidden:'Page masquée'};

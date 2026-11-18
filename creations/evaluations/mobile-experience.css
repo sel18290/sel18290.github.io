@@ -5,7 +5,7 @@
   .page-head .btn-row { max-width:100%; }
   .class-filter-bar, .class-details, .review-workspace, .visual-workspace { scroll-margin-top:82px; }
 }
-@media (max-width:760px) {
+@media (max-width:760px), (max-width:1100px) and (pointer:coarse) {
   :root { --mobile-nav:76px; }
   html { scroll-padding-top:118px; }
   body {
@@ -298,4 +298,168 @@
 }
 @media(prefers-reduced-motion:reduce) {
   .side-menu, .question-dots { scroll-behavior:auto; }
+}
+
+/* CORTEX téléphone : vrai parcours professeur, également en navigateur « version ordinateur » */
+.phone-teacher-nav,.phone-teacher-header,.phone-teacher-shortcuts,.phone-teacher-more { display:none; }
+html.cortex-phone body { overflow-x:hidden; -webkit-text-size-adjust:100%; padding-bottom:calc(82px + env(safe-area-inset-bottom,0px)); }
+html.cortex-phone #app,html.cortex-phone .demo-notice,html.cortex-phone .footer {
+  width:calc(100% - 28px); max-width:700px; margin-inline:auto;
+}
+html.cortex-phone .topbar {
+  height:62px; padding:0 16px; gap:9px; z-index:28;
+  background:#0a1726f7; backdrop-filter:none;
+}
+html.cortex-phone .brand strong { font-size:18px; }
+html.cortex-phone .brand small { font-size:9px; }
+html.cortex-phone .brand-mark { width:37px; height:37px; }
+html.cortex-phone .top-status { display:none; }
+html.cortex-phone .top-actions {
+  position:fixed; top:auto; bottom:0; left:0; right:0;
+  width:100%; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  background:#0a1726f7; border-top:1px solid #3f6974; border-left:0;
+  gap:5px; padding:8px 10px calc(9px + env(safe-area-inset-bottom,0px));
+  margin:0; box-shadow:0 -12px 28px #0006; z-index:68;
+}
+html.cortex-phone .top-link,html.cortex-phone .top-exit {
+  display:grid; place-content:center; min-height:51px; min-width:0; width:100%;
+  border-radius:12px; border-left:0; font-size:11px; text-align:center; margin:0;
+  white-space:nowrap; padding:5px 2px;
+}
+html.cortex-phone .top-exit span { display:block; font-size:11px; }
+html.cortex-phone .workspace { display:block; grid-template-columns:1fr; padding:15px 0 40px; }
+html.cortex-phone .workspace-main { min-width:0; }
+html.cortex-phone .workspace .sidebar { display:none !important; }
+html.cortex-phone .stats { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+html.cortex-phone .two-col,html.cortex-phone .role-grid,html.cortex-phone .student-intro,
+html.cortex-phone .student-exam,html.cortex-phone .tile-grid,html.cortex-phone .class-detail-cols,
+html.cortex-phone .visual-columns,html.cortex-phone .import-columns,
+html.cortex-phone .review-layout,html.cortex-phone .ed-layout { grid-template-columns:minmax(0,1fr); }
+html.cortex-phone .home-hero { grid-template-columns:minmax(0,1fr); min-height:0; }
+html.cortex-phone .class-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+html.cortex-phone .panel { padding:16px; }
+html.cortex-phone .class-details,html.cortex-phone .review-workspace,html.cortex-phone .ed-workspace { min-width:0; }
+html.cortex-phone .review-layout > *,html.cortex-phone .ed-layout > * { grid-column:1/-1 !important; }
+html.cortex-phone .review-question-list { position:static; max-height:none; }
+html.cortex-phone .review-question-scroll { display:flex; overflow-x:auto; gap:7px; max-height:none; }
+html.cortex-phone .review-question-btn { flex:0 0 140px; }
+html.cortex-phone .review-summary,html.cortex-phone .ed-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+html.cortex-phone .page-head { flex-direction:column; gap:12px; }
+html.cortex-phone .page-head > .btn-row { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+html.cortex-phone .page-head > .btn-row .btn { width:100%; min-width:0; min-height:46px; }
+html.cortex-phone .page-head h1 { font-size:clamp(27px,7vw,36px); }
+html.cortex-phone .footer { flex-wrap:wrap; }
+html.cortex-phone .sidebar-note { position:static; }
+html.cortex-phone .qr-student-landing { padding:18px; }
+html.cortex-phone .modal-root { align-items:end; padding:0; }
+html.cortex-phone .modal-dialog { max-width:100%; width:100%; max-height:92dvh; border-radius:22px 22px 0 0; }
+html.cortex-phone .topbar:has(~ #app .workspace) .top-actions { display:none !important; }
+/* L'espace enseignant reçoit une barre d'onglets indépendante du menu public. */
+html.cortex-phone:has(.workspace) .top-actions { display:none !important; }
+html.cortex-phone:has(.workspace) .topbar::after { display:none; }
+html.cortex-phone .phone-teacher-header {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border-radius:16px; padding:15px 17px; margin:0 0 14px;
+  border:1px solid #416b72;
+  background:linear-gradient(125deg,#173f49,#112338);
+  box-shadow:0 10px 26px #0003;
+}
+html.cortex-phone .phone-teacher-header small {
+  display:block; font-size:10px; color:#a5dad4; letter-spacing:.12em; font-weight:800;
+  text-transform:uppercase;
+}
+html.cortex-phone .phone-teacher-header strong {
+  display:block; margin-top:2px; font-size:20px; line-height:1.2; color:#e6fff9;
+}
+html.cortex-phone .phone-teacher-header .btn {
+  min-height:44px; padding:7px 12px; font-size:12px; flex:0 0 auto;
+}
+html.cortex-phone .phone-teacher-nav {
+  display:grid; position:fixed; bottom:0; left:0; right:0; z-index:71;
+  grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px;
+  padding:7px max(7px,env(safe-area-inset-left,0px))
+    calc(8px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid #426f7c; background:#0a1828fc;
+  box-shadow:0 -10px 32px #0008;
+}
+html.cortex-phone .phone-teacher-nav button {
+  background:transparent; border:1px solid transparent; color:#a5c3d2;
+  border-radius:13px; min-width:0; padding:5px 2px; min-height:56px;
+  font-weight:750; font-size:10px; line-height:1.25;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:3px;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+html.cortex-phone .phone-teacher-nav button[aria-current="page"] {
+  color:#c4fff1; background:#21464e; border-color:#527d81;
+}
+html.cortex-phone .phone-teacher-nav button span {
+  display:block; font-size:20px; font-weight:600; line-height:22px;
+}
+html.cortex-phone .phone-teacher-more {
+  display:block; position:fixed; bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  left:12px; right:12px; z-index:70; max-height:min(68dvh,520px);
+  overflow:auto; padding:15px; background:#14293a;
+  border:1px solid #59818b; border-radius:18px;
+  box-shadow:0 25px 90px #000a;
+}
+html.cortex-phone .phone-teacher-more[hidden] { display:none; }
+html.cortex-phone .phone-teacher-more h2 { font-size:17px; margin:0 0 12px; }
+html.cortex-phone .phone-teacher-more-grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;
+}
+html.cortex-phone .phone-teacher-more-grid button {
+  color:#d9f6f4; border:1px solid #416b7a; background:#1a394b;
+  border-radius:12px; padding:14px 8px; min-height:64px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; font-size:12px; font-weight:750; text-align:center;
+}
+html.cortex-phone .phone-teacher-more-grid button span { font-size:22px; }
+html.cortex-phone .phone-teacher-shortcuts {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px;
+  margin:0 0 17px;
+}
+html.cortex-phone .phone-teacher-shortcuts button {
+  border:1px solid #426a7a; border-radius:14px; min-width:0; min-height:99px;
+  padding:13px; text-align:left; color:#e3f9fa;
+  background:linear-gradient(140deg,#1c3a4c,#15283b);
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between;
+  font-size:13px; font-weight:800; line-height:1.35;
+}
+html.cortex-phone .phone-teacher-shortcuts button span { font-size:24px; color:#89e5d2; }
+html.cortex-phone .phone-teacher-shortcuts button:first-child { background:linear-gradient(125deg,#1b615d,#174251); }
+html.cortex-phone .table-wrap.mobile-cards { overflow:visible; border:0; }
+html.cortex-phone .table-wrap.mobile-cards table,html.cortex-phone .table-wrap.mobile-cards tbody,
+html.cortex-phone .table-wrap.mobile-cards tr,html.cortex-phone .table-wrap.mobile-cards td { display:block; min-width:0; width:100%; }
+html.cortex-phone .table-wrap.mobile-cards thead { display:none; }
+html.cortex-phone .table-wrap.mobile-cards tbody { display:grid; gap:10px; }
+html.cortex-phone .table-wrap.mobile-cards tr {
+  border:1px solid #42657a; border-radius:14px; padding:12px; background:#162b3e;
+}
+html.cortex-phone .table-wrap.mobile-cards td { border-bottom:1px solid #304b5c; padding:7px 5px; overflow-wrap:anywhere; }
+html.cortex-phone .table-wrap.mobile-cards td:last-child { border:0; }
+html.cortex-phone .table-wrap.mobile-cards td::before {
+  content:attr(data-label); display:block; color:#a3d1d5;
+  font-weight:800; letter-spacing:.06em; font-size:10px; margin-bottom:3px;
+  text-transform:uppercase;
+}
+html.cortex-phone .table-wrap.mobile-cards td:last-child .btn-row {
+  width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;
+}
+html.cortex-phone .table-wrap.mobile-cards td:last-child .btn-row>* { width:100%; min-height:44px; }
+html.cortex-phone .student-exam .exam-question { min-height:0; }
+html.cortex-phone .student-exam .exam-nav { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+html.cortex-phone .student-exam .exam-nav .btn { width:100%; min-height:49px; }
+html.cortex-phone .btn.small,html.cortex-phone .table-action,html.cortex-phone .side-item {
+  min-height:44px;
+}
+html.cortex-phone input:not([type="radio"]):not([type="checkbox"]),html.cortex-phone select,html.cortex-phone textarea {
+  font-size:16px;
+}
+html.cortex-phone body.mobile-input-focus .phone-teacher-nav { display:none; }
+@media(min-width:761px) {
+  html.cortex-phone .home { padding:30px 0; }
+  html.cortex-phone .form-grid { grid-template-columns:1fr; }
+  html.cortex-phone .class-filters { flex-wrap:wrap; }
+  html.cortex-phone .class-filters select { min-width:0; }
+  html.cortex-phone .review-document-pane,html.cortex-phone .review-response-pane { grid-column:1; }
 }

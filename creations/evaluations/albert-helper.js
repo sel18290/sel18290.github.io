@@ -7,7 +7,7 @@
  const $=(id)=>document.getElementById(id);
  const short=(s,n)=>String(s||'').slice(0,n);
  const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const state={tips:null,estimate:null,estimateLoading:false,tipsLoading:false};
+ const state={analysis:null,estimate:null,estimateLoading:false,tipsLoading:false,corrected:new Map(),correctedBusy:new Set()};
  async function endpoint(slug,data){
   const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('../evaluations-academie/config.js?v=1');
   const response=await fetch(SUPABASE_URL+'/functions/v1/'+slug,{
@@ -107,6 +107,9 @@
  const dialog=el('dialog',undefined,'cortex-albert-dialog');
  dialog.id='cortex-albert-dialog';
  const main=el('div',undefined,'cortex-albert-dialog-content');
+ const hologram=el('div',undefined,'cortex-albert-hologram');
+ hologram.setAttribute('aria-hidden','true');
+ hologram.innerHTML='<span class="holo-orbit holo-orbit-one"></span><span class="holo-orbit holo-orbit-two"></span><span class="holo-core"><i></i></span><span class="holo-particle p1">✧</span><span class="holo-particle p2">✦</span><span class="holo-scan"></span>';
  const header=el('div',undefined,'cortex-albert-dialog-header');
  const head=el('div');head.append(el('div','ALBERT · STATION NOCTIS','cortex-albert-kicker'),el('h2','Comment puis-je t’aider ?'));
  const close=el('button','✕','cortex-albert-close');close.type='button';close.setAttribute('aria-label','Fermer Albert');
@@ -133,7 +136,7 @@
  const send=el('button','Transmettre le bug à l’administrateur','cortex-albert-send');send.type='button';
  const reportStatus=el('div',undefined,'cortex-albert-answer');reportStatus.setAttribute('role','status');reportStatus.setAttribute('aria-live','polite');
  bug.append(issue,safety,send,reportStatus);
- main.append(header,tabs,help,bug);dialog.append(main);document.body.append(dialog);
+ main.append(header,hologram,tabs,help,bug);dialog.append(main);document.body.append(dialog);
  function tab(mode){
   help.hidden=mode!=='help';bug.hidden=mode!=='bug';
   helpTab.setAttribute('aria-selected',String(mode==='help'));
@@ -175,16 +178,8 @@
    const out=await endpoint(GRADE,{action:'demo_draft',copy_id:'ex-pdf-demo'});
    if(out.mode!=='demo'||out.copyId!=='ex-pdf-demo'||!Array.isArray(out.questions)||out.questions.length!==20||!Number.isFinite(Number(out.grade)))
     throw Error('Correction fictive incomplète : estimation impossible.');
-   const sorted=[...out.questions].sort((a,b)=>(Number(a.points)/Math.max(0.5,Number(a.max)))-(Number(b.points)/Math.max(0.5,Number(b.max))));
-   const weakest=sorted[0],strongest=sorted[sorted.length-1];
-   const oneLine=value=>{
-    const phrase=String(value||'').split(/(?<=[.!?])\s+/)[0].replace(/\s+/g,' ').trim();
-    return phrase.length>145?phrase.slice(0,142).trimEnd()+'…':phrase;
-   };
-   const good=oneLine(strongest.commentaire||strongest.attendu||'Certains acquis apparaissent dans la copie.');
-   const weak=oneLine(weakest.commentaire||'Une notion demande encore de la précision.');
-   const advice=oneLine(weakest.conseil||'Relis le document et justifie chaque étape.');
-   state.estimate={score:Math.round(Number(out.grade)*100)/100,lines:['Point fort : '+good,'À revoir : '+weak,'Pour progresser : '+advice]};
+   // Copie en cours de correction : uniquement une note indicative, SANS commentaires.
+   state.estimate={score:Math.round(Number(out.grade)*100)/100};
    if($('cortex-estimate-result'))renderEstimate($('cortex-estimate-result'));
   }catch(e){if($('cortex-estimate-result'))$('cortex-estimate-result').textContent='⚠ '+String(e.message||e)}
   finally{busy.close();state.estimateLoading=false;if(button)button.disabled=false}
@@ -192,34 +187,103 @@
  function renderEstimate(holder){
   holder.replaceChildren();
   holder.append(el('div','≈ '+state.estimate.score+' / 20','cortex-estimate-grade'));
-  for(const line of state.estimate.lines)holder.append(el('p',line,'cortex-estimate-line'));
-  holder.append(el('small','Estimation IA non officielle : elle ne modifie ni la copie ni la moyenne. Seule la correction du professeur fera foi.','cortex-estimate-disclaimer'));
+  holder.append(el('small','Estimation provisoire, sans appréciation ni remarques tant que la correction du professeur n’est pas publiée. Elle n’entre pas dans la moyenne.','cortex-estimate-disclaimer'));
+ }
+ function sectionCards(holder,title,items,kind){
+  const section=el('section',undefined,'cortex-analysis-zone zone-'+kind);
+  const head=el('div',undefined,'cortex-analysis-zone-header');
+  head.append(el('span',kind==='strengths'?'✦':kind==='difficulties'?'◇':'↗','cortex-analysis-zone-symbol'),el('h3',title));
+  section.append(head);
+  for(const [i,item] of items.entries()){
+   const card=el('article',undefined,'cortex-analysis-item');
+   const order=el('span',String(i+1).padStart(2,'0'),'cortex-analysis-item-index');
+   const detail=el('div',undefined,'cortex-analysis-item-body');
+   detail.append(el('strong',item.title),el('p',item.detail));
+   card.append(order,detail);section.append(card);
+  }
+  holder.append(section);
+ }
+ function renderAnalysis(holder){
+  const data=state.analysis;if(!data)return;
+  holder.replaceChildren();
+  const head=el('div',undefined,'cortex-analysis-hud');
+  const orb=el('div',undefined,'cortex-analysis-orb');
+  orb.append(el('strong',String(data.reviewedCount),'cortex-analysis-number'),el('span','copies lues'));
+  const info=el('div',undefined,'cortex-analysis-hud-info');
+  info.append(el('span','LECTURE INTÉGRALE · CARNET FICTIF','cortex-albert-kicker'),
+    el('h3','Albert a analysé ton parcours.'),
+    el('p',data.overview));
+  head.append(orb,info);holder.append(head);
+  const trend=el('section',undefined,'cortex-analysis-trend');
+  trend.append(el('span','↗ ÉVOLUTION CONSTATÉE','cortex-albert-kicker'),
+   el('strong',data.progress.title),el('p',data.progress.detail));
+  holder.append(trend);
+  sectionCards(holder,'Ce que tu réussis',data.strengths,'strengths');
+  sectionCards(holder,'Difficultés à travailler',data.difficulties,'difficulties');
+  sectionCards(holder,'Plan d’action recommandé',data.recommendations,'recommendations');
+  holder.append(el('p','Bilan généré par Albert sur 13 contrôles entièrement fictifs déjà corrigés. Les copies en attente sont exclues et aucune note du professeur n’est modifiée.','cortex-albert-muted'));
  }
  async function tips(){
   if(state.tipsLoading)return;
   const holder=$('cortex-albert-tips-slot');if(!holder)return;
-  if(state.tips){renderTips(holder);return;}
-  state.tipsLoading=true;holder.textContent='Albert prépare trois aides de révision fictives…';
+  if(state.analysis){renderAnalysis(holder);return}
+  state.tipsLoading=true;holder.textContent='Albert analyse les contrôles fictifs déjà corrigés…';
   const btn=document.querySelector('[data-action="portal-albert-tips"]');if(btn)btn.disabled=true;
-  const busy=waitForAlbert('Albert élabore tes aides','Préparation de trois conseils pédagogiques à partir du profil fictif du carnet. Aucun résultat réel n’est envoyé.');
+  const busy=waitForAlbert('Analyse complète du carnet','Albert étudie les 13 contrôles corrigés, leurs barèmes et les retours du professeur. Les copies en attente sont exclues.');
   try{
    const res=await endpoint(GUIDE,{action:'student_tips'});
-   if(!Array.isArray(res.tips)||res.tips.length!==3)throw Error('Les trois conseils attendus ne sont pas disponibles.');
-   state.tips=res.tips;
-   if($('cortex-albert-tips-slot'))renderTips($('cortex-albert-tips-slot'));
-  }catch(e){if($('cortex-albert-tips-slot'))$('cortex-albert-tips-slot').textContent='⚠ '+String(e.message||e)}
-  finally{busy.close();state.tipsLoading=false;if(btn)btn.disabled=false}
+   if(!res.analysis||res.analysis.reviewedCount!==13||!Array.isArray(res.analysis.recommendations)||res.analysis.recommendations.length!==3)
+    throw Error('Albert n’a pas livré un bilan complet et vérifiable.');
+   state.analysis=res.analysis;
+   if($('cortex-albert-tips-slot'))renderAnalysis($('cortex-albert-tips-slot'));
+  }catch(e){
+   if($('cortex-albert-tips-slot'))$('cortex-albert-tips-slot').textContent='⚠ '+String(e.message||e);
+  }finally{busy.close();state.tipsLoading=false;if(btn)btn.disabled=false}
  }
- function renderTips(holder){
+ function renderCorrected(holder,copyId){
+  const info=state.corrected.get(copyId);
+  if(!holder||!info)return;
   holder.replaceChildren();
-  for(let i=0;i<state.tips.length;i++){
-   const tip=state.tips[i],article=el('article',undefined,'portal-revision cortex-albert-tip');
-   article.append(el('div',String(i+1).padStart(2,'0'),'portal-revision-num'));
-   const body=el('div');body.append(el('span',tip.topic||'PSE','portal-kicker'),el('strong',tip.title),el('p',tip.advice));
-   article.append(body);holder.append(article);
-  }
-  holder.append(el('p','Conseils proposés par Albert à partir de données fictives. Ils ne remplacent pas les explications du professeur.','cortex-albert-muted'));
+  const hero=el('div',undefined,'cortex-corrected-hud');
+  hero.append(el('div','✦','cortex-corrected-symbol'));
+  const headline=el('div');
+  headline.append(el('span','ALBERT · LECTURE DE LA COPIE CORRIGÉE','cortex-albert-kicker'),
+   el('strong','Comprendre ta correction'),el('p',info.intro));
+  hero.append(headline);holder.append(hero);
+  sectionCards(holder,'Points maîtrisés',info.strengths,'strengths');
+  sectionCards(holder,'Points à renforcer',info.improvements,'difficulties');
+  sectionCards(holder,'Comment progresser',info.actions,'recommendations');
+  holder.append(el('small','Albert commente une copie fictive déjà corrigée. Il respecte la note et les appréciations du professeur, sans les modifier.','cortex-estimate-disclaimer'));
  }
+ const validPublished=id=>/^exemple-copie-(?:[0-9]|1[01])$/.test(id)||id==='exemple-corrige-sommeil';
+ async function corrected(id){
+  if(!validPublished(id))return; // Interdit pour toute copie en attente.
+  const slots=[...document.querySelectorAll('[data-albert-copy]')].filter(x=>x.getAttribute('data-albert-copy')===id);
+  if(!slots.length)return;
+  if(state.corrected.has(id)){slots.forEach(slot=>renderCorrected(slot,id));return}
+  if(state.correctedBusy.has(id))return;
+  state.correctedBusy.add(id);
+  slots.forEach(slot=>slot.textContent='Albert consulte cette correction fictive déjà publiée…');
+  const buttons=[...document.querySelectorAll('[data-action="portal-albert-corrected"]')].filter(b=>b.dataset.id===id);
+  buttons.forEach(b=>b.disabled=true);
+  const busy=waitForAlbert('Lecture de ta copie corrigée','Albert compare les réponses fictives, les points attribués et les annotations du professeur. Ta note officielle restera inchangée.');
+  try{
+   const res=await endpoint(GUIDE,{action:'corrected_feedback',copy_id:id});
+   if(!res.feedback||!Array.isArray(res.feedback.strengths)||res.feedback.strengths.length!==2||
+      !Array.isArray(res.feedback.actions)||res.feedback.actions.length!==2)throw Error('Analyse de copie incomplète.');
+   state.corrected.set(id,res.feedback);
+   slots.forEach(slot=>renderCorrected(slot,id));
+  }catch(e){slots.forEach(slot=>slot.textContent='⚠ '+String(e.message||e))}
+  finally{busy.close();state.correctedBusy.delete(id);buttons.forEach(b=>b.disabled=false)}
+ }
+ function hydrate(){
+  for(const x of document.querySelectorAll('[data-albert-copy]')){
+   const id=x.getAttribute('data-albert-copy');if(state.corrected.has(id))renderCorrected(x,id);
+  }
+  if(state.analysis&&$('cortex-albert-tips-slot'))renderAnalysis($('cortex-albert-tips-slot'));
+  if(state.estimate&&$('cortex-estimate-result'))renderEstimate($('cortex-estimate-result'));
+ }
+
  document.addEventListener('click',event=>{
   const button=event.target.closest?.('[data-action]');
   if(!button)return;
@@ -231,6 +295,10 @@
   if(action==='portal-albert-tips'){
    event.preventDefault();event.stopImmediatePropagation();tips();
   }
+  if(action==='portal-albert-corrected'){
+   event.preventDefault();event.stopImmediatePropagation();corrected(String(button.dataset.id||''));
+  }
  },true);
- window.CORTEX_ALBERT_TOOLS={pendingId:PENDING,get estimate(){return state.estimate},get tips(){return state.tips},renderEstimate,renderTips};
+ window.CORTEX_ALBERT_TOOLS={pendingId:PENDING,get estimate(){return state.estimate},
+  get analysis(){return state.analysis},get corrected(){return state.corrected},hydrate,renderEstimate,renderAnalysis,renderCorrected};
 })();

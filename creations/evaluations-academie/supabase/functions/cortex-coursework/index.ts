@@ -587,13 +587,15 @@ async function studentAction(action,body,form){
  if(getErr)throw Error('Impossible de consulter votre copie.');
  if(action==='student_get'){
   const raw=assessment.content||{},questions=Array.isArray(raw.questions)?raw.questions.slice(0,40):[];
+  const {data:classHeader}=assessment.class_id?await admin.from('cortex_teacher_classes')
+   .select('code').eq('id',assessment.class_id).eq('teacher_id',assessment.teacher_id).maybeSingle():{data:null};
   const show=!!submission?.released_at;
    const assetIds=new Set(questions.flatMap(q=>Array.isArray(q.assetIds)?q.assetIds:[]));
    const assets=await Promise.all((Array.isArray(raw.assets)?raw.assets:[]).filter(a=>assetIds.has(a.id)).slice(0,60).map(async a=>({
     id:String(a.id||''),name:String(a.name||'Document').slice(0,130),
     questionId:String(a.questionId||''),url:a.path?await signed(a.path,600):null
    })));
-  return ret({ok:true,assessment:{id:assessment.id,title:assessment.title,description:String(raw.description||'').slice(0,12000),
+  return ret({ok:true,assessment:{id:assessment.id,title:assessment.title,class_code:String(classHeader?.code||'').slice(0,40),description:String(raw.description||'').slice(0,12000),
     questions:questions.map(q=>{
       const type=['text','short','choice','multi','boolean','number','table','matching','fill'].includes(q.type)?q.type:'text';
       const visible={id:String(q.id||''),prompt:String(q.prompt||'').slice(0,1200),points:Number(q.points||0),

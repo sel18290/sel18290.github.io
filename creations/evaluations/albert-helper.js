@@ -36,6 +36,68 @@
   const e=document.createElement(tag);if(cls)e.className=cls;
   if(text!==undefined)e.textContent=String(text);return e;
  };
+ // Fenêtre de travail identique pour le guide, l'estimation et les conseils.
+ // La barre est indéterminée : on ne prétend pas connaître le % de progression d'Albert.
+ function waitForAlbert(title,detail){
+  const d=el('dialog',undefined,'cortex-albert-wait');
+  d.setAttribute('aria-label','Analyse Albert en cours');
+  const card=el('div',undefined,'cortex-albert-wait-card');
+  const symbol=el('div','✦','cortex-albert-wait-symbol');
+  const badge=el('div','ALBERT IA · ANALYSE EN COURS','cortex-albert-wait-badge');
+  const heading=el('h2',title);
+  const explanation=el('p',detail,'cortex-albert-wait-detail');
+  const bar=el('div',undefined,'cortex-albert-wait-track');
+  const fill=el('div',undefined,'cortex-albert-wait-fill');bar.append(fill);
+  bar.setAttribute('role','progressbar');bar.setAttribute('aria-label','Albert traite la demande');
+  const foot=el('div',undefined,'cortex-albert-wait-footer');
+  const elapsed=el('span','Connexion au serveur Albert…');
+  const hide=el('button','Masquer la fenêtre');hide.type='button';
+  hide.addEventListener('click',()=>{if(d.open)d.close()});
+  foot.append(elapsed,hide);
+  card.append(symbol,badge,heading,explanation,bar,foot);d.append(card);document.body.append(d);
+  d.showModal();
+  const started=Date.now();
+  const tick=setInterval(()=>{
+   const seconds=Math.floor((Date.now()-started)/1000);
+   elapsed.textContent=seconds<3?'Connexion au serveur Albert…':
+    seconds<15?'Albert analyse la demande · '+seconds+' s':
+    'Albert rédige sa réponse · '+seconds+' s (le traitement peut être long)';
+  },1000);
+  return {close:()=>{clearInterval(tick);if(d.open)d.close();d.remove()}};
+ }
+ function renderGuide(data,target){
+  target.replaceChildren();
+  const title=el('div','✦ Réponse d’Albert','cortex-albert-result-heading');target.append(title);
+  if(Array.isArray(data.guide?.steps)&&data.guide.steps.length){
+   const guide=data.guide;
+   if(guide.intro)target.append(el('p',guide.intro,'cortex-albert-result-intro'));
+   const list=el('ol',undefined,'cortex-albert-steps');
+   for(const [i,step] of guide.steps.entries()){
+    const item=el('li',undefined,'cortex-albert-step');
+    const number=el('span',String(i+1).padStart(2,'0'),'cortex-albert-step-number');
+    const body=el('div',undefined,'cortex-albert-step-body');
+    body.append(el('strong',step.title),el('p',step.description));
+    item.append(number,body);list.append(item);
+   }
+   target.append(list);
+   if(guide.note)target.append(el('p','À retenir : '+guide.note,'cortex-albert-note'));
+   return;
+  }
+  // Compatibilité : ancien modèle pouvant renvoyer du Markdown littéral.
+  // Texte et gras sont rendus par des nœuds DOM, jamais avec innerHTML utilisateur.
+  const raw=String(data.answer||'Albert n’a pas fourni de réponse exploitable.').trim();
+  const chunks=raw.split(/\n{2,}/).flatMap(p=>p.split(/\n(?=\s*(?:[-•]|\d+[.)]))/)).filter(Boolean);
+  for(const chunk of chunks){
+   const paragraph=el('p',undefined,'cortex-albert-result-paragraph');
+   const parts=chunk.split(/(\*\*[^*]+\*\*)/g);
+   for(const part of parts){
+    if(!part)continue;
+    if(part.startsWith('**')&&part.endsWith('**'))paragraph.append(el('strong',part.slice(2,-2)));
+    else paragraph.append(document.createTextNode(part.replace(/(?:^|\s)\*{1}(?=\S)/g,' ')));
+   }
+   target.append(paragraph);
+  }
+ }
  // Aide professorale flottante à l'extrême gauche du ciel Noctis.
  const launcher=el('button',undefined,'cortex-albert-person');
  launcher.id='cortex-albert-person';launcher.type='button';
@@ -83,9 +145,11 @@
  ask.onclick=async()=>{
   const message=question.value.trim();
   if(message.length<5){answer.textContent='Écris une question de cinq caractères minimum.';return;}
-  ask.disabled=true;answer.textContent='Albert consulte le guide de CORTEX…';
-  try{const data=await endpoint(GUIDE,{action:'teacher_help',screen:screen(),message});answer.textContent=data.answer||'Aucune réponse exploitable.'}
-  catch(e){answer.textContent='⚠ '+String(e.message||e)}finally{ask.disabled=false}
+  ask.disabled=true;answer.replaceChildren();
+  const busy=waitForAlbert('Albert prépare sa réponse','Analyse de ta question et recherche des étapes dans CORTEX.');
+  try{const data=await endpoint(GUIDE,{action:'teacher_help',screen:screen(),message});renderGuide(data,answer)}
+  catch(e){answer.textContent='⚠ '+String(e.message||e)}
+  finally{busy.close();ask.disabled=false}
  };
  send.onclick=async()=>{
   const description=issue.value.trim();
@@ -103,8 +167,9 @@
   if(state.estimateLoading)return;
   const holder=$('cortex-estimate-result');if(!holder)return;
   if(state.estimate){renderEstimate(holder);return}
-  state.estimateLoading=true;holder.textContent='Albert analyse la copie PSE entièrement fictive (20 questions)…';
+  state.estimateLoading=true;holder.textContent='Albert prépare une estimation sur la copie PSE fictive…';
   const button=document.querySelector('[data-action="portal-albert-estimate"]');if(button)button.disabled=true;
+  const busy=waitForAlbert('Estimation de la note en cours','Analyse de 20 réponses fictives, calcul indicatif et préparation de trois conseils. Aucune note officielle n’est modifiée.');
   try{
    // Le serveur utilise un contrôle et 20 réponses FIXES : aucune donnée du carnet n'est envoyée.
    const out=await endpoint(GRADE,{action:'demo_draft',copy_id:'ex-pdf-demo'});
@@ -122,7 +187,7 @@
    state.estimate={score:Math.round(Number(out.grade)*100)/100,lines:['Point fort : '+good,'À revoir : '+weak,'Pour progresser : '+advice]};
    if($('cortex-estimate-result'))renderEstimate($('cortex-estimate-result'));
   }catch(e){if($('cortex-estimate-result'))$('cortex-estimate-result').textContent='⚠ '+String(e.message||e)}
-  finally{state.estimateLoading=false;if(button)button.disabled=false}
+  finally{busy.close();state.estimateLoading=false;if(button)button.disabled=false}
  }
  function renderEstimate(holder){
   holder.replaceChildren();
@@ -134,15 +199,16 @@
   if(state.tipsLoading)return;
   const holder=$('cortex-albert-tips-slot');if(!holder)return;
   if(state.tips){renderTips(holder);return;}
-  state.tipsLoading=true;holder.textContent='Albert prépare tes trois aides à partir du parcours fictif…';
+  state.tipsLoading=true;holder.textContent='Albert prépare trois aides de révision fictives…';
   const btn=document.querySelector('[data-action="portal-albert-tips"]');if(btn)btn.disabled=true;
+  const busy=waitForAlbert('Albert élabore tes aides','Préparation de trois conseils pédagogiques à partir du profil fictif du carnet. Aucun résultat réel n’est envoyé.');
   try{
    const res=await endpoint(GUIDE,{action:'student_tips'});
    if(!Array.isArray(res.tips)||res.tips.length!==3)throw Error('Les trois conseils attendus ne sont pas disponibles.');
    state.tips=res.tips;
    if($('cortex-albert-tips-slot'))renderTips($('cortex-albert-tips-slot'));
   }catch(e){if($('cortex-albert-tips-slot'))$('cortex-albert-tips-slot').textContent='⚠ '+String(e.message||e)}
-  finally{state.tipsLoading=false;if(btn)btn.disabled=false}
+  finally{busy.close();state.tipsLoading=false;if(btn)btn.disabled=false}
  }
  function renderTips(holder){
   holder.replaceChildren();

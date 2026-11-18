@@ -116,7 +116,7 @@ async function resetClassPin(teacher,classId,n){
  const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classId).eq('teacher_id',teacher.id).maybeSingle();
  if(!access||!Number.isInteger(n)||n<1||n>access.roster_size)throw Error('Numéro élève invalide dans cette classe.');
  const value=pin();
- const {error}=await admin.from('cortex_academy_class_roster').upsert({class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null,updated_at:new Date().toISOString()},{onConflict:'class_id,student_number'});
+ const {error}=await admin.from('cortex_academy_class_roster').upsert({class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null,activated_at:null,updated_at:new Date().toISOString()},{onConflict:'class_id,student_number'});
  if(error)throw Error('PIN non réinitialisé.');
  await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',n);
  const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacher.id);
@@ -124,7 +124,7 @@ async function resetClassPin(teacher,classId,n){
  if(ids.length)await admin.from('cortex_academy_sessions').delete().in('assessment_id',ids).eq('student_number',n);
  return {number:n,pin:value};
 }
-async function verifyClassPin(access,n,p){
+async function verifyClassPin(access,n,p,requireActivated=true){
  if(!Number.isInteger(n)||n<1||n>access.roster_size||!/^\d{6}$/.test(p))throw Error('Classe, numéro ou PIN incorrect.');
  const {data:cred}=await admin.from('cortex_academy_class_roster').select('*').eq('class_id',access.class_id).eq('student_number',n).maybeSingle();
  if(!cred)throw Error('Classe, numéro ou PIN incorrect.');
@@ -135,6 +135,7 @@ async function verifyClassPin(access,n,p){
   await admin.from('cortex_academy_class_roster').update({attempts:tries>=5?0:tries,locked_until:tries>=5?new Date(Date.now()+900000).toISOString():null}).eq('class_id',access.class_id).eq('student_number',n);
   throw Error('Classe, numéro ou PIN incorrect.');
  }
+ if(requireActivated&&!cred.activated_at)throw Error('Votre espace n’est pas encore activé. Utilisez le bouton « Première connexion » avec le PIN provisoire du professeur.');
  await admin.from('cortex_academy_class_roster').update({attempts:0,locked_until:null}).eq('class_id',access.class_id).eq('student_number',n);
 }
 async function activeClassStudent(token){
@@ -330,6 +331,40 @@ async function studentAction(action,body,form){
    display_name:String(byId.get(x.class_id).display_name||'').slice(0,80),suffix:x.portal_code.slice(-4).toUpperCase()
   })).sort((a,b)=>a.label.localeCompare(b.label,'fr')).slice(0,1000);
   return ret({ok:true,classes:list});
+ }
+ if(action==='student_activate'){
+  const classCode=String(body.class_code||'').toLowerCase(),joinCode=String(body.join_code||'').toLowerCase();
+  const number=Number(body.student_number),temporary=String(body.initial_pin||''),personal=String(body.new_pin||'');
+  if(!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(temporary)||!/^\d{6}$/.test(personal)||temporary===personal||
+     /^(012345|123456|654321|000000|111111|222222|333333|444444|555555|666666|777777|888888|999999)$/.test(personal))
+   throw Error('PIN provisoire et nouveau PIN différents requis (6 chiffres, sans suite évidente).');
+  let classId=null,teacherId=null;
+  if(/^[a-f0-9]{16}$/.test(classCode)){
+   const {data:ca}=await admin.from('cortex_academy_class_access').select('class_id,teacher_id').eq('portal_code',classCode).eq('active',true).maybeSingle();
+   if(!ca)throw Error('Classe indisponible.');classId=ca.class_id;teacherId=ca.teacher_id;
+  }else if(/^[a-f0-9]{40}$/.test(joinCode)){
+   const {data:examAccess}=await admin.from('cortex_academy_access').select('assessment_id,teacher_id').eq('join_code',joinCode).eq('active',true).maybeSingle();
+   if(!examAccess)throw Error('Contrôle indisponible.');
+   const {data:ex}=await admin.from('cortex_teacher_assessments').select('class_id,teacher_id,published').eq('id',examAccess.assessment_id).eq('teacher_id',examAccess.teacher_id).eq('published',true).maybeSingle();
+   if(!ex?.class_id)throw Error('Ce contrôle n’a pas de PIN commun par classe. Demandez le PIN au professeur.');
+   classId=ex.class_id;teacherId=ex.teacher_id;
+  }else throw Error('Classe ou QR code invalide.');
+  const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classId).eq('teacher_id',teacherId).eq('active',true).maybeSingle();
+  if(!access)throw Error('Cette classe n’est pas ouverte.');
+  const {data:cred}=await admin.from('cortex_academy_class_roster').select('activated_at,pin_digest').eq('class_id',classId).eq('student_number',number).maybeSingle();
+  if(!cred)throw Error('Numéro ou PIN provisoire incorrect.');
+  if(cred.activated_at)throw Error('Cet espace est déjà activé. Connectez-vous normalement ou demandez un nouveau PIN provisoire au professeur.');
+  await verifyClassPin(access,number,temporary,false);
+  const nextDigest=await pinHash(classId,number,personal);
+  const {data:updated,error}=await admin.from('cortex_academy_class_roster')
+   .update({pin_digest:nextDigest,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
+   .eq('class_id',classId).eq('student_number',number).eq('pin_digest',cred.pin_digest).is('activated_at',null).select('student_number').maybeSingle();
+  if(error||!updated)throw Error('Activation impossible ou déjà effectuée. Demandez un nouveau PIN provisoire au professeur.');
+  // Révoque toute session éventuellement ouverte avec les identifiants provisoires.
+  await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',number);
+  const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacherId);
+  if(exams?.length)await admin.from('cortex_academy_sessions').delete().in('assessment_id',exams.map(x=>x.id)).eq('student_number',number);
+  return ret({ok:true,activated:true,student_number:number});
  }
  if(action==='student_class_login'){
   const portal=String(body.class_code||'').toLowerCase(),number=Number(body.student_number),plain=String(body.pin||'');

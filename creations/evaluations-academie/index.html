@@ -11,8 +11,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=2.0"></script>
 <script type="module" src="./real-import.js?v=1.6"></script>
-<script type="module" src="./real-manual.js?v=1.0"></script>
-<link rel="stylesheet" href="./real-manual.css?v=1.0">
+<script type="module" src="./real-manual.js?v=1.1"></script>
+<link rel="stylesheet" href="./real-manual.css?v=1.1">
 <link rel="stylesheet" href="./real-import.css?v=1.5">
 <script type="module" src="./student-coursework.js?v=3.0"></script>
 <script type="module" src="./class-portal-teacher.js?v=1.8"></script>
@@ -141,6 +141,12 @@
   <section class="real-manual-document">
    <div class="real-manual-panel-title"><strong>02 / DOCUMENT ASSOCIÉ</strong><small>Ce que verra l’élève</small></div>
    <div id="manual-source-preview" class="real-manual-source-content"></div>
+   <label class="real-manual-attach"><strong>Ajouter un document original au contrôle</strong>
+    <input id="manual-source-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+    <small>PDF ou Word (.docx), 8 Mo maximum. Le document est stocké en privé lors de l’enregistrement et accessible aux élèves après publication.</small>
+   </label>
+   <div id="manual-doc-pages" class="real-manual-page-bar" hidden><button type="button" id="manual-doc-prev">←</button><span id="manual-doc-counter">Page 1</span><button type="button" id="manual-doc-next">→</button></div>
+   <div id="manual-original-render" class="real-manual-original" hidden></div>
    <p class="real-manual-tip">Pour découper un PDF ou Word et fournir des captures, utilise aussi l’atelier « Importer PDF / Word ».</p>
    <a href="#acad-import-workspace" class="btn secondary small" data-acad-view="import">⇪ Atelier documentaire</a>
   </section>

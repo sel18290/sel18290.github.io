@@ -13,6 +13,10 @@ style.textContent=[
 '#cortex-chatgpt-modal .ai-open{background:#dbe8ff;color:#09244e;font-weight:750}',
 '#cortex-chatgpt-modal .ai-close{background:transparent;color:#fff}',
 '#cortex-chatgpt-modal label{display:flex;gap:9px;margin-top:12px;line-height:1.4}',
+'#cortex-chatgpt-modal .chatgpt-rgpd-alert{padding:15px 16px;border:2px solid #f5a06a;background:#482320;color:#fff0e5;border-radius:12px;margin:15px 0;line-height:1.55}',
+'#cortex-chatgpt-modal .chatgpt-rgpd-alert strong{display:block;color:#fff5e9;font-size:1.05rem;margin-bottom:8px}',
+'#cortex-chatgpt-modal .chatgpt-rgpd-alert p{margin:0 0 8px}',
+'#cortex-chatgpt-modal .chatgpt-rgpd-alert p:last-child{margin-bottom:0}',
 '#cortex-chatgpt-modal .ai-actions{gap:8px}',
 '#cortex-chatgpt-modal .ai-actions button{font-size:13px;line-height:1.2}',
 '@media(max-width:650px){#cortex-chatgpt-modal{padding:14px}#cortex-chatgpt-modal .ai-actions{flex-direction:column}#cortex-chatgpt-modal .ai-actions button{width:100%}}'
@@ -115,6 +119,17 @@ function showDialog(id){
  document.getElementById('cortex-chatgpt-modal')?.remove();
  const dialog=document.createElement('dialog');dialog.id='cortex-chatgpt-modal';
  const h=document.createElement('h2');h.textContent='✦ Corriger avec ChatGPT · Dossier documentaire';
+ const warning=document.createElement('section');
+ warning.className='chatgpt-rgpd-alert';
+ warning.setAttribute('role','alert');
+ warning.setAttribute('aria-label','Alerte RGPD, copies d’élèves');
+ const warningTitle=document.createElement('strong');
+ warningTitle.textContent='⚠ ALERTE RGPD — ChatGPT non validé pour les copies réelles';
+ const warningP=document.createElement('p');
+ warningP.textContent='Dans CORTEX, l’envoi à ChatGPT de copies réelles, notes, noms ou autres données personnelles d’élèves n’est pas autorisé sans validation préalable de l’établissement et du délégué à la protection des données (DPO). La conformité RGPD de cet usage n’est pas établie.';
+ const warningInfo=document.createElement('p');
+ warningInfo.textContent='Utilise uniquement une copie fictive pour cette démonstration. L’ouverture de cette fenêtre n’envoie aucune donnée à ChatGPT : tout transfert ultérieur est une action manuelle de ta part.';
+ warning.append(warningTitle,warningP,warningInfo);
  const p=document.createElement('p');
  p.textContent=String(bundle.documentCount)+' document(s) transcrit(s) automatiquement dans la consigne'+
    (bundle.visualCount?' · '+String(bundle.visualCount)+' capture(s) illustrée(s) : à fournir en PDF.':'.');
@@ -123,7 +138,7 @@ function showDialog(id){
  const textarea=document.createElement('textarea');textarea.value=bundle.prompt;textarea.readOnly=true;textarea.setAttribute('aria-label','Texte de la demande ChatGPT, documents inclus');
  const label=document.createElement('label'),check=document.createElement('input');
  check.type='checkbox';
- label.append(check,document.createTextNode('Je confirme que cette copie est fictive, sans données personnelles d’élève.'));
+ label.append(check,document.createTextNode('Je confirme que cette copie est entièrement fictive et que je ne transmettrai aucune donnée personnelle d’élève à ChatGPT.'));
  const status=document.createElement('p');status.setAttribute('role','status');status.style.fontSize='0.85rem';
  const actions=document.createElement('div');actions.className='ai-actions';
  const close=document.createElement('button');close.type='button';close.className='ai-close';close.textContent='Fermer';
@@ -168,13 +183,20 @@ function showDialog(id){
   status.textContent='Colle la consigne dans ChatGPT. Pour une lecture fiable des graphiques et documents, joins le PDF téléchargé.';
   open.textContent=tab?'✓ ChatGPT ouvert':'✓ Consigne à coller dans ChatGPT';
  };
- actions.append(close,download);if(original)actions.append(original);actions.append(open);dialog.append(h,p,hint,textarea,label,status,actions);
+ actions.append(close,download);if(original)actions.append(original);actions.append(open);dialog.append(h,warning,p,hint,textarea,label,status,actions);
  document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
 }
 document.addEventListener('click',event=>{
  const b=event.target.closest?.('[data-action="ai-chatgpt-copy"]');
  if(!b)return;
  event.preventDefault();event.stopImmediatePropagation();
+ const proceed=window.confirm(
+  '⚠ ALERTE RGPD — CHATGPT\\n\\n'+
+  'La conformité de l’envoi de copies réelles d’élèves à ChatGPT n’est pas validée dans CORTEX.\\n'+
+  'N’envoie aucun nom, réponse réelle, note ou document contenant des données personnelles.\\n\\n'+
+  'Continuer uniquement avec une copie fictive ?'
+ );
+ if(!proceed)return;
  try{showDialog(b.dataset.id)}catch(err){window.alert(err?.message||'Copie indisponible.')}
 },true);
 })();

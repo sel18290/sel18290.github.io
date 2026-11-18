@@ -504,6 +504,11 @@ async function save(){
    if(q)q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
   }catch(error){failures.push(a.name+' : '+(error?.message||'échec'));}
  }
+ const imageFailures=state.questions.some(q=>q.docMode==='image'&&
+   !state.assets.some(a=>!a.pending&&((q.assetIds||[]).includes(a.id)||a.questionId===q.id)));
+ if(imageFailures){
+  throw Error('Image associée non enregistrée sur Supabase. Le brouillon existe, mais la capture doit être envoyée avant publication. Réessaie « Enregistrer les modifications ». '+failures.join(' ; '));
+ }
  const unlinked=state.assets.filter(a=>a.pending&&!a.questionId).length;
  msg(failures.length?
   'Contrôle enregistré. Certaines captures ne sont pas synchronisées : '+failures.join(' ; '):
@@ -569,7 +574,7 @@ async function initial(file,options={}){
     progress.update('Albert a répondu : génération des extraits originaux à associer…',
       state.sourceCount,state.sourceCount);
     const made=await window.CORTEX_ALBERT_IMPORT.makeCaptures(file,aiDraft,state.questions,{
-      max:16,signal:progress.signal,
+      max:16,onlyReferenced:true,signal:progress.signal,
       onProgress:txt=>progress.update(txt,state.sourceCount,state.sourceCount)
     });
     for(const capture of made.captures){

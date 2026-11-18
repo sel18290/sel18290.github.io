@@ -34,3 +34,19 @@ La migration `cortex_academie_teacher_access` **a été appliquée** et vérifi�
 Le domaine `@ac-paris.fr` vérifie l'appartenance à une adresse académique **mais ne prouve pas que le titulaire est un enseignant habilité au lycée**. Envisager une activation par un administrateur ou une liste d'invitations approuvées avant d'autoriser l'utilisation réelle.
 
 **Statut : projet Supabase actif, schéma appliqué, navigateur connecté, classes et contrôles désormais gérés via Supabase. SMTP personnalisé, URLs de redirection et tests de confirmation e-mail encore à configurer et valider.**
+
+## Mode intégrité des évaluations (novembre 2026)
+
+- **Site test conservé :** `https://sel18290.github.io/creations/evaluations/#professeur/integrite` propose un onglet anti-triche interactif, des réglages spécifiques à chaque contrôle et un journal local des incidents par copie. Le moteur de démonstration intercepte les tentatives de collage et de copie, ainsi que les sorties de page de plus de deux secondes, dans la limite des événements fournis par le navigateur.
+- **CORTEX Académie / Supabase :** chaque contrôle peut enregistrer `content.antiCheat` avec les champs booléens `enabled`, `blockPaste`, `blockCopy`, `trackVisibility`, `warnStudent`. L'interface permet de modifier ces paramètres, en conservant les questions et la description déjà stockées.
+- **Journal Supabase :** migration `cortex_integrity_event_read_only`, fichier de référence `supabase/integrity-events.sql`. La table `public.cortex_integrity_events` n'enregistre que professeur, contrôle, numéro sur liste, type d'événement, heure et durée éventuelle. **Les clients ne peuvent pas insérer directement** : il faudra un futur service d'examen authentifiant les élèves et leur session pour enregistrer les incidents côté serveur. Le professeur propriétaire peut consulter les lignes autorisées par RLS.
+- **Confidentialité :** aucune capture webcam, écran, presse-papiers, adresse IP ou score automatique de fraude. Un événement navigateur ne prouve jamais une triche ; information, accessibilité, supervision humaine et validations institutionnelles sont nécessaires avant d'utiliser de véritables données scolaires.
+
+### Vérifications réalisées
+
+1. Test de démarrage élève sur la version test avec contrôle fictif, puis collage/copie interceptés et sortie de page simulée de 16,5 secondes : les trois événements et leur durée sont correctement enregistrés dans le stockage local.
+2. Test simulé de l'interface professeur académique : activation du mode et mise à jour du contrôle dans Supabase via les appels attendus, sans perte du texte du sujet.
+3. Test SQL réel dans une transaction annulée : création et mise à jour de `antiCheat` sur un contrôle fictif, RLS de la table des incidents pour deux professeurs, impossibilité d'écrire un événement directement avec le rôle `authenticated`.
+4. Analyseur de sécurité Supabase : aucun avertissement. La base est restée vide après les tests.
+
+**Limite :** le site Académie ne dispose pas encore du parcours élève synchronisé. Les règles sont donc sauvegardées sur Supabase, mais ne s'appliquent pas encore aux élèves dans cette version. Aucun journal réel d'élève ne peut être reçu sans le service serveur prévu. Le rendu visuel final sur téléphone n'a pas été vérifié dans un navigateur connecté.

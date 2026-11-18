@@ -8,8 +8,8 @@
 <script type="module" src="./app.js?v=18"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.9"></script>
-<script type="module" src="./real-import.js?v=1.3"></script>
-<link rel="stylesheet" href="./real-import.css?v=1.3">
+<script type="module" src="./real-import.js?v=1.4"></script>
+<link rel="stylesheet" href="./real-import.css?v=1.4">
 <script type="module" src="./student-coursework.js?v=2.9"></script>
 <script type="module" src="./class-portal-teacher.js?v=1.7"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
@@ -149,7 +149,7 @@
       <div class="ri-panel-heading"><div><span>01 / DOCUMENT ORIGINAL</span><h3>Observer & capturer</h3></div><div class="ri-pagination"><button type="button" id="ri-prev" aria-label="Page précédente">←</button><strong id="ri-current-page">Page 1 / 1</strong><button type="button" id="ri-next" aria-label="Page suivante">→</button></div></div>
       <p class="ri-subtle">Comme dans la démonstration : <strong>encadre un passage avec ton doigt ou ta souris</strong>. Relâche : la capture apparaît automatiquement ci-dessous, sans enregistrement. <strong>Glisse-la sur une question</strong> à droite, ou utilise « Ajouter à la question » sur téléphone.</p>
       <div id="ri-source-page" class="ri-source-page"><div id="ri-canvas" class="ri-source-canvas"></div><div id="ri-selection" class="ri-selection" hidden></div></div>
-      <details class="ri-transcript"><summary>Voir la transcription textuelle de cette page</summary><pre id="ri-text-preview"></pre></details>
+      <details class="ri-transcript"><summary>Voir le texte extrait et créer une question depuis une sélection</summary><p class="ri-subtle">Sélectionne les mots de l’énoncé dans le texte ci-dessous puis clique sur le bouton. Tu pourras modifier la question et son barème à droite.</p><textarea id="ri-text-preview" readonly rows="10" aria-label="Texte reconnu dans le PDF, sélectionnable"></textarea><button type="button" class="ri-action secondary" id="ri-from-selection">＋ Créer une question depuis le texte sélectionné</button></details>
       <div class="ri-capture-actions">
        <label>Question destinataire<select id="ri-target-question"></select></label>
        <span class="ri-auto-capture-chip">✦ Capture automatique dès que tu relâches</span>

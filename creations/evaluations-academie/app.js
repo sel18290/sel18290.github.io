@@ -178,7 +178,14 @@ function drawTeacherData(){
     input.addEventListener('change',()=>saveAntiCheat(exam,key,input.checked,input));
     const text=el('span','');
     text.append(el('strong','',title),el('small','',detailText));
-    label.append(input,text);settings.append(label);
+    const status=el('span','academie-anti-state '+(input.checked?'on':'off'),input.checked?'Activé':'Désactivé');
+    input.setAttribute('aria-label',(input.checked?'Désactiver ':'Activer ')+title);
+    input.addEventListener('change',()=>{
+      status.textContent=input.checked?'Activé':'Désactivé';
+      status.className='academie-anti-state '+(input.checked?'on':'off');
+      input.setAttribute('aria-label',(input.checked?'Désactiver ':'Activer ')+title);
+    });
+    label.append(text,status,input);settings.append(label);
   }
   const tool=el('div','academie-anti-wrap');tool.append(settings);
   row.append(detail,action);$('exam-list').append(row,tool);

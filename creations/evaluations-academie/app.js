@@ -385,7 +385,7 @@ $('exam-form').addEventListener('submit',async event=>{
    level:$('exam-level').value.trim().slice(0,100),chapter:$('exam-chapter').value.trim().slice(0,180),
    duration,antiCheat:antiCreateConfig()};
   const editingId=editor.editingId();
-  let error;
+  let error,savedId=editingId;
   if(editingId){
    const original=myExams.find(e=>e.id===editingId);
    if(!original||original.published)throw Error('Impossible de modifier un contrôle déjà publié. Duplique-le.');
@@ -395,12 +395,18 @@ $('exam-form').addEventListener('submit',async event=>{
    error=response.error;
   }else{
    const response=await supabase.from('cortex_teacher_assessments')
-    .insert({teacher_id:id,title,class_id,content,published:false});
-   error=response.error;
+    .insert({teacher_id:id,title,class_id,content,published:false}).select('id').single();
+   error=response.error;savedId=response.data?.id;
   }
-  if(error)throw error;
+  if(error||!savedId)throw error||Error('Enregistrement impossible.');
+  editor.markSaved(savedId);
+  try{await editor.uploadSource(savedId);}
+  catch(fileError){
+   await loadTeacherData(id);
+   throw Error('Le contrôle a bien été enregistré, mais le document n’a pas été joint : '+(fileError?.message||'erreur de téléversement')+'. Réessaie sans recréer de contrôle.');
+  }
   editor.afterSave();await loadTeacherData(id);
-  status('Contrôle enregistré dans Supabase.');
+  status('Contrôle et documents enregistrés dans Supabase.');
  }catch(err){status(safeError(err),true);}
  finally{if(button)button.disabled=false;}
 });

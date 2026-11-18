@@ -98,8 +98,8 @@ function readAnswer(root,q){
  const fields=[...root.querySelectorAll('[data-cq-input]')],t=type(q);
  if(['text','short','number'].includes(t))return fields[0]?.value||'';
  if(t==='choice'||t==='boolean')return fields.find(x=>x.checked)?.value||'';
- if(t==='multi')return JSON.stringify(fields.filter(x=>x.checked).map(x=>x.value));
- if(['table','matching','fill'].includes(t))return JSON.stringify(fields.map(x=>x.value));
+ if(t==='multi'){const chosen=fields.filter(x=>x.checked).map(x=>x.value);return chosen.length?JSON.stringify(chosen):'';}
+ if(['table','matching','fill'].includes(t)){const values=fields.map(x=>x.value);return values.some(x=>String(x||'').trim())?JSON.stringify(values):'';}
  return '';
 }
 function summary(q,answer){

@@ -463,6 +463,30 @@ body.cortex-noctis .layout .access .panel{
   background:linear-gradient(160deg,#1b3550,#102239 77%)!important;
   box-shadow:0 24px 70px #0009;
 }
+/* Important: the authenticated dashboard is a full-page workspace, not an auth card. */
+body.cortex-noctis.academy-authenticated .layout .access>.panel{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:0!important;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .page-head .btn.ghost{
+  color:#e8f8ff;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .acad-sidebar-logout{
+  border:1px solid #8aaac1;
+  background:#e8f5ff;
+  color:#153c54;
+}
+body.cortex-noctis.academy-authenticated #acad-professor-workspace .sidebar .acad-sidebar-logout:hover{
+  background:#fff;
+  border-color:#fff;
+}
+/* Light cards must never inherit pale-on-dark copy styles from older modules. */
+body.cortex-noctis .role-card .role-icon,
+body.cortex-noctis .role-card .small.muted{color:#173b55}
+body.cortex-noctis .cw-student-assessment .cw-pill{color:#e8f9ff}
+
 body.cortex-noctis .layout .tabbar{
   background:linear-gradient(115deg,#11253a,#203b52);
   border:1px solid #628ca4;

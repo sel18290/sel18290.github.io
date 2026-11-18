@@ -170,13 +170,46 @@ function renderQuestions(){
   ta.placeholder='Énoncé de la question';ta.disabled=state.published;ta.setAttribute('aria-label','Énoncé de la question '+(i+1));
   ta.oninput=()=>{q.prompt=ta.value;};
   item.append(ta);
+  // Les captures sont des documents pédagogiques à part entière.
+  // En mode « Image seule », aucun texte n’est exigé ni envoyé à l’élève.
+  const attached=state.assets.filter(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
+  const hasImage=attached.length>0;
+  if(q.docMode!=='image'&&q.docMode!=='text')q.docMode=!String(q.doc||'').trim()&&hasImage?'image':'text';
+  if(q.docMode==='image'&&!hasImage)q.docMode='text';
+  const modeBox=node('div','ri-document-mode');
+  const choiceLabel=node('strong','','Quel document l’élève doit-il voir ?');
+  const choices=node('div','ri-document-choices');
+  const imageChoice=node('button','ri-action ri-document-choice'+(q.docMode==='image'?' active':''),'▧ Image uniquement');
+  imageChoice.type='button';imageChoice.disabled=state.published||!hasImage;
+  imageChoice.setAttribute('aria-pressed',String(q.docMode==='image'));
+  imageChoice.onclick=()=>{
+   if(!hasImage)return;
+   if(q.docMode!=='image')q.docDraft=String(q.doc||q.docDraft||'');
+   q.doc='';q.docMode='image';renderQuestions();
+  };
+  const textChoice=node('button','ri-action ri-document-choice'+(q.docMode==='text'?' active':''),'✎ Texte (avec image si présente)');
+  textChoice.type='button';textChoice.disabled=state.published;
+  textChoice.setAttribute('aria-pressed',String(q.docMode==='text'));
+  textChoice.onclick=()=>{
+   if(q.docMode==='image')q.doc=String(q.docDraft||'').slice(0,5000);
+   q.docMode='text';renderQuestions();
+  };
+  choices.append(imageChoice,textChoice);
+  modeBox.append(choiceLabel,choices);
+  const modeHelp=node('p','ri-subtle ri-document-explain',
+   q.docMode==='image'?
+    '✓ La capture ci-dessous est le document associé : elle sera visible par l’élève. Aucun texte n’est nécessaire.':
+    'Tu peux écrire un document ou des données. Si une capture est associée, elle apparaîtra aussi pour l’élève.');
+  modeBox.append(modeHelp);
+  item.append(modeBox);
   const docLabel=node('label','ri-linked-document-label');
-  docLabel.append(node('strong','','Document associé à la question (modifiable)'));
+  docLabel.append(node('strong','','Texte du document (facultatif)'));
   const docArea=node('textarea','ri-question-text ri-linked-document');
   docArea.value=String(q.doc||'');docArea.rows=3;docArea.maxLength=5000;
-  docArea.placeholder='Extrait documentaire ou référence à fournir aux élèves (facultatif).';
+  docArea.placeholder='Texte documentaire visible par l’élève (aucun texte nécessaire en mode Image uniquement).';
   docArea.disabled=state.published;
-  docArea.oninput=()=>{q.doc=docArea.value;};
+  docArea.oninput=()=>{q.doc=docArea.value;q.docDraft=q.doc;};
+  if(q.docMode==='image')docLabel.hidden=true;
   docLabel.append(docArea);item.append(docLabel);
   const metadata=node('div','ri-q-meta');
   const type=node('select','ri-select');
@@ -203,9 +236,9 @@ function renderQuestions(){
   drop.setAttribute('aria-label','Déposer un extrait sur la question '+(i+1));
   if(state.published)drop.hidden=true;
   item.append(drop);
-  const attached=state.assets.filter(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
   if(attached.length){
    const dock=node('div','ri-question-docs');
+   if(q.docMode==='image')dock.append(node('div','ri-document-image-label','✓ Image utilisée comme document associé à cette question'));
    for(const a of attached){
     const fig=node('figure','ri-question-doc'),pic=node('img');
     pic.src=a.previewUrl||a.url||'';pic.alt=a.name;
@@ -423,6 +456,9 @@ async function pasteImage(){
 function validatedQuestions(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit comporter 1 à 40 questions.');
  return state.questions.map((q,i)=>{
+  const assigned=state.assets.some(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
+  if(q.docMode==='image'&&!assigned)throw Error('Question '+(i+1)+' : aucune image associée. Ajoute une capture ou choisis le mode texte.');
+  if(q.docMode==='image')q.doc='';
   const page=Number(q.page||1);
   if(!Number.isInteger(page)||page<1||page>state.sourceCount)throw Error('Page source incorrecte pour la question '+(i+1)+'.');
   try{return window.CORTEX_QUESTION_TYPES.validate(q);}
@@ -544,6 +580,11 @@ async function initial(file,options={}){
       page:capture.page,questionId:question.id,
       previewUrl:URL.createObjectURL(capture.blob),blob:capture.blob,pending:true
      });
+     // La capture détectée, et non la transcription Albert, est la source par défaut.
+     if(question.docMode!=='image'){
+      question.docDraft=String(question.doc||'');
+      question.doc='';question.docMode='image';
+     }
     }
     if(made.skipped)msg(made.skipped+' capture(s) à vérifier manuellement.');
    }catch(err){
@@ -594,6 +635,10 @@ async function openExisting(id){
   by('ri-upload-chooser').hidden=true;
   const assets=await api('teacher_asset_list',{assessment_id:id},null,true);
   state.assets=assets.assets||[];
+  for(const q of state.questions){
+   const hasLinkedImage=state.assets.some(a=>(q.assetIds||[]).includes(a.id));
+   q.docMode=!String(q.doc||'').trim()&&hasLinkedImage?'image':'text';
+  }
   await paint();renderQuestions();updateDetectionHint(state.questions.length);
   msg(state.published?'Contrôle publié : consultation uniquement. Les documents et réponses des élèves sont préservés.':'Atelier chargé. Tu peux modifier les questions et associer des captures au contrôle.');
   location.hash='#acad-import-workspace';document.body.dataset.acadView='import';

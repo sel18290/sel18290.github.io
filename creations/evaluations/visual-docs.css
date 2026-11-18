@@ -37,3 +37,18 @@
 .visual-word-body{color:#252525;font:15px/1.65 Arial,sans-serif;background:white;padding:26px;max-width:790px}.visual-word-body table{border-collapse:collapse;width:100%}.visual-word-body td,.visual-word-body th{border:1px solid #bbb;color:#272727;padding:8px;font-size:12px}.visual-word-body h1,.visual-word-body h2,.visual-word-body h3{color:#252525}
 @media(max-width:1020px){.visual-columns{grid-template-columns:1fr}.visual-page-stage{max-height:65vh}.visual-workspace-head{align-items:start;flex-direction:column}.visual-workspace-head .btn-row{justify-content:start}}
 @media(max-width:600px){.visual-import-start{padding:19px;margin:20px auto}.visual-import-drop{padding:18px}.visual-workspace{padding-top:19px}.visual-columns{gap:13px}.visual-origin,.visual-bank{padding:14px}.visual-asset-row{grid-template-columns:80px minmax(0,1fr)}.visual-asset-row img{width:80px;height:90px}.visual-steps{gap:7px}.visual-steps span{font-size:10px;padding:6px 8px}.visual-steps b{margin-right:4px}.visual-editor-library{grid-template-columns:1fr 1fr}.visual-page-stage{padding:6px}.visual-student-docs{padding:8px}}
+
+
+/* Deux parcours import et documents préassociés par Albert IA */
+.visual-import-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;margin:14px 0 8px}
+.visual-import-modes .btn{display:flex;min-height:100px;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;white-space:normal;border-radius:14px}
+.visual-import-modes .btn strong{font-size:15px;line-height:1.3}
+.visual-import-modes .btn small{font-size:12px;line-height:1.45;font-weight:500;opacity:.9}
+.visual-ai-detected{background:rgba(52,92,130,.20);border:1px solid #557b9c;border-radius:12px;padding:13px;margin:12px 0 18px}
+.visual-ai-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.visual-ai-heading strong{font-size:13px}
+.visual-ai-doc-item{display:flex;flex-direction:column;text-align:left;gap:5px;width:100%;margin-top:7px;padding:10px 12px;border:1px solid #52738e;border-radius:10px;background:#163247;color:#e5f4fd;cursor:pointer}
+.visual-ai-doc-item strong{font-size:12px;overflow-wrap:anywhere}
+.visual-ai-doc-item small{font-size:11px;color:#a5d3e2}
+.visual-ai-doc-item:hover,.visual-ai-doc-item:focus-visible{background:#244b63;border-color:#8bc2dc}
+@media(max-width:640px){.visual-import-modes{grid-template-columns:1fr}.visual-import-modes .btn{min-height:85px}.visual-workspace-head .btn-row{display:flex;flex-direction:column;align-items:stretch;width:100%}.visual-workspace-head .btn-row .btn{width:100%}}

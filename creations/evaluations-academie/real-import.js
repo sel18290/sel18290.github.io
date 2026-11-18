@@ -562,7 +562,9 @@ async function initial(file,options={}){
    msg(message,true);progress.failure(message);
   }else msg('Atelier classique : document de '+state.sourceCount+' page(s) chargé, '+
    state.questions.length+' question(s) proposées. Vérifie les barèmes avant enregistrement.');
- }).catch?.(err=>{progress?.failure(String(err?.message||err));});
+ });
+ if(progress&&progress.element.querySelector('.cai-done')?.hidden)
+  progress.failure(by('ri-status')?.textContent||'La préparation du document a échoué.');
 }
 async function openExisting(id){
  try{

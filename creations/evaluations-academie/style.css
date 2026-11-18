@@ -43,3 +43,55 @@
 .academie-anti-detail summary:focus-visible{outline:2px solid #99fbe5;outline-offset:4px}
 .academie-anti-choice{padding:10px 0}
 @media(max-width:740px){.academie-integrity-guide{grid-template-columns:1fr}.academie-integrity-area .prof-head{flex-wrap:wrap}.academie-integrity-field{padding:11px}.academie-anti-wrap{padding:0 8px 9px}}
+
+
+/* CORTEX Académie — Integrity Center v2 : red accents, purposeful hierarchy */
+.academie-prof-nav{display:flex;gap:8px;padding:10px;border:1px solid #4c5268;border-radius:13px;background:#101d30;margin:25px 0 4px;flex-wrap:wrap}
+.academie-prof-nav a{display:inline-flex;align-items:center;justify-content:center;padding:11px 14px;border:1px solid #364d66;border-radius:9px;color:#bdcde0;background:#1a2a40;font-size:11px;font-weight:800;text-decoration:none}
+.academie-prof-nav a:last-child{color:#ffccd4;border-color:#8e4d63;background:#472a3e}
+.academie-prof-nav a:hover{filter:brightness(1.13)}
+.academie-prof-nav a:focus-visible{outline:2px solid #ff9ca9;outline-offset:3px}
+.academie-integrity-area{margin-top:27px;border:1px solid #71465d;padding:0 20px 22px;overflow:hidden;background:linear-gradient(150deg,#1a273b,#121e31 72%);scroll-margin-top:15px}
+.academie-integrity-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:-1px -21px 0;padding:25px 24px;background:radial-gradient(circle at 100% 20%,#bd3b6259,transparent 42%),linear-gradient(120deg,#322339,#161f32);border-bottom:1px solid #865065}
+.academie-integrity-head h3{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;color:#f8faff;margin:12px 0 7px}
+.academie-integrity-head h3 em{font-style:normal;color:#ff7b8b}
+.academie-integrity-head p{font-size:11px;color:#d9bfcf;line-height:1.6;margin:0;max-width:550px}
+.academie-integrity-head .eyebrow{color:#f8a0ae}
+.academie-integrity-emblem{display:grid;place-items:center;min-width:76px;height:76px;border-radius:50%;border:1px solid #dc6984;background:radial-gradient(circle,#7f3554,#271f39);box-shadow:0 0 0 12px #ed577f12,0 0 39px #df43634c;color:#ffc5d0;font-size:39px}
+.academie-integrity-pills{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 19px}
+.academie-integrity-pills span{padding:8px 11px;border:1px solid #765165;background:#3b2b40;border-radius:99px;color:#ffbdc9;font-size:10px;font-weight:800}
+.academie-integrity-guide-modern{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:17px 0 23px}
+.academie-integrity-guide-modern article{background:#1d2a3f;border:1px solid #4b5269;min-height:140px;border-radius:13px;transition:transform .18s,border-color .18s}
+.academie-integrity-guide-modern article:hover{border-color:#ac5c77;transform:translateY(-1px)}
+.academie-integrity-guide-modern article>span{display:grid;place-items:center;border:1px solid #a0526c;background:#5a304b;border-radius:11px;color:#ffcad2;width:42px;height:42px;font-size:24px}
+.academie-integrity-guide-modern article strong{font-size:13px}
+.academie-integrity-guide-modern article p{font-size:11px;line-height:1.7;color:#acc2d0}
+.academie-integrity-guide-modern .academie-screenshot-card{background:linear-gradient(135deg,#47273d,#1a2a3e);border-color:#a14f6d}
+.academie-integrity-field{background:#182638;border-color:#825064;border-radius:13px;margin-top:18px}
+.academie-integrity-field legend{color:#ffabb9}
+.academie-integrity-field input,.academie-anti-choice input{accent-color:#f36b83}
+.academie-integrity-field>p{color:#adc1d3}
+.academie-integrity-field label{border-bottom-color:#414960}
+.academie-integrity-field label strong,.academie-anti-choice strong{color:#f2f6ff}
+.academie-integrity-field label small,.academie-anti-choice small{color:#adbbcd}
+.academie-safety-notice{background:#352734;border-color:#845469;color:#f7c6ca}
+.academie-safety-notice p{color:#dcbbc7}
+.academie-demo-link{color:#ffe3e8;background:#6d324c;border-color:#ab5572}
+.academie-integrity-chip{background:#503248;border-color:#985873;color:#ffc4ce}
+.academie-anti-wrap{border-color:#744b61;background:#1e2538}
+.academie-anti-detail summary{color:#ffc5d3}
+.academie-anti-choice{border-color:#4e465c}
+.academie-integrity-area #integrity-server-events{margin-top:12px}
+.academie-integrity-area #integrity-server-events>.empty{padding:16px;border:1px dashed #65576a;background:#1c2739;border-radius:10px}
+@media(max-width:740px){
+ .academie-prof-nav{gap:6px;padding:7px;margin:19px 0 0}
+ .academie-prof-nav a{flex:1;min-width:90px;padding:10px 7px;font-size:10px}
+ .academie-integrity-area{padding:0 13px 17px}
+ .academie-integrity-head{margin:-1px -14px 0;padding:21px 15px}
+ .academie-integrity-emblem{min-width:53px;height:53px;font-size:28px}
+ .academie-integrity-pills{margin:15px 0}
+ .academie-integrity-pills span{font-size:9px}
+ .academie-integrity-guide-modern{grid-template-columns:1fr}
+ .academie-integrity-guide-modern article{min-height:0}
+}
+@media(prefers-reduced-motion:reduce){.academie-integrity-guide-modern article{transition:none}}

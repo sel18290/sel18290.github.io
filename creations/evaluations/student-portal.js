@@ -67,15 +67,17 @@ window.CORTEX_PORTAL=(function(){
   return attempts.filter(a=>eligible(a)&&a.submittedAt>=start.getTime()&&a.submittedAt<end.getTime());
  }
  function weeks(attempts,year,period){
-  const {start,end}=periodBounds(year,period),days=7*86400000;
+  const {start,end}=periodBounds(year,period);
   const monday=new Date(start.getFullYear(),start.getMonth(),start.getDate());
   monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
   const items=[];
-  for(let at=new Date(monday);at<end;at=new Date(at.getTime()+days)){
-   const to=new Date(Math.min(end.getTime(),at.getTime()+days));
+  for(let at=new Date(monday);at<end;){
+   const next=new Date(at);next.setDate(next.getDate()+7);
+   const to=next<end?next:end;
    const a=at<start?start:at;
    const grades=attempts.filter(x=>eligible(x)&&x.submittedAt>=a.getTime()&&x.submittedAt<to.getTime());
    items.push({start:new Date(a),end:new Date(to.getTime()-1),value:average(grades),count:grades.length});
+   at=next;
   }
   return items;
  }
@@ -211,7 +213,7 @@ window.CORTEX_PORTAL=(function(){
   if(!exam)return '<p>Contrôle introuvable.</p>';
   const questions=(exam.questions||[]).map((q,i)=>{
    const answer=at.answers?.[q.id],points=at.marks?.[q.id]?.points,hasPoints=typeof points==='number'&&Number.isFinite(points),comment=at.marks?.[q.id]?.comment;
-   const choice=q.type==='choice'&&Array.isArray(q.choices)&&Number.isInteger(Number(q.correct))&&q.choices[q.correct];
+   const choice=q.type==='choice'&&Array.isArray(q.choices)&&q.correct!=null&&Number.isInteger(Number(q.correct))&&q.choices[q.correct];
    const answerText=choice&&/^\d+$/.test(String(answer??''))?q.choices[Number(answer)]??answer:answer;
    return '<article class="portal-question"><div class="portal-question-top"><span>QUESTION '+(i+1)+' / '+exam.questions.length+'</span>'+
     (hasPoints?'<strong>'+grade(points)+' / '+grade(q.points)+' pt</strong>':'<strong>Commentaire</strong>')+'</div>'+

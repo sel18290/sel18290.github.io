@@ -112,9 +112,13 @@
     throw Error('Correction fictive incomplète : estimation impossible.');
    const sorted=[...out.questions].sort((a,b)=>(Number(a.points)/Math.max(0.5,Number(a.max)))-(Number(b.points)/Math.max(0.5,Number(b.max))));
    const weakest=sorted[0],strongest=sorted[sorted.length-1];
-   const good=short(strongest.commentaire||strongest.attendu||'Certains acquis apparaissent dans la copie.',230);
-   const weak=short(weakest.commentaire||'Une notion demande encore de la précision.',230);
-   const advice=short(weakest.conseil||'Relis le document et justifie chaque étape.',230);
+   const oneLine=value=>{
+    const phrase=String(value||'').split(/(?<=[.!?])\s+/)[0].replace(/\s+/g,' ').trim();
+    return phrase.length>145?phrase.slice(0,142).trimEnd()+'…':phrase;
+   };
+   const good=oneLine(strongest.commentaire||strongest.attendu||'Certains acquis apparaissent dans la copie.');
+   const weak=oneLine(weakest.commentaire||'Une notion demande encore de la précision.');
+   const advice=oneLine(weakest.conseil||'Relis le document et justifie chaque étape.');
    state.estimate={score:Math.round(Number(out.grade)*100)/100,lines:['Point fort : '+good,'À revoir : '+weak,'Pour progresser : '+advice]};
    if($('cortex-estimate-result'))renderEstimate($('cortex-estimate-result'));
   }catch(e){if($('cortex-estimate-result'))$('cortex-estimate-result').textContent='⚠ '+String(e.message||e)}

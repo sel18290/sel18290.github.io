@@ -179,6 +179,7 @@ function display(){
 }
 get('cw-refresh')?.addEventListener('click',()=>reload(true));
 window.addEventListener('cortex:academy-data-ready',()=>reload());
+queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
  get('cw-assessment-cards')?.replaceChildren();

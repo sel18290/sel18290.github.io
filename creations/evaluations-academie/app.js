@@ -322,7 +322,7 @@ async function teacherStudentSimulation(exam){
   window.CORTEX_STUDENT_SIMULATOR.open({
    exam:{title:exam.title,description:exam.content?.description||'',duration:exam.content?.duration||60,
          questions:exam.content?.questions||[]},
-   classe:classTitle(exam),scope:exam.content?.publish_scope||'all',assets,subject
+   classe:classTitle(exam),scope:exam.content?.publish_scope||'all',assets,subject,layout:'all'
   });
  }catch(error){status('Simulation impossible : '+safeError(error),true)}
 }

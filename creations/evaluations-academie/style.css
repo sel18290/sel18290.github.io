@@ -16,3 +16,30 @@
 .prof-exam-form button{margin-top:16px}
 .prof-list .empty{color:#98b4c3;font-size:12px}
 @media(max-width:740px){.prof-sec{padding:14px}.prof-form{grid-template-columns:1fr 1fr}.prof-form button{grid-column:1/-1}.prof-head h3{font-size:16px}}
+
+/* CORTEX Académie — mode intégrité par contrôle */
+.academie-integrity-field{min-width:0;margin:17px 0 0;padding:15px;border:1px solid #4b707a;border-radius:12px;background:#142f40}
+.academie-integrity-field legend{font-size:12px;font-weight:850;color:#c2fff1;padding:0 7px}
+.academie-integrity-field>p,.academie-integrity-area>p{font-size:11px;line-height:1.7;color:#abc9d5}
+.academie-integrity-field label,.academie-anti-choice{display:flex;align-items:center;gap:11px;cursor:pointer;padding:11px 0;border-bottom:1px solid #33566b}
+.academie-integrity-field label:last-child,.academie-anti-choice:last-child{border-bottom:none}
+.academie-integrity-field input,.academie-anti-choice input{height:18px;width:18px;accent-color:#70e0c3;flex-shrink:0;cursor:pointer}
+.academie-integrity-field label strong,.academie-integrity-field label small,.academie-anti-choice strong,.academie-anti-choice small{display:block}
+.academie-integrity-field label strong,.academie-anti-choice strong{font-size:12px;color:#e1fff5}
+.academie-integrity-field label small,.academie-anti-choice small{font-size:10px;color:#a4c3ce;line-height:1.5;margin-top:4px}
+.academie-integrity-guide{margin:15px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.academie-integrity-guide article{border:1px solid #426472;border-radius:12px;background:#173346;padding:16px;display:grid;gap:8px;align-content:start}
+.academie-integrity-guide article>span{font-size:23px;color:#9ff7dc}
+.academie-integrity-guide article strong{font-size:12px}
+.academie-integrity-guide article p{font-size:10px;line-height:1.7;margin:0;color:#b2cbd6}
+.academie-safety-notice{background:#302e24;border:1px solid #6a6244;padding:14px;border-radius:11px;margin:14px 0 23px;color:#ebd7a5}
+.academie-safety-notice strong{font-size:12px}
+.academie-safety-notice p{font-size:11px;color:#e0cda7;line-height:1.65;margin:8px 0 0}
+.academie-demo-link{display:inline-flex;margin:14px 0 5px;padding:12px 15px;border-radius:10px;background:#1f4b53;border:1px solid #508c83;color:#c3fff0;font-weight:800;font-size:12px}
+.academie-integrity-chip{display:inline-flex;margin-top:9px;color:#b2f4d7;background:#20534e;border:1px solid #4d8c7d;border-radius:99px;font-size:10px;padding:6px 10px}
+.academie-anti-wrap{padding:0 12px 11px;background:#122a3c;border:1px solid #355a6d;border-radius:11px}
+.academie-anti-detail{padding:10px 2px}
+.academie-anti-detail summary{color:#adeadd;font-size:12px;font-weight:850;cursor:pointer;padding:5px 0}
+.academie-anti-detail summary:focus-visible{outline:2px solid #99fbe5;outline-offset:4px}
+.academie-anti-choice{padding:10px 0}
+@media(max-width:740px){.academie-integrity-guide{grid-template-columns:1fr}.academie-integrity-area .prof-head{flex-wrap:wrap}.academie-integrity-field{padding:11px}.academie-anti-wrap{padding:0 8px 9px}}

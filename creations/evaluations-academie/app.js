@@ -96,7 +96,7 @@ let teacherId=null;
 let myClasses=[];
 let myExams=[];
 let myIncidents=[];
-window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
+window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,classes:()=>myClasses,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
 let selectedIntegrityExamId='';
 const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}

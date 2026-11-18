@@ -35,3 +35,12 @@
 .cortex-sim-dialog .cortex-sim-review-row{text-align:left;background:#153954;color:#ecf5ff;border:1px solid #577e99}
 @media(max-width:600px){.cortex-sim-dialog{width:100vw;max-height:100dvh;height:100dvh;border-radius:0}.cortex-sim-dialog .cortex-sim-body{max-height:calc(100dvh - 170px);padding:15px}.cortex-sim-dialog .cortex-sim-footer{padding:10px}.cortex-sim-dialog .cortex-sim-header{padding:12px}.cortex-sim-dialog button{padding:10px}.cortex-sim-dialog .cortex-sim-header h2{font-size:18px}.cortex-sim-dialog .cortex-sim-clock{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.cortex-sim-dialog *{scroll-behavior:auto}}
+
+
+/* Aperçu réel : toutes les questions sur une page, comme dans l'espace élève Académie. */
+.cortex-sim-dialog .cortex-sim-all-questions{display:grid;gap:17px}
+.cortex-sim-dialog .cortex-sim-all-questions .cortex-sim-question{padding:17px;border:1px solid #507b96;border-radius:14px;background:#102c43}
+.cortex-sim-dialog .cortex-sim-all-questions .cortex-sim-question h3{font-size:16px}
+.cortex-sim-dialog .cortex-sim-all-questions .cortex-sim-fields{padding-top:8px}
+.cortex-sim-dialog .cortex-sim-all-questions .cortex-sim-file{margin-bottom:10px}
+@media(max-width:600px){.cortex-sim-dialog .cortex-sim-all-questions .cortex-sim-question{padding:12px}}

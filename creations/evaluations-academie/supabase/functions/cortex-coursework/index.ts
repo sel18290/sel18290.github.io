@@ -129,10 +129,11 @@ async function teacherAction(action,body,form,req){
    if(!current.subject_path)throw Error('Ajoutez des consignes, des questions ou un document avant de publier.');
   }
   const access=await ensureAccess(assessment,raw);
-  const size=Math.max(access.roster_size,raw),fresh=[];
+  const fresh=[];
   const {data:roster,error:rosterError}=await admin.from('cortex_academy_roster').select('student_number').eq('assessment_id',id);
   if(rosterError)throw Error('Impossible de préparer la liste d’élèves.');
   const exist=new Set((roster||[]).map(x=>x.student_number));
+  const size=exist.size?Math.max(access.roster_size,raw):raw;
   const missing=Array.from({length:size},(_,i)=>i+1).filter(n=>!exist.has(n));
   if(missing.length){
    const generated=await Promise.all(missing.map(async n=>{

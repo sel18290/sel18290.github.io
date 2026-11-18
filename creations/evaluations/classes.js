@@ -39,7 +39,14 @@ function assignedTo(s,examId,clId,grId=''){
 }
 function copyMatch(at,clId,grId){return (!clId||at.classId===clId)&&(!grId||at.groupId===grId);}
 function classSelect(s,current='',label='Toutes les classes'){
- return `<select id="teacher-class-filter" data-class-filter aria-label="Filtrer par classe"><option value="">${h(label)}</option>${s.classes.filter(c=>!c.archived).map(c=>`<option value="${h(c.id)}" ${current===c.id?'selected':''}>${h(c.name)}</option>`).join('')}</select>`;
+ const names=new Set();
+ const unique=s.classes.filter(c=>{
+  if(c.archived)return false;
+  const key=codeName(c.name).replace(/[^A-Z0-9]/g,'');
+  if(names.has(key))return false;
+  names.add(key);return true;
+ });
+ return `<select id="teacher-class-filter" data-class-filter aria-label="Filtrer par classe"><option value="">${h(label)}</option>${unique.map(c=>`<option value="${h(c.id)}" ${current===c.id?'selected':''}>${h(c.name)}</option>`).join('')}</select>`;
 }
 function groupSelect(s,clId,current='',label='Tous les groupes'){
  const cl=byId(s,clId);const groups=cl?.groups?.filter(g=>!g.archived)||[];
@@ -117,7 +124,13 @@ function qrChoices(s,exam){
  // Certains navigateurs contiennent des affectations historiques en double.
  const latest=[...assignments(s,exam.id)].sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0));
  const seen=new Set(),list=latest.filter(a=>{
-  const key=codeName(classLabel(s,a.classId))+'|'+codeName(groupLabel(s,a.classId,a.groupId));
+  // Même classe, même groupe et même contrôle : un seul QR, même si
+  // d'anciens identifiants de classe ou de groupe coexistent dans le navigateur.
+  const label=codeName(classLabel(s,a.classId)).replace(/[^A-Z0-9]/g,'');
+  const g=String(a.groupId||'').toLowerCase();
+  const name=codeName(groupLabel(s,a.classId,a.groupId)).replace(/[^A-Z0-9]/g,'');
+  const groupKey=!g?'all':g==='g1'||/^(DEMI)?GROUPE1$/.test(name)?'g1':g==='g2'||/^(DEMI)?GROUPE2$/.test(name)?'g2':name;
+  const key=label+'|'+groupKey;
   if(seen.has(key))return false;
   seen.add(key);return true;
  });

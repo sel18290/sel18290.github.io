@@ -1,7 +1,7 @@
 /* CORTEX — parcours guidé autonome de la démonstration, sans collecte ni serveur. */
 (function cortexGuidedTour(){
 'use strict';
-const STORAGE='cortex-tour-v1';
+const STORAGE='cortex-tour-v4';
 const steps=[
  {phase:'DÉCOUVRIR',title:'Bienvenue dans CORTEX',eyebrow:'Station Noctis · Une évaluation de bout en bout',route:'#accueil',icon:'✦',
   targets:['.home-hero .hero-copy','.home-hero'],
@@ -105,7 +105,7 @@ function target(){
   const node=document.querySelector(selector);
   if(node&&node.getBoundingClientRect().width>0&&node.getBoundingClientRect().height>0)return node;
  }
- return document.querySelector(steps[index].selector);
+ return selectors.length?document.querySelector(selectors[0]):null;
 }
 function overlap(a,b){return Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top))}
 function placeGuide(){
@@ -135,35 +135,28 @@ function highlight(){
  placeGuide();
 }
 function route(){
- const hash=steps[index].route,expected=index;
- if(location.hash!==hash)location.hash=hash;
- window.setTimeout(()=>{if(active&&index===expected){highlight();scrollToTarget(expected)}},130);
- window.setTimeout(()=>{if(active&&index===expected)highlight()},410);
+ const step=steps[index],hash=step.route,expected=index;
+ // Entrer automatiquement dans le seul carnet FICTIF lors de la visite guidée.
+ // Cela n'ouvre aucun compte réel et ne demande ni PIN ni données personnelles.
+ if(step.enterDemoPortal&&location.hash!=='#eleve/espace'){
+  if(location.hash!=='#eleve/accueil')location.hash='#eleve/accueil';
+  window.setTimeout(()=>{
+   if(!active||index!==expected)return;
+   const button=document.querySelector('[data-action="portal-demo"]');
+   if(button)button.click();
+  },190);
+ }else if(location.hash!==hash)location.hash=hash;
+ window.setTimeout(()=>{if(active&&index===expected){highlight();scrollToTarget(expected)}},370);
+ window.setTimeout(()=>{if(active&&index===expected)highlight()},630);
 }
-const mobileHints=[
- ['La découverte commence ici.','Découvrez les trois accès : professeur, élève et démonstration.'],
- ['Votre tableau de bord central.','Repérez les raccourcis et le menu professeur.'],
- ['Toutes les classes au même endroit.','Ouvrez une classe pour voir les groupes.'],
- ['Vos questions et votre barème.','Essayez de créer une question fictive.'],
- ['Vos documents de travail.','Repérez le bouton pour importer un PDF ou Word.'],
- ['Le contrôle et son QR code.','Ouvrez le contrôle Sommeil, puis son QR code.'],
- ['Les accès personnels des élèves.','Découvrez les PIN et leur réinitialisation.'],
- ['La plateforme vue par un élève.','Simulez un scan de QR code depuis un contrôle.'],
- ['Corriger et publier les notes.','Ouvrez la copie PDF de démonstration.'],
- ['Voir le déroulement des épreuves.','Regardez les indicateurs de suivi.'],
- ['Comprendre les résultats.','Explorez les moyennes et les filtres.'],
- ['Des protections selon vos besoins.','Testez les interrupteurs des outils anti-triche.'],
- ['Vous savez naviguer dans CORTEX !','Terminez ou retournez dans CORTEX Académie.']
-];
 function mobileCard(step,last){
- const hint=mobileHints[index];
  return '<div class="ct-tour-mobile">'+
   (showList?
    '<div class="ct-tour-mobile-list-head"><strong>Choisissez une étape</strong><button type="button" data-tour="list">Retour à la visite</button></div>'+
    '<div class="ct-tour-mobile-list">'+steps.map((v,i)=>'<button type="button" data-tour="jump" data-step="'+i+'" class="ct-tour-mobile-list-item'+(i===index?' active':'')+'" '+(i===index?'aria-current="step"':'')+'><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+v.title+'</strong><span class="ct-tour-mobile-list-arrow">›</span></button>').join('')+'</div>':
-   '<div class="ct-tour-mobile-main"><div class="ct-tour-mobile-kicker">'+step.icon+' · ÉTAPE '+String(index+1).padStart(2,'0')+' / '+steps.length+'</div>'+
-   '<h2>'+step.title+'</h2><p>'+hint[0]+'</p>'+
-   '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>Ce que vous pouvez essayer</strong><p>'+hint[1]+'</p></div></div></div>'+
+   '<div class="ct-tour-mobile-main"><div class="ct-tour-mobile-kicker">'+step.icon+' · '+step.phase+' · ÉTAPE '+String(index+1).padStart(2,'0')+' / '+steps.length+'</div>'+
+   '<h2>'+step.title+'</h2><p>'+step.body+'</p>'+
+   '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>À essayer dans CORTEX</strong><p>'+step.task+'</p></div></div></div>'+
    '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">Explorer cet écran <span aria-hidden="true">↗</span></button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
    '<div class="ct-tour-mobile-options"><button type="button" data-tour="previous" '+(index===0?'disabled':'')+'>← Retour</button><button type="button" data-tour="list">Toutes les étapes</button><button type="button" data-tour="minimize">Réduire ↑</button></div>'+
    (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Retour à CORTEX Académie ↗</a>':'')
@@ -177,7 +170,7 @@ function content(){
  '<div class="ct-tour-minibar"><div class="ct-tour-minibar-label"><small>ÉTAPE '+(index+1)+' / '+steps.length+'</small><strong>'+step.title+'</strong></div><button type="button" class="ct-tour-mini-help" data-tour="minimize"><span class="ct-tour-mini-desktop-label">↥ Reprendre</span><span class="ct-tour-mini-mobile-label">Aide</span></button><button type="button" class="ct-tour-mini-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Fin ✓':'Suite →')+'</button></div>':
  '<div class="ct-tour-progress" role="progressbar" aria-label="Progression de la visite" aria-valuemin="0" aria-valuemax="'+steps.length+'" aria-valuenow="'+(index+1)+'"><span style="width:'+percent+'%"></span></div>'+
  '<div class="ct-tour-desktop">'+
- '<div class="ct-tour-stepbar"><span class="ct-tour-step-label">PARCOURS · '+String(index+1).padStart(2,'0')+' / '+steps.length+'</span><button type="button" class="ct-tour-plan-button" data-tour="list" aria-expanded="'+showList+'">'+(showList?'← Retour à l’étape':'☷ Voir les 13 étapes')+'</button></div>'+
+ '<div class="ct-tour-stepbar"><span class="ct-tour-step-label">PARCOURS · '+String(index+1).padStart(2,'0')+' / '+steps.length+'</span><button type="button" class="ct-tour-plan-button" data-tour="list" aria-expanded="'+showList+'">'+(showList?'← Retour à l’étape':'☷ Voir les '+steps.length+' étapes')+'</button></div>'+
  (showList?
   '<div class="ct-tour-desktop-plan" role="group" aria-label="Sommaire du parcours">'+steps.map((item,i)=>'<button type="button" data-tour="jump" data-step="'+i+'" class="ct-tour-plan-item'+(i===index?' active':'')+'" '+(i===index?'aria-current="step"':'')+'><span class="ct-tour-plan-number">'+String(i+1).padStart(2,'0')+'</span><span class="ct-tour-plan-title">'+item.title+'</span><span class="ct-tour-plan-arrow" aria-hidden="true">'+(i===index?'●':'›')+'</span></button>').join('')+'</div>':
   '<div class="ct-tour-main"><div class="ct-tour-kicker"><span>'+step.icon+'</span> '+step.eyebrow+'</div><h2 id="ct-tour-title" tabindex="-1">'+step.title+'</h2><p>'+step.body+'</p><div class="ct-tour-task"><span aria-hidden="true">➜</span><div><strong>À essayer sur la page</strong><p>'+step.task+'</p></div></div></div>'+
@@ -201,7 +194,7 @@ function handle(action,el){
  if(action==='minimize'){minimized=!minimized;showList=false;draw();return}
  if(action==='dock'){dockChoice=(root?.dataset.tourSide==='right'?'left':'right');draw();return}
  if(action==='list'){showList=!showList;draw();root?.querySelector('[data-tour="list"]')?.focus?.();if(showList&&isDesktop())root?.querySelector('.ct-tour-desktop-plan [aria-current="step"]')?.scrollIntoView?.({block:'nearest'});return}
- if(action==='visit'){route();highlight();minimized=true;showList=false;draw();window.setTimeout(()=>{const node=target();if(node&&typeof node.scrollIntoView==='function')node.scrollIntoView({behavior:'smooth',block:'start'});},160);return}
+ if(action==='visit'){const step=steps[index];route();highlight();minimized=true;showList=false;draw();window.setTimeout(()=>{const node=target();if(node&&typeof node.scrollIntoView==='function')node.scrollIntoView({behavior:'smooth',block:'start'});if(step.openTarget&&node?.matches?.('#cortex-albert-person'))node.click();},270);return}
  if(action==='previous'){jump(index-1);if(isDesktop())root?.querySelector('#ct-tour-title')?.focus?.();return}
  if(action==='next'){jump(index+1);if(isDesktop())root?.querySelector('#ct-tour-title')?.focus?.();return}
  if(action==='jump'){jump(Number(el.dataset.step)||0);if(isDesktop())root?.querySelector('#ct-tour-title')?.focus?.();return}
@@ -228,5 +221,5 @@ window.addEventListener('hashchange',()=>{if(active)window.setTimeout(highlight,
 const existing=read();
 if(location.hash==='#visite'||location.hash==='#demonstration'){start()}
 else if(existing&&Number.isInteger(existing.index)){active=true;index=clamp(existing.index);minimized=!!existing.minimized;dockChoice=['left','right'].includes(existing.dockChoice)?existing.dockChoice:'auto';draw()}
-window.CORTEX_TOUR={start,stop:close,steps:steps.length};
+window.CORTEX_TOUR={start,stop:close,steps:steps.length,sections:[...new Set(steps.map(step=>step.phase))]};
 })();

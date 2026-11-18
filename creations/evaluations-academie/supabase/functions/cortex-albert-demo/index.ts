@@ -235,7 +235,7 @@ Deno.serve(async(req:Request)=>{
   if(raw.length>300)return fail('Requête trop longue.',413);
   let body:any;
   try{body=JSON.parse(raw)}catch{return fail('JSON invalide.',400)}
-  if(body?.action!=='demo_draft'||body?.copy_id!=='ex-pdf-demo'||
+  if(!['demo_draft','demo_estimate_only'].includes(body?.action)||body?.copy_id!=='ex-pdf-demo'||
     Object.keys(body).sort().join(',')!=='action,copy_id')
     return fail('Test limité à la copie fictive de référence.',400);
   if(!Deno.env.get('ALBERT_API_KEY'))return fail('Clé ALBERT_API_KEY absente du serveur Supabase.',503);
@@ -246,6 +246,13 @@ Deno.serve(async(req:Request)=>{
   if(admitted!==true)return fail('Démonstration momentanément limitée : 20 secondes entre deux tests et maximum 24 corrections par jour pour tous les visiteurs.',429);
   const halves=await Promise.all([correctPart(DEMO.questions.slice(0,10)),correctPart(DEMO.questions.slice(10))]);
   const all=halves.flat(),earned=all.reduce((a,q)=>a+q.points,0);
+  // CARNET ÉLÈVE : estimation CHIFFRÉE SEULEMENT. Aucune remarque,
+  // réponse attendue, commentaire ni copie détaillée ne sort du serveur.
+  if(body.action==='demo_estimate_only')return respond({
+    ok:true,mode:'demo',copyId:DEMO.id,
+    grade:Math.round(earned*100)/100,
+    warning:'Estimation fictive non officielle ; aucun commentaire avant la publication du professeur.'
+  });
   return respond({ok:true,status:'draft',mode:'demo',provider:'Albert API',
     copyId:DEMO.id,title:DEMO.title,grade:Math.round(earned*100)/100,
     points:Math.round(earned*100)/100,max:DEMO.total,questions:all,

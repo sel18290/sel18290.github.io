@@ -73,3 +73,78 @@ body.cortex-noctis .cortex-entry-card .cortex-creator-credit{
     margin:0;
   }
 }
+
+
+/* V2 : signature intégrée au véritable header, jamais masquée par le défilement. */
+body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header{
+  flex:1 0 100%;
+  order:-99;
+  align-self:stretch;
+  position:relative;
+  z-index:5;
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:0!important;
+  padding:8px 12px;
+  background:linear-gradient(110deg,rgba(39,57,91,.95),rgba(14,38,67,.95));
+  border:1px solid rgba(193,224,255,.52);
+  border-radius:10px;
+  color:#fff!important;
+}
+body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header :is(p,strong,span){
+  color:#fff!important;
+  opacity:1!important;
+  visibility:visible!important;
+  text-shadow:0 1px 9px rgba(0,0,0,.28);
+}
+body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header p{
+  font-family:Inter,"Segoe UI",system-ui,sans-serif;
+  font-size:13px;
+  line-height:1.45;
+  font-weight:600;
+  letter-spacing:.01em;
+  margin:0;
+}
+/* Ordinateur : une ligne en haut de l'en-tête, avec le reste de la navigation en dessous. */
+@media(min-width:761px){
+  body.cortex-noctis .topbar:has(>.cortex-creator-in-header){
+    height:auto!important;
+    min-height:94px;
+    flex-wrap:wrap;
+  }
+  body.cortex-noctis .top:has(>.cortex-creator-in-header){
+    display:flex;
+    flex-wrap:wrap;
+  }
+}
+/* Téléphone : barre blanche lisible, sans couper le nom ni écraser les compteurs. */
+@media(max-width:760px){
+  body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header{
+    grid-column:1/-1;
+    grid-row:1;
+    flex-basis:100%;
+    order:-99;
+    width:100%;
+    margin:0!important;
+    padding:9px 10px;
+    gap:7px;
+    border-radius:9px;
+  }
+  body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header p{
+    font-size:11px;
+    line-height:1.45;
+    text-align:left;
+  }
+  body.cortex-noctis .top:has(>.cortex-creator-in-header){
+    grid-template-rows:auto auto auto auto;
+  }
+  body.cortex-noctis .top > .cortex-creations-link{grid-row:2;}
+  body.cortex-noctis .top > .brand{grid-row:2;}
+  body.cortex-noctis .top > .cortex-traffic{grid-row:3;}
+  body.cortex-noctis .top > .academy-header-actions{grid-row:4;}
+}

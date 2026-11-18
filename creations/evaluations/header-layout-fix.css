@@ -76,6 +76,7 @@ body.cortex-noctis .topbar #ct-tour-launch:hover{
  }
  body.cortex-noctis .topbar .brand{margin-right:auto}
  body.cortex-noctis .topbar .top-status{display:none}
+ body.cortex-noctis .topbar::after{display:none!important}
  body.cortex-noctis .topbar #ct-tour-launch-mobile{
   display:inline-flex;align-items:center;justify-content:center;
   box-sizing:border-box;

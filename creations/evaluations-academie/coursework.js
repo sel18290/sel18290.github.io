@@ -99,7 +99,11 @@ function display(){
   card.append(fileArea);
   if(access?.subject_name){
    const sub=make('div','cw-subject-row');
-   sub.append(make('span','','📎 '+access.subject_name),createButton('Voir le document ↗','cw-secondary',()=>openFile(exam.id,'subject')));
+   sub.append(make('span','','📎 '+access.subject_name),createButton('Voir le document ↗','cw-secondary',()=>openFile(exam.id,'subject')),
+     createButton('✦ Ouvrir dans l’atelier documentaire','cw-primary',()=>{
+      if(!window.CORTEX_REAL_IMPORT?.openExisting)throw Error('Atelier documentaire indisponible : rechargez la page.');
+      return window.CORTEX_REAL_IMPORT.openExisting(exam.id);
+     }));
    card.append(sub);
   }
   const publish=make('div','cw-publish-row'),select=make('select','cw-roster-size');

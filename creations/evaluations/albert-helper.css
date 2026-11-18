@@ -47,3 +47,35 @@
 .portal-result:has(.portal-albert-estimate) .portal-result-end{max-width:480px;display:flex;flex-direction:column;align-items:flex-end;gap:9px}
 @media(max-width:680px){#cortex-albert-person{top:auto;bottom:max(74px,env(safe-area-inset-bottom));left:max(6px,env(safe-area-inset-left));width:59px;z-index:59;opacity:.94}.cortex-albert-buddy{transform:scale(.85);margin:-4px}.portal-result:has(.portal-albert-estimate) .portal-result-end{align-items:stretch;width:100%;max-width:none}.portal-result-end .portal-albert-estimate{max-width:none}.cortex-albert-dialog{max-height:88dvh}.cortex-albert-dialog-content{padding:16px}}
 @media(prefers-reduced-motion:reduce){#cortex-albert-person{transition:none}}
+
+
+/* Albert v2 : réponse claire, hiérarchisée et réutilisable au lieu de Markdown brut */
+.cortex-albert-answer:has(.cortex-albert-result-heading){padding:0!important;background:transparent!important;border:0!important;display:grid;gap:13px;color:#e8f6ff}
+.cortex-albert-result-heading{color:#94f1d7;font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.cortex-albert-result-intro{margin:0;color:#d9eaf5;font-size:14px;line-height:1.65}
+.cortex-albert-steps{list-style:none;counter-reset:albertstep;padding:0;margin:0;display:grid;gap:10px}
+.cortex-albert-step{display:grid;grid-template-columns:39px minmax(0,1fr);align-items:start;gap:13px;padding:14px;border:1px solid #5b89a1;border-radius:13px;background:linear-gradient(110deg,#163752,#11283f);box-shadow:0 7px 20px #0002}
+.cortex-albert-step-number{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#a0ecdb;color:#0a3844;font-size:13px;font-weight:900}
+.cortex-albert-step-body{min-width:0}
+.cortex-albert-step-body strong{display:block;font-size:14px;color:#f5ffff;font-weight:800;line-height:1.35;margin:0 0 7px}
+.cortex-albert-step-body p{margin:0;font-size:13px;line-height:1.68;color:#bfdce9;overflow-wrap:anywhere}
+.cortex-albert-note{border-left:3px solid #a8d9c1;padding:12px 13px;background:#1c3c40;border-radius:0 10px 10px 0;margin:0;font-size:12px;color:#e5fff0;line-height:1.55}
+.cortex-albert-result-paragraph{padding:13px 15px;margin:0!important;border:1px solid #54758c;border-radius:12px;background:#142e47;line-height:1.8!important;font-size:13px;color:#e7f7ff;white-space:pre-wrap;overflow-wrap:anywhere}
+.cortex-albert-result-paragraph strong{color:#bbffe6;font-weight:800}
+/* Fenêtre de travail commune aux trois actions IA : véritable activité, pas faux %. */
+.cortex-albert-wait{box-sizing:border-box;border:1px solid #86b8d0;border-radius:23px;padding:0;width:min(485px,calc(100vw - 22px));max-height:92dvh;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#173f61,#091a2f 77%);color:#e7f7ff;box-shadow:0 35px 115px #000b}
+.cortex-albert-wait::backdrop{background:#030c1ddc;backdrop-filter:blur(7px)}
+.cortex-albert-wait-card{padding:clamp(23px,5vw,34px);display:grid;justify-items:stretch;text-align:center;gap:14px}
+.cortex-albert-wait-symbol{display:grid;place-items:center;margin:auto;width:82px;height:82px;border-radius:50%;font-size:33px;background:radial-gradient(circle,#79d9e3,#257290);color:#eefcff;border:2px solid #acf0ff;box-shadow:0 0 34px #5ccfef88;animation:cortex-albert-wait-pulse 1.8s ease-in-out infinite}
+.cortex-albert-wait-badge{font-size:10px;font-weight:900;letter-spacing:.17em;color:#9de8d6}
+.cortex-albert-wait-card h2{font-size:clamp(21px,4vw,26px);margin:0;color:#fff}
+.cortex-albert-wait-detail{font-size:13px;line-height:1.65;color:#c2e0f2;margin:0}
+.cortex-albert-wait-track{width:100%;height:9px;overflow:hidden;position:relative;border-radius:20px;background:#153754;border:1px solid #3e748d}
+.cortex-albert-wait-fill{position:absolute;left:-33%;top:0;bottom:0;width:33%;background:linear-gradient(90deg,transparent,#92f1d8,#b7deff);box-shadow:0 0 18px #70ead8;animation:cortex-albert-wait-progress 1.8s infinite ease-in-out}
+.cortex-albert-wait-footer{display:flex;justify-content:space-between;align-items:center;gap:11px;padding-top:10px;border-top:1px solid #356077}
+.cortex-albert-wait-footer span{font-size:11px;color:#a9cedf;text-align:left;line-height:1.5}
+.cortex-albert-wait-footer button{padding:9px 13px;background:#183a52;border:1px solid #7495aa;border-radius:10px;color:#e3f6ff;font-size:11px;white-space:nowrap}
+@keyframes cortex-albert-wait-pulse{0%,100%{transform:scale(.94);box-shadow:0 0 22px #5ccfef55}50%{transform:scale(1.05);box-shadow:0 0 42px #5ccfefaa}}
+@keyframes cortex-albert-wait-progress{0%{left:-33%}100%{left:100%}}
+@media(max-width:540px){.cortex-albert-step{grid-template-columns:32px minmax(0,1fr);gap:10px;padding:11px}.cortex-albert-step-number{width:30px;height:30px}.cortex-albert-wait-footer{align-items:stretch;flex-direction:column}.cortex-albert-wait-footer span{text-align:center}.cortex-albert-wait-footer button{width:100%}}
+@media(prefers-reduced-motion:reduce){.cortex-albert-wait-fill{animation:none;left:30%;width:40%}.cortex-albert-wait-symbol{animation:none}}

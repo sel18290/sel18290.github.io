@@ -1,0 +1,38 @@
+/* CORTEX / NOCTIS — Ciel vivant V2, affichage Canvas doux. */
+body.cortex-noctis .cortex-sky-canvas{
+ position:fixed;inset:0;z-index:0;display:block;pointer-events:none;
+ width:100%;height:100%;
+ background:transparent;
+ opacity:.97;
+ mix-blend-mode:screen;
+ contain:strict;
+}
+body.cortex-noctis .cortex-sky-canvas-local{
+ position:absolute;inset:0;z-index:1;
+ width:100%;height:100%;
+ opacity:.78;
+ mix-blend-mode:screen;
+ border-radius:inherit;
+ contain:layout paint size;
+}
+body.cortex-noctis .home-hero>.hero-copy{position:relative;z-index:2}
+body.cortex-noctis .home-hero>.hero-visual{position:relative;z-index:2}
+/* Contenu et boutons devant l'animation, sans interception des clics. */
+body.cortex-noctis>.shell,
+body.cortex-noctis>.layout,
+body.cortex-noctis>.top,
+body.cortex-noctis>.bottom,
+body.cortex-noctis>.footer{position:relative;z-index:1}
+body.cortex-noctis::before,
+body.cortex-noctis::after{animation:none!important;will-change:auto!important}
+body.cortex-noctis::after{opacity:.12!important}
+@media(max-width:760px){
+ body.cortex-noctis>.cortex-sky-canvas{opacity:.83}
+ body.cortex-noctis .cortex-sky-canvas-local{opacity:.61}
+}
+@media(prefers-reduced-motion:reduce){
+ body.cortex-noctis .cortex-sky-canvas{display:none!important}
+}
+@media print{
+ body.cortex-noctis .cortex-sky-canvas{display:none!important}
+}

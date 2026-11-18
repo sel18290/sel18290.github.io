@@ -3,7 +3,7 @@ import {api} from './coursework.js?v=2.0';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);
-const state={questions:[],index:0,editingId:null,sourceFile:null,pdf:null,docPage:1,docCount:0,sourceWordText:'',assets:[]};
+const state={questions:[],index:0,editingId:null,sourceFile:null,pdf:null,docPage:1,docCount:0,sourceWordText:'',assets:[],removedIds:new Set()};
 const newId=()=> 'q-'+crypto.randomUUID().slice(0,24);
 const blank=()=>({id:newId(),prompt:'',points:1,type:'text',doc:''});
 function current(){return state.questions[state.index];}
@@ -81,7 +81,7 @@ async function uploadAssets(id){
 }
 function releaseAssets(){
  for(const a of state.assets)if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
- state.assets=[];
+ state.assets=[];state.removedIds.clear();
 }
 function addCapture(blob,name){
  if(!blob||!['image/png','image/jpeg','image/webp'].includes(blob.type))
@@ -120,6 +120,7 @@ async function removeCapture(id){
  if(!asset.pending){
   if(!state.editingId){setHint('Enregistre la nouvelle version avant de modifier les anciennes captures.');return;}
   await api('teacher_asset_delete',{assessment_id:state.editingId,asset_id:id},null,true);
+  state.removedIds.add(id);
   for(const q of state.questions)q.assetIds=(q.assetIds||[]).filter(x=>x!==id);
  }else if(asset.previewUrl)URL.revokeObjectURL(asset.previewUrl);
  state.assets=state.assets.filter(a=>a!==asset);
@@ -198,7 +199,7 @@ function preview(){
 function runAction(action){
  const q=current(),i=state.index;
  if(action==='delete'){if(state.questions.length<2)return;
-  if(state.assets.some(a=>a.questionId===q.id&&!a.pending)){setHint('Retire d’abord les captures enregistrées de cette question.');return;}
+  if((q.assetIds||[]).length||state.assets.some(a=>a.questionId===q.id&&!a.pending)){setHint('Retire d’abord les captures enregistrées de cette question.');return;}
   for(const a of state.assets.filter(a=>a.questionId===q.id)){if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);}
   state.assets=state.assets.filter(a=>a.questionId!==q.id);
   state.questions.splice(i,1);state.index=Math.min(i,state.questions.length-1);
@@ -233,6 +234,7 @@ function edit(exam){
  const isPublished=!!exam.published;
  state.editingId=isPublished?null:exam.id;
  state.questions=(Array.isArray(exam.content?.questions)?structuredClone(exam.content.questions):[]).map(q=>QT().initialize(q,q.type||'text'));
+ if(isPublished)for(const question of state.questions)question.assetIds=[]; // Les captures de l'ancien contrôle publié ne sont pas copiées.
  if(!state.questions.length)state.questions=[blank()];
  state.index=0;
  $('exam-title').value=(exam.title||'')+(isPublished?' (nouvelle version)':'');
@@ -288,5 +290,6 @@ $('manual-doc-prev').addEventListener('click',()=>{state.docPage=Math.max(1,stat
 $('manual-doc-next').addEventListener('click',()=>{state.docPage=Math.min(state.docCount,state.docPage+1);renderOriginal().catch(error=>setHint(error.message));});
 window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,
  markSaved:id=>{state.editingId=id;},uploadSource,uploadAssets,
+ removedAssetIds:()=>[...state.removedIds],
  afterSave:()=>{$('exam-form').reset();reset();}};
 reset();

@@ -1,0 +1,29 @@
+/* CORTEX Démo : correspondance visuelle avec Mes contrôles (espace réel). */
+.prof-sec{margin-top:26px;border:1px solid #37586c;border-radius:13px;padding:18px;background:#122b3d}
+.prof-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.prof-head h3{font-size:18px;letter-spacing:-.03em;margin:8px 0}
+.prof-form input,.prof-exam-form input,.prof-exam-form select,.prof-exam-form textarea{width:100%;background:#0e2437;border:1px solid #487083;border-radius:9px;padding:12px;color:#e5f7ff;min-width:0}
+.prof-form button,.prof-exam-form button{background:#9cf9d8;color:#063439;border:0;border-radius:9px;padding:12px 15px;font-weight:800}
+.academie-integrity-field{min-width:0;margin:17px 0 0;padding:15px;border:1px solid #4b707a;border-radius:12px;background:#142f40}
+.academie-integrity-field legend{font-size:12px;font-weight:850;color:#c2fff1;padding:0 7px}
+.academie-integrity-field>p,.academie-integrity-area>p{font-size:11px;line-height:1.7;color:#abc9d5}
+.academie-integrity-field label,.academie-anti-choice{display:flex;align-items:center;gap:11px;cursor:pointer;padding:11px 0;border-bottom:1px solid #33566b}
+
+/* Cet écran reprend exactement le formulaire de l'espace réel.
+   Les règles ci-dessous ne s'appliquent qu'à cet atelier de démonstration. */
+#prof-assessments{max-width:none;min-width:0}
+#prof-assessments .real-manual-workshop{width:100%;box-sizing:border-box}
+#prof-assessments input,#prof-assessments textarea,#prof-assessments select{box-sizing:border-box}
+#prof-assessments .prof-head .btn{min-height:40px}
+#prof-assessments .real-manual-question-tabs{display:grid}
+#prof-assessments .academie-integrity-field label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+#prof-assessments .academie-integrity-field label input{width:auto;flex:none;margin-top:3px}
+#prof-assessments .academie-integrity-field label span{display:grid;gap:3px}
+#prof-assessments .academie-integrity-field label small{display:block;font-size:11px;color:#aac6d5}
+#prof-assessments .academie-integrity-field{display:grid;gap:10px}
+#prof-assessments button[type=submit]{min-height:45px;cursor:pointer}
+#prof-assessments button[type=submit]:disabled{opacity:.6;cursor:wait}
+#prof-assessments .real-manual-document details[open] summary{margin-bottom:10px}
+#prof-assessments .prof-head{flex-wrap:wrap;gap:10px}
+#prof-assessments .prof-head>div{min-width:0}
+@media(max-width:760px){#prof-assessments{padding:12px}#prof-assessments .real-manual-columns{grid-template-columns:1fr}#prof-assessments .prof-head{align-items:stretch}}

@@ -196,3 +196,62 @@
 @media(prefers-reduced-motion:reduce){
  #cortex-albert-person,.cortex-albert-hologram .holo-orbit,.cortex-albert-hologram .holo-core,.cortex-albert-hologram .holo-scan,.cortex-analysis-orb:before{animation:none}
 }
+
+/* ALBERT — invitation visible au-dessus du petit robot.
+ * La bulle fait partie du bouton : un clic dessus ouvre le même assistant.
+ * Aucune superposition sur l'en-tête et les fenêtres d'évaluation.
+ */
+#cortex-albert-person .cortex-albert-invite{
+ position:absolute;
+ left:-2px;
+ bottom:calc(100% + 15px);
+ width:164px;
+ box-sizing:border-box;
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ gap:4px;
+ padding:11px 13px;
+ border-radius:18px 18px 18px 5px;
+ border:1px solid rgba(162,217,255,.86);
+ background:linear-gradient(138deg,rgba(27,54,91,.97),rgba(33,40,91,.97));
+ box-shadow:0 12px 38px rgba(0,5,30,.54),0 0 22px rgba(123,155,247,.18),inset 0 1px rgba(255,255,255,.14);
+ color:#f7fcff;
+ text-align:left;
+ letter-spacing:normal;
+ line-height:1.25;
+ cursor:pointer;
+ z-index:1;
+ animation:cortex-albert-invite-glow 5.5s ease-in-out infinite;
+}
+#cortex-albert-person .cortex-albert-invite::after{
+ content:"";position:absolute;left:20px;bottom:-7px;
+ width:11px;height:11px;
+ background:#233255;transform:rotate(45deg);
+ border-right:1px solid rgba(162,217,255,.72);
+ border-bottom:1px solid rgba(162,217,255,.72);
+}
+#cortex-albert-person .cortex-albert-invite strong{
+ font-size:13px;font-weight:850;color:#fff;text-shadow:0 0 13px rgba(172,225,255,.35);
+}
+#cortex-albert-person .cortex-albert-invite small{
+ font-size:11px;font-weight:800;color:#a9e9ff;letter-spacing:.045em;
+}
+#cortex-albert-person:hover .cortex-albert-invite,
+#cortex-albert-person:focus-visible .cortex-albert-invite{
+ border-color:#c7e6ff;box-shadow:0 15px 43px rgba(0,5,30,.6),0 0 25px rgba(143,195,255,.4);
+}
+@keyframes cortex-albert-invite-glow{
+ 0%,100%{box-shadow:0 12px 38px rgba(0,5,30,.54),0 0 17px rgba(123,155,247,.12)}
+ 50%{box-shadow:0 12px 38px rgba(0,5,30,.54),0 0 24px rgba(142,196,255,.25)}
+}
+@media(max-width:680px){
+ #cortex-albert-person .cortex-albert-invite{
+  width:145px;left:0;bottom:calc(100% + 11px);padding:9px 11px;
+ }
+ #cortex-albert-person .cortex-albert-invite strong{font-size:12px}
+ #cortex-albert-person .cortex-albert-invite small{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #cortex-albert-person .cortex-albert-invite{animation:none}
+}

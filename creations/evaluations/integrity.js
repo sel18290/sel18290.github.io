@@ -28,7 +28,7 @@ function settings(exam){
  toggle(exam,'trackVisibility','Suivre les sorties de page','Pages masquées plus de 2 secondes.')+
  toggle(exam,'warnStudent','Prévenir l’élève','Avertissement discret, sans sanction.')+
  toggle(exam,'watermarkCapture','Filigrane anti-partage','Classe et numéro sur le sujet pour dissuader les captures.')+'</div>'+
- '<div class="integrity-watermark-preview"><div><span class="integrity-kicker">APERÇU DU FILIGRANE</span><strong>'+esc(exam.title)+'</strong><small>CORTEX · 2MRC2 · N° 12</small></div><p>Filigrane visible, pas un blocage des captures d’écran.</p></div>'+
+ '<div class="integrity-watermark-preview"><div><span class="integrity-kicker">APERÇU DU FILIGRANE</span><strong>'+esc(exam.title)+'</strong><small>CORTEX · 2MRC2 · N° 12</small></div><p>'+(c.enabled&&c.watermarkCapture?'Activé : le filigrane sera visible pendant le contrôle.':'Désactivé : cet aperçu montre l’effet possible.')+' Un filigrane ne bloque pas les captures d’écran.</p></div>'+
  '<p class="integrity-caution"><strong>Important :</strong> Android, iOS et Windows gardent le contrôle des captures d’écran. Un site ne peut pas les bloquer ni les détecter fiablement. Les alertes de navigation peuvent avoir des causes légitimes ; aucune sanction automatique.</p></div>';
 }
 function summary(state,filter=''){

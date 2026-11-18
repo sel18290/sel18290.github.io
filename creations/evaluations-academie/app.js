@@ -1,5 +1,6 @@
 /* CORTEX Académie — client autonome, activation Supabase après configuration. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
+import { api as cortexCourseworkApi } from './coursework.js?v=2.0';
 
 const domain=/^[a-z0-9._%+-]+@ac-paris\.fr$/i;
 const $=id=>document.getElementById(id);
@@ -306,6 +307,25 @@ async function duplicateRealExam(exam){
  if(error)throw error;
  await loadTeacherData(requireTeacher());status('Contrôle dupliqué en brouillon.');
 }
+async function teacherStudentSimulation(exam){
+ if(!window.CORTEX_STUDENT_SIMULATOR){status('Simulateur indisponible. Recharge la page.',true);return;}
+ let assets=[],subject=null;
+ try{
+  const r=await cortexCourseworkApi('teacher_asset_list',{assessment_id:exam.id},null,true);
+  assets=(r.assets||[]).filter(a=>a.url);
+ }catch(err){console.warn('Documents du test :',err)}
+ try{
+  const r=await cortexCourseworkApi('teacher_file',{assessment_id:exam.id,kind:'subject'},null,true);
+  if(r?.url)subject=r;
+ }catch{}
+ try{
+  window.CORTEX_STUDENT_SIMULATOR.open({
+   exam:{title:exam.title,description:exam.content?.description||'',duration:exam.content?.duration||60,
+         questions:exam.content?.questions||[]},
+   classe:classTitle(exam),scope:exam.content?.publish_scope||'all',assets,subject
+  });
+ }catch(error){status('Simulation impossible : '+safeError(error),true)}
+}
 function publicationDialog(exam){
  if(!exam.class_id){status('Affecte une classe au contrôle avant publication.',true);return;}
  const d=el('dialog','cortex-publish-dialog'),form=el('form','cortex-publish-body');
@@ -379,11 +399,7 @@ function drawRealExamTiles(){
   if(['pdf','docx'].includes(exam.content?.sourceType))
    row2.append(tileButton('Découper ↗','table-action',()=>window.CORTEX_REAL_IMPORT.openExisting(exam.id)));
   row2.append(tileButton('▣ QR codes','table-action',()=>window.CORTEX_ACADEMY_COURSEWORK?.goToQR(exam.id)),
-   tileButton('Tester ↗','table-action',()=>{
-    const accessRow=window.CORTEX_ACADEMY_COURSEWORK?.access?.().find(a=>a.assessment_id===exam.id&&a.active);
-    if(!accessRow?.join_code){status('Publie d’abord le contrôle pour obtenir son lien élève.',true);return}
-    window.open(location.origin+location.pathname+'?join='+encodeURIComponent(accessRow.join_code),'_blank','noopener');
-   }),
+   tileButton('Tester ↗','table-action',()=>teacherStudentSimulation(exam)),
    tileButton('◈ Anti-triche','table-action',()=>{
     selectedIntegrityExamId=exam.id;location.hash='#acad-integrity';drawAcademyTools();
    }),
@@ -460,7 +476,7 @@ $('exam-form').addEventListener('submit',async event=>{
   if(!Number.isFinite(duration)||duration<5||duration>240)throw Error('Durée comprise entre 5 et 240 minutes.');
   const content={description,questions,doc:'', // Ancien champ commun désactivé : les documents sont propres à chaque question.
    level:$('exam-level').value.trim().slice(0,100),chapter:$('exam-chapter').value.trim().slice(0,180),
-   duration,antiCheat:antiCreateConfig()};
+   duration,publish_scope:['all','g1','g2'].includes($('exam-publish-scope')?.value)?$('exam-publish-scope').value:'all',antiCheat:antiCreateConfig()};
   const editingId=editor.editingId();
   let error,savedId=editingId;
   if(editingId){

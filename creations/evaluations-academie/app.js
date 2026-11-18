@@ -95,9 +95,9 @@ let teacherId=null;
 let myClasses=[];
 let myExams=[];
 let myIncidents=[];
-const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true};
+const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
-function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked};}
+function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked,watermarkCapture:$('exam-integrity-watermark').checked};}
 const el=(tag,cls,txt)=>{
  const node=document.createElement(tag);
  if(cls)node.className=cls;
@@ -169,7 +169,8 @@ function drawTeacherData(){
     ['blockPaste','Bloquer le collage','Réponses saisies dans les champs'],
     ['blockCopy','Limiter la copie du sujet','Ne bloque pas captures ou photos'],
     ['trackVisibility','Signaler les sorties de page','Signale les pages masquées plus de deux secondes'],
-    ['warnStudent','Avertir l’élève','Aucune sanction automatique']
+    ['warnStudent','Avertir l’élève','Aucune sanction automatique'],
+    ['watermarkCapture','Filigrane anti-partage','Classe et numéro de l’élève, sans blocage réel de captures']
   ];
   for(const [key,title,detailText] of defs){
     const label=el('label','academie-anti-choice');

@@ -106,3 +106,18 @@ Chaque professeur prépare une fois des PIN stables par classe, et les réutilis
 Implémentation : Edge Function cortex-coursework version 4, nouvelle API de classes, tables privées cortex_academy_class_access, cortex_academy_class_roster, cortex_academy_class_sessions avec RLS. Test SQL réussi : séparation des données de deux enseignants fictifs ; aucune lecture directe du stockage PIN/session. Tests d’interface simulés : sélection de classe, connexion, liste des contrôles, ouverture d’un contrôle ; voie QR directe préservée.
 
 Limitation d’architecture : l’identité est actuellement propre à une classe dans le compte de chaque enseignant. Deux enseignants créant chacun « 2MRC2 » ont encore deux espaces et deux jeux de PIN distincts. Il faudrait une gestion des classes et identités commune à l’établissement pour un accès multi-professeurs unifié. La liste publique contient des noms de classes, pas de noms d’élèves ni de notes. L’inscription académique, le SMTP, le parcours sur deux téléphones et la validation RGPD/DPO restent à effectuer avant utilisation réelle.
+
+
+## Activation élève à la première connexion
+
+Le bouton « Première connexion · Activer mon espace » est disponible sur les pages élève :
+- Accès général ?espace=eleve : classe, numéro, PIN provisoire, nouveau PIN personnel et confirmation.
+- Accès par QR ?join=... : contrôle ciblé, numéro, PIN provisoire, nouveau PIN et confirmation.
+
+Les PIN provisoires sont générés par le professeur dans Dépôts & copies → Accès permanent des élèves par classe, et distribués individuellement.
+
+Le serveur vérifie le PIN provisoire avant toute activation. Le nouveau PIN remplace l’ancien, l’activation ne peut être répétée avec l’ancien code, et l’élève est connecté immédiatement après création. Un professeur peut renouveler un code provisoire (par numéro de classe), ce qui force une nouvelle activation et révoque les sessions.
+
+Implémentation : colonne activated_at de la table cortex_academy_class_roster, action Edge student_activate dans cortex-coursework. Vérification SQL avec transaction annulée : activation unique, ancien PIN inutilisable et remise en état provisoire lors de la réinitialisation. Tests simulés de l’activation depuis le portail et depuis un QR avec connexion automatique : réussis.
+
+Attention : l'identité élève est pseudonyme (classe et numéro). Ce n'est pas une inscription autonome par e-mail Supabase Auth. La confirmation du PIN initial est obligatoire pour éviter l'appropriation de l'espace d'un autre élève. Configuration SMTP, essais multi-appareils et validation de la conformité RGPD avant utilisation scolaire.

@@ -165,3 +165,13 @@ Tests réalisés : syntaxe des scripts, équilibre et unicité de la structure H
 - Secret facultatif ALBERT_MODEL : choisir un autre modèle Albert si nécessaire.
 - La clé photographiée dans une conversation doit être révoquée.
 - Aucune vraie copie n’était enregistrée dans Supabase lors de l’intégration ; tests de bout en bout et validation RGPD restent à effectuer.
+
+
+## Albert IA — démonstration PSE fictive (18 novembre 2026)
+
+- La page de démonstration `../evaluations/` affiche « Corriger avec Albert IA » dans l'atelier de correction de la copie fictive `ex-pdf-demo` du contrôle « Le sommeil, un rythme essentiel ».
+- Le bouton utilise le script `../evaluations/ai-albert-demo.js` : authentification Supabase existante (même origine que l'espace réel) puis requête `{ action: 'demo_draft', copy_id: 'ex-pdf-demo' }` vers `cortex-albert-demo`.
+- La fonction `cortex-albert-demo` est séparée de `cortex-ai-correction` (copies réelles, désactivées par défaut). Elle vérifie le JWT académique confirmé, le profil professeur et ne lit aucune copie réelle. Les 20 questions, réponses fictives et transcriptions documentaires sont fixées côté serveur à partir de `doc-engine.js` et `demo.js`.
+- Traitement par Albert API avec clé `ALBERT_API_KEY` uniquement dans les secrets Supabase ; par défaut modèle `openai/gpt-oss-120b` ; maximum huit corrections fictives par enseignant et par jour, espacement de trente secondes, suivi dans `public.cortex_albert_demo_usage` (RLS activée, sans accès anon/authenticated).
+- Les résultats (points/20, attendu, commentaire individuel, conseil et document cité) sont un BROUILLON. L'action explicite « Reporter les corrections dans la démo » met à jour exclusivement les notes locales de la copie fictive si ses réponses sont inchangées ; aucune publication officielle.
+- Le professeur doit être connecté à CORTEX Académie avant de tester la démonstration. Les résultats IA n'ont pas encore été testés en conditions réelles avec le secret Albert : vérifier l'authentification, les retours JSON, les quotas et le modèle en cliquant sur le bouton.

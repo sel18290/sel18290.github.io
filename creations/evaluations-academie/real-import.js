@@ -301,23 +301,23 @@ function relativePosition(ev){
 function attachSelection(){
  const wrap=by('ri-source-page');let origin=null;
  wrap.onpointerdown=e=>{
-  if(state.published||!state.id||e.button!==0)return;
-  origin=relativePosition(e);state.selected=null;wrap.setPointerCapture(e.pointerId);
-  e.preventDefault();
+  if(state.published||state.busy||(e.pointerType==='mouse'&&e.button!==0))return;
+  origin={point:relativePosition(e),pointerId:e.pointerId};
+  state.selected=null;showSelection();wrap.setPointerCapture?.(e.pointerId);e.preventDefault();
  };
  wrap.onpointermove=e=>{
-  if(!origin)return;
-  const end=relativePosition(e);
-  state.selected={x:Math.min(origin.x,end.x),y:Math.min(origin.y,end.y),
-   w:Math.abs(origin.x-end.x),h:Math.abs(origin.y-end.y)};
-  showSelection();
+  if(!origin||origin.pointerId!==e.pointerId)return;
+  const end=relativePosition(e),start=origin.point;
+  state.selected={x:Math.min(start.x,end.x),y:Math.min(start.y,end.y),
+   w:Math.abs(start.x-end.x),h:Math.abs(start.y-end.y)};showSelection();
  };
  wrap.onpointerup=e=>{
-  if(!origin)return;
-  const end=relativePosition(e);state.selected={x:Math.min(origin.x,end.x),y:Math.min(origin.y,end.y),
-   w:Math.abs(origin.x-end.x),h:Math.abs(origin.y-end.y)};
-  origin=null;if(state.selected.w<0.015||state.selected.h<0.015)state.selected=null;
-  showSelection();
+  if(!origin||origin.pointerId!==e.pointerId)return;
+  const start=origin.point,end=relativePosition(e);origin=null;
+  state.selected={x:Math.min(start.x,end.x),y:Math.min(start.y,end.y),
+   w:Math.abs(start.x-end.x),h:Math.abs(start.y-end.y)};
+  if(state.selected.w<0.018||state.selected.h<0.018){state.selected=null;showSelection();return;}
+  operation(()=>captureToBank(false));
  };
  wrap.onpointercancel=()=>{origin=null;state.selected=null;showSelection();};
 }
@@ -345,9 +345,9 @@ async function paint(){
   const doc=node('div','ri-word-page');doc.innerHTML=state.wordHtml;
   canvas.append(doc);
  }
- wrap.style.touchAction=state.id&&!state.published?'none':'auto';
- by('ri-capture').disabled=!state.id||state.published;
- by('ri-full-page').disabled=!state.id||state.published;
+ wrap.style.touchAction=!state.published?'none':'auto';
+ by('ri-capture').disabled=state.published;
+ by('ri-full-page').disabled=state.published;
 }
 async function originalCanvas(){
  if(state.kind==='pdf'){
@@ -361,29 +361,45 @@ async function originalCanvas(){
  if(!target)throw Error('Le document Word n’est pas prêt.');
  return await window.html2canvas(target,{backgroundColor:'#fff',scale:1.5,useCORS:false,logging:false});
 }
-async function cropAndUpload(full=false){
- if(!state.id)throw Error('Enregistre d’abord le contrôle pour stocker la capture.');
- if(state.published)throw Error('Le contrôle publié ne peut pas être modifié.');
- const source=await originalCanvas();
- const area=full?{x:0,y:0,w:1,h:1}:state.selected;
- if(!area)throw Error('Encadre une zone du document avec la souris ou le doigt, ou capture la page entière.');
- const sx=Math.floor(area.x*source.width),sy=Math.floor(area.y*source.height);
- const sw=Math.min(source.width-sx,Math.ceil(area.w*source.width));
- const sh=Math.min(source.height-sy,Math.ceil(area.h*source.height));
- if(sw<15||sh<15)throw Error('Sélection trop petite.');
- const max=1700,scale=Math.min(1,max/Math.max(sw,sh));
- const canvas=node('canvas');canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
+function addBankBlob(blob,name,page){
+ if(state.assets.length>=60)throw Error('Limite de 60 captures par contrôle.');
+ if(!['image/png','image/jpeg','image/webp'].includes(blob.type))throw Error('Format de capture non pris en charge.');
+ if(blob.size>8*1024*1024)throw Error('Capture trop lourde (8 Mo maximum).');
+ const image={id:'local-'+crypto.randomUUID(),name:name.slice(0,120),page,questionId:null,
+  previewUrl:URL.createObjectURL(blob),blob,pending:true};
+ state.assets.push(image);state.selected=null;showSelection();renderQuestions();
+ msg('Capture créée. Glisse-la sur une question, ou sélectionne la question puis clique sur « Ajouter ».');
+ by('ri-assets').scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+async function captureToBank(full=false){
+ if(state.published)throw Error('Ce contrôle publié est en lecture seule.');
+ const source=await originalCanvas(),r=full?{x:0,y:0,w:1,h:1}:state.selected;
+ if(!r)throw Error('Encadre un passage avec le doigt ou la souris pour le capturer.');
+ const sx=Math.floor(r.x*source.width),sy=Math.floor(r.y*source.height);
+ const sw=Math.min(source.width-sx,Math.ceil(r.w*source.width));
+ const sh=Math.min(source.height-sy,Math.ceil(r.h*source.height));
+ if(sw<15||sh<15)throw Error('Zone sélectionnée trop petite.');
+ const scale=Math.min(1,1700/Math.max(sw,sh));
+ const canvas=node('canvas');
+ canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
  canvas.getContext('2d').drawImage(source,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
- const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Capture impossible.')),'image/jpeg',0.87));
- const qid=by('ri-target-question').value;if(!qid)throw Error('Choisis une question pour cette capture.');
- const name='Document_page_'+state.page+'_question_'+(state.questions.findIndex(q=>q.id===qid)+1)+'.jpg';
- const upload=new File([blob],name,{type:'image/jpeg'});
- msg('Envoi sécurisé de la capture documentaire…');
- const result=await api('teacher_asset_upload',{assessment_id:state.id,question_id:qid,page:state.page},upload,true);
- state.assets.push(result.asset);
- const q=state.questions.find(q=>q.id===qid);if(q)q.assetIds=[...(q.assetIds||[]),result.asset.id];
- state.selected=null;showSelection();renderQuestions();await bridge().refresh();
- msg('Capture associée à la question et enregistrée dans Supabase. Elle sera visible par les élèves.');
+ const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Capture impossible.')),'image/jpeg',0.88));
+ addBankBlob(blob,'Extrait_page_'+state.page+'_'+(state.assets.length+1)+'.jpg',state.page);
+}
+async function importImage(file){
+ if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Choisis une image PNG, JPEG ou WebP.');
+ addBankBlob(file,file.name||'Capture importée',state.page);
+}
+async function pasteImage(){
+ if(!navigator.clipboard?.read)throw Error('Le collage d’image n’est pas autorisé par ce navigateur. Utilise « Importer une image ».');
+ const items=await navigator.clipboard.read();
+ for(const item of items)for(const type of item.types){
+  if(type.startsWith('image/')){
+   const blob=await item.getType(type);
+   return importImage(new File([blob],'Capture_collee.png',{type:blob.type}));
+  }
+ }
+ throw Error('Aucune image trouvée dans le presse-papiers.');
 }
 function validatedQuestions(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit comporter 1 à 40 questions.');
@@ -485,8 +501,8 @@ by('ri-add-question').addEventListener('click',()=>{
 });
 by('ri-new').addEventListener('click',()=>{clearEditor();by('ri-upload-chooser').hidden=false;by('ri-title').disabled=false;by('ri-class').disabled=false;by('ri-description').disabled=false;});
 by('ri-save').addEventListener('click',()=>operation(save));
-by('ri-capture').addEventListener('click',()=>operation(()=>cropAndUpload(false)));
-by('ri-full-page').addEventListener('click',()=>operation(()=>cropAndUpload(true)));
+by('ri-capture').addEventListener('click',()=>operation(()=>captureToBank(false)));
+by('ri-full-page').addEventListener('click',()=>operation(()=>captureToBank(true)));
 attachSelection();
 window.CORTEX_REAL_IMPORT={openExisting};
 window.addEventListener('cortex:academy-data-ready',()=>{if(!state.id&&state.file)populateClasses(by('ri-class').value);});

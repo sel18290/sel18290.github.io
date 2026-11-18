@@ -1,0 +1,131 @@
+/* CORTEX ACADÉMIE — interface professeur calquée sur l'ergonomie du site de démonstration.
+   Seuls les vrais composants du compte académique sont montés ; aucune donnée fictive. */
+body.academy-authenticated{--teal:#79ebd4;--muted:#9eb2ca;--text:#f0f5ff;--radius:18px;--shadow:0 14px 54px #00000028;background:radial-gradient(ellipse 70vw 60vw at 88% -16%,#17284a 0%,transparent 85%),radial-gradient(ellipse 52vw 50vw at -16% 37%,#0c2430 0%,transparent 80%),#090f1b;color:#f0f5ff}
+body.academy-authenticated .layout{max-width:1440px!important;width:calc(100% - 48px)!important;padding:0 0 50px!important}
+body.academy-authenticated .access,body.academy-authenticated .access>.panel{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;max-width:none!important}
+body.academy-authenticated .top{height:82px;min-height:82px;border-bottom:1px solid #ffffff14;background:#0a1120ee;backdrop-filter:blur(12px);display:flex;align-items:center;padding:12px max(24px,calc((100vw - 1440px)/2));gap:20px;position:sticky;top:0;z-index:35}
+body.academy-authenticated .top .brand{color:#eef6ff}
+body.academy-authenticated .top .logo{background:#173e46;color:#8febd6;border:1px solid #57a997;border-radius:11px}
+body.academy-authenticated .academy-header-actions{margin-left:auto}
+body.academy-authenticated .academy-header-actions .academy-student-entry{min-height:43px;border-color:#426b77;background:#152d39;border-radius:10px}
+body.academy-authenticated .academy-header-actions .demo.demo-primary{min-height:43px}
+body.academy-authenticated #acad-professor-workspace.workspace{padding:28px 0 65px;display:grid;grid-template-columns:232px minmax(0,1fr);gap:25px;align-items:start;width:100%;min-width:0}
+body.academy-authenticated #acad-professor-workspace .sidebar{background:#101b2af0;border:1px solid #314358;border-radius:18px;padding:18px;position:sticky;top:111px;min-width:0}
+body.academy-authenticated #acad-professor-workspace .side-title{padding:6px 10px 15px;border-bottom:1px solid #2e4258;margin-bottom:15px}
+body.academy-authenticated #acad-professor-workspace .side-title strong{font-size:14px;font-weight:800;display:block;color:#f0f5ff}
+body.academy-authenticated #acad-professor-workspace .side-title span{font-size:11px;color:#9eb2ca}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu{position:static;z-index:auto;display:grid;gap:5px;overflow:visible;overscroll-behavior:auto;scroll-snap-type:none;scrollbar-width:auto;box-shadow:none;background:transparent;border:0;border-radius:0;margin:0;padding:0}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item{width:100%;min-height:45px;max-width:100%;text-align:left;border:1px solid transparent;background:transparent;box-shadow:none;color:#b4c6d8;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:flex-start;gap:11px;font-size:13px;font-weight:700;white-space:normal;line-height:1.3;scroll-snap-align:none;text-decoration:none}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item:hover{background:#1a2a3e;color:#eff8fa;border-color:#39536d}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item.active{background:#254053;color:#a3f7e1;border-color:#4d8075}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item.active .side-icon{color:#a3f7e1}
+body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item .side-icon{font-size:17px;width:22px;min-width:22px;text-align:center;color:#91a6bf}
+body.academy-authenticated #acad-professor-workspace .side-bottom{display:block;border-top:1px solid #2d4058;margin-top:16px;padding:17px 6px 4px;color:#9eb2ca;font-size:11px}
+body.academy-authenticated #acad-professor-workspace .side-bottom>span{display:block;color:#8ce4d2;margin-bottom:5px}
+body.academy-authenticated #acad-professor-workspace .side-bottom .acad-profile-email{font-size:10px;color:#e0f5fc;display:block;overflow-wrap:anywhere;margin:5px 0 9px;line-height:1.5}
+body.academy-authenticated #acad-professor-workspace .acad-sidebar-logout{width:100%;padding:9px 10px;min-height:38px;border-radius:9px;border:1px solid #385069;background:transparent;color:#c7d6e9;font-size:11px;text-align:center;cursor:pointer}
+body.academy-authenticated #acad-professor-workspace .acad-sidebar-logout:hover{color:#a3f7e1;border-color:#67beb1}
+body.academy-authenticated #acad-professor-workspace .side-bottom p{color:#788fa6;font-size:10px;margin:12px 0 0}
+body.academy-authenticated #acad-professor-workspace .workspace-main{min-width:0;width:100%}
+body.academy-authenticated #acad-professor-workspace .acad-overview{display:block}
+body.academy-authenticated #acad-professor-workspace .acad-overview[hidden]{display:none!important}
+body.academy-authenticated #acad-professor-workspace .page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin:6px 0 26px}
+body.academy-authenticated #acad-professor-workspace .page-head h1{font-size:clamp(28px,3.8vw,42px);line-height:1.12;color:#f0f5ff;margin:8px 0 7px;font-weight:800}
+body.academy-authenticated #acad-professor-workspace .page-head p:not(.eyebrow){color:#9eb2ca;font-size:13px;line-height:1.65;margin:0}
+body.academy-authenticated #acad-professor-workspace .eyebrow{display:flex;align-items:center;gap:9px;text-transform:uppercase;letter-spacing:.20em;color:#79ebd4;font-weight:800;font-size:11px;margin:0}
+body.academy-authenticated #acad-professor-workspace .eyebrow:before{content:"";display:inline-block;width:18px;height:2px;background:#79ebd4}
+body.academy-authenticated #acad-professor-workspace .btn{border:1px solid transparent;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:45px;padding:11px 17px;background:linear-gradient(120deg,#8befdc,#6cdda9);color:#0b2934;text-decoration:none;font-size:13px;font-weight:800;white-space:normal;text-align:center;cursor:pointer}
+body.academy-authenticated #acad-professor-workspace .btn:hover{filter:brightness(1.09);transform:translateY(-1px)}
+body.academy-authenticated #acad-professor-workspace .btn.secondary{border-color:#57708a;background:#1c2b40;color:#e6edfa}
+body.academy-authenticated #acad-professor-workspace .btn.ghost{border-color:#385069;background:transparent;color:#c7d6e9}
+body.academy-authenticated #acad-professor-workspace .btn.small{font-size:12px;padding:8px 13px;min-height:36px}
+body.academy-authenticated #acad-professor-workspace .btn.full{width:100%}
+body.academy-authenticated #acad-professor-workspace .btn-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+body.academy-authenticated #acad-professor-workspace .class-quick-strip{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;max-width:100%;overflow-x:auto;scrollbar-width:thin;scroll-snap-type:x proximity;margin:8px 0 22px;padding:4px 1px 8px}
+body.academy-authenticated #acad-professor-workspace .class-quick-strip>.btn,body.academy-authenticated #acad-professor-workspace .class-quick-strip>.chip{white-space:nowrap;flex:none;scroll-snap-align:start}
+body.academy-authenticated #acad-professor-workspace .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0}
+body.academy-authenticated #acad-professor-workspace .stat{display:block;text-decoration:none;min-width:0;min-height:135px;padding:20px;background:#152337;border:1px solid #334962;border-radius:15px;box-shadow:none}
+body.academy-authenticated #acad-professor-workspace a.stat:hover{background:#1c3448;border-color:#5d8a92}
+body.academy-authenticated #acad-professor-workspace .stat-label{font-size:12px;color:#9eb2ca;min-height:32px}
+body.academy-authenticated #acad-professor-workspace .stat-value{display:block;font-size:34px;letter-spacing:-.04em;font-weight:700;line-height:1.3;color:#f0f5ff}
+body.academy-authenticated #acad-professor-workspace .stat-foot{font-size:11px;color:#8ce5d2;line-height:1.45}
+body.academy-authenticated #acad-professor-workspace .two-col{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:18px;margin-top:18px}
+body.academy-authenticated #acad-professor-workspace .workspace-main .panel{background:linear-gradient(148deg,#172439ef,#121e30f0)!important;border:1px solid #334760!important;border-radius:18px!important;box-shadow:0 14px 54px #00000028!important;padding:24px!important;min-width:0}
+body.academy-authenticated #acad-professor-workspace .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:19px;flex-wrap:wrap}
+body.academy-authenticated #acad-professor-workspace .panel-head h2{margin:0;color:#f0f5ff;font-size:20px}
+body.academy-authenticated #acad-professor-workspace .panel-head p{margin:3px 0;color:#9eb2ca;font-size:12px}
+body.academy-authenticated #acad-professor-workspace .list-row{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid #2c4054}
+body.academy-authenticated #acad-professor-workspace .list-row:last-child{border:0;padding-bottom:3px}
+body.academy-authenticated #acad-professor-workspace .item-icon{flex:0 0 43px;height:43px;display:grid;place-items:center;background:#223951;border:1px solid #395975;border-radius:12px;font-size:19px;color:#acffe9}
+body.academy-authenticated #acad-professor-workspace .grow{flex:1;min-width:0}
+body.academy-authenticated #acad-professor-workspace .item-title{font-weight:800;font-size:13px;color:#edf5ff;overflow-wrap:anywhere}
+body.academy-authenticated #acad-professor-workspace .item-meta{font-size:12px;color:#9eb2ca;margin-top:3px}
+body.academy-authenticated #acad-professor-workspace .inline-note{padding:16px;border:1px dashed #527889;border-radius:13px;background:#172b37;color:#c5dbe8;font-size:12px;line-height:1.6}
+body.academy-authenticated #acad-professor-workspace .inline-note strong{color:#d7fff2}
+body.academy-authenticated #acad-professor-workspace .inline-note p{font-size:12px;margin:5px 0}
+body.academy-authenticated #acad-professor-workspace .chip{font-size:11px;font-weight:800;letter-spacing:.035em;border-radius:100px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #4b697d;color:#afcce0;background:#1d3244}
+body.academy-authenticated #acad-professor-workspace .chip.teal{background:#163e3f;color:#8eedd7;border-color:#396e64}
+body.academy-authenticated #acad-professor-workspace .live-status{font-size:11px;font-weight:800;border:1px solid #396e64;color:#8eedd7;border-radius:99px;padding:5px 9px;background:#163e3f;white-space:nowrap}
+body.academy-authenticated #acad-professor-workspace .live-status.draft{background:#453727;border-color:#77614b;color:#ffd695}
+body.academy-authenticated #acad-professor-workspace .acad-live-disclaimer{font-size:10px;color:#93a8ba;line-height:1.6;margin:16px 0 0}
+body.academy-authenticated #acad-professor-workspace .empty{padding:30px;border:1px dashed #476075;border-radius:14px;text-align:center;color:#9eb2ca}
+body.academy-authenticated #acad-professor-workspace #prof-content>.prof-sec{background:linear-gradient(148deg,#172439ef,#121e30f0);border:1px solid #334760;border-radius:18px;padding:24px;margin:0;box-shadow:0 14px 54px #00000028}
+body.academy-authenticated #acad-professor-workspace #prof-content>.prof-sec .prof-head{margin-bottom:16px}
+body.academy-authenticated #acad-professor-workspace #prof-content>.prof-sec .prof-head h3{font-size:22px;color:#f0f5ff}
+body.academy-authenticated #acad-professor-workspace .prof-item{border-color:#334962;background:#16283b}
+body.academy-authenticated #acad-professor-workspace .cw-class-card{background:#142336}
+body.academy-authenticated #acad-professor-workspace .cw-assessment{background:#142336}
+body.academy-authenticated #acad-professor-workspace .cw-copy{background:#142336}
+body.academy-authenticated #acad-professor-workspace .cw-workflow-subtitle{color:#eaf9ff}
+body.academy-authenticated #acad-professor-workspace #acad-live-monitoring .stats,body.academy-authenticated #acad-professor-workspace #acad-live-analytics .stats{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:18px}
+body.academy-authenticated #acad-professor-workspace #acad-live-monitoring .panel,body.academy-authenticated #acad-professor-workspace #acad-live-analytics .panel{padding:18px!important}
+body.academy-authenticated[data-acad-view="suivi"] #prof-content>:not(#acad-live-monitoring),
+body.academy-authenticated[data-acad-view="analyses"] #prof-content>:not(#acad-live-analytics),
+body.academy-authenticated[data-acad-view="creer"] #prof-content>:not(#prof-assessments),
+body.academy-authenticated[data-acad-view="import"] #prof-content>:not(#acad-live-workflow){display:none!important}
+body.academy-authenticated[data-acad-view="import"] #cw-persistent-classes,
+body.academy-authenticated[data-acad-view="import"] #cw-copies-head,
+body.academy-authenticated[data-acad-view="import"] #cw-copy-list,
+body.academy-authenticated[data-acad-view="import"] #acad-live-workflow>.cw-safety{display:none!important}
+body.academy-authenticated[data-acad-view="overview"] #prof-content{display:none!important}
+body.academy-authenticated #acad-professor-workspace .acad-live-metrics-panel .list-row:last-child{border-bottom:0}
+body.academy-authenticated #acad-professor-workspace .acad-live-metrics-panel{scroll-margin-top:110px}
+@media(max-width:1150px){
+ body.academy-authenticated #acad-professor-workspace.workspace{grid-template-columns:190px minmax(0,1fr);gap:16px}
+ body.academy-authenticated #acad-professor-workspace .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.academy-authenticated #acad-professor-workspace .two-col{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+ body.academy-authenticated .top{position:relative;height:auto;min-height:67px;gap:8px;padding:8px 12px}
+ body.academy-authenticated .layout{width:calc(100% - 26px)!important;padding:0 0 28px!important}
+ body.academy-authenticated #acad-professor-workspace.workspace{grid-template-columns:1fr;gap:15px;padding:15px 0 35px;display:grid}
+ body.academy-authenticated #acad-professor-workspace .sidebar{position:sticky;top:0;z-index:28;padding:10px 10px 8px;border-radius:13px;background:#101b2af5}
+ body.academy-authenticated #acad-professor-workspace .side-title{display:none}
+ body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:0 0 4px;margin:0;border:0}
+ body.academy-authenticated #acad-professor-workspace .academie-prof-nav.side-menu>a.side-item{flex:0 0 auto;min-height:48px;min-width:max-content;width:auto;max-width:none;font-size:12px;padding:10px;white-space:nowrap;scroll-snap-align:start;border-radius:9px}
+ body.academy-authenticated #acad-professor-workspace .side-bottom{display:none}
+ body.academy-authenticated #acad-professor-workspace .page-head{margin:7px 0 17px;gap:12px}
+ body.academy-authenticated #acad-professor-workspace .page-head h1{font-size:clamp(27px,7.7vw,36px)}
+ body.academy-authenticated #acad-professor-workspace .page-head p{font-size:13px}
+ body.academy-authenticated #acad-professor-workspace .page-head>.btn-row{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ body.academy-authenticated #acad-professor-workspace .page-head>.btn-row>.btn{min-width:0;width:100%}
+ body.academy-authenticated #acad-professor-workspace .stats{gap:9px;grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.academy-authenticated #acad-professor-workspace .stat{padding:15px;min-height:116px}
+ body.academy-authenticated #acad-professor-workspace .stat-value{font-size:28px}
+ body.academy-authenticated #acad-professor-workspace .stat-label{min-height:0}
+ body.academy-authenticated #acad-professor-workspace .two-col{gap:12px}
+ body.academy-authenticated #acad-professor-workspace .workspace-main .panel{padding:18px!important;border-radius:16px}
+ body.academy-authenticated #acad-professor-workspace #prof-content>.prof-sec{padding:14px;border-radius:14px;scroll-margin-top:85px}
+ body.academy-authenticated #acad-professor-workspace #acad-live-monitoring .stats,body.academy-authenticated #acad-professor-workspace #acad-live-analytics .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.academy-authenticated #acad-professor-workspace .panel-head h2{font-size:18px}
+ body.academy-authenticated #acad-professor-workspace .list-row{flex-wrap:wrap;gap:9px}
+ body.academy-authenticated #acad-professor-workspace .list-row .grow{flex:1 1 calc(100% - 70px)}
+ body.academy-authenticated #acad-professor-workspace .class-quick-strip{gap:6px;margin:5px 0 13px}
+}
+@media(max-width:430px){
+ body.academy-authenticated #acad-professor-workspace .page-head>.btn-row{grid-template-columns:1fr}
+ body.academy-authenticated #acad-professor-workspace .stat{padding:12px}
+ body.academy-authenticated #acad-professor-workspace .stat-value{font-size:25px}
+ body.academy-authenticated #acad-professor-workspace .page-head h1{font-size:28px}
+}
+@media(prefers-reduced-motion:reduce){body.academy-authenticated #acad-professor-workspace .btn{transition:none}}

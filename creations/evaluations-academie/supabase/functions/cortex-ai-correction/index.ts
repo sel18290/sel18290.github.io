@@ -17,13 +17,29 @@ Deno.serve(async req=>{
   if(authError||!user||!user.email_confirmed_at||!user.email?.toLowerCase().endsWith('@ac-paris.fr'))return fail('Compte académique confirmé nécessaire.',403);
   const {data:profile}=await db.from('cortex_teacher_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
   if(!profile)return fail('Professeur non autorisé.',403);
-  // Le traitement des copies scolaires exige une validation institutionnelle explicite.
-  if(Deno.env.get('CORTEX_AI_ENABLED')!=='true')return fail('Albert IA non activé : accord de l’établissement et du DPO requis. Aucune copie transmise à l’IA.',503);
-  const apiKey=Deno.env.get('ALBERT_API_KEY')||'';
-  if(!apiKey)return fail('Clé Albert API absente du serveur. Aucune copie transmise.',503);
+  // Les tests envoient exclusivement une phrase fixe, sans aucune donnée scolaire.
   const raw=await req.text();
   if(raw.length>4000)return fail('Requête trop longue.',413);
   let body:any;try{body=JSON.parse(raw)}catch{return fail('Requête illisible.')}
+  const apiKey=Deno.env.get('ALBERT_API_KEY')||'';
+  if(body?.action==='test'){
+   if(!apiKey)return fail('Secret ALBERT_API_KEY introuvable sur Supabase.',503);
+   const upstream=await fetch('https://albert.api.etalab.gouv.fr/v1/chat/completions',{
+    method:'POST',signal:AbortSignal.timeout(45000),
+    headers:{Authorization:'Bearer '+apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',
+      messages:[{role:'user',content:'Test technique de connectivité sans données personnelles. Réponds brièvement OK.'}],
+      max_tokens:128,stream:false})
+   });
+   if(!upstream.ok)return fail('Albert API a refusé le test (HTTP '+upstream.status+'). Vérifiez la clé et l’accès au modèle.',502);
+   const result=await upstream.json();
+   if(!Array.isArray(result?.choices)||!result.choices.length)return fail('Albert API n’a pas renvoyé de réponse exploitable.',502);
+   return json({ok:true,status:'test',provider:'Albert API',message:'Albert a répondu depuis Supabase. Aucune copie ni donnée élève envoyée.'});
+  }
+  // L’envoi de données scolaires reste désactivé sans accord institutionnel.
+  if(Deno.env.get('CORTEX_AI_ENABLED')!=='true')return fail('Albert IA non activé : accord de l’établissement et du DPO requis. Aucune copie transmise à l’IA.',503);
+  if(!apiKey)return fail('Clé Albert API absente du serveur. Aucune copie transmise.',503);
+  if(body?.action!=='draft')return fail('Action inconnue.',400);
   const number=Number(body?.student_number),assessmentId=body?.assessment_id;
   if(body?.action!=='draft'||!isUuid(assessmentId)||!Number.isInteger(number)||number<1||number>60)return fail('Copie invalide.');
   const {data:exam}=await db.from('cortex_teacher_assessments').select('id,title,content').eq('id',assessmentId).eq('teacher_id',user.id).maybeSingle();

@@ -337,8 +337,10 @@ function publicationDialog(exam){
  }
  scope.value=exam.content?.publish_scope||'all';scopeLabel.append(scope);
  const rosterLabel=el('label','','Effectif de la classe'),size=el('input','');
- size.type='number';size.min='1';size.max='60';size.value='30';size.required=true;rosterLabel.append(size);
- const help=el('p','cortex-publish-help','Les groupes sont définis dans « PIN élèves ». Les élèves sans demi-groupe ne voient que les contrôles « Classe entière ».');
+ size.type='number';size.min='1';size.max='60';
+ const currentAccess=window.CORTEX_ACADEMY_COURSEWORK?.access?.()?.find(a=>a.assessment_id===exam.id);
+ size.value=String(currentAccess?.roster_size||30);size.required=true;rosterLabel.append(size);
+ const help=el('p','cortex-publish-help','Configuration enregistrée : '+groupTitle(exam)+'. Tu peux confirmer ce choix ou le modifier ici avant publication. Les groupes sont définis dans « PIN élèves ».');
  const actions=el('div','cortex-publish-actions');
  const cancel=el('button','btn secondary','Annuler');cancel.type='button';cancel.onclick=()=>d.close();
  const publish=el('button','btn','Confirmer la publication');publish.type='submit';

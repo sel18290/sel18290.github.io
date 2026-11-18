@@ -142,7 +142,7 @@
  layers.push(global);resize(global);attachHero();start();
  // La démo remplace le contenu de #app à chaque changement de section.
  const root=document.getElementById('app');
- if(root&&'MutationObserver'in window){
+ if(root&&typeof MutationObserver==='function'){
   heroObserver=new MutationObserver(()=>attachHero());
   heroObserver.observe(root,{childList:true,subtree:false});
  }

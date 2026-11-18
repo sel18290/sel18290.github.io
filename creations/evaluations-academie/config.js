@@ -1,4 +1,3 @@
-/* Renseigner UNIQUEMENT l’URL du projet et sa clé publishable.
-   Ne jamais placer une clé service_role / secret dans un dépôt public. */
-export const SUPABASE_URL = '';
-export const SUPABASE_PUBLISHABLE_KEY = '';
+/* Supabase : données publiques seulement. Aucune clé d'administration ici. */
+export const SUPABASE_URL = 'https://jhtmaoeazmjigfruandl.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_0XPYJmF9Y6Lx-a1kbwFnew_jphq4AqK';

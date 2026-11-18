@@ -677,6 +677,85 @@ body.cortex-noctis :is(.exam-page,.exam-workspace,.cw-answer-form) textarea{
   background:#0b1d33;
 }
 body.cortex-noctis .cw-student-receipt{border-color:#8ed0ca;background:#123b42}
+
+/* Separate the white porcelain role cards from their high-contrast actions. */
+body.cortex-noctis .role-card .btn:not(.secondary):not(.ghost){
+  background:linear-gradient(115deg,#193d59,#0c2943);
+  border:1px solid #386d8d;
+  box-shadow:0 6px 17px #071b3260;
+  color:#f1fbff;
+}
+body.cortex-noctis .role-card .btn:not(.secondary):not(.ghost):hover{
+  background:linear-gradient(115deg,#235372,#113956);
+}
+/* The phone professor navigation is its own white spacecraft instrument bay. */
+html.cortex-phone body.cortex-noctis .phone-teacher-header{
+  background-image:linear-gradient(90deg,#091b32ee,#122a44bc),url("./cortex-noctis-corridor.svg");
+  background-size:cover;
+  background-position:center;
+  border:1px solid #b7dced;
+  box-shadow:0 9px 26px #0009;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-header :is(strong,small){color:#e8f7ff}
+html.cortex-phone body.cortex-noctis .phone-teacher-nav{
+  background:linear-gradient(100deg,#f6fbff,#d0e4f2);
+  border-top:1px solid #fff;
+  box-shadow:0 -11px 35px #01071385;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-nav button{
+  color:#24506b;
+  background:transparent;
+  border-color:transparent;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-nav button[aria-current="page"]{
+  background:#143d59;
+  border:1px solid #467b99;
+  color:#f1fbff;
+  box-shadow:inset 0 1px 0 #c8ecff40;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-more{
+  background:linear-gradient(150deg,#17334b,#0a1f35);
+  border:1px solid #c5e5f8;
+  box-shadow:0 24px 90px #000c;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-more-head{
+  border-bottom-color:#79aac3;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-more-head small{color:#b0e9ff}
+html.cortex-phone body.cortex-noctis .phone-teacher-more-grid button{
+  background:linear-gradient(130deg,#204560,#122e48);
+  border:1px solid #6e9bb8;
+  color:#eefaff;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-more-grid button:hover{
+  background:#2c5872;border-color:#adddff;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-shortcuts button{
+  background:linear-gradient(130deg,#dbeeff,#a8cbdf);
+  border:1px solid #fff;
+  color:#173e55;
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-shortcuts button span{color:#235777}
+html.cortex-phone body.cortex-noctis .phone-teacher-shortcuts button:first-child{
+  background:linear-gradient(130deg,#eaf8ff,#bfddf0);
+}
+html.cortex-phone body.cortex-noctis .phone-teacher-more .phone-teacher-more-head button{
+  color:#f6fbff;
+}
+body.cortex-noctis .student-exam :is(.exam-question,.question-card){
+  border-color:#8ab3c8;
+  background:linear-gradient(150deg,#17324a,#0c2038);
+}
+body.cortex-noctis .student-exam .exam-nav{
+  background:#10243acc;
+  border:1px solid #729bb4;
+  border-radius:12px;
+  padding:11px;
+}
+body.cortex-noctis .student-exam .exam-nav .btn{
+  min-height:47px;
+}
+
 /* —— RESPONSIVE: keep existing navigational affordances and touch targets —— */
 @media(max-width:1100px){
   body.cortex-noctis .home-hero{padding:32px;min-height:0}

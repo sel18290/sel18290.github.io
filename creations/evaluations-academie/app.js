@@ -13,7 +13,7 @@ const acadRoutes={
  overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',
  assessments:'prof-assessments',copies:'cw-copies-head',suivi:'acad-live-monitoring',
  integrity:'acad-integrity',analyses:'acad-live-analytics',
- import:'cw-assessment-cards',creer:'prof-assessments',qr:'cw-assessment-cards'
+ import:'cw-assessment-cards',creer:'exam-form',qr:'cw-assessment-cards'
 };
 function currentAcadView(){
  const hash=decodeURIComponent(String(location.hash||'').replace(/^#/,''));

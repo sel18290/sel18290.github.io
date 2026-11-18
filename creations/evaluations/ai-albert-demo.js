@@ -91,7 +91,8 @@
     if(!window.confirm('Reporter les points et commentaires dans la copie fictive locale ? Rien ne sera envoyé à l’espace réel.'))return;
     const evt=new CustomEvent('cortex:demo-albert-apply',{detail:currentResult});
     window.dispatchEvent(evt);
-    status.textContent='Corrections proposées à la copie locale. Consulte l’atelier de correction pour les vérifier et valider.';
+    if(!evt.detail.applied){status.textContent='Les corrections ne sont pas reportées : la copie locale ne correspond plus à la copie fictive de référence.';return;}
+    status.textContent='Corrections reportées dans la copie fictive locale, sans publication.';
     dialog.close();
    });
    results.append(total,info,apply);

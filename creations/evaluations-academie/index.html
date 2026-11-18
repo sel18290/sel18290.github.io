@@ -6,8 +6,10 @@
 <title>CORTEX Académie · Station Noctis</title>
 <link rel="stylesheet" href="./style.css?v=16">
 <link rel="stylesheet" href="../cortex-nav.css?v=1.0">
+<link rel="stylesheet" href="../cortex-traffic.css?v=1.0">
 <link rel="stylesheet" href="./real-entry.css?v=1.0">
 <script defer src="./real-entry.js?v=1.0"></script>
+<script defer src="../cortex-traffic.js?v=1.0"></script>
 <link rel="stylesheet" href="../question-types.css?v=1.0">
 <link rel="stylesheet" href="../cortex-student-simulator.css?v=1.1">
 <link rel="stylesheet" href="./student-timer.css?v=1.0">
@@ -46,7 +48,11 @@
   <nav class="cortex-entry-links" aria-label="Accès public"><a href="../evaluations/">↖ Retour aux évaluations test</a><a href="../">✦ Mes créations</a></nav>
  </div>
 </div>
-<header class="top"><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><div class="academy-header-actions"><a class="academy-student-entry" href="./?espace=eleve"><span aria-hidden="true">🎓</span><span>Espace élève</span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></div></header>
+<header class="top"><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
+ <div class="cortex-traffic-metric"><span class="cortex-traffic-symbol" aria-hidden="true">✦</span><span class="cortex-traffic-data"><strong data-traffic="visits" aria-label="Nombre d'explorations cumulées">—</strong><small>Explorations</small></span></div>
+ <div class="cortex-traffic-metric cortex-traffic-metric-live"><span class="cortex-traffic-symbol" aria-hidden="true">◉</span><span class="cortex-traffic-data"><strong data-traffic="online" aria-label="Sessions actives actuellement">—</strong><small>En orbite</small></span><span class="cortex-traffic-dot" aria-hidden="true"></span></div>
+ <span class="cortex-traffic-note" data-traffic="note">Sessions anonymes · activité des 2 dernières minutes</span>
+</div><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><div class="academy-header-actions"><a class="academy-student-entry" href="./?espace=eleve"><span aria-hidden="true">🎓</span><span>Espace élève</span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></div></header>
 <div id="cortex-institutional-ribbon" hidden>Version de prévisualisation : mise en service non autorisée tant que les validations institutionnelles ne sont pas obtenues. Ne pas importer de données réelles d’élèves.</div>
 <main class="layout">
 <section class="hero"><div class="overline">STATION NOCTIS · CORTEX ACADÉMIE</div><h1>Votre station<br><em>d’apprentissage.</em><br>Vos évaluations.</h1><p>Une plateforme pédagogique pensée pour les enseignants de l’académie de Paris : contrôles, corrections, parcours des élèves et résultats, au même endroit.</p>

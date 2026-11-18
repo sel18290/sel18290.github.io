@@ -183,8 +183,7 @@ window.CORTEX_PORTAL=(function(){
       '<button type="button" class="portal-albert-estimate" data-action="portal-albert-estimate" data-id="'+esc(at.id)+'">✦ Estimer ma note avec Albert IA</button>'+
       '<div id="cortex-estimate-result" class="cortex-estimate-result" role="status" aria-live="polite">'+
       (window.CORTEX_ALBERT_TOOLS?.estimate?'<div class="cortex-estimate-grade">≈ '+esc(window.CORTEX_ALBERT_TOOLS.estimate.score)+' / 20</div>'+
-      window.CORTEX_ALBERT_TOOLS.estimate.lines.map(line=>'<p class="cortex-estimate-line">'+esc(line)+'</p>').join('')+
-      '<small class="cortex-estimate-disclaimer">Estimation IA non officielle, exclue de la moyenne. Seul le professeur publie la note définitive.</small>':'Appuie pour obtenir un avis indicatif sur la copie fictive.')+'</div>':
+      '<small class="cortex-estimate-disclaimer">Estimation IA seulement. Aucun commentaire avant la correction officielle du professeur ; note exclue de la moyenne.</small>':'Albert peut estimer une note provisoire sur la copie fictive, sans fournir de remarques.')+'</div>':
       '<span class="portal-pending">Ta note apparaîtra après publication</span>')+'</div></article>';
   }).join('');
   const suggestions=reviewList.map((s,i)=>'<article class="portal-revision '+(s.done?'is-done':'')+'"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div>'+
@@ -213,12 +212,9 @@ window.CORTEX_PORTAL=(function(){
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
    '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.</p></div>'+
    '<span class="portal-count">✦ Aides Albert</span></div>'+
-   '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Générer mes aides avec Albert IA</button>'+
+   '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Analyser mes 13 contrôles avec Albert</button>'+
     '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
-     (Array.isArray(window.CORTEX_ALBERT_TOOLS?.tips)?
-       window.CORTEX_ALBERT_TOOLS.tips.map((tip,i)=>'<article class="portal-revision cortex-albert-tip"><div class="portal-revision-num">'+String(i+1).padStart(2,'0')+'</div><div><span class="portal-kicker">'+esc(tip.topic)+'</span><strong>'+esc(tip.title)+'</strong><p>'+esc(tip.advice)+'</p></div></article>').join(''):
-       '<p class="portal-empty">Albert analysera les contrôles corrigés pour identifier les réussites, les difficultés récurrentes et les prochaines étapes.</p>')+
-     '</div></div>'+
+     '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p>'+     '</div></div>'+
     '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p></section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+

@@ -170,7 +170,7 @@ function drawTeacherData(){
     ['blockCopy','Limiter la copie du sujet','Ne bloque pas captures ou photos'],
     ['trackVisibility','Signaler les sorties de page','Signale les pages masquées plus de deux secondes'],
     ['warnStudent','Avertir l’élève','Aucune sanction automatique'],
-    ['watermarkCapture','Filigrane anti-partage','Classe et numéro de l’élève, sans blocage réel de captures']
+    ['watermarkCapture','Filigrane anti-partage / IA','Classe, numéro et demande aux IA de ne pas répondre ; résultat non garanti']
   ];
   for(const [key,title,detailText] of defs){
     const label=el('label','academie-anti-choice');

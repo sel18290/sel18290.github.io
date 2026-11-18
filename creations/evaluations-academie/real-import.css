@@ -94,3 +94,42 @@
 .cw-answer-question .cw-doc-ref{display:block;color:#99d8cf;font-size:11px;margin-top:6px}
 .cw-answer-question .cw-answer-choice{width:100%;min-height:45px;padding:12px;color:#eef8ff;background:#183349;border:1px solid #618397;border-radius:10px;font-size:14px}
 @media(max-width:600px){.cw-student-source-snippets{padding:8px}.cw-student-source-figure{padding:5px}.cw-student-source-figure img{width:100%;max-height:none}}
+
+/* Interactions identiques à la démo : capture automatique + vignette glissable. */
+#acad-import-workspace .ri-auto-capture-chip{display:inline-flex;justify-content:center;align-items:center;text-align:center;border:1px solid #568d85;background:#1b4a46;border-radius:10px;padding:11px 12px;color:#aaffdf;font-size:12px;font-weight:750}
+#acad-import-workspace .ri-bank-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#acad-import-workspace .ri-bank-head h4{margin:0}
+#acad-import-workspace .ri-bank-actions{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
+#acad-import-workspace .ri-bank-actions button{background:#18374e;color:#d9f7ff;border:1px solid #558aa6;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;min-height:42px}
+#acad-import-workspace .ri-file-button{border:1px solid #558aa6;color:#dcf4ff;background:#19394c;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:10px 12px;min-height:42px;font-size:12px}
+#acad-import-workspace .ri-drop-hint{padding:12px;border:1px dashed #5d8d98;background:#173a45;border-radius:10px;color:#d6eff8;font-size:12px;line-height:1.6;margin:10px 0 13px}
+#acad-import-workspace .ri-drop-hint strong{color:#a6f6de}
+#acad-import-workspace .ri-asset-row.ri-asset-drag{cursor:grab;user-select:none;background:#1b344b;transition:background .15s,border-color .15s}
+#acad-import-workspace .ri-asset-row.ri-asset-drag:active{cursor:grabbing}
+#acad-import-workspace .ri-asset-row.ri-asset-drag:hover{background:#23495a;border-color:#7fc4b7}
+#acad-import-workspace .ri-asset-row.ri-dragging{opacity:.55;border:1px dashed #7af6ce}
+#acad-import-workspace .ri-asset-row .ri-asset-desc{flex:1;min-width:0}
+#acad-import-workspace .ri-asset-buttons{display:flex;flex-direction:column;align-items:stretch;gap:5px}
+#acad-import-workspace .ri-asset-buttons button{min-height:32px;white-space:normal;max-width:145px}
+#acad-import-workspace .ri-question-drop{transition:border-color .15s,background .15s}
+#acad-import-workspace .ri-question-dropzone{border:2px dashed #526b87;border-radius:11px;padding:12px;color:#8bc4c9;text-align:center;background:#193a45;font-size:12px;line-height:1.45;pointer-events:none}
+#acad-import-workspace .ri-question-drop.ri-drop-active{outline:2px solid #88ffe1;outline-offset:3px;background:#244c50;border-color:#8ee8d1}
+#acad-import-workspace .ri-question-drop.ri-drop-active .ri-question-dropzone{border-color:#76ffd4;color:#d4ffed;background:#225a50}
+#acad-import-workspace .ri-question-docs{display:flex;flex-wrap:wrap;gap:8px}
+#acad-import-workspace .ri-question-doc{margin:0;background:#e5edf2;border-radius:8px;padding:5px;max-width:145px;width:calc(50% - 4px)}
+#acad-import-workspace .ri-question-doc img{width:100%;height:90px;object-fit:contain}
+#acad-import-workspace .ri-question-doc figcaption{font-size:10px;color:#1b3a43;overflow-wrap:anywhere}
+#acad-import-workspace .ri-question-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+#acad-import-workspace .ri-question-tools #ri-redetect{max-width:100%;min-height:37px;font-size:11px}
+#acad-import-workspace .ri-question-tools #ri-detection-hint{margin:0}
+#acad-import-workspace .ri-source-page{touch-action:none}
+@media(max-width:700px){
+ #acad-import-workspace .ri-asset-row{flex-wrap:wrap}
+ #acad-import-workspace .ri-asset-thumb{width:80px;height:76px}
+ #acad-import-workspace .ri-asset-buttons{flex:1 0 100%;display:grid;grid-template-columns:1fr 90px}
+ #acad-import-workspace .ri-asset-buttons button{width:100%;max-width:none}
+ #acad-import-workspace .ri-question-doc{max-width:calc(50% - 4px)}
+ #acad-import-workspace .ri-bank-actions{display:grid;grid-template-columns:1fr 1fr}
+ #acad-import-workspace .ri-file-button{font-size:11px}
+ #acad-import-workspace .ri-question-dropzone{padding:15px 10px}
+}

@@ -11,6 +11,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.9"></script>
 <script type="module" src="./real-import.js?v=1.5"></script>
+<script type="module" src="./real-manual.js?v=1.0"></script>
+<link rel="stylesheet" href="./real-manual.css?v=1.0">
 <link rel="stylesheet" href="./real-import.css?v=1.5">
 <script type="module" src="./student-coursework.js?v=2.9"></script>
 <script type="module" src="./class-portal-teacher.js?v=1.7"></script>
@@ -116,10 +118,42 @@
 <form id="class-form" class="prof-form"><input id="class-code" maxlength="40" autocomplete="off" placeholder="Code : 2MRC2" aria-label="Code de la classe" required><input id="class-name" maxlength="80" autocomplete="off" placeholder="Libellé : Seconde MRC2" aria-label="Nom de la classe" required><button type="submit">Ajouter</button></form>
 <div id="class-list" class="prof-list" aria-live="polite"></div></section>
 <section class="prof-sec" id="prof-assessments"><div class="prof-head"><div><span class="eyebrow">02 / MES ÉVALUATIONS</span><h3>Créer mes contrôles</h3><a class="btn secondary small" href="#acad-import-workspace" data-acad-view="import">⇪ Importer un PDF / Word →</a></div><span id="exams-count" class="chip">—</span></div>
-<form id="exam-form" class="prof-exam-form"><div class="field"><label for="exam-title">Titre du contrôle</label><input id="exam-title" maxlength="180" placeholder="Ex. Le sommeil" required></div>
-<div class="field"><label for="exam-class">Classe</label><select id="exam-class"><option value="">Sans classe</option></select></div>
-<div class="field"><label for="exam-description">Consignes générales pour les élèves</label><textarea id="exam-description" rows="4" maxlength="12000" placeholder="Objectifs, consignes, documents à lire…"></textarea></div>
-<div class="field"><label for="exam-questions">Questions du contrôle (facultatif, une par ligne)</label><textarea id="exam-questions" rows="5" maxlength="12000" placeholder="1. Explique le rôle du sommeil.&#10;2. Cite deux conséquences du manque de sommeil."></textarea><small>Vous pouvez aussi donner uniquement un PDF et laisser l’élève remettre son propre document.</small></div>
+<form id="exam-form" class="prof-exam-form real-manual-workshop">
+ <div class="real-manual-settings">
+  <div class="real-manual-head"><div><span class="eyebrow">CORTEX · ATELIER DE CONCEPTION</span><h4>Une question à la fois, comme dans la démonstration.</h4><p>Modifie le contrôle à gauche, consulte le document au centre et configure la réponse à droite.</p></div><span class="chip teal">ESPACE RÉEL</span></div>
+  <div class="real-manual-general">
+   <label>Titre du contrôle<input id="exam-title" maxlength="180" required placeholder="Ex. PSE · Le sommeil"></label>
+   <label>Classe<select id="exam-class"><option value="">Sans classe</option></select></label>
+   <label>Niveau<input id="exam-level" maxlength="100" value="Bac professionnel" placeholder="Seconde Bac Pro"></label>
+   <label>Chapitre<input id="exam-chapter" maxlength="180" placeholder="PSE · Module A2"></label>
+   <label>Durée (minutes)<input id="exam-duration" type="number" min="5" max="240" value="60"></label>
+   <label class="real-manual-wide">Consignes générales<textarea id="exam-description" rows="2" maxlength="12000" placeholder="Lis les documents et réponds aux questions."></textarea></label>
+   <label class="real-manual-wide">Document commun aux questions<textarea id="exam-common-doc" rows="3" maxlength="12000" placeholder="Texte, données ou document à fournir aux élèves…"></textarea></label>
+  </div>
+ </div>
+ <div class="real-manual-stats"><span id="real-manual-amount">1 question</span><strong id="real-manual-total">0 / 20 points</strong><span id="real-manual-current">Question 1 / 1</span></div>
+ <div class="real-manual-columns">
+  <nav class="real-manual-nav" aria-label="Questions du contrôle">
+   <div class="real-manual-panel-title"><strong>01 / QUESTIONS</strong><small>Plan de l’évaluation</small></div>
+   <div id="manual-question-tabs" class="real-manual-question-tabs"></div>
+   <button type="button" class="real-manual-secondary" id="manual-add">＋ Ajouter une question</button>
+  </nav>
+  <section class="real-manual-document">
+   <div class="real-manual-panel-title"><strong>02 / DOCUMENT ASSOCIÉ</strong><small>Ce que verra l’élève</small></div>
+   <div id="manual-source-preview" class="real-manual-source-content"></div>
+   <p class="real-manual-tip">Pour découper un PDF ou Word et fournir des captures, utilise aussi l’atelier « Importer PDF / Word ».</p>
+   <a href="#acad-import-workspace" class="btn secondary small" data-acad-view="import">⇪ Atelier documentaire</a>
+  </section>
+  <section class="real-manual-config">
+   <div class="real-manual-panel-title"><strong>03 / CONFIGURATION</strong><small>Question sélectionnée</small></div>
+   <div id="manual-question-editor"></div>
+   <div class="real-manual-qactions">
+    <button type="button" class="real-manual-secondary" id="manual-prev">← Précédente</button>
+    <button type="button" class="real-manual-secondary" id="manual-next">Suivante →</button>
+   </div>
+  </section>
+ </div>
+ <div class="real-manual-save-hint" id="manual-save-hint" role="status"></div>
 <fieldset class="academie-integrity-field"><legend>◈ Anti-triche · mode intégrité</legend>
 <p>Choisis les protections pour ce contrôle. Elles sont sauvegardées dans Supabase et appliquées lors de la passation élève, si le mode intégrité est activé.</p>
 <label><input id="exam-integrity-on" type="checkbox"> <span><strong>Activer le mode intégrité</strong><small>Informer les élèves avant le contrôle</small></span></label>

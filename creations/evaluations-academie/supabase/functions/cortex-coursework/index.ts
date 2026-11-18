@@ -147,6 +147,21 @@ async function activeClassStudent(token){
  return {session,access};
 }
 
+// Publication ciblée : ancienne évaluation sans scope => classe entière.
+function publicationScope(assessment){
+ const choice=assessment?.content?.publish_scope;
+ return choice==='g1'||choice==='g2'?choice:'all';
+}
+async function studentInPublication(assessment,classId,studentNumber){
+ const scope=publicationScope(assessment);
+ if(scope==='all')return true;
+ if(!classId||!Number.isInteger(Number(studentNumber)))return false;
+ const {data:membership,error}=await admin.from('cortex_academy_class_roster')
+  .select('demi_groupe,activated_at').eq('class_id',classId)
+  .eq('student_number',Number(studentNumber)).maybeSingle();
+ if(error||!membership?.activated_at)return false;
+ return Number(membership.demi_groupe)===(scope==='g1'?1:2);
+}
 async function activeStudent(token,assessmentId=''){
  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))throw Error('Session expirée. Reconnectez-vous avec le PIN.');
  const hash=await digest(token);
@@ -164,6 +179,8 @@ async function activeStudent(token,assessmentId=''){
   if(!access)throw Error('Contrôle non disponible.');
   const {data:submitted}=await admin.from('cortex_academy_submissions').select('id').eq('assessment_id',assessment.id).eq('student_number',classSession.student_number).maybeSingle();
   if(!(assessment.published&&access.active)&&!submitted)throw Error('Contrôle non disponible.');
+  if(!submitted&&!(await studentInPublication(assessment,classSession.class_id,classSession.student_number)))
+   throw Error('Ce contrôle est réservé à un autre groupe de la classe.');
   return {session:classSession,access,assessment};
  }
  const {data:session,error}=await admin.from('cortex_academy_sessions').select('*').eq('token_digest',hash).gt('expires_at',new Date().toISOString()).maybeSingle();
@@ -174,6 +191,8 @@ async function activeStudent(token,assessmentId=''){
  if(!assessment||access.teacher_id!==assessment.teacher_id)throw Error('Contrôle non disponible.');
  const {data:submitted}=await admin.from('cortex_academy_submissions').select('id').eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();
  if(!(assessment.published&&access.active)&&!submitted)throw Error('Ce contrôle est fermé.');
+ if(!submitted&&!(await studentInPublication(assessment,assessment.class_id,session.student_number)))
+  throw Error('Ce contrôle est réservé à un autre groupe de la classe.');
  return {session,access,assessment};
 }
 async function signed(path,expiry=90){
@@ -195,13 +214,13 @@ async function input(req){
  if(contentType.includes('multipart/form-data')){
  const form=await req.formData();
  return {form,action:String(form.get('action')||''),body:{
- assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers')
+ assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers'),question_id:form.get('question_id'),page:form.get('page')
  }};
  }
  if(!contentType.includes('application/json'))throw Error('Format de requête invalide.');
  const body=await req.json();
  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('Requête incorrecte.');
- if(JSON.stringify(body).length>28000)throw Error('Requête trop volumineuse.');
+ if(JSON.stringify(body).length>(String(body.action||'')==='teacher_document_update'?160000:String(body.action||'')==='student_submit'?80000:28000))throw Error('Requête trop volumineuse.');
  return {form:null,action:String(body.action||''),body};
 }
 async function teacherAction(action,body,form,req){
@@ -251,6 +270,9 @@ async function teacherAction(action,body,form,req){
  if(action==='teacher_publish'){
   const raw=Number(body.roster_size||30);
   if(!Number.isInteger(raw)||raw<1||raw>60)throw Error('Nombre d’élèves : entre 1 et 60.');
+  const scope=body.publish_scope===undefined?publicationScope(assessment):String(body.publish_scope);
+  if(!['all','g1','g2'].includes(scope))throw Error('Choisis classe entière, groupe 1 ou groupe 2.');
+  if(scope!=='all'&&!assessment.class_id)throw Error('Une classe doit être affectée au contrôle pour cibler un groupe.');
   if(!String(assessment.content?.description||'').trim()&&!(assessment.content?.questions||[]).length){
    const current=await ensureAccess(assessment,raw);
    if(!current.subject_path)throw Error('Ajoutez des consignes, des questions ou un document avant de publier.');
@@ -278,9 +300,9 @@ async function teacherAction(action,body,form,req){
   }
   const {error:updateAccess}=await admin.from('cortex_academy_access').update({roster_size:size,active:true,updated_at:new Date().toISOString()}).eq('assessment_id',id).eq('teacher_id',teacher.id);
   if(updateAccess)throw Error('Impossible d’ouvrir l’évaluation.');
-  const {error:pubErr}=await admin.from('cortex_teacher_assessments').update({published:true}).eq('id',id).eq('teacher_id',teacher.id);
+  const {error:pubErr}=await admin.from('cortex_teacher_assessments').update({published:true,content:{...(assessment.content||{}),publish_scope:scope}}).eq('id',id).eq('teacher_id',teacher.id);
   if(pubErr)throw Error('Impossible de publier le contrôle.');
-  return ret({ok:true,code:access.join_code,roster_size:size,freshPins:fresh,class_id:assessment.class_id||null,portal_code:persistent?.access.portal_code||null});
+  return ret({ok:true,code:access.join_code,roster_size:size,scope,freshPins:fresh,class_id:assessment.class_id||null,portal_code:persistent?.access.portal_code||null});
  }
  if(action==='teacher_close'){
   const active=!!body.active;
@@ -322,6 +344,104 @@ async function teacherAction(action,body,form,req){
   }else throw Error('Document demandé inconnu.');
   if(!path)throw Error('Aucun document disponible.');
   return ret({ok:true,url:await signed(path,90),name});
+ }
+ if(action==='teacher_document_update'){
+  if(assessment.published)throw Error('Ce contrôle est déjà publié et verrouillé pour protéger les copies. Créez une nouvelle version pour modifier les questions.');
+  const title=String(body.title||'').trim().slice(0,180),desc=String(body.description||'').trim();
+  const questions=body.questions;
+  if(!title||!Array.isArray(questions)||questions.length<1||questions.length>40||desc.length>12000)throw Error('Titre, consignes ou questions incorrects.');
+  const ids=new Set(),allowed=new Set((assessment.content?.assets||[]).map(a=>a.id));
+  const valid=questions.map((q,i)=>{
+   const qid=String(q.id||'').trim(),prompt=String(q.prompt||'').trim(),points=Number(q.points),page=Number(q.page||1);
+   if(!/^[a-z0-9_-]{1,45}$/i.test(qid)||ids.has(qid)||!prompt||prompt.length>1200||!Number.isFinite(points)||points<0||points>20||!Number.isInteger(page)||page<1||page>50)throw Error('Question '+(i+1)+' incorrecte.');
+   ids.add(qid);
+   const assetIds=(Array.isArray(q.assetIds)?q.assetIds:[]).filter(a=>typeof a==='string'&&allowed.has(a)).slice(0,30);
+   const allowedTypes=['text','short','choice','multi','boolean','number','table','matching','fill'];
+   const type=allowedTypes.includes(q.type)?q.type:'text';
+   const answer={id:qid,prompt,points,page,assetIds,type};
+   if(typeof q.doc==='string')answer.doc=q.doc.slice(0,5000);
+   if(type==='choice'||type==='multi'){
+    const choices=(Array.isArray(q.choices)?q.choices:[]).map(x=>String(x||'').trim()).filter(Boolean);
+    if(choices.length<2||choices.length>8||choices.some(x=>x.length>280))throw Error('QCM '+(i+1)+' invalide.');
+    answer.choices=choices;
+    if(type==='choice'){
+     const correct=Number(q.correct);
+     if(!Number.isInteger(correct)||correct<0||correct>=choices.length)throw Error('Bonne réponse du QCM invalide.');
+     answer.correct=correct;
+    }else answer.correctIndices=[...new Set((Array.isArray(q.correctIndices)?q.correctIndices:[]).map(Number).filter(x=>Number.isInteger(x)&&x>=0&&x<choices.length))];
+   }
+   if(type==='number')answer.unit=String(q.unit||'').slice(0,30);
+   if(type==='table'){
+    const rows=Array.isArray(q.tableRows)?q.tableRows:[],cols=Array.isArray(q.tableColumns)?q.tableColumns:[];
+    if(!rows.length||rows.length>8||!cols.length||cols.length>6||
+       rows.concat(cols).some(x=>!String(x||'').trim()||String(x).length>100))throw Error('Tableau '+(i+1)+' invalide.');
+    answer.tableRows=rows.map(x=>String(x).trim());answer.tableColumns=cols.map(x=>String(x).trim());
+   }
+   if(type==='matching'){
+    const pairs=Array.isArray(q.pairs)?q.pairs:[];
+    if(pairs.length<2||pairs.length>8||pairs.some(x=>!String(x.left||'').trim()||!String(x.right||'').trim()))throw Error('Associations '+(i+1)+' incomplètes.');
+    answer.pairs=pairs.map(x=>({left:String(x.left).slice(0,200),right:String(x.right).slice(0,200)}));
+   }
+   if(type==='fill'){
+    const blanks=Array.isArray(q.blanks)?q.blanks:[];
+    if(!blanks.length||blanks.length>10||blanks.some(x=>!String(x||'').trim()))throw Error('Champs '+(i+1)+' incomplets.');
+    answer.blanks=blanks.map(x=>String(x).slice(0,120));
+   }
+   return answer;
+  });
+  const sourcePages=Array.isArray(body.sourcePages)?body.sourcePages.slice(0,50).map(p=>String(p||'').slice(0,400)):[];
+  const classId=body.class_id||null;
+  if(classId)await classOwned(teacher,String(classId));
+  const next={...(assessment.content||{}),description:desc,questions:valid,
+   sourceType:['pdf','docx'].includes(body.sourceType)?body.sourceType:(assessment.content?.sourceType||null),
+   sourceName:String(body.sourceName||assessment.content?.sourceName||'').slice(0,130),
+   sourcePageCount:Math.min(50,Math.max(1,Number(body.sourcePageCount)||1)),sourcePages};
+  const {error}=await admin.from('cortex_teacher_assessments')
+   .update({title,class_id:classId,content:next}).eq('id',id).eq('teacher_id',teacher.id);
+  if(error)throw Error('Enregistrement du contrôle impossible.');
+  return ret({ok:true,questions:valid.length});
+ }
+ if(action==='teacher_asset_upload'){
+  if(assessment.published)throw Error('Un contrôle publié ne peut pas recevoir de nouvelles captures.');
+  const file=form?.get('file'),questionId=String(body.question_id||'');
+  if(!(file instanceof File))throw Error('Choisissez une capture d’image.');
+  const meta=checkedFile(file);
+  if(!['png','jpg','webp'].includes(meta.ext))throw Error('Seules les captures PNG, JPEG et WebP sont acceptées.');
+  const old=assessment.content||{},qs=Array.isArray(old.questions)?old.questions:[];
+  if(!qs.some(q=>q.id===questionId))throw Error('Question destinataire introuvable.');
+  const assets=Array.isArray(old.assets)?old.assets:[];
+  if(assets.length>=60)throw Error('Limite de 60 captures par contrôle.');
+  const assetId='as-'+random(12),page=Math.max(1,Math.min(50,Math.floor(Number(body.page)||1)));
+  const path='assets/'+teacher.id+'/'+id+'/'+random(12)+'.'+meta.ext;
+  await upload(file,path);
+  const entry={id:assetId,name:fname(file),path,page,questionId};
+  const next={...old,assets:[...assets,entry],questions:qs.map(q=>
+   q.id===questionId?{...q,assetIds:[...(q.assetIds||[]),assetId]}:q)};
+  const {error}=await admin.from('cortex_teacher_assessments').update({content:next}).eq('id',id).eq('teacher_id',teacher.id);
+  if(error){await admin.storage.from(BUCKET).remove([path]);throw Error('Capture envoyée mais non associée à la question.');}
+  return ret({ok:true,asset:{id:assetId,name:entry.name,page,questionId,url:await signed(path,600)}});
+ }
+ if(action==='teacher_asset_list'){
+  const raw=assessment.content||{},assets=Array.isArray(raw.assets)?raw.assets:[];
+  const result=await Promise.all(assets.slice(0,60).map(async a=>({
+   id:String(a.id||''),name:String(a.name||'Capture').slice(0,130),page:Number(a.page||1),
+   questionId:String(a.questionId||''),url:a.path?await signed(a.path,600):null
+  })));
+  return ret({ok:true,assets:result});
+ }
+ if(action==='teacher_asset_delete'){
+  if(assessment.published)throw Error('Impossible de supprimer une capture d’un contrôle publié.');
+  const assetId=String(body.asset_id||''),old=assessment.content||{};
+  const assets=Array.isArray(old.assets)?old.assets:[];
+  const entry=assets.find(a=>a.id===assetId);
+  if(!entry)throw Error('Capture introuvable.');
+  const next={...old,assets:assets.filter(a=>a.id!==assetId),
+    questions:(old.questions||[]).map(q=>({...q,assetIds:(q.assetIds||[]).filter(a=>a!==assetId)}))};
+  const {error}=await admin.from('cortex_teacher_assessments').update({content:next}).eq('id',id).eq('teacher_id',teacher.id);
+  if(error)throw Error('Impossible de retirer la capture.');
+  if(entry.path?.startsWith('assets/'+teacher.id+'/'+id+'/'))
+   await admin.storage.from(BUCKET).remove([entry.path]).catch(()=>{});
+  return ret({ok:true});
  }
  if(action==='teacher_grade'){
   const num=Number(body.student_number),grade=Number(body.grade);
@@ -408,7 +528,7 @@ async function studentAction(action,body,form){
  if(action==='student_class_list'){
   const {session,access}=await activeClassStudent(String(body.session||''));
   const [exams,links,submissions,cl,placement]=await Promise.all([
-   admin.from('cortex_teacher_assessments').select('id,title,published,created_at').eq('class_id',access.class_id).eq('teacher_id',access.teacher_id).order('created_at',{ascending:false}),
+   admin.from('cortex_teacher_assessments').select('id,title,published,created_at,content').eq('class_id',access.class_id).eq('teacher_id',access.teacher_id).order('created_at',{ascending:false}),
    admin.from('cortex_academy_access').select('assessment_id,active').eq('teacher_id',access.teacher_id),
    admin.from('cortex_academy_submissions').select('assessment_id,submitted_at,grade,feedback,released_at').eq('teacher_id',access.teacher_id).eq('student_number',session.student_number),
    admin.from('cortex_teacher_classes').select('code,display_name').eq('id',access.class_id).eq('teacher_id',access.teacher_id).maybeSingle(),
@@ -419,8 +539,9 @@ async function studentAction(action,body,form){
   const bySubmission=new Map((submissions.data||[]).map(x=>[x.assessment_id,x]));
   const cards=(exams.data||[]).map(e=>{
    const submitted=bySubmission.get(e.id),link=byAccess.get(e.id);
-   if(!((e.published&&link?.active)||submitted))return null;
-   return {id:e.id,title:e.title,available:!!(e.published&&link?.active),
+   const scope=publicationScope(e),allowed=scope==='all'||Number(placement.data?.demi_groupe)===(scope==='g1'?1:2);
+   if(!((e.published&&link?.active&&allowed)||submitted))return null;
+   return {id:e.id,title:e.title,available:!!(e.published&&link?.active&&allowed),
     submitted_at:submitted?.submitted_at||null,released:!!submitted?.released_at,
     grade:submitted?.released_at?submitted.grade:null,feedback:submitted?.released_at?submitted.feedback:null};
   }).filter(Boolean);
@@ -432,7 +553,7 @@ async function studentAction(action,body,form){
   if(!/^[a-f0-9]{40}$/.test(code)||!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(plain))throw Error('Numéro ou PIN invalide.');
   const {data:access}=await admin.from('cortex_academy_access').select('assessment_id,roster_size,active').eq('join_code',code).eq('active',true).maybeSingle();
   if(!access)throw Error('Numéro ou PIN invalide.');
-  const {data:assessment}=await admin.from('cortex_teacher_assessments').select('id,published').eq('id',access.assessment_id).eq('published',true).maybeSingle();
+  const {data:assessment}=await admin.from('cortex_teacher_assessments').select('id,published,class_id,content').eq('id',access.assessment_id).eq('published',true).maybeSingle();
   if(!assessment)throw Error('Contrôle indisponible.');
   const {data:classExam}=await admin.from('cortex_teacher_assessments').select('class_id,teacher_id').eq('id',access.assessment_id).maybeSingle();
   let classVerified=false;
@@ -454,6 +575,8 @@ async function studentAction(action,body,form){
    throw Error('Numéro ou PIN invalide.');
   }
   if(!classVerified)await admin.from('cortex_academy_roster').update({attempts:0,locked_until:null}).eq('assessment_id',access.assessment_id).eq('student_number',number);
+  if(!(await studentInPublication(assessment,assessment.class_id,number)))
+   throw Error('Cette évaluation n’est pas publiée pour ton demi-groupe.');
   const token=random(32);
   const {error}=await admin.from('cortex_academy_sessions').insert({token_digest:await digest(token),assessment_id:access.assessment_id,student_number:number,expires_at:new Date(Date.now()+8*3600000).toISOString()});
   if(error)throw Error('Ouverture de session élève impossible.');
@@ -465,9 +588,31 @@ async function studentAction(action,body,form){
  if(action==='student_get'){
   const raw=assessment.content||{},questions=Array.isArray(raw.questions)?raw.questions.slice(0,40):[];
   const show=!!submission?.released_at;
+   const assetIds=new Set(questions.flatMap(q=>Array.isArray(q.assetIds)?q.assetIds:[]));
+   const assets=await Promise.all((Array.isArray(raw.assets)?raw.assets:[]).filter(a=>assetIds.has(a.id)).slice(0,60).map(async a=>({
+    id:String(a.id||''),name:String(a.name||'Document').slice(0,130),
+    questionId:String(a.questionId||''),url:a.path?await signed(a.path,600):null
+   })));
   return ret({ok:true,assessment:{id:assessment.id,title:assessment.title,description:String(raw.description||'').slice(0,12000),
-    questions:questions.map(q=>({id:String(q.id||''),prompt:String(q.prompt||''),points:Number(q.points||0)})),antiCheat:raw.antiCheat||{}},
-    student_number:session.student_number,subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,120)}:null,
+    questions:questions.map(q=>{
+      const type=['text','short','choice','multi','boolean','number','table','matching','fill'].includes(q.type)?q.type:'text';
+      const visible={id:String(q.id||''),prompt:String(q.prompt||'').slice(0,1200),points:Number(q.points||0),
+       page:Number(q.page||1),assetIds:Array.isArray(q.assetIds)?q.assetIds:[],type,doc:String(q.doc||'').slice(0,5000)};
+      if(type==='choice'||type==='multi')visible.choices=Array.isArray(q.choices)?q.choices.slice(0,8).map(x=>String(x).slice(0,280)):[];
+      if(type==='number')visible.unit=String(q.unit||'').slice(0,30);
+      if(type==='table'){
+       visible.tableRows=Array.isArray(q.tableRows)?q.tableRows.slice(0,8).map(x=>String(x).slice(0,100)):[];
+       visible.tableColumns=Array.isArray(q.tableColumns)?q.tableColumns.slice(0,6).map(x=>String(x).slice(0,100)):[];
+      }
+      if(type==='matching'){
+       const pairs=Array.isArray(q.pairs)?q.pairs.slice(0,8):[];
+       visible.pairs=pairs.map(x=>({left:String(x.left||'').slice(0,200)}));
+       visible.rightItems=pairs.map(x=>String(x.right||'').slice(0,200)).sort((a,b)=>a.localeCompare(b,'fr'));
+      }
+      if(type==='fill')visible.blanks=Array.isArray(q.blanks)?q.blanks.slice(0,10).map(x=>String(x).slice(0,120)):[];
+      return visible;
+     }),assets,antiCheat:raw.antiCheat||{},doc:String(raw.doc||'').slice(0,12000),duration:Math.max(5,Math.min(240,Number(raw.duration)||60))},
+    student_number:session.student_number,subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,600)}:null,
     submission:submission?{submitted_at:submission.submitted_at,answers:submission.answers,file_name:submission.file_name,graded:show,grade:show?submission.grade:null,feedback:show?submission.feedback:null}:null});
  }
  if(action==='student_submit'){
@@ -475,10 +620,10 @@ async function studentAction(action,body,form){
   if(submission)throw Error('Votre copie a déjà été remise. Elle ne peut plus être modifiée.');
   let answers;
   try{answers=JSON.parse(String(body.answers||'{}'))}catch{throw Error('Réponses illisibles.')}
-  if(!answers||typeof answers!=='object'||Array.isArray(answers)||Object.keys(answers).length>40||JSON.stringify(answers).length>22000)throw Error('Réponses trop volumineuses.');
+  if(!answers||typeof answers!=='object'||Array.isArray(answers)||Object.keys(answers).length>40||JSON.stringify(answers).length>70000)throw Error('Réponses trop volumineuses.');
   const clean={};
   for(const [key,val] of Object.entries(answers)){
-   if(!/^[\da-z_-]{1,45}$/i.test(key)||typeof val!=='string'||val.length>6000)throw Error('Une réponse dépasse la limite autorisée.');
+   if(!/^[\da-z_-]{1,45}$/i.test(key)||typeof val!=='string'||val.length>18000)throw Error('Une réponse dépasse la limite autorisée.');
    clean[key]=val;
   }
   const file=form?.get('file'),hasFile=file instanceof File&&file.size>0;

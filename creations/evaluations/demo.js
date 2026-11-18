@@ -273,7 +273,7 @@ function studentShell(){
   if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
   return window.CORTEX_PORTAL.correction(portalData(),portalSession,portalCopyId);
  }
- return '<div class="student-shell">'+(tab==='examen'?window.CORTEX_INTEGRITY.notice(examBy(activeAttempt()?.examId))+studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
+ return '<div class="student-shell">'+(tab==='examen'?window.CORTEX_INTEGRITY.notice(examBy(activeAttempt()?.examId))+window.CORTEX_INTEGRITY.watermark(examBy(activeAttempt()?.examId),activeAttempt())+studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
 }
 
 function portalAuthorized(){

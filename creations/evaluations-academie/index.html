@@ -8,8 +8,8 @@
 <script type="module" src="./app.js?v=18"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.9"></script>
-<script type="module" src="./real-import.js?v=1.1"></script>
-<link rel="stylesheet" href="./real-import.css?v=1.1">
+<script type="module" src="./real-import.js?v=1.2"></script>
+<link rel="stylesheet" href="./real-import.css?v=1.2">
 <script type="module" src="./student-coursework.js?v=2.9"></script>
 <script type="module" src="./class-portal-teacher.js?v=1.7"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
@@ -147,19 +147,29 @@
     <div class="ri-panels">
      <section class="ri-panel ri-original">
       <div class="ri-panel-heading"><div><span>01 / DOCUMENT ORIGINAL</span><h3>Observer & capturer</h3></div><div class="ri-pagination"><button type="button" id="ri-prev" aria-label="Page précédente">←</button><strong id="ri-current-page">Page 1 / 1</strong><button type="button" id="ri-next" aria-label="Page suivante">→</button></div></div>
-      <p class="ri-subtle">Une fois le contrôle enregistré, encadre avec ton doigt ou ta souris un extrait du document, puis associe-le à une question. Tu peux également capturer la page entière.</p>
+      <p class="ri-subtle">Comme dans la démonstration : <strong>encadre un passage avec ton doigt ou ta souris</strong>. Relâche : la capture apparaît automatiquement ci-dessous, sans enregistrement. <strong>Glisse-la sur une question</strong> à droite, ou utilise « Ajouter à la question » sur téléphone.</p>
       <div id="ri-source-page" class="ri-source-page"><div id="ri-canvas" class="ri-source-canvas"></div><div id="ri-selection" class="ri-selection" hidden></div></div>
       <details class="ri-transcript"><summary>Voir la transcription textuelle de cette page</summary><pre id="ri-text-preview"></pre></details>
       <div class="ri-capture-actions">
        <label>Question destinataire<select id="ri-target-question"></select></label>
-       <button type="button" id="ri-capture" disabled>◱ Capturer ma sélection</button>
-       <button type="button" class="ri-action secondary" id="ri-full-page" disabled>Associer la page entière</button>
+       <button type="button" id="ri-capture" disabled>◱ Capturer la sélection</button>
+       <button type="button" class="ri-action secondary" id="ri-full-page" disabled>▤ Capturer la page entière</button>
       </div>
-      <div class="ri-asset-bank"><h4>Extraits fournis à l'élève</h4><div id="ri-assets"></div></div>
+      <div class="ri-asset-bank">
+       <div class="ri-bank-head"><h4>03 / Banque des captures</h4><span id="ri-bank-count" class="ri-points">0 capture</span></div>
+       <div class="ri-bank-actions">
+        <label for="ri-image-file" class="ri-action ri-file-button">＋ Importer une image</label>
+        <input id="ri-image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <button type="button" class="ri-action secondary" id="ri-paste-image">▣ Coller une capture</button>
+       </div>
+       <div class="ri-drop-hint"><strong>① Encadre</strong> un passage. <strong>② Relâche</strong> pour le capturer. <strong>③ Glisse</strong> la vignette sur une question, ou clique sur « Ajouter ».</div>
+       <div id="ri-assets"></div>
+      </div>
      </section>
      <section class="ri-panel ri-question-panel">
       <div class="ri-panel-heading"><div><span>02 / ÉVALUATION</span><h3>Construire les questions</h3></div><span id="ri-total" class="ri-points">0 question</span></div>
-      <p class="ri-subtle">Modifie les propositions détectées, renseigne le barème, choisis la page de référence et, si nécessaire, passe une question en QCM.</p>
+      <p class="ri-subtle">La détection reconnaît les numéros, consignes et barèmes. Vérifie les propositions avant publication : les PDF scannés ou en colonnes peuvent nécessiter une saisie manuelle. Glisse les captures directement sur les questions.</p>
+      <div class="ri-question-tools"><button type="button" id="ri-redetect" class="ri-action secondary">↻ Relancer l’analyse des questions</button><span id="ri-detection-hint" class="ri-subtle"></span></div>
       <div id="ri-questions" class="ri-question-list"></div>
       <button type="button" id="ri-add-question" class="ri-action secondary">＋ Ajouter une question</button>
      </section>

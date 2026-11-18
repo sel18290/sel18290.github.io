@@ -141,6 +141,12 @@ let teacherId=null;
 let myClasses=[];
 let myExams=[];
 let myIncidents=[];
+let rosterSummaries=new Map();
+const summaryText=id=>{const d=rosterSummaries.get(id);return d?`${d.activated} élève(s) inscrits · G1 : ${d.group1} · G2 : ${d.group2}${d.whole?' · Classe entière : '+d.whole:''}`:'Élèves inscrits : consultez « PIN élèves »';};
+window.addEventListener('cortex:academy-roster-ready',event=>{
+ rosterSummaries=new Map((event.detail?.summaries||[]).map(x=>[x.classId,x]));
+ for(const c of myClasses){const node=$('class-group-'+c.id);if(node)node.textContent=summaryText(c.id)}
+});
 window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,classes:()=>myClasses,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
 let selectedIntegrityExamId='';
 const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
@@ -240,7 +246,8 @@ function drawTeacherData(){
  if(!myClasses.length)$('class-list').append(el('p','empty','Aucune classe enregistrée.'));
  for(const c of myClasses){
   const row=el('div','prof-item'),detail=el('div','prof-item-main');
-  detail.append(el('strong','',c.display_name),el('small','',c.code));
+  const groupSummary=el('small','acad-class-group-summary',summaryText(c.id));groupSummary.id='class-group-'+c.id;
+  detail.append(el('strong','',c.display_name),el('small','',c.code),groupSummary);
   const action=el('button','prof-delete','Supprimer');action.type='button';
   action.addEventListener('click',()=>removeClass(c));
   row.append(detail,action);$('class-list').append(row);
@@ -450,7 +457,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];rosterSummaries.clear();selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

@@ -1356,5 +1356,7 @@ if(typeof window.setInterval==='function'){
     if(at?.status==='progress')window.CORTEX_CLOCK?.update(document,at,examBy(at.examId));
   },1000);
 }
+// Préparer la copie de démonstration dès le premier chargement.
+save();
 routePage();
 })();

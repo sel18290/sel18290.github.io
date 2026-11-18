@@ -156,7 +156,7 @@ if(qr||globalPortal){
   for(let i=0;i<questions.length;i++){
    const q=questions[i],label=E('div','cw-answer-question');
    label.append(E('strong','',(i+1)+'. '+q.prompt));
-   if(q.page)label.append(E('small','cw-doc-ref','Document original · page '+q.page));
+   if(q.page&&current.subject)label.append(E('small','cw-doc-ref','Document original · page '+q.page));
    const related=(exam.assets||[]).filter(a=>(q.assetIds||[]).includes(a.id)&&a.url);
    if(related.length){
     const sourceBox=E('div','cw-student-source-snippets');

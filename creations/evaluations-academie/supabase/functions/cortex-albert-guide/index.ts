@@ -28,7 +28,7 @@ const fictive=[
 async function requestAlbert(kind:string,prompt:string){
  const key=Deno.env.get('ALBERT_API_KEY');if(!key)throw Error('NO_KEY');
  const system=kind==='teacher_help'?
-  'Tu es Albert, assistant du PROFESSEUR pour CORTEX Démonstration. Réponds en français en 3 à 6 phrases précises, chaleureuses et pratiques, sans inventer de fonctions et sans traiter de données personnelles. Manuel du site :\n'+site:
+  'Tu es Albert, assistant du PROFESSEUR pour CORTEX Démonstration. Utilise exclusivement les fonctions décrites dans le manuel du site ; n’invente aucune rubrique. Réponds UNIQUEMENT en JSON valide sous cette forme : {"intro":"Phrase courte de présentation","steps":[{"title":"Intitulé court de l’étape","description":"Action précise à effectuer dans l’interface"}],"note":"Information pratique facultative"}. Fais entre 2 et 5 étapes numérotables avec une consigne chacune, en français, sans Markdown, sans astérisques ** ni listes en texte brut. Si la question n’appelle pas des étapes, donne 1 à 2 étapes explicatives utiles. Ne promets jamais de publier, modifier ou enregistrer à la place du professeur. Manuel :\n'+site:
   'Tu es Albert, tuteur PSE du carnet fictif. Réponds UNIQUEMENT en JSON {"tips":[{"title":"titre","advice":"2 phrases utiles","topic":"notion"}]} avec EXACTEMENT trois objets différents et des conseils précis, positifs, sans inventer de diagnostic.\n'+fictive;
  let res:Response;
  try{res=await fetch('https://albert.api.etalab.gouv.fr/v1/chat/completions',{
@@ -40,7 +40,23 @@ async function requestAlbert(kind:string,prompt:string){
  if(!res.ok){console.error('AlbertGuide.status',res.status);throw Error('MODEL_UNAVAILABLE')}
  const response:any=await res.json(),raw=response?.choices?.[0]?.message?.content;
  const msg=(typeof raw==='string'?raw:Array.isArray(raw)?raw.map((p:any)=>p.text||'').join(''):'').trim();
- if(kind==='teacher_help'){if(msg.length<12)throw Error('FORMAT');return {answer:clean(msg,1600)}}
+ if(kind==='teacher_help'){
+  // Rend un objet de présentation plutôt qu'une longue phrase Markdown.
+  try{
+   const i=msg.indexOf('{'),j=msg.lastIndexOf('}');
+   const parsed=JSON.parse(msg.slice(i,j+1));
+   if(Array.isArray(parsed.steps)&&parsed.steps.length>=1){
+    const steps=parsed.steps.slice(0,5).map((v:any)=>({
+     title:clean(v?.title,90).replace(/\*{1,3}/g,''),
+     description:clean(v?.description,430).replace(/\*{1,3}/g,'')
+    })).filter((v:any)=>v.title.length>=2&&v.description.length>=9);
+    if(steps.length>0)return {guide:{intro:clean(parsed.intro,240).replace(/\*{1,3}/g,''),
+       steps,note:clean(parsed.note,260).replace(/\*{1,3}/g,'')}};
+   }
+  }catch{/* Fallback compatible avec d'anciennes réponses du modèle */}
+  if(msg.length<12)throw Error('FORMAT');
+  return {answer:clean(msg,1650)};
+ }
  let result:any;try{
   const first=msg.indexOf('{'),last=msg.lastIndexOf('}');
   result=JSON.parse(msg.slice(first,last+1));

@@ -38,6 +38,7 @@ async function reload(success=false){
  try{
   const data=await api('teacher_list',{},null,true);
   state.access=data.access||[];state.copies=data.submissions||[];
+  window.dispatchEvent(new CustomEvent('cortex:academy-live-snapshot',{detail:{access:state.access,copies:state.copies,classAccess:data.classAccess||[]}}));
   window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:state.copies.length,pinClasses:(data.classAccess||[]).length}}));
   display();
   window.dispatchEvent(new Event('cortex:academy-class-updated'));

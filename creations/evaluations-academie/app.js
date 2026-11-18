@@ -306,6 +306,12 @@ function drawTeacherData(){
     window.CORTEX_REAL_IMPORT.openExisting(exam.id);
    });detail.append(edit);
   }
+  const editManual=el('button','btn secondary small',exam.published?'Dupliquer dans l’atelier':'Modifier dans l’atelier');
+  editManual.type='button';editManual.addEventListener('click',()=>{
+   if(!window.CORTEX_MANUAL_EDITOR?.edit){status('Atelier indisponible. Recharge la page.',true);return;}
+   window.CORTEX_MANUAL_EDITOR.edit(exam);
+  });
+  detail.append(editManual);
   const tool=el('div','academie-anti-wrap');tool.append(settings);
   row.append(detail,action);$('exam-list').append(row,tool);
  }
@@ -370,12 +376,30 @@ $('exam-form').addEventListener('submit',async event=>{
   if(!title||title.length>180)throw Error('Le titre du contrôle est obligatoire.');
   const class_id=$('exam-class').value||null;
   const description=$('exam-description').value.trim();
-  const prompts=$('exam-questions').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  if(prompts.length>30||prompts.some(x=>x.length>1200))throw Error('Limite : 30 questions, 1200 caractères par question.');
-  const questions=prompts.map((prompt,i)=>({id:'q'+(i+1),prompt,type:'text',points:Math.round(20/prompts.length*100)/100}));
-  const {error}=await supabase.from('cortex_teacher_assessments').insert({teacher_id:id,title,class_id,content:{description,questions,antiCheat:antiCreateConfig()},published:false});
+  const editor=window.CORTEX_MANUAL_EDITOR;
+  if(!editor)throw Error('Atelier de conception indisponible. Recharge cette page.');
+  const questions=editor.questions();
+  const duration=Number($('exam-duration').value||60);
+  if(!Number.isFinite(duration)||duration<5||duration>240)throw Error('Durée comprise entre 5 et 240 minutes.');
+  const content={description,questions,doc:$('exam-common-doc').value.trim().slice(0,12000),
+   level:$('exam-level').value.trim().slice(0,100),chapter:$('exam-chapter').value.trim().slice(0,180),
+   duration,antiCheat:antiCreateConfig()};
+  const editingId=editor.editingId();
+  let error;
+  if(editingId){
+   const original=myExams.find(e=>e.id===editingId);
+   if(!original||original.published)throw Error('Impossible de modifier un contrôle déjà publié. Duplique-le.');
+   const response=await supabase.from('cortex_teacher_assessments').update({
+    title,class_id,content:{...(original.content||{}),...content}
+   }).eq('id',editingId).eq('teacher_id',id);
+   error=response.error;
+  }else{
+   const response=await supabase.from('cortex_teacher_assessments')
+    .insert({teacher_id:id,title,class_id,content,published:false});
+   error=response.error;
+  }
   if(error)throw error;
-  $('exam-form').reset();await loadTeacherData(id);
+  editor.afterSave();await loadTeacherData(id);
   status('Contrôle enregistré dans Supabase.');
  }catch(err){status(safeError(err),true);}
  finally{if(button)button.disabled=false;}

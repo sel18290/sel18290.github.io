@@ -171,11 +171,12 @@ function renderQuestions(){
   item.append(ta);
   const metadata=node('div','ri-q-meta');
   const type=node('select','ri-select');
-  [['text','Réponse rédigée'],['choice','QCM']].forEach(([v,label])=>{
-   const op=node('option','',label);op.value=v;type.append(op);
+  const types=window.CORTEX_QUESTION_TYPES;
+  types.TYPES.forEach(([key,label])=>{
+   const option=node('option','',label);option.value=key;type.append(option);
   });
-  type.value=q.type||'text';type.disabled=state.published;
-  type.onchange=()=>{q.type=type.value;if(q.type==='choice'&&(!q.choices||q.choices.length<2))q.choices=['',''];renderQuestions();};
+  type.value=types.type(q);type.disabled=state.published;
+  type.onchange=()=>{types.initialize(q,type.value);renderQuestions();};
   const pts=node('input','ri-number');pts.type='number';pts.min='0';pts.max='20';pts.step='0.25';pts.value=q.points;
   pts.disabled=state.published;pts.setAttribute('aria-label','Barème question '+(i+1));
   pts.oninput=()=>{q.points=Number(pts.value);updateTotal();};
@@ -201,16 +202,18 @@ function renderQuestions(){
    }
    item.append(dock);
   }
-  if(q.type==='choice'){
-   const choices=node('textarea','ri-question-text');choices.rows=4;choices.value=(q.choices||[]).join('\n');
-   choices.placeholder='Une proposition par ligne (2 à 6 propositions)';
-   choices.disabled=state.published;choices.setAttribute('aria-label','Propositions du QCM '+(i+1));
-   choices.oninput=()=>{q.choices=choices.value.split('\n');};
-   const good=node('select','ri-select');good.disabled=state.published;
-   for(let c=0;c<6;c++){const op=node('option','','Bonne réponse : '+(c+1));op.value=String(c);good.append(op);}
-   good.value=String(q.correct||0);good.onchange=()=>{q.correct=Number(good.value);};
-   item.append(node('small','','Choix du QCM, un par ligne, puis sélectionne la bonne réponse.'),choices,good);
-  }
+  const extra=node('div','ri-question-extra');
+  extra.innerHTML=types.editorExtra(q,i,'import');
+  if(state.published)extra.querySelectorAll('textarea,input,select').forEach(x=>x.disabled=true);
+  extra.addEventListener('input',event=>{
+   const key=event.target.dataset.riField;
+   if(key)types.applyField(q,key,event.target.value);
+  });
+  extra.addEventListener('change',event=>{
+   const key=event.target.dataset.riField;
+   if(key)types.applyField(q,key,event.target.value);
+  });
+  item.append(extra);
   rows.append(item);
   const op=node('option','','Q'+(i+1)+' · '+(q.prompt||'Question à renseigner').slice(0,55));
   op.value=q.id;target.append(op);
@@ -409,15 +412,10 @@ async function pasteImage(){
 function validatedQuestions(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit comporter 1 à 40 questions.');
  return state.questions.map((q,i)=>{
-  const prompt=q.prompt.trim(),points=Number(q.points),page=Number(q.page||1);
-  if(!prompt||prompt.length>1200||!Number.isFinite(points)||points<0||points>20||!Number.isInteger(page)||page<1||page>state.sourceCount)throw Error('Vérifie l’énoncé, le barème et la page de référence de la question '+(i+1)+'.');
-  const out={id:q.id,prompt,points,page,type:q.type||'text',assetIds:q.assetIds||[]};
-  if(out.type==='choice'){
-   const choices=(q.choices||[]).map(c=>String(c).trim()).filter(Boolean);
-   if(choices.length<2||choices.length>6||choices.some(c=>c.length>280)||!Number.isInteger(Number(q.correct))||Number(q.correct)<0||Number(q.correct)>=choices.length)throw Error('Question '+(i+1)+' : indique 2 à 6 choix et une réponse correcte.');
-   out.choices=choices;out.correct=Number(q.correct);
-  }
-  return out;
+  const page=Number(q.page||1);
+  if(!Number.isInteger(page)||page<1||page>state.sourceCount)throw Error('Page source incorrecte pour la question '+(i+1)+'.');
+  try{return window.CORTEX_QUESTION_TYPES.validate(q);}
+  catch(error){throw Error('Question '+(i+1)+' : '+error.message);}
  });
 }
 async function save(){

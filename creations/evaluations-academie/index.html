@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#0d1628">
 <meta name="description" content="CORTEX Académie — accès enseignants de l'académie de Paris.">
 <title>CORTEX Académie · Espace enseignant</title>
-<link rel="stylesheet" href="./style.css?v=12">
+<link rel="stylesheet" href="./style.css?v=13">
 <script type="module" src="./app.js?v=11"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.3"></script>
@@ -29,7 +29,21 @@
 <div class="field" id="confirm-field" hidden><label for="confirm-password">Confirmer le mot de passe</label><div class="input-wrap"><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" placeholder="Confirmez votre mot de passe"><button type="button" data-show="confirm-password" class="show">Afficher</button></div></div>
 <p class="requirements" id="requirements" hidden>Au moins 14 caractères, avec majuscule, minuscule, chiffre et caractère spécial. Évitez les mots de passe utilisés ailleurs.</p>
 <button class="submit" id="submit" type="submit">Se connecter <span>↗</span></button></form>
-<div class="divider"><span>Votre identité académique</span></div><p class="help">Pour créer un compte, un e-mail de confirmation sera envoyé à votre messagerie académique. L'accès au tableau de bord reste bloqué jusqu'à validation.</p>
+<details class="auth-helpbox" id="auth-confirm-help">
+<summary><span aria-hidden="true">✉</span> Le lien de confirmation ouvre « localhost » ?</summary>
+<div class="auth-helpbox-body">
+<p><strong>Votre compte est peut-être déjà confirmé.</strong> Si vous avez cliqué sur le lien reçu, essayez d’abord de revenir ici et de choisir « Connexion » avec votre mot de passe.</p>
+<p>Si l’adresse n’est pas encore confirmée, demandez un nouveau lien ci-dessous, puis faites un clic droit sur « Confirm email address » dans votre boîte mail et choisissez <strong>« Copier l’adresse du lien »</strong> sans l’ouvrir. Collez cette adresse ici : CORTEX validera le lien directement avec Supabase, sans passer par localhost.</p>
+<form id="auth-confirm-link-form" class="auth-confirm-link-form">
+<label for="auth-confirm-link">Adresse complète du lien de confirmation</label>
+<textarea id="auth-confirm-link" rows="3" maxlength="4096" autocomplete="off" spellcheck="false" required placeholder="https://…supabase.co/auth/v1/verify?token=…"></textarea>
+<button type="submit" id="auth-confirm-link-submit">Valider mon e-mail dans CORTEX →</button>
+</form>
+<button type="button" id="auth-resend" class="auth-resend">Renvoyer un lien à mon adresse académique</button>
+<p class="auth-confirm-privacy">Le lien est à usage unique : ne le partagez avec personne. Sa valeur n’est pas enregistrée dans CORTEX. Un lien déjà utilisé doit être remplacé par un nouveau.</p>
+</div>
+</details>
+<div class="divider"><span>Votre identité académique</span></div><p class="help">Pour créer un compte, un e-mail de confirmation sera envoyé à votre messagerie académique. Après confirmation, revenez sur cette page pour vous connecter. Si le lien ouvre localhost, utilisez l'aide ci-dessus.</p>
 </div>
 <div id="account-view" hidden><div class="eyebrow">SESSION PROFESSEUR</div><h2>Compte académique confirmé.</h2><p class="account-email" id="account-email"></p>
 <div class="dashboard"><div><strong>Mon espace professionnel</strong><p>Classes, contrôles, documents et copies sauvegardés dans Supabase avec des accès séparés. Le service élève fonctionne via QR code et PIN personnel.</p></div><span class="chip">Supabase · Paris</span></div>

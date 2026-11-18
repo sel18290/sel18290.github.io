@@ -9,7 +9,7 @@
   function enhanceTables(){
     app.querySelectorAll('.table-wrap table').forEach(table=>{
       const headings=Array.from(table.querySelectorAll('thead tr:last-child th'))
-        .map(th=>(th.textContent||'').replace(/\\s+/g,' ').trim());
+        .map(th=>(th.textContent||'').replace(/\s+/g,' ').trim());
       const rows=Array.from(table.querySelectorAll('tbody tr'));
       if(!headings.length||!rows.length)return;
       // Les tableaux de documents scientifiques restent inchangés.

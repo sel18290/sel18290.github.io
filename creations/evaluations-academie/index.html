@@ -4,12 +4,14 @@
 <meta name="theme-color" content="#0d1628">
 <meta name="description" content="CORTEX Académie — accès enseignants de l'académie de Paris.">
 <title>CORTEX Académie · Espace enseignant</title>
-<link rel="stylesheet" href="./style.css?v=15">
-<script type="module" src="./app.js?v=15"></script>
+<link rel="stylesheet" href="./style.css?v=16">
+<script type="module" src="./app.js?v=16"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=1.4"></script>
 <script type="module" src="./student-coursework.js?v=2.5"></script>
 <script type="module" src="./class-portal-teacher.js?v=1.5"></script>
+<link rel="stylesheet" href="./professor-live.css?v=1.0">
+<script type="module" src="./professor-live.js?v=1.0"></script>
 </head><body>
 <header class="top"><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><div class="academy-header-actions"><a class="academy-student-entry" href="./?espace=eleve"><span aria-hidden="true">🎓</span><span>Espace élève</span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></div></header>
 <main class="layout">
@@ -46,38 +48,38 @@
 <div class="divider"><span>Votre identité académique</span></div><p class="help">Pour créer un compte, un e-mail de confirmation sera envoyé à votre messagerie académique. Après confirmation, revenez sur cette page pour vous connecter. Si le lien ouvre localhost, utilisez l'aide ci-dessus.</p>
 </div>
 <div id="account-view" hidden>
-<div class="acad-prof-welcome">
- <div><span class="eyebrow">CORTEX ACADÉMIE · ESPACE PROFESSEUR</span><h2>Mon tableau de bord<span class="acad-prof-dot">.</span></h2><p>Retrouvez votre vue d’ensemble, vos classes, vos PIN élèves, vos contrôles et vos corrections.</p></div>
- <div class="acad-prof-user"><span>COMPTE ACADÉMIQUE CONNECTÉ</span><strong id="account-email" class="account-email"></strong><button type="button" class="acad-prof-logout" id="logout">Se déconnecter</button></div>
-</div>
-<nav class="academie-prof-nav" aria-label="Navigation de l’espace professeur">
- <a href="#prof-overview" data-acad-view="overview" class="is-active" aria-current="page"><span aria-hidden="true">▦</span> Vue d’ensemble</a>
- <a href="#prof-classes" data-acad-view="classes"><span aria-hidden="true">▣</span> Mes classes</a>
- <a href="#cw-persistent-classes" data-acad-view="pins"><span aria-hidden="true">⌗</span> PIN élèves</a>
- <a href="#prof-assessments" data-acad-view="assessments"><span aria-hidden="true">▤</span> Mes contrôles</a>
- <a href="#cw-assessment-cards" data-acad-view="qr"><span aria-hidden="true">▧</span> Dépôt & QR codes</a>
- <a href="#cw-copies-head" data-acad-view="copies"><span aria-hidden="true">✓</span> Copies & corrections</a>
- <a href="#acad-integrity" data-acad-view="integrity"><span aria-hidden="true">◈</span> Anti-triche</a>
-</nav>
-<section class="acad-overview" id="prof-overview" aria-labelledby="acad-overview-title">
- <div class="acad-overview-head"><div><span class="eyebrow">VUE D’ENSEMBLE</span><h3 id="acad-overview-title">Bienvenue dans votre espace.</h3><p>Vos outils pour préparer, distribuer, recevoir et corriger les évaluations, sans quitter CORTEX Académie.</p></div><span class="acad-live-label">● Supabase connecté</span></div>
- <div class="acad-overview-stats">
-  <a href="#prof-classes" data-acad-view="classes"><span aria-hidden="true">▣</span><strong id="acad-overview-classes">—</strong><small>Classes</small></a>
-  <a href="#cw-persistent-classes" data-acad-view="pins"><span aria-hidden="true">⌗</span><strong id="acad-overview-pins">—</strong><small>Classes avec PIN</small></a>
-  <a href="#prof-assessments" data-acad-view="assessments"><span aria-hidden="true">▤</span><strong id="acad-overview-exams">—</strong><small>Contrôles</small></a>
-  <a href="#cw-copies-head" data-acad-view="copies"><span aria-hidden="true">✓</span><strong id="acad-overview-copies">—</strong><small>Copies reçues</small></a>
- </div>
- <h4>Que souhaitez-vous faire ?</h4>
- <div class="acad-overview-actions">
-  <a href="#prof-classes" data-acad-view="classes"><span>▣</span><strong>Mes classes</strong><small>Créer et organiser les classes</small><b aria-hidden="true">↗</b></a>
-  <a href="#cw-persistent-classes" data-acad-view="pins"><span>⌗</span><strong>PIN élèves</strong><small>Générer et réinitialiser les codes</small><b aria-hidden="true">↗</b></a>
-  <a href="#prof-assessments" data-acad-view="assessments"><span>▤</span><strong>Créer un contrôle</strong><small>Rédiger les questions et les consignes</small><b aria-hidden="true">↗</b></a>
-  <a href="#cw-assessment-cards" data-acad-view="qr"><span>▧</span><strong>Déposer un fichier et QR</strong><small>Publier et partager les évaluations</small><b aria-hidden="true">↗</b></a>
-  <a href="#cw-copies-head" data-acad-view="copies"><span>✓</span><strong>Mes copies</strong><small>Recevoir, noter et publier les corrections</small><b aria-hidden="true">↗</b></a>
-  <a href="#acad-integrity" data-acad-view="integrity"><span>◈</span><strong>Outils anti-triche</strong><small>Configurer les protections par contrôle</small><b aria-hidden="true">↗</b></a>
- </div>
- <p class="acad-overview-help">Les données du compte professeur sont distinctes du site de démonstration. L’utilisation avec de vraies données d’élèves reste soumise à la validation de l’établissement et du DPO.</p>
-</section>
+<div class="workspace academy-live" id="acad-professor-workspace">
+ <aside class="sidebar" aria-label="Menu principal professeur">
+  <div class="side-title"><strong>Espace professeur</strong><span>Compte académique · Données réelles</span></div>
+  <nav class="side-menu academie-prof-nav" aria-label="Navigation professeur">
+   <a href="#prof-overview" class="side-item active is-active" data-acad-view="overview" aria-current="page"><span class="side-icon">▦</span>Vue d’ensemble</a>
+   <a href="#prof-classes" class="side-item" data-acad-view="classes"><span class="side-icon">▣</span>Mes classes</a>
+   <a href="#cw-persistent-classes" class="side-item" data-acad-view="pins"><span class="side-icon">⌑</span>PIN élèves</a>
+   <a href="#prof-assessments" class="side-item" data-acad-view="assessments"><span class="side-icon">▤</span>Mes contrôles</a>
+   <a href="#cw-copies-head" class="side-item" data-acad-view="copies"><span class="side-icon">✎</span>Copies & notes</a>
+   <a href="#acad-live-monitoring" class="side-item" data-acad-view="suivi"><span class="side-icon">◷</span>Suivi des épreuves</a>
+   <a href="#acad-integrity" class="side-item" data-acad-view="integrity"><span class="side-icon">◈</span>Anti-triche</a>
+   <a href="#acad-live-analytics" class="side-item" data-acad-view="analyses"><span class="side-icon">▥</span>Analyses</a>
+   <a href="#cw-assessment-cards" class="side-item" data-acad-view="import"><span class="side-icon">⇪</span>Importer PDF / Word</a>
+   <a href="#prof-assessments" class="side-item" data-acad-view="creer"><span class="side-icon">＋</span>Créer un contrôle</a>
+  </nav>
+  <div class="side-bottom"><span>Connexion sécurisée</span><strong class="acad-profile-email" id="account-email"></strong><button type="button" id="logout" class="btn ghost small acad-sidebar-logout">Se déconnecter ↗</button><p>Compte réel Supabase. Aucune copie fictive.</p></div>
+ </aside>
+ <div class="workspace-main" id="acad-professor-main">
+  <section class="acad-overview" id="prof-overview" aria-labelledby="acad-overview-title">
+   <div class="page-head"><div><p class="eyebrow">Espace professeur · Académie</p><h1 id="acad-overview-title">Tableau de bord</h1><p>Ton espace d’évaluation, construit comme la démonstration, connecté à tes vraies classes et copies.</p></div><div class="btn-row"><a href="#cw-assessment-cards" data-acad-view="import" class="btn secondary">⇪ Importer PDF / Word</a><a href="#prof-assessments" data-acad-view="creer" class="btn">＋ Nouveau contrôle</a></div></div>
+   <div class="class-quick-strip" id="acad-live-class-strip"><a href="#prof-classes" data-acad-view="classes" class="btn secondary small">▣ Mes classes</a><span class="chip" id="acad-live-class-count">Chargement des classes…</span></div>
+   <div class="stats">
+    <a href="#prof-assessments" data-acad-view="assessments" class="stat"><div class="stat-label">Contrôles disponibles</div><div class="stat-value" id="acad-overview-exams">—</div><div class="stat-foot">Évaluations enregistrées</div></a>
+    <a href="#cw-copies-head" data-acad-view="copies" class="stat"><div class="stat-label">Copies remises</div><div class="stat-value" id="acad-overview-copies">—</div><div class="stat-foot">Reçues sur le serveur</div></a>
+    <a href="#cw-copies-head" data-acad-view="copies" class="stat"><div class="stat-label">Notes validées</div><div class="stat-value" id="acad-overview-graded">—</div><div class="stat-foot">Copies corrigées</div></a>
+    <a href="#prof-classes" data-acad-view="classes" class="stat"><div class="stat-label">Classes enregistrées</div><div class="stat-value" id="acad-overview-classes">—</div><div class="stat-foot"><span id="acad-overview-pins">—</span> classe(s) avec PIN</div></a>
+   </div>
+   <div class="two-col">
+    <section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2><p>Les contrôles réellement enregistrés dans ton espace professeur.</p></div><a href="#prof-assessments" data-acad-view="assessments" class="btn ghost small">Tout voir →</a></div><div id="acad-live-recent-exams" class="acad-live-recent-exams"><div class="empty">Aucun contrôle enregistré pour le moment.</div></div></section>
+    <section class="panel"><div class="panel-head"><h2>Ton espace professeur</h2><span class="chip teal">Données réelles</span></div><p class="muted small">Les mêmes rubriques que sur le site test, avec tes classes, tes sujets et les copies sauvegardées dans Supabase.</p><div class="inline-note"><strong>Parcours conseillé</strong><p>1. Prépare les PIN provisoires de tes classes.</p><p>2. Crée un contrôle, importe son document et publie le QR code.</p><p>3. Retrouve les copies dans « Copies & notes » pour les corriger.</p></div><div class="btn-row" style="margin-top:18px"><a href="#cw-persistent-classes" data-acad-view="pins" class="btn secondary full">Préparer les PIN élèves →</a></div><p class="muted small acad-live-disclaimer">Les fonctions non encore raccordées au serveur sont signalées. Aucune donnée fictive n'est présentée comme réelle.</p></section>
+   </div>
+  </section>
 <div id="prof-content">
 <section class="prof-sec cw-workspace" id="acad-live-workflow">
  <div class="prof-head"><div><span class="eyebrow">PASSATION RÉELLE · SUPABASE</span><h3>Déposer un sujet, recevoir les copies.</h3></div><button type="button" id="cw-refresh" class="cw-refresh">Actualiser les copies ↻</button></div>
@@ -93,6 +95,16 @@
  <div class="cw-copies-head" id="cw-copies-head"><h4>3. Copies remises par les élèves</h4><span id="cw-copy-count" class="chip">0 copie</span></div>
  <div id="cw-copy-list" class="cw-copies"><p class="empty">Aucune copie reçue pour le moment.</p></div>
  <p class="cw-safety">Les documents sont stockés dans un espace privé. Les accès élèves se font par QR code, numéro sur la liste et PIN personnel. L’usage scolaire réel nécessite les validations de l’établissement et du DPO, ainsi que des tests en conditions réelles.</p>
+</section>
+<section class="prof-sec acad-live-metrics-panel" id="acad-live-monitoring">
+ <div class="page-head"><div><p class="eyebrow">Espace professeur · Suivi</p><h1>Suivi des épreuves</h1><p>État des contrôles et copies réelles. La surveillance en direct des élèves n’est pas encore activée sur le serveur.</p></div><div class="btn-row"><button type="button" id="acad-live-monitor-refresh" class="btn secondary">↻ Actualiser</button></div></div>
+ <div class="stats" id="acad-live-monitor-stats"><div class="stat"><div class="stat-label">Contrôles ouverts</div><strong class="stat-value" id="acad-monitor-open">—</strong><div class="stat-foot">Accessibles par QR code</div></div><div class="stat"><div class="stat-label">Copies remises</div><strong class="stat-value" id="acad-monitor-submitted">—</strong><div class="stat-foot">Enregistrées</div></div><div class="stat"><div class="stat-label">Copies à corriger</div><strong class="stat-value" id="acad-monitor-pending">—</strong><div class="stat-foot">Sans note validée</div></div></div>
+ <div class="panel"><div class="panel-head"><h2>Mes contrôles publiés</h2></div><div id="acad-live-monitor-rows"><div class="empty">Actualise tes données professeur pour voir les contrôles.</div></div></div>
+</section>
+<section class="prof-sec acad-live-metrics-panel" id="acad-live-analytics">
+ <div class="page-head"><div><p class="eyebrow">Espace professeur · Résultats</p><h1>Analyses</h1><p>Indicateurs calculés uniquement sur les copies réelles, et seulement lorsqu'une note a été enregistrée.</p></div></div>
+ <div class="stats"><div class="stat"><div class="stat-label">Copies corrigées</div><strong class="stat-value" id="acad-analysis-corrected">—</strong><div class="stat-foot">Notes saisies</div></div><div class="stat"><div class="stat-label">Moyenne / 20</div><strong class="stat-value" id="acad-analysis-average">—</strong><div class="stat-foot">Copies corrigées uniquement</div></div><div class="stat"><div class="stat-label">Taux de correction</div><strong class="stat-value" id="acad-analysis-rate">—</strong><div class="stat-foot">Copies corrigées / remises</div></div></div>
+ <div class="panel"><div class="panel-head"><h2>Résultats par contrôle</h2></div><div id="acad-live-analysis-rows"><div class="empty">Aucune copie corrigée pour le moment.</div></div></div>
 </section>
 <section class="prof-sec" id="prof-classes"><div class="prof-head"><div><span class="eyebrow">01 / MES CLASSES</span><h3>Créer, organiser et suivre mes classes</h3></div><span id="classes-count" class="chip">—</span></div>
 <form id="class-form" class="prof-form"><input id="class-code" maxlength="40" autocomplete="off" placeholder="Code : 2MRC2" aria-label="Code de la classe" required><input id="class-name" maxlength="80" autocomplete="off" placeholder="Libellé : Seconde MRC2" aria-label="Nom de la classe" required><button type="submit">Ajouter</button></form>
@@ -126,7 +138,9 @@
 <div id="integrity-server-events" class="prof-list"><p class="empty">Aucun incident serveur enregistré.</p></div>
 <a class="academie-demo-link" href="../evaluations/#professeur/integrite" target="_blank" rel="noopener">Découvrir les outils interactifs sur le site test ↗</a></section>
 <div class="setup-notice"><strong>Service technique déployé — validation institutionnelle nécessaire</strong><p>Les connexions élèves, les documents et les copies passent par le serveur sécurisé. Avant d’utiliser des données scolaires réelles, l’établissement et le DPO doivent valider la procédure et l’envoi des e-mails académiques doit être configuré et testé.</p></div></div>
+ </div>
+</div>
 </div>
 <div class="setup-notice" id="setup-notice"><strong>Accès académiques</strong><p>Projet Supabase connecté. La création d’un premier compte @ac-paris.fr nécessite l’envoi effectif du courriel de confirmation ; un SMTP adapté peut être requis.</p></div>
-</div></section></main><div class="bottom">CORTEX ACADÉMIE · ESPACES PROFESSEUR ET ÉLÈVE · UTILISATION SCOLAIRE SOUMISE À VALIDATION</div>
+</div></section></main><div class="bottom">CORTEX / BIOSPHÈRE GENESIS · ESPACE ACADÉMIQUE RÉEL · RGPD À VALIDER</div>
 </body></html>

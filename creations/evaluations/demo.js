@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',hiddenSince=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -139,7 +139,7 @@ function teacherReviewFull(){
 }
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
-const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='integrite'?window.CORTEX_INTEGRITY.summary(state,integrityFilter):tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
+const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='integrite'?window.CORTEX_INTEGRITY.summary(state,integrityFilter,integritySetupId):tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
 function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}
@@ -919,6 +919,13 @@ if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
 if(a==='integrity-scroll-controls'||a==='integrity-scroll-journal'){document.getElementById(a==='integrity-scroll-controls'?'integrity-controls':'integrity-journal')?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
 if(a==='integrity-open'){nav('teacher','integrite');return;}
+if(a==='integrity-quick-toggle'){
+ const ex=examBy(id),key=el.dataset.tool,I=window.CORTEX_INTEGRITY;
+ if(!ex||!Object.prototype.hasOwnProperty.call(I.defaults(),key))return;
+ integritySetupId=ex.id;
+ I.update(ex,key,!I.config(ex)[key]);save();render();
+ showToast('Réglage '+(I.config(ex)[key]?'activé':'désactivé')+' pour « '+ex.title+' ».');return;
+}
 if(a==='integrity-settings'){const ex=examBy(id);if(ex)modalShow('Protection du contrôle',window.CORTEX_INTEGRITY.settings(ex),btn('Fermer','close-modal','ghost'));return;}
 if(a==='integrity-attempt'){const at=attemptBy(id);if(at)modalShow('Événements · '+esc(at.name),window.CORTEX_INTEGRITY.attemptEvents(state.events,at),btn('Fermer','close-modal','ghost'));return;}
 if(a==='teacher-tab'){if(el.dataset.tab==='creer'){editor=editorFor(null);editorIndex=0;}nav('teacher',el.dataset.tab);return;}
@@ -1171,6 +1178,7 @@ const t=e.target;
 if(t.hasAttribute('data-integrity-toggle')){
  const ex=examBy(t.dataset.exam);if(ex){window.CORTEX_INTEGRITY.update(ex,t.dataset.integrityToggle,!!t.checked);save();modalShow('Protection du contrôle',window.CORTEX_INTEGRITY.settings(ex),btn('Fermer','close-modal','ghost'));showToast('Réglages enregistrés.');}return;
 }
+if(t.id==='integrity-setup-exam'){integritySetupId=t.value||'';render();return;}
 if(t.id==='integrity-filter'){integrityFilter=t.value||'';render();return;}
 if(t.id==='portal-level'){
  const opts=document.querySelectorAll('#portal-class option[data-level]');

@@ -96,7 +96,10 @@ window.CORTEX_PORTAL=(function(){
    '<h1>Ta progression.<br><em>Ton univers.</em></h1><p>Retrouve tes contrôles corrigés, comprends tes erreurs et observe tes progrès au fil des semaines.</p>'+
    '<div class="portal-illustration" aria-hidden="true"><div class="portal-illustration-glow"></div><div class="portal-planet">20<span>points</span></div><div class="portal-small-orbit">✦</div></div>'+
    '<div class="portal-visual-foot">Une note ne résume pas ce que tu sais. Chaque correction est une occasion d’avancer.</div></section>'+
-   '<section class="portal-login-form"><div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
+   '<section class="portal-login-form">'+
+   '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
+   '<div class="portal-login-divider"><span>OU ACCÉDER À MES COPIES</span></div>'+
+   '<div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
    '<p class="portal-muted">Accès personnel avec ton numéro de liste, ton PIN et le code communiqué par ton professeur.</p>'+
    '<div class="portal-form-grid"><div class="field"><label for="portal-level">Mon niveau</label><select id="portal-level"><option value="">Choisir un niveau</option>'+
    levels.map(([v,t])=>'<option value="'+esc(v)+'" '+(opts.level===v?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></div>'+
@@ -108,7 +111,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-pin-wrap"><input id="portal-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="••••••"><button type="button" class="portal-show-pin" data-action="portal-toggle-pin" aria-label="Afficher ou masquer le PIN">Afficher</button></div></div>'+
    '<button class="portal-main-button" type="button" data-action="portal-login">Accéder à mon espace <span aria-hidden="true">↗</span></button>'+
    '<p class="portal-login-help">Première connexion ? Scanne le QR code de ton contrôle pour créer ton PIN. Si tu l’as oublié, demande sa réinitialisation au professeur.</p>'+
-   '<button class="portal-preview-button" type="button" data-action="portal-demo">✧ Voir un exemple interactif sans connexion</button>'+ 
+   '<button class="portal-preview-button" type="button" data-action="portal-demo">✧ Découvrir mon tableau de bord fictif (notes et résultats)</button>'+ 
    '<div class="portal-safety"><strong>Version de démonstration.</strong> Les données sont locales à cet appareil, non synchronisées, et l’espace professeur n’est pas protégé. N’utilise aucune donnée réelle.</div>'+
    '</section></div>';
  }

@@ -14,6 +14,13 @@ function init(state){
   state.assignments.push({id:'demo-sommeil-2mrc1',examId:demo.id,classId:'2mrc1',groupId:null,
     token:'DEMO-CORTEX-2MRC1-A2',active:true,createdAt:Date.now()});
  }
+ // Neutraliser les anciens accès QR répétés vers la même classe / le même groupe
+ // pour un contrôle : conserver le plus récent sans supprimer les copies historiques.
+ const seenAssignments=new Set();
+ for(const a of [...state.assignments].filter(a=>a.active).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0))){
+  const k=String(a.examId)+'|'+codeName(classLabel(state,a.classId))+'|'+String(a.groupId||'all');
+  if(seenAssignments.has(k))a.active=false;else seenAssignments.add(k);
+ }
  for(const at of state.attempts){
   if(at.id==='ex-pdf-demo'&&!at.assignmentId){
     at.classId='2mrc1';at.className='2MRC1';at.groupId=null;at.groupName='Classe entière';at.assignmentId='demo-sommeil-2mrc1';
@@ -106,7 +113,14 @@ function details(s,cl){
      }).join('')}</div>`:'<div class="empty">Aucun contrôle affecté à cette classe.</div>'}</div></section>`;
 }
 function qrChoices(s,exam){
- const list=assignments(s,exam.id);
+ // Une seule tuile QR par combinaison visible classe / groupe.
+ // Certains navigateurs contiennent des affectations historiques en double.
+ const latest=[...assignments(s,exam.id)].sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0));
+ const seen=new Set(),list=latest.filter(a=>{
+  const key=codeName(classLabel(s,a.classId))+'|'+codeName(groupLabel(s,a.classId,a.groupId));
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
  return `<div class="class-qr-list"><p class="muted small">Chaque QR correspond à un contrôle, une classe et éventuellement un demi-groupe. Seul l’espace professeur de démonstration propose la génération.</p>
   ${list.map(a=>`<button type="button" class="class-qr-pick" data-action="class-open-qr" data-id="${h(a.id)}"><span><strong>${h(assignmentLabel(s,a))}</strong><small>Contrôle : ${h(exam.title)}</small></span><span>Voir le QR ▣</span></button>`).join('')}
   ${!list.length?'<div class="empty">Aucun QR actif. Affecte d’abord le contrôle à une classe dans « Mes classes ».</div>':''}

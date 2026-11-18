@@ -68,7 +68,7 @@ const correctedPrompts=[
 const correctedAnswers=[
  '8 − 4 = 4 heures de sommeil manquantes.',
  'Jeux en ligne jusqu’à 1 h 30 et boisson énergisante vers 21 h.',
- 'Difficultés de concentration en classe et irritabilité.'
+ 'Difficultés de concentration en classe et irritabilité.',
  'Comment Dylan retrouverait-il un sommeil suffisant ?',
  'Phénomène naturel répétitif ; fréquence = nombre de répétitions pendant une durée.',
  'Ultradien ; circadien ; infradien.',
@@ -78,7 +78,7 @@ const correctedAnswers=[
  'Sommeil lent profond ; sommeil paradoxal.',
  'Le sommeil permet de mieux mémoriser les leçons.',
  'Fatigue et irritabilité.',
- 'Il se dispute avec ses amis.'
+ 'Il se dispute avec ses amis.',
  'Risque d’AVC et modification de la mobilité des spermatozoïdes.',
  'Somnolence au travail et risque d’accident.',
  'Mélatonine : endormissement ; lumière des écrans : retarde sa production.',

@@ -12,6 +12,7 @@ if(qr||globalPortal){
  const mode=qr?'qr':'class';
  const storageKey='cortex-academie-eleve:'+mode+':'+(qr||classPrefill||'general');
  let token=null,current=null,currentId=null,classData=null,classList=[],busy=false,hiddenSince=0;
+ let countdownInterval=null;
  document.body.classList.add('cw-student-active');
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
  main.innerHTML='<div class="cw-student-frame">'+
@@ -41,7 +42,7 @@ if(qr||globalPortal){
  document.body.insertBefore(main,document.querySelector('.layout'));
  function message(text,error=false){const el=$('cw-student-status');el.textContent=text||'';el.hidden=!text;el.classList.toggle('error',!!error)}
  function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false }
- function reset(){token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
+ function reset(){if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
  function button(text,cls,handler){
   const b=E('button',cls,text);b.type='button';
   b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await handler()}catch(err){message(err.message||String(err),true)}finally{b.disabled=false}});
@@ -121,6 +122,7 @@ if(qr||globalPortal){
   work.append(stats,cards);
  }
  function renderExam(){
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!current)return;
   const exam=current.assessment,settings=exam.antiCheat||{},submitted=current.submission;
@@ -149,6 +151,34 @@ if(qr||globalPortal){
    receipt.append(button('Actualiser ma correction ↻','cw-primary',()=>loadExam(currentId)));
    work.append(receipt);return;
   }
+  // Chronomètre démarré explicitement par l'élève, conservé dans cette session.
+  // Indication côté navigateur : l'application ne prétend pas faire appliquer
+  // une échéance par le serveur en l'absence de contrôle serveur.
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+  const timerKey='cortex-student-timer:'+mode+':'+(qr||classPrefill||'general')+':'+currentId+':'+current.student_number;
+  const durationMs=Math.max(5,Math.min(240,Number(exam.duration)||60))*60000;
+  const localStarted=Number(sessionStorage.getItem(timerKey)||0);
+  if(!localStarted){
+   const launch=E('section','cw-student-timer-start');
+   launch.append(E('strong','','⏱ Prêt à commencer ?'),E('p','','Le chronomètre de '+(Number(exam.duration)||60)+' minutes démarre quand tu cliques sur « Démarrer le contrôle ».'));
+   launch.append(button('▶ Démarrer le contrôle et le chrono','cw-student-submit',()=>{
+    sessionStorage.setItem(timerKey,String(Date.now()));renderExam();
+   }));
+   work.append(launch);return;
+  }
+  const timerBox=E('div','cw-student-timer-bar');
+  const timerText=E('strong','cw-student-timer-value');
+  timerText.setAttribute('role','timer');
+  timerBox.append(E('span','','⏱ Temps restant'),timerText);
+  const refreshTimer=()=>{
+   const remain=Math.max(0,durationMs-(Date.now()-localStarted));
+   const secs=Math.ceil(remain/1000);
+   timerText.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+   timerText.classList.toggle('cw-student-timer-warning',remain<=300000);
+   if(!remain){clearInterval(countdownInterval);countdownInterval=null;message('Temps indicatif écoulé. Remets ta copie maintenant.',true)}
+  };
+  refreshTimer();if(!countdownInterval)countdownInterval=setInterval(refreshTimer,1000);
+  work.append(timerBox);
   if(settings.enabled){
    const rules=[settings.blockPaste?'Collage limité':null,settings.blockCopy?'Copie du sujet limitée':null,settings.trackVisibility?'Sorties de page signalées':null,settings.watermarkCapture?'Filigrane de dissuasion':null].filter(Boolean);
    work.append(E('p','cw-student-rules','Mode intégrité du contrôle : '+rules.join(' · ')+'. Un signalement n’est pas une preuve automatique de fraude.'));

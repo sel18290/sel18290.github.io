@@ -502,7 +502,7 @@ function studentDocuments(e,q,a,answered){
 function renderDocumentStudent(e,q,a,answered,remaining){
  const sample=!!e.pdfSource;
  const body=studentDocuments(e,q,a,answered);
-  return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
+  return '<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle documentaire</p><h1>'+esc(e.title)+'</h1><p>'+esc(e.level)+' · '+esc(a.className||examClassHeading(e))+' · '+e.questions.length+' questions · '+sum(e)+' points</p></div><div class="btn-row">'+
   pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')+'</div></div>'+window.CORTEX_CLOCK.render(e,a)+
   '<div class="exam-top"><div><strong>Ta progression : '+answered+' / '+e.questions.length+' réponses</strong><div class="small muted">Réponses conservées sur cet appareil, sans serveur</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span>'+
   '<button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div>'+
@@ -684,7 +684,7 @@ const answered=e.questions.filter(q=>String(a.answers[q.id]??'').trim().length>0
 const elapsed=Math.max(0,Math.floor((Date.now()-a.startedAt)/60000));const remaining=Math.max(0,e.duration-elapsed);
 const ans=String(a.answers[q.id]??'');
 if(e.pdfSource || e.sourceId) return renderDocumentStudent(e,q,a,answered,remaining);
-return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
+return `<div class="page-head"><div><p class="eyebrow">CORTEX · Contrôle en cours</p><h1>${esc(e.title)}</h1><p>${esc(e.level)} · CLASSE : ${esc(a.className||examClassHeading(e))} · ${e.questions.length} questions · ${sum(e)} points</p></div><div class="btn-row">${pill((a.interruptions||0)+' interruption(s)',(a.interruptions||0)?'warn':'ok')}</div></div>
 ${window.CORTEX_CLOCK.render(e,a)}
 <div class="exam-top"><div><strong>Ta progression : ${answered} / ${e.questions.length} réponses</strong><div class="small muted">Brouillon conservé uniquement sur cet appareil</div></div><div class="btn-row"><span class="chip teal" id="save-hint">✓ Sauvegarde locale</span><button class="btn ghost small" data-action="review-exam">Relire ma copie</button></div></div><div class="exam-progress" aria-label="${answered} réponses sur ${e.questions.length}"><span style="width:${answered/e.questions.length*100}%"></span></div>
 <div class="student-exam"><section class="panel exam-question"><div class="question-number">QUESTION ${currentQuestion+1} / ${e.questions.length} · ${q.points} POINTS</div><h2>${esc(q.prompt)}</h2>${(q.doc||e.doc)?`<div class="question-doc"><strong>DOCUMENT SCIENTIFIQUE</strong><br>${esc(q.doc||e.doc)}</div>`:''}

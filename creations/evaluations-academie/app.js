@@ -381,7 +381,7 @@ $('exam-form').addEventListener('submit',async event=>{
   const questions=editor.questions();
   const duration=Number($('exam-duration').value||60);
   if(!Number.isFinite(duration)||duration<5||duration>240)throw Error('Durée comprise entre 5 et 240 minutes.');
-  const content={description,questions,
+  const content={description,questions,doc:'', // Ancien champ commun désactivé : les documents sont propres à chaque question.
    level:$('exam-level').value.trim().slice(0,100),chapter:$('exam-chapter').value.trim().slice(0,180),
    duration,antiCheat:antiCreateConfig()};
   const editingId=editor.editingId();

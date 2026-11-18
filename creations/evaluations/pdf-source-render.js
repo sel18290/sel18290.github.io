@@ -83,6 +83,98 @@ async function viaSvg(node){
   return safeCanvas(canvas,'html-layout');
  }finally{URL.revokeObjectURL(url);}
 }
+
+/* Repli local indépendant des CDN : dessine les blocs CSS et le texte
+   aux coordonnées réellement calculées par le navigateur. */
+function viaDomPaint(node){
+ const bounds=node.getBoundingClientRect(),scale=1.6;
+ const width=Math.ceil(bounds.width),height=Math.ceil(bounds.height);
+ if(width<10||height<10||height>16000)throw Error('Document trop grand à capturer');
+ const canvas=document.createElement('canvas');
+ canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);
+ const ctx=canvas.getContext('2d',{willReadFrequently:false});
+ if(!ctx)throw Error('Canvas non disponible');
+ ctx.scale(scale,scale);
+ ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);
+ const offsetX=bounds.left,offsetY=bounds.top;
+ const range=document.createRange();
+ function opaqueColor(color){
+  return color&&color!=='transparent'&&!/^rgba?\(\s*0(?:,\s*0){2},?\s*0\s*\)$/.test(color)&&
+   !/^rgba\(.*,\s*0(?:\.0+)?\s*\)$/.test(color);
+ }
+ function block(element){
+  const computed=getComputedStyle(element);
+  if(computed.display==='none'||computed.visibility==='hidden'||computed.opacity==='0')return;
+  const b=element.getBoundingClientRect();
+  const x=b.left-offsetX,y=b.top-offsetY;
+  if(b.width<=0||b.height<=0)return;
+  if(x>width||y>height||x+b.width<0||y+b.height<0)return;
+  ctx.save();
+  const radius=Math.min(parseFloat(computed.borderRadius)||0,b.width/2,b.height/2);
+  if(opaqueColor(computed.backgroundColor)){
+   ctx.fillStyle=computed.backgroundColor;
+   ctx.beginPath();
+   if(typeof ctx.roundRect==='function')ctx.roundRect(x,y,b.width,b.height,radius);
+   else ctx.rect(x,y,b.width,b.height);
+   ctx.fill();
+  }
+  const sides=[
+   ['top',x,y,x+b.width,y],['bottom',x,y+b.height,x+b.width,y+b.height],
+   ['left',x,y,x,y+b.height],['right',x+b.width,y,x+b.width,y+b.height]
+  ];
+  for(const [side,x1,y1,x2,y2] of sides){
+   const weight=parseFloat(computed.getPropertyValue('border-'+side+'-width'))||0;
+   const color=computed.getPropertyValue('border-'+side+'-color');
+   const style=computed.getPropertyValue('border-'+side+'-style');
+   if(weight>0&&style!=='none'&&opaqueColor(color)){
+    ctx.strokeStyle=color;ctx.lineWidth=weight;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+   }
+  }
+  if(element.tagName==='IMG'&&element.complete&&element.naturalWidth){
+   try{ctx.drawImage(element,x,y,b.width,b.height);}catch(e){}
+  }else if(element.tagName==='CANVAS'){
+   try{ctx.drawImage(element,x,y,b.width,b.height);}catch(e){}
+  }
+  ctx.restore();
+  for(const child of element.childNodes)visit(child);
+ }
+ function paintText(textNode){
+  if(!textNode.textContent?.trim())return;
+  const parent=textNode.parentElement;
+  if(!parent)return;
+  const computed=getComputedStyle(parent);
+  if(computed.visibility==='hidden'||computed.opacity==='0')return;
+  const fs=parseFloat(computed.fontSize)||13;
+  ctx.save();
+  ctx.font=[computed.fontStyle,computed.fontWeight,fs+'px',computed.fontFamily].join(' ');
+  ctx.fillStyle=computed.color||'#29313a';
+  ctx.textBaseline='alphabetic';
+  const content=textNode.textContent;
+  for(const match of content.matchAll(/\S+/g)){
+   const word=match[0],idx=match.index;
+   range.setStart(textNode,idx);
+   range.setEnd(textNode,idx+word.length);
+   const rects=range.getClientRects();
+   if(!rects.length)continue;
+   const rect=rects[0];
+   if(!rect.width||!rect.height)continue;
+   const x=rect.left-offsetX;
+   const y=rect.bottom-offsetY-Math.max(1,(rect.height-fs)/2);
+   if(x>-100&&x<width+100&&y>-100&&y<height+100)
+    ctx.fillText(word,x,y);
+  }
+  ctx.restore();
+ }
+ function visit(element){
+  if(element.nodeType===Node.TEXT_NODE)return paintText(element);
+  if(element.nodeType===Node.ELEMENT_NODE)return block(element);
+ }
+ visit(node);
+ range.detach?.();
+ return safeCanvas(canvas,'dom-paint');
+}
+
 let html2canvasLoading=null;
 async function ensureHtml2canvas(){
  if(typeof window.html2canvas==='function')return window.html2canvas;
@@ -169,9 +261,10 @@ async function captureHtml(source){
   if(typeof window.html2canvas==='function'){
    try{return await viaHtml2Canvas(node,false);}catch(e){console.warn('CORTEX PDF : capture HTML locale',e);}
   }
-  // Premier choix sans réseau : la mise en page effective du DOM, y compris tableaux et graphiques.
-  try{return await viaSvg(node);}catch(e){console.warn('CORTEX PDF : capture DOM',e);}
-  // Dernière chance pour les navigateurs qui bloquent foreignObject.
+  // Rendu navigateur sans dépendance externe : vraies positions des textes et des blocs.
+  try{return viaDomPaint(node);}catch(e){console.warn('CORTEX PDF : dessin DOM',e);}
+  // Autres moteurs si le canvas natif n'a pas pu reproduire le document.
+  try{return await viaSvg(node);}catch(e){console.warn('CORTEX PDF : capture DOM SVG',e);}
   try{return await viaHtml2Canvas(node,true);}catch(e){console.warn('CORTEX PDF : chargement capture HTML',e);}
   return readableFallback(node);
  }finally{node.remove();}

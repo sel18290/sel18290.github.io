@@ -145,3 +145,49 @@
 .integrity-tool-state{font-size:10px;font-weight:850;padding:5px 8px;border-radius:99px;border:1px solid #5b6374;background:#253145;color:#b4c4d4}
 .integrity-tool-state.is-on{background:#4c2a40;border-color:#a45b72;color:#ffbcc7}
 @media(max-width:480px){.integrity-tool-row{gap:6px}.integrity-tool-control{gap:5px}.integrity-tool-state{font-size:9px;padding:4px 6px}}
+
+
+/* Teacher integrity controls v3 — one visible action per tool */
+.integrity-tool-panel{border:1px solid #784c62;background:linear-gradient(145deg,#1a2b3e,#171f35);border-radius:16px;padding:19px;margin:0 0 23px;scroll-margin-top:22px}
+.integrity-tool-panel-header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:17px}
+.integrity-tool-panel-header h4{font-size:23px;color:#f2f7ff;margin:7px 0 5px;letter-spacing:-.035em}
+.integrity-tool-panel-header p{font-size:12px;color:#aac2d0;line-height:1.6;margin:0}
+.integrity-tool-panel-header label{display:grid;gap:7px;font-weight:750;color:#bccfe0;font-size:11px;min-width:180px;max-width:270px;width:38%}
+.integrity-tool-panel-header select{background:#122539;color:#f2f6ff;border:1px solid #6e5875;border-radius:9px;padding:11px 12px;font-size:12px;max-width:100%;width:100%}
+.integrity-tool-master{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px;background:linear-gradient(110deg,#39293f,#24263b);border:1px solid #975773;border-radius:12px;margin-bottom:12px}
+.integrity-tool-master strong{display:block;font-size:15px;color:#fff5f8}
+.integrity-tool-master p{font-size:11px!important;color:#d8b9c7!important;line-height:1.6;margin:6px 0 0!important;max-width:630px}
+.integrity-master-button{border:1px solid #ff8896;background:linear-gradient(105deg,#e95a71,#f87381);color:#30141c;padding:11px 15px;border-radius:9px;white-space:nowrap;font-weight:850;font-size:12px;min-height:43px}
+.integrity-master-button.is-on{background:#452939;color:#ffd9e1;border-color:#a65b72}
+.integrity-tool-panel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.integrity-tool-panel-card{display:grid;grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;gap:10px 12px;align-items:start;padding:15px;border:1px solid #405069;background:#15283c;border-radius:12px;min-width:0}
+.integrity-tool-panel-card.is-active{border-color:#9b4f6a;background:linear-gradient(130deg,#28243c,#162a3d)}
+.integrity-tool-panel-icon{display:grid;place-items:center;width:38px;height:38px;background:#452b40;border:1px solid #8e4a66;border-radius:10px;color:#ffb9c9;font-size:23px}
+.integrity-tool-panel-copy{min-width:0;align-self:center}
+.integrity-tool-panel-copy strong{font-size:13px;color:#f6f9ff;line-height:1.4;display:block}
+.integrity-tool-panel-copy p{font-size:11px!important;color:#b5c6d5!important;line-height:1.58;margin:5px 0 6px!important}
+.integrity-tool-panel-copy small{display:block;color:#d7a7b6;font-size:10px;line-height:1.6}
+.integrity-tool-panel-control{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #39465c;padding-top:10px}
+.integrity-tool-panel-status{font-size:10px;color:#9cb2c7;font-weight:750;line-height:1.4}
+.integrity-tool-panel-status.is-active{color:#ffb9c6}
+.integrity-tool-panel-button{background:#642c46;color:#ffd8e0;border:1px solid #975270;border-radius:9px;min-width:99px;min-height:39px;padding:8px 13px;font-size:11px;font-weight:850}
+.integrity-tool-panel-button.is-on{background:#283648;color:#c7d7e6;border-color:#56647a}
+.integrity-tool-panel-button:hover,.integrity-master-button:hover{filter:brightness(1.13)}
+.integrity-tool-panel-button:focus-visible,.integrity-master-button:focus-visible,.integrity-tool-panel-header select:focus-visible{outline:3px solid #ff9bad;outline-offset:2px}
+.integrity-tool-panel-footer{margin:14px 1px 0!important;border-left:3px solid #b35a78;padding-left:12px;color:#c4b5c4!important;line-height:1.7;font-size:11px!important}
+.integrity-other-exams{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:23px 0 12px;border-bottom:1px solid #3a4960;padding-bottom:10px}
+.integrity-other-exams h4{font-size:16px;color:#f1f5ff;margin:0}
+.integrity-other-exams p{font-size:10px!important;color:#95a8be!important;margin:0!important}
+@media(max-width:970px){.integrity-tool-panel-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+ .integrity-tool-panel{padding:14px;border-radius:13px;margin-bottom:17px}
+ .integrity-tool-panel-header{display:grid;gap:12px;margin-bottom:12px}
+ .integrity-tool-panel-header h4{font-size:21px}
+ .integrity-tool-panel-header label{width:100%;max-width:none}
+ .integrity-tool-master{padding:13px;flex-direction:column;align-items:stretch}
+ .integrity-master-button{width:100%;min-height:47px}
+ .integrity-tool-panel-grid{grid-template-columns:1fr;gap:8px}
+ .integrity-tool-panel-card{padding:12px;gap:8px 10px}
+ .integrity-tool-panel-copy p{font-size:11px!important}
+ .integrity-tool-panel-button{min-height:43px}
+}

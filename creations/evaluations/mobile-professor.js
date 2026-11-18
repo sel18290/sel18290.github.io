@@ -173,6 +173,41 @@
       }
     }
   }
+  function drawContext(tab){
+    const root=app.querySelector(tab==='corriger'?'.review-workspace':tab==='creer'?'.ed-workspace':'.__absent__');
+    if(!root||root.querySelector('.phone-context-nav'))return;
+    const context=document.createElement('nav');
+    context.className='phone-context-nav';
+    context.setAttribute('aria-label',tab==='corriger'?'Accès rapide à la correction':'Accès rapide à la conception');
+    const shortcuts=tab==='corriger'?[
+      {label:'Document',target:'.review-document-pane'},
+      {label:'Réponse',target:'.review-response-pane'},
+      {label:'Noter',target:'.review-mark-zone'},
+      {label:'Bilan',target:'.review-footer'}
+    ]:[
+      {label:'Questions',target:'.ed-navigation'},
+      {label:'Document',target:'.ed-document'},
+      {label:'Modifier',target:'.ed-configuration'},
+      {label:'Enregistrer',action:'save-exam',primary:true}
+    ];
+    const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    shortcuts.forEach(item=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.textContent=item.label;
+      if(item.primary)button.classList.add('phone-context-primary');
+      if(item.action)button.dataset.action=item.action;
+      else button.addEventListener('click',()=>{
+        const target=root.querySelector(item.target);
+        if(!target)return;
+        target.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+      });
+      context.appendChild(button);
+    });
+    const anchor=tab==='corriger'?root.querySelector('.review-layout'):
+      root.querySelector('.ed-settings')||root.querySelector('.ed-layout');
+    if(anchor)root.insertBefore(context,anchor);
+  }
   function sync(){
     pending=0;
     const phone=onPhone();
@@ -191,6 +226,7 @@
       lastRoute=route;
     }
     drawHeader(tab);
+    drawContext(tab);
     bar.querySelectorAll('button[data-tab]').forEach(button=>{
       if(button.dataset.tab===tab)button.setAttribute('aria-current','page');
       else button.removeAttribute('aria-current');

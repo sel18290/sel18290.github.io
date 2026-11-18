@@ -240,7 +240,7 @@ function bindCrop(area,canvas,selection,onCapture){
 function importHome(){
  return `<div class="visual-import-start panel"><div class="eyebrow">CORTEX · IMPORTER / EXPORTER</div>
   <h1>Un document. <em>Deux façons de créer.</em></h1>
-  <p class="muted">Choisis ton PDF ou Word puis ouvre l’atelier toi-même, ou laisse Albert IA préparer les documents, questions et barèmes à partir du texte extrait.</p>
+  <p class="muted">Choisis ton PDF ou Word : crée librement ton contrôle ou laisse Albert IA analyser les pages visuelles et le texte pour proposer questions, documents et barèmes.</p>
   <div class="visual-import-drop"><label for="visual-doc-file" class="visual-import-icon">⇪</label>
     <h2>Choisir un document PDF ou Word</h2><p>PDF ou .docx · Atelier classique jusqu’à 18 Mo · Albert jusqu’à 8 Mo</p>
     <input id="visual-doc-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
@@ -251,7 +251,7 @@ function importHome(){
     <button class="btn ghost small" type="button" data-action="visual-clear-selection">↶ Annuler la sélection / choisir un autre fichier</button>
   </div>
   <div id="visual-import-status" role="status" aria-live="polite" class="muted small"></div>
-  <p class="small muted">Atelier classique : document conservé sur ton appareil. Mode Albert : avec ton accord, seul le texte extrait est envoyé au serveur IA ; images et fichier original restent locaux. Vérifie toutes les propositions.</p>
+  <p class="small muted">Atelier classique : le document reste sur cet appareil. Avec Albert IA : après ton accord, les images des pages et le texte extrait sont transmis via Supabase à Albert ; le fichier PDF / Word original demeure local. Les propositions et recadrages sont à vérifier.</p>
  </div>`;
 }
 async function imageOfElement(element){

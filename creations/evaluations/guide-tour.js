@@ -60,7 +60,7 @@ function mobileCard(step,last){
    '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>Ce que vous pouvez essayer</strong><p>'+hint[1]+'</p></div></div></div>'+
    '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">Explorer cet écran <span aria-hidden="true">↗</span></button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
    '<div class="ct-tour-mobile-options"><button type="button" data-tour="previous" '+(index===0?'disabled':'')+'>← Retour</button><button type="button" data-tour="list">Toutes les étapes</button><button type="button" data-tour="minimize">Réduire ↑</button></div>'+
-   (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Retour à CORTEX Académie ↗</a>':''))
+   (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Retour à CORTEX Académie ↗</a>':'')
  )+'</div>';
 }
 function content(){

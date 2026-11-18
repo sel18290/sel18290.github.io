@@ -99,6 +99,8 @@ async function inspect(file){
 function clearEditor(){
  state.file=null;state.pdf=null;state.kind='';state.name='';state.pages=[];state.page=1;state.questions=[];
  state.id=null;state.assets=[];state.selected=null;state.wordHtml='';state.published=false;state.sourceCount=1;
+ for(const inputId of ['ri-title','ri-class','ri-description'])by(inputId).disabled=false;
+ by('ri-save').disabled=false;
  by('ri-editor').hidden=true;by('ri-file').value='';
  by('ri-title').value='';by('ri-description').value='';
  by('ri-canvas').replaceChildren();by('ri-assets').replaceChildren();msg('');

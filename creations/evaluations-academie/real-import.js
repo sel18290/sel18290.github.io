@@ -440,7 +440,25 @@ async function save(){
    state.id=null;throw err;
   }
  }else await api('teacher_document_update',{assessment_id:state.id,...payload},null,true);
- msg('Contrôle enregistré avec son document original. Sélectionne une question et capture les extraits que les élèves devront consulter.');
+ // Les captures préparées avant l'enregistrement sont synchronisées après la création du sujet.
+ const pending=state.assets.filter(a=>a.pending&&state.questions.some(q=>q.id===a.questionId));
+ const failures=[];
+ for(const a of pending){
+  try{
+   const file=new File([a.blob],a.name,{type:a.blob.type||'image/jpeg'});
+   const result=await api('teacher_asset_upload',
+    {assessment_id:state.id,question_id:a.questionId,page:a.page},file,true);
+   if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
+   state.assets[state.assets.indexOf(a)]={...result.asset,pending:false};
+   const q=state.questions.find(q=>q.id===a.questionId);
+   if(q)q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
+  }catch(error){failures.push(a.name+' : '+(error?.message||'échec'));}
+ }
+ const unlinked=state.assets.filter(a=>a.pending&&!a.questionId).length;
+ msg(failures.length?
+  'Contrôle enregistré. Certaines captures ne sont pas synchronisées : '+failures.join(' ; '):
+  'Contrôle enregistré et '+(pending.length)+' capture(s) synchronisée(s).'+
+   (unlinked?' '+unlinked+' capture(s) restent à associer à une question.':''));
  by('ri-save').textContent='Enregistrer les modifications';
  await bridge().refresh();await paint();
  renderQuestions();

@@ -210,12 +210,16 @@ window.CORTEX_PORTAL=(function(){
    '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">02 / TES ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
    '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
-   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.</p></div>'+
-   '<span class="portal-count">✦ Aides Albert</span></div>'+
-   '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Analyser mes 13 contrôles avec Albert</button>'+
-    '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
-     '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p>'+     '</div></div>'+
-    '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p></section>'+
+   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>'+
+    (opts.preview?'Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.':
+    'Les aides automatiques sur les copies réelles nécessitent une validation institutionnelle et ne sont pas activées.')+
+    '</p></div><span class="portal-count">✦ Aides Albert</span></div>'+
+   (opts.preview?
+    '<div class="portal-albert-tips"><button type="button" data-action="portal-albert-tips">✦ Analyser mes 13 contrôles avec Albert</button>'+
+     '<div id="cortex-albert-tips-slot" class="portal-albert-tips-slot" role="status" aria-live="polite">'+
+      '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p></div></div>'+
+     '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p>':
+    '<p class="portal-empty">L’analyse IA des copies réelles est désactivée en attente des autorisations nécessaires. Consulte la correction et les observations de ton professeur.</p>')+'</section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+

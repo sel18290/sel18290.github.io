@@ -36,8 +36,8 @@ const copies=topics.map((topic,i)=>{
    {prompt:'Expliquer une notion importante du chapitre et donner un exemple concret.',
     answer:'Je peux expliquer le principe et proposer une action de prévention.',
     mark:q1,max:10,comment:i%3===0?'Une définition juste, mais il manque une justification ou un exemple.':'Bonne démarche. Tu peux enrichir ton explication.'},
-   {prompt:'Choisir la bonne démarche pour prévenir un risque.',
-    answer:score<14?'Ignorer les signes d’alerte':'Identifier les risques et adopter une mesure adaptée',
+   {prompt:'Présenter une démarche de prévention et expliquer son utilité en situation.',
+    answer:'Identifier les risques puis adopter une mesure adaptée. Je dois encore justifier son utilité par un exemple précis.',
     mark:q2,max:10,comment:q2<7?'Relis la démarche de prévention et explique pourquoi elle est utile.':'Tu identifies correctement la prévention adaptée.'}
   ],
   comment:i%3===0?'Tu maîtrises plusieurs notions. Ajoute des exemples précis à tes choix.':'Travail sérieux. Continue à structurer les réponses.'

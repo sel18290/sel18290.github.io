@@ -27,6 +27,7 @@ window.CORTEX_REVIEW=(function reviewModule(){
       const expected=Number.isInteger(q.correct)&&q.choices?.[q.correct]?`<div class="review-expected"><strong>Réponse attendue (QCM)</strong><span>${esc(q.choices[q.correct])}</span></div>`:'';
       return `<div class="review-written-response">${esc(response)}</div>${expected}`;
     }
+    if(window.CORTEX_QUESTION_TYPES&&['multi','boolean','table','matching','fill','number'].includes(q.type))return `<div class="review-written-response" style="white-space:pre-wrap">${esc(window.CORTEX_QUESTION_TYPES.summary(q,raw))}</div>`;
     return `<div class="review-written-response">${esc(raw)}</div>`;
   }
   function source(exam,q,options={}){

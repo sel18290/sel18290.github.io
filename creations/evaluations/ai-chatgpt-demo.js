@@ -40,6 +40,7 @@ function prepareBundle(id){
    const idx=Number(value);
    if(Number.isInteger(idx)&&q.choices[idx])value=String(q.choices[idx]);
   }
+  if(window.CORTEX_QUESTION_TYPES&&['multi','boolean','table','matching','fill'].includes(q.type))value=window.CORTEX_QUESTION_TYPES.summary(q,value);
   const correct=q.type==='choice'&&Array.isArray(q.choices)&&Number.isInteger(Number(q.correct))?'\nRéponse du QCM attendue : '+String(q.choices[Number(q.correct)]||'?'):'';
   const section=exam.pdfSource?'partie '+String(Number(q.section||0)+1):
    exam.sourceId?'page '+String(Number(q.page||1)):'document associé à la question';

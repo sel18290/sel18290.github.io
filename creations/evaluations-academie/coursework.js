@@ -39,6 +39,7 @@ async function reload(success=false){
   const data=await api('teacher_list',{},null,true);
   state.access=data.access||[];state.copies=data.submissions||[];
   display();
+  window.dispatchEvent(new Event('cortex:academy-class-updated'));
   if(success)message('Données actualisées.');
  }catch(err){message(String(err.message||err),true)}
  finally{state.loading=false}
@@ -105,7 +106,7 @@ function display(){
   select.setAttribute('aria-label','Nombre de numéros élèves');
   publish.append(make('label','','Effectif'),select,createButton(access?.active?'Actualiser les accès':'Publier et créer les PIN','cw-accent',async()=>{
    const out=await api('teacher_publish',{assessment_id:exam.id,roster_size:Number(select.value)},null,true);
-   if(out.freshPins?.length)state.pins.set(exam.id,out.freshPins);
+   if(out.freshPins?.length){state.pins.set(exam.id,out.freshPins);if(out.class_id)window.dispatchEvent(new CustomEvent('cortex:class-pins',{detail:{classId:out.class_id,pins:out.freshPins}}));}
    message(out.freshPins?.length?'Contrôle ouvert. Téléchargez les PIN affichés : ils ne seront plus récupérables après rechargement.':'Contrôle ouvert avec les PIN existants.');
    await reload();
   }));card.append(publish);
@@ -135,6 +136,7 @@ function display(){
     const out=await api('teacher_reset_pin',{assessment_id:exam.id,student_number:Number(number.value)},null,true);
     const prev=state.pins.get(exam.id)||[];
     state.pins.set(exam.id,prev.filter(x=>x.number!==out.number).concat([{number:out.number,pin:out.pin}]).sort((a,b)=>a.number-b.number));
+    if(out.class_id)window.dispatchEvent(new CustomEvent('cortex:class-pins',{detail:{classId:out.class_id,pins:[{number:out.number,pin:out.pin}]}}));
     message('PIN régénéré pour le numéro '+out.number+'.');
     display();
    }));

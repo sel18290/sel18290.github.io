@@ -191,9 +191,9 @@ document.addEventListener('click',event=>{
  if(!b)return;
  event.preventDefault();event.stopImmediatePropagation();
  const proceed=window.confirm(
-  '⚠ ALERTE RGPD — CHATGPT\\n\\n'+
-  'L’envoi de copies réelles à ChatGPT n’est pas validé au titre du RGPD dans CORTEX.\\n'+
-  'Un transfert peut exposer des données personnelles d’élèves. Tu décides de l’utiliser à tes risques et dois vérifier tes autorisations (établissement / DPO) ou anonymiser les contenus.\\n\\n'+
+  '⚠ ALERTE RGPD — CHATGPT\n\n'+
+  'L’envoi de copies réelles à ChatGPT n’est pas validé au titre du RGPD dans CORTEX.\n'+
+  'Un transfert peut exposer des données personnelles d’élèves. Tu décides de l’utiliser à tes risques et dois vérifier tes autorisations (établissement / DPO) ou anonymiser les contenus.\n\n'+
   'Je comprends les risques. Continuer vers l’outil ?'
  );
  if(!proceed)return;

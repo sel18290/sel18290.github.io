@@ -262,7 +262,7 @@ window.CORTEX_ALBERT_IMPORT=(function(){
    return {
     id:'ai-q-'+id()+'-'+i,number:i+1,
     detectedNo:String(q.number||i+1),prompt:String(q.prompt||'').slice(0,1200),
-    type,points,pointsToVerify:p===null,page,assetIds:[],
+    type,points,pointsToVerify:p===null,correctToVerify:['choice','multi'].includes(type),page,assetIds:[],
     doc:excerpt,docRefs:refs.map(d=>d.id),aiSuggested:true,
     choices:Array.isArray(q.choices)?q.choices.slice(0,8):[],
     correct:0,correctIndices:[],blanks:Array.isArray(q.blanks)?q.blanks.slice(0,10):[],

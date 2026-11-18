@@ -50,3 +50,15 @@ Le domaine `@ac-paris.fr` vérifie l'appartenance à une adresse académique **m
 4. Analyseur de sécurité Supabase : aucun avertissement. La base est restée vide après les tests.
 
 **Limite :** le site Académie ne dispose pas encore du parcours élève synchronisé. Les règles sont donc sauvegardées sur Supabase, mais ne s'appliquent pas encore aux élèves dans cette version. Aucun journal réel d'élève ne peut être reçu sans le service serveur prévu. Le rendu visuel final sur téléphone n'a pas été vérifié dans un navigateur connecté.
+
+## Actualisation : espace Anti-triche v2 (novembre 2026)
+
+Le site test et CORTEX Académie disposent d'une nouvelle direction visuelle **bleu nuit / rouge corail**, avec cartes de contrôle, réglages accessibles, explication de chaque protection et journal des événements.
+
+Une option booléenne `antiCheat.watermarkCapture` est disponible par contrôle :
+- **Site test** : lorsque `antiCheat.enabled` et `antiCheat.watermarkCapture` sont vrais, un filigrane discret et répété s'affiche sur la page d'examen avec uniquement **CORTEX + classe + numéro sur la liste**. Le PIN et les réponses ne sont jamais utilisés dans le filigrane. Le professeur peut désactiver l'option pour un aménagement d'accessibilité.
+- **CORTEX Académie** : l'option figure dans la création et les paramètres des évaluations ; la valeur est sauvegardée dans `cortex_teacher_assessments.content.antiCheat`, avec les autres protections. L'application académique ne possède pas encore le moteur élève serveur ; ce réglage n'y applique pas encore le filigrane sur les téléphones élèves.
+
+**Limite technique essentielle :** une page web n'est pas autorisée à bloquer ou détecter fiablement les captures faites par Android, iOS ou Windows. Le filigrane est un élément dissuasif et non un blocage. Une éventuelle application Android native dédiée pourrait utiliser `FLAG_SECURE`, sans pour autant empêcher une photo prise avec un second appareil.
+
+Vérifications : parsing JS, affichage du filigrane sur une évaluation fictive, désactivation effective, absence de PIN dans le filigrane, navigation interne de l'espace professeur, versions des assets. Test SQL Supabase sous transaction annulée : enregistrement et modification de `watermarkCapture` dans le JSON du contrôle, avec conservation du sujet. La disponibilité effective des nouveaux fichiers sur GitHub Pages et le rendu réel sur mobile n'ont pas été confirmés depuis le navigateur de test.

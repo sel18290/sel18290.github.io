@@ -131,7 +131,6 @@
    <label>Chapitre<input id="exam-chapter" maxlength="180" placeholder="PSE · Module A2"></label>
    <label>Durée (minutes)<input id="exam-duration" type="number" min="5" max="240" value="60"></label>
    <label class="real-manual-wide">Consignes générales<textarea id="exam-description" rows="2" maxlength="12000" placeholder="Lis les documents et réponds aux questions."></textarea></label>
-   <label class="real-manual-wide">Document commun aux questions<textarea id="exam-common-doc" rows="3" maxlength="12000" placeholder="Texte, données ou document à fournir aux élèves…"></textarea></label>
   </div>
  </div>
  <div class="real-manual-stats"><span id="real-manual-amount">1 question</span><strong id="real-manual-total">0 / 20 points</strong><span id="real-manual-current">Question 1 / 1</span></div>
@@ -143,7 +142,9 @@
   </nav>
   <section class="real-manual-document">
    <div class="real-manual-panel-title"><strong>02 / DOCUMENT ASSOCIÉ</strong><small>Ce que verra l’élève</small></div>
-   <div id="manual-source-preview" class="real-manual-source-content"></div>
+   <div id="manual-source-preview" class="real-manual-source-content" tabindex="0" aria-label="Documents associés à la question : coller une capture avec Ctrl+V"></div>
+   <div class="real-manual-capture-controls"><label class="real-manual-capture-upload" for="manual-capture-file">＋ Choisir une image</label><input id="manual-capture-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="manual-paste-image" type="button" class="real-manual-secondary">▣ Coller une capture</button></div>
+   <p class="real-manual-capture-hint">Capture d’écran : clique sur « Coller une capture » ou sélectionne la zone documentaire et fais Ctrl+V. La capture est liée à la question sélectionnée.</p>
    <label class="real-manual-attach"><strong>Ajouter un document original au contrôle</strong>
     <input id="manual-source-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
     <small>PDF ou Word (.docx), 8 Mo maximum. Le document est stocké en privé lors de l’enregistrement et accessible aux élèves après publication.</small>

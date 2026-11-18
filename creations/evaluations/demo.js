@@ -232,6 +232,22 @@ function examClassHeading(exam){
  const names=[...new Set(linked.map(a=>window.CORTEX_CLASSES.classLabel(state,a.classId)).filter(Boolean))];
  return names.join(' · ')||window.CORTEX_CLASSES.classLabel(state,exam.classId,'Sans classe');
 }
+async function openTeacherSimulator(exam){
+ if(!exam)return;
+ try{
+  const assets=[];
+  for(const asset of exam.assets||[]){
+   let url=null;
+   try{url=await window.CORTEX_VISUAL?.imageUrl?.(asset.id)}catch{}
+   if(url)assets.push({...asset,url});
+  }
+  window.CORTEX_STUDENT_SIMULATOR.open({
+   exam:{...exam,description:exam.description||'',duration:exam.duration||60},
+   classe:window.CORTEX_CLASSES.classLabel(state,exam.classId||'','Sans classe'),
+   scope:exam.publishScope||'all',assets
+  });
+ }catch(err){showToast('Simulation indisponible : '+(err?.message||err));}
+}
 function teacherExams(){
 const visibleExams=state.exams.filter(e=>!teacherClassFilter||window.CORTEX_CLASSES.assignedTo(state,e.id,teacherClassFilter,teacherGroupFilter));
 return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
@@ -1144,8 +1160,7 @@ if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal
 if(a==='dashboard-preview'){const exam=examBy(id);if(exam)examPreviewModal(exam);return;}
 if(a==='preview-try-exam'){
  const exam=examBy(id);if(!exam)return;
- if(!exam.open){showToast('Publie ce contrôle dans « Mes contrôles » avant de le tester.');return;}
- closeModal();chosenCode=exam.code;nav('student','accueil');return;
+ closeModal();openTeacherSimulator(exam);return;
 }
 if(a==='ask-delete-exam'){
  const exam=examBy(id);if(!exam)return;
@@ -1263,7 +1278,7 @@ if(a==='confirm-publish-exam'){
  return;
 }
 if(a==='toggle-exam'){const e=examBy(id);if(e){e.open=false;save();render();}return;}
-if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;modalShow('Accès élève par QR code',window.CORTEX_CLASSES.qrChoices(state,e),btn('Fermer','close-modal','ghost'));return;}
+if(a==='try-exam'||a==='try-sleep'){const e=examBy(id||'sommeil-pdf-a2');if(!e)return;openTeacherSimulator(e);return;}
 if(a==='add-question'){if(!editor)return;editor.questions.push({id:'q-'+Date.now(),type:'text',prompt:'',points:4});render();return;}
 if(a==='remove-question'){if(editor&&editor.questions.length>1){editor.questions.splice(Number(el.dataset.index),1);render();}else showToast('Conserve au moins une question.');return;}
 if(a==='save-exam'){

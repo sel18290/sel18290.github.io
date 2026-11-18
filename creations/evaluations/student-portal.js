@@ -278,14 +278,14 @@ window.CORTEX_PORTAL=(function(){
    const stamp=new Date(calendarYear,month,day,11,20).getTime();
    exams.push({id:examId,title:topic,level:'Seconde',duration:45,open:true,questions:[
     {id:q1,prompt:'Explique une notion importante du chapitre « '+topic+' » et donne un exemple concret.',points:10,type:'text'},
-    {id:q2,prompt:'Quelle démarche favorise une meilleure prévention ?',points:10,type:'choice',
-     choices:['Ignorer les signes d’alerte','Identifier les risques et adopter une mesure adaptée','Reporter systématiquement toute action'],correct:1}
+    {id:q2,prompt:'Présente une démarche de prévention et explique son utilité dans une situation concrète.',points:10,type:'text'}
    ]});
    attempts.push({id:'exemple-copie-'+i,examId,classId:cl.id,className:cl.name,studentNumber:'12',
     groupName:'Classe entière',status:'submitted',submittedAt:stamp,startedAt:stamp-2700000,
     grade:score,reviewedAt:stamp+86400000,publishedToStudent:true,feedback:i%3===0?'Tu maîtrises plusieurs notions. Pour progresser, pense à toujours expliquer tes choix avec un exemple précis.':'Travail sérieux. Continue à structurer tes réponses et à justifier chaque étape.',
     marks:{[q1]:{points:q1Points,comment:i%3===0?'Une définition juste, mais il manque une justification ou un exemple.':'Bonne démarche. Tu peux enrichir ton explication.'},[q2]:{points:q2Points,comment:q2Points<7?'Relis la démarche de prévention et explique pourquoi elle est utile.':'Tu identifies correctement la prévention adaptée.'}},
-    answers:{[q1]:'Je peux expliquer le principe et proposer une action de prévention.',[q2]:score<14?'0':'1'}});
+    answers:{[q1]:'Je peux expliquer le principe et proposer une action de prévention.',
+     [q2]:'Identifier les risques puis adopter une mesure adaptée. Je dois encore justifier son utilité par un exemple précis.'}});
   });
   // Copie du contrôle PSE fictif, réellement en attente de validation du professeur.
   // Le serveur Albert connaît exclusivement ce jeu de 20 réponses fictives.

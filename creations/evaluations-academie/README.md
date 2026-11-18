@@ -133,3 +133,21 @@ Dans l'espace professeur, la section Mes classes affiche les effectifs inscrits 
 Conditions préalables : le professeur doit générer et distribuer les PIN provisoires de chaque classe. Les classes sont configurées, mais n'ouvrent pas automatiquement des espaces élèves sans ces codes. Les demi-groupes servent à classer les élèves inscrits : le filtrage des contrôles par demi-groupe n'est pas encore implémenté.
 
 Tests réalisés : migration SQL ; validation du choix groupe 2 puis correction par le professeur en groupe 1 dans une transaction annulée ; simulation des formulaires de première connexion par accès général et QR et du tableau de bord enseignant. Déploiement de la fonction Supabase Edge version 7.
+
+## Interface professeur unifiée avec la version test — novembre 2026
+
+Après connexion académique, CORTEX affiche la structure de la démonstration CORTEX Évaluations : menu latéral sur ordinateur, menu horizontal défilant sur mobile, titre « Tableau de bord », rangée des classes, quatre indicateurs, contrôles récents et panneaux de travail.
+
+Rubriques identiques à la démonstration : Vue d’ensemble, Mes classes, PIN élèves, Mes contrôles, Copies & notes, Suivi des épreuves, Anti-triche, Analyses, Importer PDF / Word, Créer un contrôle.
+
+À la différence de la démo, les données proviennent des comptes Supabase :
+- Classes et contrôles dans cortex_teacher_classes / cortex_teacher_assessments.
+- PIN, classe, inscription et demi-groupe via les fonctions serveur.
+- Documents et copies en stockage privé et table des remises.
+- Notes réelles, indicateurs de corrections, contrôles ouverts, analyses des copies effectivement corrigées.
+
+Implémentation : professor-live.css (styles calqués sur la démo), professor-live.js (vues réelles), app.js (navigation 10 rubriques et cartes de classe), coursework.js (instantanés serveur). Ne jamais injecter l'état local ou les copies fictives de la démo dans le compte académique.
+
+Limites explicites : les rubriques reposent sur les fonctions Académie existantes ; l'éditeur avancé de la démo, la surveillance instantanée des élèves, les exports PDF de lot et toutes les interactions du moteur de démonstration ne sont pas encore reproduits à l'identique. Le suivi serveur n'affiche pas de faux « élèves en cours ». Tester le rendu réel et le parcours avec deux appareils avant de déclarer une parité fonctionnelle complète.
+
+Tests réalisés : syntaxe des scripts, équilibre et unicité de la structure HTML, styles CSS, présence de toutes les ressources, navigation entre les dix rubriques et rendu calculé à partir d'une simulation de données réelles.

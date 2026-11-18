@@ -142,7 +142,7 @@ function hydrateQrDemo(state,parts){
 }
 function qrModal(s,a,e,url){
  return `<div class="qr-sheet"><span class="chip teal">QR professeur · ${h(assignmentLabel(s,a))}</span>
-  <h3>${h(e.title)}</h3><p class="muted small">Les élèves scannent ce QR pour ouvrir directement la page de leur classe et groupe, puis leur copie.</p>
+  <h3>${h(e.title)}</h3><p class="muted small">Les élèves scannent ce QR pour ouvrir directement la page de leur classe et groupe, puis leur numéro de liste et leur PIN.</p>
   <div id="class-qr-image" class="qr-image"><span>Création du QR code…</span></div>
   <div class="class-qr-details"><span>CLASSE / GROUPE</span><strong>${h(assignmentLabel(s,a))}</strong><span>DURÉE</span><strong>${Number(e.duration)||60} minutes</strong></div>
   <div class="class-qr-url">${h(url)}</div>

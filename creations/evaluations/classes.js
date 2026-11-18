@@ -75,6 +75,7 @@ function details(s,cl){
    <div class="panel-head"><div><p class="eyebrow">FICHE CLASSE</p><h2>${h(cl.name)}</h2>
      <p>${copies.length} copie(s) · ${pending.length} à corriger · ${listed.length} contrôle(s) affecté(s)</p></div>
      <div class="btn-row"><button class="btn secondary small" data-action="access-manage" data-id="${h(cl.id)}">⌑ PIN élèves</button>
+      <button class="btn secondary small" data-action="portal-class-code" data-id="${h(cl.id)}">◈ Code de classe</button>
       <button class="btn secondary small" data-action="class-show-copies" data-id="${h(cl.id)}">Corriger les copies →</button>
        <button class="btn danger small" data-action="class-ask-delete" data-id="${h(cl.id)}">Supprimer la classe</button></div></div>
    <div class="class-detail-cols">

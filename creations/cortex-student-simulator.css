@@ -1,0 +1,37 @@
+/* CORTEX — aperçu du parcours élève depuis le professeur, commun Démo / Académie. */
+.cortex-sim-dialog{box-sizing:border-box;width:min(930px,calc(100vw - 20px));height:min(90dvh,940px);max-height:90dvh;max-width:none;border:1px solid #83b8df;border-radius:22px;padding:0;background:#081a2e;color:#edf9ff;box-shadow:0 32px 110px #000b;overflow:hidden;font:inherit}
+.cortex-sim-dialog::backdrop{background:rgba(1,7,19,.8);backdrop-filter:blur(6px)}
+.cortex-sim-dialog .cortex-sim-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(90deg,#113e54,#091f36);border-bottom:1px solid #517990}
+.cortex-sim-dialog .cortex-sim-header h2{font-size:clamp(19px,3vw,26px);line-height:1.2;margin:6px 0 0;color:#fff}
+.cortex-sim-dialog .cortex-sim-header small{font-size:11px;color:#a3e5dc;letter-spacing:.07em}
+.cortex-sim-dialog .cortex-sim-body{box-sizing:border-box;padding:24px;max-height:calc(90dvh - 160px);overflow-y:auto;overflow-x:hidden}
+.cortex-sim-dialog .cortex-sim-footer{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #426786;padding:14px 24px;background:#0c263c;position:absolute;bottom:0;left:0;right:0}
+.cortex-sim-dialog button{border-radius:10px;padding:11px 15px;font:inherit;font-size:13px;font-weight:750;cursor:pointer;border:1px solid #7397b8}
+.cortex-sim-dialog button:disabled{cursor:not-allowed;opacity:.42}
+.cortex-sim-dialog .cortex-sim-exit,.cortex-sim-dialog .cortex-sim-secondary{background:#17364c;color:#e6f3ff}
+.cortex-sim-dialog .cortex-sim-main{background:#d4ecff;color:#11274a}
+.cortex-sim-dialog .cortex-sim-notice{border-left:3px solid #74d8cf;border-radius:8px;background:#123a4b;padding:13px;line-height:1.55}
+.cortex-sim-dialog .cortex-sim-overview{padding:16px;border:1px solid #5c7d92;border-radius:13px;margin-top:16px}
+.cortex-sim-dialog .cortex-sim-overview>strong{font-size:17px}
+.cortex-sim-dialog .cortex-sim-overview p{line-height:1.55;white-space:pre-wrap}
+.cortex-sim-dialog .cortex-sim-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:11px 15px;border:1px solid #497a96;background:#103752;border-radius:12px;margin-bottom:17px}
+.cortex-sim-dialog .cortex-sim-status span{font-weight:700;letter-spacing:.04em}
+.cortex-sim-dialog .cortex-sim-clock{font-size:27px;font-variant-numeric:tabular-nums;color:#b4ffe2}
+.cortex-sim-dialog .cortex-sim-urgent{color:#ffc2a0!important}
+.cortex-sim-dialog .cortex-sim-question{display:grid;gap:13px}
+.cortex-sim-dialog .cortex-sim-question h3{margin:0;color:#fff;font-size:clamp(17px,2.6vw,22px);line-height:1.4}
+.cortex-sim-dialog .cortex-sim-progress{font-size:12px;color:#b8e2eb}
+.cortex-sim-dialog .cortex-sim-docs,.cortex-sim-dialog .cortex-sim-doc-text{background:#e8f2f8;color:#244052;border-radius:13px;padding:14px;white-space:pre-wrap;line-height:1.6;overflow-wrap:anywhere}
+.cortex-sim-dialog .cortex-sim-docs figure{margin:12px 0 3px;display:grid;gap:5px}
+.cortex-sim-dialog .cortex-sim-docs img{max-width:100%;max-height:500px;object-fit:contain;background:white;border-radius:8px}
+.cortex-sim-dialog .cortex-sim-docs figcaption{font-size:12px}
+.cortex-sim-dialog .cortex-sim-subject{color:#b8ecff;text-decoration:underline;font-size:13px}
+.cortex-sim-dialog .cortex-sim-fields input,.cortex-sim-dialog .cortex-sim-fields textarea,.cortex-sim-dialog .cortex-sim-fields select{box-sizing:border-box;width:100%;padding:12px;background:#e9f4fd;color:#0c2841;border:1px solid #7495b0;border-radius:10px;min-height:44px;font:inherit}
+.cortex-sim-dialog .cortex-sim-fields input[type=radio],.cortex-sim-dialog .cortex-sim-fields input[type=checkbox]{width:auto;min-height:0}
+.cortex-sim-dialog .cortex-sim-fields .cq-answer-option{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #527f9d;border-radius:9px;margin-top:7px}
+.cortex-sim-dialog .cortex-sim-file{display:grid;gap:8px;padding:11px;border:1px dashed #597f94;border-radius:10px;color:#b4d7e6;font-size:12px}
+.cortex-sim-dialog .cortex-sim-file input{max-width:100%;font-size:12px}
+.cortex-sim-dialog .cortex-sim-review{display:grid;gap:8px}
+.cortex-sim-dialog .cortex-sim-review-row{text-align:left;background:#153954;color:#ecf5ff;border:1px solid #577e99}
+@media(max-width:600px){.cortex-sim-dialog{width:100vw;max-height:100dvh;height:100dvh;border-radius:0}.cortex-sim-dialog .cortex-sim-body{max-height:calc(100dvh - 170px);padding:15px}.cortex-sim-dialog .cortex-sim-footer{padding:10px}.cortex-sim-dialog .cortex-sim-header{padding:12px}.cortex-sim-dialog button{padding:10px}.cortex-sim-dialog .cortex-sim-header h2{font-size:18px}.cortex-sim-dialog .cortex-sim-clock{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.cortex-sim-dialog *{scroll-behavior:auto}}

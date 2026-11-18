@@ -121,3 +121,15 @@ Le serveur vérifie le PIN provisoire avant toute activation. Le nouveau PIN rem
 Implémentation : colonne activated_at de la table cortex_academy_class_roster, action Edge student_activate dans cortex-coursework. Vérification SQL avec transaction annulée : activation unique, ancien PIN inutilisable et remise en état provisoire lors de la réinitialisation. Tests simulés de l’activation depuis le portail et depuis un QR avec connexion automatique : réussis.
 
 Attention : l'identité élève est pseudonyme (classe et numéro). Ce n'est pas une inscription autonome par e-mail Supabase Auth. La confirmation du PIN initial est obligatoire pour éviter l'appropriation de l'espace d'un autre élève. Configuration SMTP, essais multi-appareils et validation de la conformité RGPD avant utilisation scolaire.
+
+## 18 novembre 2026 — inscription élève par classe et demi-groupe
+
+Catalogue de classes ajouté au compte enseignant existant : 2MRC1, 2MRC2, 2MRC3, 2GA, 2GA2, 1MA, 1AGORA, 1AGORA2, 1MCV1, 1MCV2 et 3PM. Les classes peuvent toujours être ajoutées ou supprimées.
+
+Première connexion : sélection de la classe (visible même si les PIN ne sont pas encore préparés), du demi-groupe 1, du demi-groupe 2 ou de Classe entière, du numéro de place, puis validation du PIN provisoire distribué par le professeur. Le PIN personnel remplace alors le PIN provisoire. Le demi-groupe est enregistré sur la ligne privée de l'élève, uniquement après contrôle du PIN initial.
+
+Dans l'espace professeur, la section Mes classes affiche les effectifs inscrits par groupe. La section PIN élèves présente les listes des élèves activés, par numéro de placement et par demi-groupe ; le professeur peut corriger l'affectation du groupe d'un élève connecté à sa classe. Les accès sont vérifiés sur le serveur avant toute mise à jour.
+
+Conditions préalables : le professeur doit générer et distribuer les PIN provisoires de chaque classe. Les classes sont configurées, mais n'ouvrent pas automatiquement des espaces élèves sans ces codes. Les demi-groupes servent à classer les élèves inscrits : le filtrage des contrôles par demi-groupe n'est pas encore implémenté.
+
+Tests réalisés : migration SQL ; validation du choix groupe 2 puis correction par le professeur en groupe 1 dans une transaction annulée ; simulation des formulaires de première connexion par accès général et QR et du tableau de bord enseignant. Déploiement de la fonction Supabase Edge version 7.

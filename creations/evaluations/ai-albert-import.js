@@ -125,7 +125,7 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   });
   const stage=document.createElement('div');
   stage.className='cai-word-render';
-  stage.style.cssText='position:fixed;left:-14000px;top:0;width:750px;background:#fff;color:#222;padding:24px;font:15px/1.5 Arial;z-index:-1;';
+  stage.style.cssText='position:fixed;left:0;top:0;width:750px;background:#fff;color:#222;padding:24px;font:15px/1.5 Arial;z-index:-1;pointer-events:none;';
   stage.append(clean);document.body.append(stage);
   try{
    if(!window.html2canvas){
@@ -204,13 +204,15 @@ window.CORTEX_ALBERT_IMPORT=(function(){
      output=result;break;
     }
     if(!output)throw Error('Albert n’a pas retourné de résultat.');
+    const documentMap=new Map();
     for(const d of output.documents||[]){
      const localId='p'+(d.page||start+1)+'-'+String(d.id||id()).slice(0,20);
+     documentMap.set(String(d.id),localId);
      documents.push({...d,id:localId});
     }
     for(const q of output.questions||[]){
      questions.push({...q,
-      documentIds:(q.documentIds||[]).map(did=>'p'+(q.page||start+1)+'-'+String(did).slice(0,20))});
+      documentIds:(q.documentIds||[]).map(did=>documentMap.get(String(did))).filter(Boolean)});
     }
     warnings.push(...(output.warnings||[]));
     status('Pages '+(start+1)+' à '+(start+prepared.length)+' analysées. '+questions.length+' question(s) repérée(s).',

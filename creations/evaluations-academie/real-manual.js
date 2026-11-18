@@ -285,6 +285,26 @@ $('manual-capture-file').addEventListener('change',event=>{
 });
 $('manual-question-doc').addEventListener('input',event=>updateField(event.target,false));
 document.querySelector('.real-manual-document').addEventListener('paste',pasteCaptureEvent);
+
+const manualImageZone=$('manual-source-preview');
+manualImageZone.addEventListener('dragover',event=>{
+ const types=[...(event.dataTransfer?.types||[])];
+ if(!types.includes('Files'))return;
+ event.preventDefault();event.dataTransfer.dropEffect='copy';
+ manualImageZone.classList.add('cortex-drop-active');
+});
+manualImageZone.addEventListener('dragleave',event=>{
+ if(!manualImageZone.contains(event.relatedTarget))manualImageZone.classList.remove('cortex-drop-active');
+});
+manualImageZone.addEventListener('drop',event=>{
+ const images=[...(event.dataTransfer?.files||[])].filter(file=>/^image\/(png|jpeg|webp)$/.test(file.type));
+ if(!images.length)return;
+ event.preventDefault();manualImageZone.classList.remove('cortex-drop-active');
+ for(const image of images){
+  try{addCapture(image,image.name);}catch(error){setHint('Image non ajoutée : '+(error?.message||error));break;}
+ }
+});
+
 $('manual-doc-prev').addEventListener('click',()=>{state.docPage=Math.max(1,state.docPage-1);renderOriginal().catch(error=>setHint(error.message));});
 $('manual-doc-next').addEventListener('click',()=>{state.docPage=Math.min(state.docCount,state.docPage+1);renderOriginal().catch(error=>setHint(error.message));});
 window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,

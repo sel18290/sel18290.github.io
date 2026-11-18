@@ -1,6 +1,6 @@
 /* CORTEX — test Albert sur contrôle PSE et copie fictifs, figés côté serveur.
  * Aucune entrée utilisateur, aucune vraie copie, aucun secret dans le navigateur.
- * Enseignant académique authentifié requis, résultats non sauvegardés.
+ * Démonstration publique : quota global atomique, résultats non sauvegardés.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 const ORIGIN='https://sel18290.github.io';
@@ -231,13 +231,6 @@ Deno.serve(async(req:Request)=>{
  if(req.method!=='POST')return fail('Méthode non autorisée.',405);
  if(req.headers.get('origin')&&req.headers.get('origin')!==ORIGIN)return fail('Origine non autorisée.',403);
  try{
-  const jwt=req.headers.get('authorization')?.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
-  if(!jwt)return fail('Compte professeur CORTEX requis. Connecte-toi d’abord dans l’espace réel.',401);
-  const {data:{user},error}=await db.auth.getUser(jwt);
-  if(error||!user||!user.email_confirmed_at||!user.email?.toLowerCase().endsWith('@ac-paris.fr'))
-    return fail('Compte professeur académique confirmé nécessaire.',403);
-  const {data:profile}=await db.from('cortex_teacher_profiles').select('user_id').eq('user_id',user.id).maybeSingle();
-  if(!profile)return fail('Compte professeur non autorisé.',403);
   const raw=await req.text();
   if(raw.length>300)return fail('Requête trop longue.',413);
   let body:any;
@@ -246,19 +239,11 @@ Deno.serve(async(req:Request)=>{
     Object.keys(body).sort().join(',')!=='action,copy_id')
     return fail('Test limité à la copie fictive de référence.',400);
   if(!Deno.env.get('ALBERT_API_KEY'))return fail('Clé ALBERT_API_KEY absente du serveur Supabase.',503);
-  const usageDay=new Date().toISOString().slice(0,10);
-  const {data:usage,error:usageError}=await db.from('cortex_albert_demo_usage')
-    .select('request_count,last_request_at')
-    .eq('teacher_id',user.id).eq('usage_day',usageDay).maybeSingle();
-  if(usageError)return fail('Protection du quota de test indisponible.',503);
-  if((usage?.request_count||0)>=8)return fail('Limite de huit corrections fictives atteinte pour aujourd’hui.',429);
-  if(usage&&Date.now()-new Date(usage.last_request_at).getTime()<30000)
-    return fail('Patiente au moins 30 secondes entre deux essais Albert.',429);
-  const {error:saveError}=await db.from('cortex_albert_demo_usage').upsert({
-    teacher_id:user.id,usage_day:usageDay,request_count:(usage?.request_count||0)+1,
-    last_request_at:new Date().toISOString()
-  },{onConflict:'teacher_id,usage_day'});
-  if(saveError)return fail('Quota de test non disponible.',503);
+  // Quota global en base atomique : pas d’identité, d’IP ni de copie conservées.
+  // Le compteur est réservé AVANT tout appel payant à Albert (24/jour, 20 secondes d’intervalle).
+  const {data:admitted,error:limitError}=await db.rpc('cortex_albert_demo_claim_slot');
+  if(limitError)return fail('Contrôle du quota de démonstration indisponible. Aucun appel Albert effectué.',503);
+  if(admitted!==true)return fail('Démonstration momentanément limitée : 20 secondes entre deux tests et maximum 24 corrections par jour pour tous les visiteurs.',429);
   const halves=await Promise.all([correctPart(DEMO.questions.slice(0,10)),correctPart(DEMO.questions.slice(10))]);
   const all=halves.flat(),earned=all.reduce((a,q)=>a+q.points,0);
   return respond({ok:true,status:'draft',mode:'demo',provider:'Albert API',

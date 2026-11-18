@@ -650,8 +650,14 @@ async function downloadPDFCopies(copies,scopeLabel=''){
     if(status)status.textContent='Création du PDF : '+index+' / '+total+' copie(s) - '+(at.className||'Classe');
    }
   });
-  if(status)status.textContent='PDF généré localement : '+result.filename+' ('+result.pages+' pages).';
-  showToast('Fichier PDF prêt : '+result.count+' copie(s).');
+  const warnings=Array.isArray(result.warnings)?result.warnings:[];
+  if(warnings.length){
+   if(status)status.textContent='PDF créé ('+result.pages+' pages), mais '+warnings.length+' document(s) ou aperçu(s) n’ont pas pu être restitués à l’identique. Consulte les avertissements dans le PDF.';
+   showToast('PDF téléchargé avec '+warnings.length+' alerte(s) sur les documents sources.');
+  }else{
+   if(status)status.textContent='PDF généré avec les documents disponibles : '+result.filename+' ('+result.pages+' pages).';
+   showToast('PDF prêt avec les documents : '+result.count+' copie(s).');
+  }
  }catch(error){
   if(status)status.textContent='Export PDF impossible : '+(error?.message||error);
   showToast('Export PDF : '+(error?.message||'échec de génération'));

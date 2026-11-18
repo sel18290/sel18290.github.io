@@ -127,6 +127,7 @@ async function inspect(file){
 }
 function clearEditor(){
  state.file=null;state.pdf=null;state.kind='';state.name='';state.pages=[];state.page=1;state.questions=[];
+ for(const asset of state.assets)if(asset.previewUrl)URL.revokeObjectURL(asset.previewUrl);
  state.id=null;state.assets=[];state.selected=null;state.wordHtml='';state.published=false;state.sourceCount=1;
  for(const inputId of ['ri-title','ri-class','ri-description'])by(inputId).disabled=false;
  by('ri-save').disabled=false;
@@ -146,9 +147,21 @@ function renderQuestions(){
  const rows=by('ri-questions');rows.replaceChildren();
  const target=by('ri-target-question'),before=target.value;target.replaceChildren();
  state.questions.forEach((q,i)=>{
-  const item=node('article','ri-question');
+  const item=node('article','ri-question ri-question-drop');
+  item.dataset.questionId=q.id;
+  item.addEventListener('dragover',ev=>{
+   if(state.published||!ev.dataTransfer?.types?.includes('application/x-cortex-capture'))return;
+   ev.preventDefault();ev.dataTransfer.dropEffect='copy';item.classList.add('ri-drop-active');
+  });
+  item.addEventListener('dragleave',ev=>{if(!item.contains(ev.relatedTarget))item.classList.remove('ri-drop-active');});
+  item.addEventListener('drop',ev=>{
+   ev.preventDefault();item.classList.remove('ri-drop-active');
+   const id=ev.dataTransfer?.getData('application/x-cortex-capture')||ev.dataTransfer?.getData('text/plain');
+   if(id)operation(()=>attachCapture(id,q.id));
+  });
   const header=node('div','ri-q-header');
-  header.append(node('strong','','QUESTION '+(i+1)),node('small','',q.assetIds?.length?q.assetIds.length+' capture(s)':'Aucune capture associée'));
+  const linked=(q.assetIds||[]).length+state.assets.filter(a=>a.pending&&a.questionId===q.id).length;
+  header.append(node('strong','','QUESTION '+(i+1)),node('small','',linked?linked+' document(s) associé(s)':'Glisse une capture ici ⇩'));
   const remove=node('button','ri-action subtle','Supprimer');remove.type='button';remove.disabled=state.published||state.questions.length<2;
   remove.onclick=()=>{state.questions.splice(i,1);renderQuestions();};
   header.append(remove);item.append(header);
@@ -174,6 +187,20 @@ function renderQuestions(){
   page.onchange=()=>{q.page=Number(page.value);state.page=q.page;paint().catch(e=>msg(e.message,true));};
   metadata.append(node('label','','Type de réponse'),type,node('label','','Points'),pts,node('label','','Source'),page);
   item.append(metadata);
+  const drop=node('div','ri-question-dropzone','⇩ Glisse un extrait ici, ou sélectionne cette question dans la banque documentaire.');
+  drop.setAttribute('aria-label','Déposer un extrait sur la question '+(i+1));
+  if(state.published)drop.hidden=true;
+  item.append(drop);
+  const attached=state.assets.filter(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
+  if(attached.length){
+   const dock=node('div','ri-question-docs');
+   for(const a of attached){
+    const fig=node('figure','ri-question-doc'),pic=node('img');
+    pic.src=a.previewUrl||a.url||'';pic.alt=a.name;
+    fig.append(pic,node('figcaption','',a.name));dock.append(fig);
+   }
+   item.append(dock);
+  }
   if(q.type==='choice'){
    const choices=node('textarea','ri-question-text');choices.rows=4;choices.value=(q.choices||[]).join('\n');
    choices.placeholder='Une proposition par ligne (2 à 6 propositions)';
@@ -198,23 +225,64 @@ function updateTotal(){
  by('ri-total').textContent=state.questions.length+' question(s) · '+total.toLocaleString('fr-FR',{maximumFractionDigits:2})+' points';
 }
 function renderAssets(){
- const box=by('ri-assets');box.replaceChildren();
- if(!state.assets.length){box.append(node('p','ri-subtle','Les captures associées apparaîtront ici, accessibles aux élèves sur leur appareil.'));return;}
- for(const a of state.assets){
-  const line=node('div','ri-asset-row');
-  const img=node('img','ri-asset-thumb');if(a.url){img.src=a.url;img.alt='Capture du document '+a.name;}else img.alt='Capture indisponible';
-  const info=node('div','ri-asset-desc');
-  info.append(node('strong','',a.name),node('small','','Q'+(state.questions.findIndex(q=>q.id===a.questionId)+1)+' · page '+a.page));
-  line.append(img,info);
-  const remove=node('button','ri-action subtle','Retirer');remove.type='button';remove.disabled=state.published;
-  remove.onclick=()=>operation(async()=>{
-   await api('teacher_asset_delete',{assessment_id:state.id,asset_id:a.id},null,true);
-   state.assets=state.assets.filter(x=>x.id!==a.id);
-   for(const q of state.questions)q.assetIds=(q.assetIds||[]).filter(x=>x!==a.id);
-   renderQuestions();await bridge().refresh();msg('Capture supprimée du stockage privé.');
-  });
-  line.append(remove);box.append(line);
+ const bank=by('ri-assets');bank.replaceChildren();
+ if(by('ri-bank-count'))by('ri-bank-count').textContent=state.assets.length+' capture(s)';
+ if(!state.assets.length){
+  bank.append(node('p','ri-subtle','Encadre un passage sur le document : sa capture apparaît ici, prête à être glissée sur une question.'));
+  return;
  }
+ for(const a of state.assets){
+  const row=node('div','ri-asset-row ri-asset-drag');row.draggable=!state.published;
+  row.addEventListener('dragstart',e=>{
+   if(state.published){e.preventDefault();return;}
+   e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('application/x-cortex-capture',a.id);
+   e.dataTransfer.setData('text/plain',a.id);row.classList.add('ri-dragging');
+  });
+  row.addEventListener('dragend',()=>row.classList.remove('ri-dragging'));
+  const img=node('img','ri-asset-thumb');img.src=a.previewUrl||a.url||'';
+  img.alt='Capture : '+a.name;img.draggable=false;
+  const info=node('div','ri-asset-desc'),qIndex=state.questions.findIndex(q=>q.id===a.questionId||(q.assetIds||[]).includes(a.id));
+  info.append(node('strong','',a.name),node('small','',`Page ${a.page||1} · ${qIndex>=0?'Question '+(qIndex+1):'À associer'} · ${a.pending?'Capture locale':'Enregistrée'}`));
+  const actions=node('div','ri-asset-buttons');
+  const add=node('button','ri-action subtle','＋ Ajouter à la question');
+  add.type='button';add.disabled=state.published;
+  add.onclick=()=>operation(()=>attachCapture(a.id,by('ri-target-question').value));
+  const remove=node('button','ri-action subtle','Supprimer');remove.type='button';remove.disabled=state.published;
+  remove.onclick=()=>operation(async()=>{
+   if(a.pending){
+    if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
+    state.assets=state.assets.filter(item=>item.id!==a.id);
+    msg('Capture locale supprimée.');
+   }else{
+    await api('teacher_asset_delete',{assessment_id:state.id,asset_id:a.id},null,true);
+    state.assets=state.assets.filter(item=>item.id!==a.id);
+    for(const q of state.questions)q.assetIds=(q.assetIds||[]).filter(id=>id!==a.id);
+    await bridge()?.refresh?.();msg('Capture supprimée du stockage privé.');
+   }
+   renderQuestions();
+  });
+  actions.append(add,remove);row.append(img,info,actions);bank.append(row);
+ }
+}
+async function attachCapture(id,questionId){
+ if(state.published)throw Error('Contrôle publié : modification impossible.');
+ const a=state.assets.find(x=>x.id===id),q=state.questions.find(x=>x.id===questionId);
+ if(!a||!q)throw Error('Capture ou question introuvable.');
+ if(a.pending){
+  if(!state.id){a.questionId=q.id;renderQuestions();msg('Capture affectée. Enregistre le contrôle pour la synchroniser.');return;}
+  const file=new File([a.blob],a.name,{type:a.blob.type||'image/jpeg'});
+  const result=await api('teacher_asset_upload',{assessment_id:state.id,question_id:q.id,page:a.page},file,true);
+  if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
+  state.assets[state.assets.indexOf(a)]={...result.asset,pending:false};
+  q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
+  await bridge()?.refresh?.();renderQuestions();
+  msg('Capture associée et enregistrée dans Supabase pour la question '+(state.questions.indexOf(q)+1)+'.');
+  return;
+ }
+ if((q.assetIds||[]).includes(a.id)){msg('Capture déjà liée à cette question.');return;}
+ q.assetIds=[...(q.assetIds||[]),a.id];
+ try{await save();renderQuestions();msg('Capture associée à la question '+(state.questions.indexOf(q)+1)+'.');}
+ catch(error){q.assetIds=q.assetIds.filter(x=>x!==a.id);renderQuestions();throw error;}
 }
 function selectPage(dir){
  state.page=Math.max(1,Math.min(state.sourceCount,state.page+dir));paint().catch(e=>msg(e.message,true));

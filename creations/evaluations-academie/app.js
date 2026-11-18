@@ -344,6 +344,58 @@ $('auth-form').addEventListener('submit',async ev=>{
  }catch(error){status(safeAuthMessage(error),true);}
  finally{busy=false;$('submit').disabled=false;}
 });
+// Confirmation alternative : le site ne dépend pas des Redirect URLs Supabase.
+// L'utilisateur copie le lien reçu sans cliquer dessus et le vérifie directement en HTTPS.
+function confirmationToken(link){
+ const url=new URL(String(link||'').trim());
+ const expected=new URL(SUPABASE_URL);
+ if(url.protocol!=='https:'||url.origin!==expected.origin||url.pathname!=='/auth/v1/verify')
+  throw new Error('Ce n’est pas un lien de confirmation de notre projet CORTEX. Copiez l’adresse exacte du lien reçu.');
+ const type=url.searchParams.get('type');
+ if(type!=='signup'&&type!=='email')
+  throw new Error('Le lien reçu n’est pas un lien de confirmation d’inscription.');
+ const hash=url.searchParams.get('token_hash')||url.searchParams.get('token');
+ if(!hash||!/^[a-zA-Z0-9_-]{32,256}$/.test(hash))
+  throw new Error('Le lien de confirmation est incomplet. Demandez un nouveau message.');
+ return hash;
+}
+$('auth-confirm-link-form').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(busy||!supabase){status('La connexion au service d’authentification n’est pas prête.',true);return}
+ const submit=$('auth-confirm-link-submit');
+ busy=true;submit.disabled=true;
+ try{
+  const token_hash=confirmationToken($('auth-confirm-link').value);
+  const {data,error}=await supabase.auth.verifyOtp({token_hash,type:'email'});
+  if(error)throw error;
+  $('auth-confirm-link').value='';
+  if(data?.user){
+   status('Votre adresse académique est confirmée.');
+   await showUser(data.user);
+  }else{
+   selectMode('login');
+   status('Adresse confirmée. Connectez-vous avec votre mot de passe.');
+  }
+ }catch(error){
+  const text=String(error?.message||'');
+  status(/expired|invalid|otp/i.test(text)
+   ? 'Ce lien a expiré ou a déjà servi. Essayez « Connexion » : votre compte peut déjà être confirmé. Sinon, demandez un nouveau lien avant de le copier, sans cliquer dessus.'
+   : safeAuthMessage(error),true);
+ }finally{busy=false;submit.disabled=false}
+});
+$('auth-resend').addEventListener('click',async()=>{
+ const email=$('email').value.trim().toLowerCase();
+ if(!academicEmail(email)){status('Indiquez d’abord votre adresse @ac-paris.fr dans le champ « Adresse académique ».',true);$('email').focus();return}
+ if(busy||!supabase)return;
+ busy=true;$('auth-resend').disabled=true;
+ try{
+  const {error}=await supabase.auth.resend({type:'signup',email,options:{emailRedirectTo:redirectUrl}});
+  if(error)throw error;
+  status('Si votre adresse n’est pas déjà confirmée, un nouveau message vient d’être demandé. Avant de cliquer sur son lien, copiez son adresse dans le champ de confirmation ci-dessus.');
+ }catch(error){status(safeAuthMessage(error),true)}
+ finally{busy=false;$('auth-resend').disabled=false}
+});
+
 for(const tab of tabs)tab.addEventListener('click',()=>selectMode(tab.dataset.tab));
 for(const button of document.querySelectorAll('[data-show]'))button.addEventListener('click',()=>{
  const input=$(button.dataset.show);input.type=input.type==='password'?'text':'password';

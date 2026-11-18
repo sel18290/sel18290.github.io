@@ -244,7 +244,7 @@ async function teacherAction(action,body,form,req){
   const {data:roster,error:rosterError}=await admin.from('cortex_academy_roster').select('student_number').eq('assessment_id',id);
   if(rosterError)throw Error('Impossible de préparer la liste d’élèves.');
   const exist=new Set((roster||[]).map(x=>x.student_number));
-  const size=exist.size?Math.max(access.roster_size,raw):raw;
+  const size=Math.max(exist.size?Math.max(access.roster_size,raw):raw,persistent?.access.roster_size||0);
   const missing=assessment.class_id?[]:Array.from({length:size},(_,i)=>i+1).filter(n=>!exist.has(n));
   if(missing.length){
    const generated=await Promise.all(missing.map(async n=>{
@@ -367,7 +367,7 @@ async function studentAction(action,body,form){
   const code=String(body.code||''),number=Number(body.student_number),plain=String(body.pin||'');
   if(!/^[a-f0-9]{40}$/.test(code)||!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(plain))throw Error('Numéro ou PIN invalide.');
   const {data:access}=await admin.from('cortex_academy_access').select('assessment_id,roster_size,active').eq('join_code',code).eq('active',true).maybeSingle();
-  if(!access||number>access.roster_size)throw Error('Numéro ou PIN invalide.');
+  if(!access)throw Error('Numéro ou PIN invalide.');
   const {data:assessment}=await admin.from('cortex_teacher_assessments').select('id,published').eq('id',access.assessment_id).eq('published',true).maybeSingle();
   if(!assessment)throw Error('Contrôle indisponible.');
   const {data:classExam}=await admin.from('cortex_teacher_assessments').select('class_id,teacher_id').eq('id',access.assessment_id).maybeSingle();
@@ -380,6 +380,7 @@ async function studentAction(action,body,form){
    }
   }
   const {data:cred}=classVerified?{data:null}:await admin.from('cortex_academy_roster').select('*').eq('assessment_id',access.assessment_id).eq('student_number',number).maybeSingle();
+  if(!classVerified&&number>access.roster_size)throw Error('Numéro ou PIN invalide.');
   if(!cred&&!classVerified)throw Error('Numéro ou PIN invalide.');
   if(!classVerified&&cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Trop de tentatives. Réessayez plus tard ou demandez un nouveau PIN au professeur.');
   const good=await pinHash(access.assessment_id,number,plain);

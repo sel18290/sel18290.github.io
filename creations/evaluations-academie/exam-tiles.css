@@ -1,0 +1,50 @@
+
+/* CORTEX · Mes contrôles : grille identique à la démonstration, données réelles */
+body.academy-authenticated[data-acad-view="assessments"] #prof-assessments #exam-form{display:none!important}
+body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exam-list,
+body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exams-counter{display:none!important}
+body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exams-head h1{font-size:0}
+body.academy-authenticated[data-acad-view="creer"] #prof-assessments .cortex-exams-head h1::after{content:"Créer mon contrôle";font-size:clamp(26px,3.4vw,39px)}
+#prof-assessments .cortex-exams-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+#prof-assessments .cortex-exams-head h1{font-size:clamp(29px,4vw,44px);margin:8px 0}
+#prof-assessments .cortex-exams-head p{margin:6px 0;color:#aec8d9}
+#prof-assessments .cortex-exams-counter{display:none}
+#prof-assessments .cortex-exam-list{display:grid;gap:20px}
+#prof-assessments .cortex-tiles-filter{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(115deg,#214a5a,#132841);border:1px solid #61889f;border-radius:14px;padding:18px}
+#prof-assessments .cortex-tiles-organize{flex:1;min-width:190px}
+#prof-assessments .cortex-tiles-organize strong{font-size:11px;letter-spacing:.13em;font-weight:850;color:#9decc3}
+#prof-assessments .cortex-tiles-organize p{margin:5px 0 0;font-size:12px;color:#c5d9e2}
+#prof-assessments .cortex-tiles-filter select{padding:12px 14px;border:1px solid #709ab6;background:#1b334d;color:#e7f5ff;border-radius:11px;min-width:160px;font:inherit;max-width:100%}
+#prof-assessments .cortex-tiles-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#prof-assessments .cortex-tiles-toolbar span{font-size:13px;color:#c4d5e1}
+#prof-assessments .cortex-tiles-toolbar input{box-sizing:border-box;padding:12px 14px;background:#19344f;border:1px solid #5d859d;color:#f2faff;border-radius:12px;min-width:210px;width:min(100%,310px)}
+#prof-assessments .tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#prof-assessments .tile{padding:23px;display:grid;gap:13px;min-width:0;background:linear-gradient(150deg,#233f5e,#152b46);border:1px solid #719ab7;border-radius:17px;box-shadow:0 8px 28px #03122520}
+#prof-assessments .tile[hidden]{display:none}
+#prof-assessments .tile h3{margin:0;color:#f5faff;font-size:17px;overflow-wrap:anywhere;line-height:1.45}
+#prof-assessments .tile p{font-size:12px;color:#c1d4e1;margin:5px 0 0}
+#prof-assessments .tile-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#prof-assessments .tile-stats .status{font-size:11px;border-radius:999px;padding:6px 9px;border:1px solid #7a9cb4;background:#314c64;color:#f5fcff;font-weight:750}
+#prof-assessments .tile-stats .status.ok{background:#23554f;border-color:#65ae9b;color:#baffed}
+#prof-assessments .cortex-class-tag{font-size:11px;font-weight:800;color:#d1fdf0}
+#prof-assessments .tile .small.muted{font-size:11px;color:#b2c4d7}
+#prof-assessments .tile-foot{display:grid;gap:10px;border-top:1px solid #50697f;padding-top:14px}
+#prof-assessments .tile .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+#prof-assessments .tile button{min-height:37px}
+#prof-assessments .tile .btn.ghost{background:transparent;border:1px solid #90adbf;color:#edf7ff;border-radius:9px;padding:9px 11px;font-size:12px;font-weight:700}
+#prof-assessments .tile .table-action{background:transparent;border:0;color:#c9fff0;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-size:12px;font-weight:800;padding:8px 5px}
+#prof-assessments .tile .table-action:hover{color:white}
+#prof-assessments .tile .btn-delete-exam{border:1px solid #cc7486;background:#a04c62;color:#fff3f6;border-radius:10px;font-size:12px;font-weight:750;padding:9px 13px;cursor:pointer}
+#prof-assessments .tile button:focus-visible{outline:3px solid #91daef;outline-offset:2px}
+.cortex-publish-dialog{max-width:min(520px,calc(100% - 20px));width:100%;background:radial-gradient(ellipse at 50% -10%,#2a5069 0%,#10253e 80%);color:#eaf5fb;border:1px solid #74b7c8;border-radius:18px;box-shadow:0 30px 90px #0008;padding:0}
+.cortex-publish-dialog::backdrop{background:#061326be;backdrop-filter:blur(3px)}
+.cortex-publish-body{padding:23px;display:grid;gap:16px}
+.cortex-publish-body h3{font-size:22px;margin:0}
+.cortex-publish-body p{margin:0;font-size:13px;line-height:1.5;color:#c4dbe5}
+.cortex-publish-body label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#d2eeeb}
+.cortex-publish-body input,.cortex-publish-body select{background:#1f3e54;color:#fff;border:1px solid #7595ac;padding:12px;border-radius:10px;box-sizing:border-box;width:100%;font:inherit}
+.cortex-publish-body .cortex-publish-help.error{color:#ffafaf}
+.cortex-publish-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.cortex-publish-actions button{cursor:pointer}
+@media(max-width:930px){#prof-assessments .tile-grid{grid-template-columns:1fr}}
+@media(max-width:590px){#prof-assessments .cortex-tiles-filter{align-items:stretch;flex-direction:column}#prof-assessments .cortex-tiles-filter select{width:100%}#prof-assessments .cortex-tiles-toolbar input{width:100%}#prof-assessments .tile{padding:15px}.cortex-publish-actions{flex-direction:column}.cortex-publish-actions button{width:100%}}

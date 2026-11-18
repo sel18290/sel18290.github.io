@@ -157,24 +157,19 @@ function paint(){
   '<div class="real-manual-qgrid"><label>Type de réponse<select data-manual-field="type">'+typeOpts+'</select></label>'+
   '<label>Barème (points)<input data-manual-field="points" type="number" min="0" max="20" step="0.25" value="'+h(q.points)+'"></label></div>'+
   t.editorExtra(q,state.index,'manual')+
-  '<label>Document propre à cette question (facultatif)<textarea data-manual-field="doc" rows="4" maxlength="5000" placeholder="Source, tableau documentaire à interpréter, données…">'+h(q.doc||'')+'</textarea></label>'+
+
   '<div class="real-manual-actions"><button type="button" data-manual-action="move-up" '+(state.index===0?'disabled':'')+'>↑ Monter</button>'+
   '<button type="button" data-manual-action="move-down" '+(state.index===state.questions.length-1?'disabled':'')+'>↓ Descendre</button>'+
   '<button type="button" data-manual-action="duplicate">Dupliquer</button>'+
   '<button type="button" data-manual-action="delete" '+(state.questions.length===1?'disabled':'')+'>Supprimer</button></div>';
  $('manual-prev').disabled=state.index===0;
  $('manual-next').disabled=state.index===state.questions.length-1;
+ $('manual-question-doc').value=String(q.doc||'');
  preview();
 }
 function preview(){
- const q=current(),specific=String(q?.doc||'').trim(),node=$('manual-source-preview');
+ const q=current(),node=$('manual-source-preview');
  node.replaceChildren();
- const title=document.createElement('strong');
- title.textContent='Document de la question '+(state.index+1);
- node.append(title);
- if(specific){
-  const p=document.createElement('p');p.textContent=specific;node.append(p);
- }
  const items=state.assets.filter(a=>a.questionId===q?.id||(q?.assetIds||[]).includes(a.id));
  if(items.length){
   const gallery=document.createElement('div');gallery.className='real-manual-capture-gallery';
@@ -190,9 +185,9 @@ function preview(){
   }
   node.append(gallery);
  }
- if(!specific&&!items.length){
-  const p=document.createElement('p');
-  p.textContent='Aucun document associé à cette question. Colle une capture ici (Ctrl+V) ou choisis une image. Tu peux aussi saisir un texte documentaire à droite.';
+ if(!items.length){
+  const p=document.createElement('p');p.className='cortex-unified-empty';
+  p.textContent='Aucune image associée. Fais une capture d’écran ou choisis une image.';
   node.append(p);
  }
 }
@@ -240,6 +235,9 @@ function edit(exam){
  $('exam-title').value=(exam.title||'')+(isPublished?' (nouvelle version)':'');
  $('exam-class').value=exam.class_id||'';
  $('exam-description').value=exam.content?.description||'';
+ // Migration non destructive : anciens textes communs copiés vers les questions qui n'ont aucun document.
+ const oldCommon=String(exam.content?.doc||'').trim();
+ if(oldCommon)for(const q of state.questions)if(!String(q.doc||'').trim())q.doc=oldCommon.slice(0,5000);
  $('exam-level').value=exam.content?.level||'Bac professionnel';
  $('exam-chapter').value=exam.content?.chapter||'';
  $('exam-duration').value=Number(exam.content?.duration||60);
@@ -285,7 +283,8 @@ $('manual-capture-file').addEventListener('change',event=>{
  if(!image)return;
  try{addCapture(image,image.name);}catch(error){setHint('Image non ajoutée : '+(error?.message||error));}
 });
-$('manual-source-preview').addEventListener('paste',pasteCaptureEvent);
+$('manual-question-doc').addEventListener('input',event=>updateField(event.target,false));
+document.querySelector('.real-manual-document').addEventListener('paste',pasteCaptureEvent);
 $('manual-doc-prev').addEventListener('click',()=>{state.docPage=Math.max(1,state.docPage-1);renderOriginal().catch(error=>setHint(error.message));});
 $('manual-doc-next').addEventListener('click',()=>{state.docPage=Math.min(state.docCount,state.docPage+1);renderOriginal().catch(error=>setHint(error.message));});
 window.CORTEX_MANUAL_EDITOR={questions:validated,edit,reset,editingId:()=>state.editingId,

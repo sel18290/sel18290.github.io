@@ -132,6 +132,22 @@ function showDialog(id){
   }catch(error){status.textContent='Téléchargement impossible : '+String(error?.message||error);}
   finally{download.disabled=false;download.textContent='↓ Télécharger dossier PDF (documents + copie)';}
  };
+ let original=null;
+ if(bundle.exam.sourceId){
+  original=document.createElement('button');original.type='button';original.className='ai-close';
+  original.textContent='↓ Télécharger le document original';
+  original.onclick=async()=>{
+   original.disabled=true;
+   try{
+    const saved=await window.CORTEX_DOCS?.readFile?.(bundle.exam.sourceId);
+    if(!saved?.blob)throw Error('Document source introuvable sur cet appareil.');
+    if(!window.CORTEX_VISUAL?.download)throw Error('Téléchargement de l’original indisponible.');
+    window.CORTEX_VISUAL.download(saved.blob,bundle.exam.sourceName||saved.name||'Document_original');
+    status.textContent='Original téléchargé. Joins-le à ChatGPT pour conserver toute sa mise en page.';
+   }catch(error){status.textContent=String(error?.message||error);}
+   finally{original.disabled=false;}
+  };
+ }
  const open=document.createElement('button');open.type='button';open.className='ai-open';open.textContent='Copier et ouvrir ChatGPT';open.disabled=true;
  check.onchange=()=>{open.disabled=!check.checked};
  open.onclick=()=>{
@@ -141,7 +157,7 @@ function showDialog(id){
   status.textContent='Colle la consigne dans ChatGPT. Pour une lecture fiable des graphiques et documents, joins le PDF téléchargé.';
   open.textContent=tab?'✓ ChatGPT ouvert':'✓ Consigne à coller dans ChatGPT';
  };
- actions.append(close,download,open);dialog.append(h,p,hint,textarea,label,status,actions);
+ actions.append(close,download);if(original)actions.append(original);actions.append(open);dialog.append(h,p,hint,textarea,label,status,actions);
  document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
 }
 document.addEventListener('click',event=>{

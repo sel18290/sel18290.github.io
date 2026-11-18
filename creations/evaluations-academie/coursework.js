@@ -1,6 +1,7 @@
 
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
+import {requestAiDraft,formatDraftFeedback} from './ai-correction.js?v=1';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
 const make=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -169,7 +170,19 @@ function display(){
   const label=make('label','cw-release-label'),release=make('input');release.type='checkbox';release.checked=!!copy.released_at;
   label.append(release,make('span','','Publier la note et la correction pour l’élève'));
   const submit=make('button','cw-accent','Enregistrer la correction');submit.type='submit';
-  form.append(grade,feedback,label,submit);
+  const aiButton=createButton('✦ Corriger avec l’IA','cw-ai-button',async()=>{
+    if(!window.confirm('L’IA ne propose qu’un brouillon. Le transfert de copies réelles nécessite une autorisation institutionnelle et l’activation du serveur. Continuer ?'))return;
+    const draft=await requestAiDraft(copy.assessment_id,copy.student_number);
+    grade.value=String(draft.grade);
+    feedback.value=formatDraftFeedback(draft);
+    release.checked=false;
+    const note=make('div','cw-ai-draft-notice','✦ Brouillon IA non enregistré : vérifiez le barème, puis enregistrez vous-même la correction.');
+    form.querySelector('.cw-ai-draft-notice')?.remove();
+    form.prepend(note);
+    message('Proposition IA chargée pour la copie n°'+copy.student_number+'. La note n’est pas publiée.');
+    grade.focus();
+  });
+  form.append(aiButton,grade,feedback,label,submit);
   form.addEventListener('submit',async ev=>{
    ev.preventDefault();submit.disabled=true;
    try{

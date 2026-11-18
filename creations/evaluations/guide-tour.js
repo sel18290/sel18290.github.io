@@ -17,7 +17,7 @@ const steps=[
  {title:'Paramétrer l’anti-triche',eyebrow:'Contrôles adaptés aux élèves',route:'#professeur/integrite',icon:'◈',selector:'#integrity-controls',body:'Chaque contrôle dispose de boutons indépendants pour le collage, la copie, les sorties de page, les avertissements et le filigrane IA. Les événements restent des indices à vérifier.',task:'Choisissez le contrôle puis testez le bouton Activer / Désactiver de chaque outil. Le filigrane ne bloque pas les captures d’écran ni les IA.'},
  {title:'Vous avez exploré CORTEX',eyebrow:'Fin de la visite',route:'#accueil',icon:'★',selector:'.home-hero',body:'Vous connaissez maintenant les principaux espaces de la plateforme. Revenez librement à n’importe quelle rubrique pour refaire une démonstration.',task:'CORTEX Académie stocke déjà les comptes, classes et paramètres des évaluations dans Supabase. La passation et les copies côté élèves ne sont pas encore reliées au serveur : n’utilisez pas de vraies données scolaires.'}
 ];
-let active=false,index=0,minimized=false,root=null,highlighted=null,refocus=null;
+let active=false,index=0,minimized=false,showList=false,root=null,highlighted=null,refocus=null;
 const clamp=n=>Math.max(0,Math.min(steps.length-1,n));
 function read(){try{return JSON.parse(sessionStorage.getItem(STORAGE)||'null')}catch{return null}}
 function store(){try{if(active)sessionStorage.setItem(STORAGE,JSON.stringify({index,minimized}));else sessionStorage.removeItem(STORAGE)}catch{}}
@@ -34,16 +34,46 @@ function route(){
  window.setTimeout(highlight,80);
  window.setTimeout(highlight,320);
 }
+const mobileHints=[
+ ['La découverte commence ici.','Découvrez les trois accès : professeur, élève et démonstration.'],
+ ['Votre tableau de bord central.','Repérez les raccourcis et le menu professeur.'],
+ ['Toutes les classes au même endroit.','Ouvrez une classe pour voir les groupes.'],
+ ['Vos questions et votre barème.','Essayez de créer une question fictive.'],
+ ['Vos documents de travail.','Repérez le bouton pour importer un PDF ou Word.'],
+ ['Le contrôle et son QR code.','Ouvrez le contrôle Sommeil, puis son QR code.'],
+ ['Les accès personnels des élèves.','Découvrez les PIN et leur réinitialisation.'],
+ ['La plateforme vue par un élève.','Simulez un scan de QR code depuis un contrôle.'],
+ ['Corriger et publier les notes.','Ouvrez la copie PDF de démonstration.'],
+ ['Voir le déroulement des épreuves.','Regardez les indicateurs de suivi.'],
+ ['Comprendre les résultats.','Explorez les moyennes et les filtres.'],
+ ['Des protections selon vos besoins.','Testez les interrupteurs des outils anti-triche.'],
+ ['Vous savez naviguer dans CORTEX !','Terminez ou retournez dans CORTEX Académie.']
+];
+function mobileCard(step,last){
+ const hint=mobileHints[index];
+ return '<div class="ct-tour-mobile">'+
+  (showList?
+   '<div class="ct-tour-mobile-list-head"><strong>Choisissez une étape</strong><button type="button" data-tour="list">Retour à la visite</button></div>'+
+   '<div class="ct-tour-mobile-list">'+steps.map((v,i)=>'<button type="button" data-tour="jump" data-step="'+i+'" class="ct-tour-mobile-list-item'+(i===index?' active':'')+'" '+(i===index?'aria-current="step"':'')+'><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+v.title+'</strong><span class="ct-tour-mobile-list-arrow">›</span></button>').join('')+'</div>':
+   '<div class="ct-tour-mobile-main"><div class="ct-tour-mobile-kicker">'+step.icon+' · ÉTAPE '+String(index+1).padStart(2,'0')+' / '+steps.length+'</div>'+
+   '<h2>'+step.title+'</h2><p>'+hint[0]+'</p>'+
+   '<div class="ct-tour-mobile-hint"><span aria-hidden="true">☝</span><div><strong>Ce que vous pouvez essayer</strong><p>'+hint[1]+'</p></div></div></div>'+
+   '<div class="ct-tour-mobile-primary"><button type="button" class="ct-tour-mobile-explore" data-tour="visit">Explorer cet écran <span aria-hidden="true">↗</span></button><button type="button" class="ct-tour-mobile-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
+   '<div class="ct-tour-mobile-options"><button type="button" data-tour="previous" '+(index===0?'disabled':'')+'>← Retour</button><button type="button" data-tour="list">Toutes les étapes</button><button type="button" data-tour="minimize">Réduire ↑</button></div>'+
+   (last?'<a class="ct-tour-mobile-academy" href="../evaluations-academie/">Retour à CORTEX Académie ↗</a>':''))
+ )+'</div>';
+}
 function content(){
  const step=steps[index],first=index===0,last=index===steps.length-1,percent=Math.round(100*(index+1)/steps.length);
  const dots=steps.map((s,i)=>'<button type="button" class="ct-tour-step'+(i===index?' active':'')+(i<index?' visited':'')+'" data-tour="jump" data-step="'+i+'" aria-label="Aller à l’étape '+(i+1)+' : '+s.title+'" '+(i===index?'aria-current="step"':'')+'>'+(i+1)+'</button>').join('');
  return '<div class="ct-tour-top"><span class="ct-tour-mark">✦</span><div class="ct-tour-top-copy"><strong>VISITE GUIDÉE CORTEX</strong><small>Étape '+(index+1)+' sur '+steps.length+' · '+percent+' %</small></div><button class="ct-tour-icon-button" type="button" data-tour="minimize" aria-label="'+(minimized?'Développer':'Réduire')+' la visite">'+(minimized?'▣':'—')+'</button><button class="ct-tour-icon-button" type="button" data-tour="close" aria-label="Quitter la visite guidée">×</button></div>'+
- (minimized?'<button type="button" class="ct-tour-resume" data-tour="minimize">Continuer la visite : '+step.title+' ↗</button>':
+ (minimized?
+ '<div class="ct-tour-minibar"><div class="ct-tour-minibar-label"><small>ÉTAPE '+(index+1)+' / '+steps.length+'</small><strong>'+step.title+'</strong></div><button type="button" class="ct-tour-mini-help" data-tour="minimize">Aide</button><button type="button" class="ct-tour-mini-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Fin ✓':'Suite →')+'</button></div>':
  '<div class="ct-tour-progress" role="progressbar" aria-label="Progression de la visite" aria-valuemin="0" aria-valuemax="'+steps.length+'" aria-valuenow="'+(index+1)+'"><span style="width:'+percent+'%"></span></div>'+
- '<div class="ct-tour-main"><div class="ct-tour-kicker"><span>'+step.icon+'</span> '+step.eyebrow+'</div><h2>'+step.title+'</h2><p>'+step.body+'</p><div class="ct-tour-task"><span aria-hidden="true">➜</span><div><strong>À découvrir</strong><p>'+step.task+'</p></div></div></div>'+
+ '<div class="ct-tour-desktop"><div class="ct-tour-main"><div class="ct-tour-kicker"><span>'+step.icon+'</span> '+step.eyebrow+'</div><h2>'+step.title+'</h2><p>'+step.body+'</p><div class="ct-tour-task"><span aria-hidden="true">➜</span><div><strong>À découvrir</strong><p>'+step.task+'</p></div></div></div>'+
  '<div class="ct-tour-dots" role="group" aria-label="Étapes de la visite">'+dots+'</div>'+
  '<div class="ct-tour-actions"><button type="button" class="ct-tour-secondary" data-tour="previous" '+(first?'disabled':'')+'>← Précédent</button><button type="button" class="ct-tour-visit" data-tour="visit">Voir cette section ↗</button><button type="button" class="ct-tour-next" data-tour="'+(last?'finish':'next')+'">'+(last?'Terminer ✓':'Suivant →')+'</button></div>'+
- (last?'<a class="ct-tour-academy" href="../evaluations-academie/">Revenir à CORTEX Académie ↗</a>':''));
+ (last?'<a class="ct-tour-academy" href="../evaluations-academie/">Revenir à CORTEX Académie ↗</a>':'')+'</div>'+mobileCard(step,last));
 }
 function draw(){
  if(!active)return;
@@ -51,13 +81,14 @@ function draw(){
  root.classList.toggle('ct-tour-minimized',minimized);
  root.innerHTML=content();store();highlight();
 }
-function jump(n){index=clamp(n);minimized=false;draw();route()}
-function start(){if(!active){refocus=document.activeElement}active=true;index=0;minimized=false;jump(0);const close=root?.querySelector('[data-tour="close"]');close?.focus?.()}
-function close(){active=false;minimized=false;store();if(highlighted){highlighted.classList.remove('ct-tour-highlight');highlighted=null}if(root){root.remove();root=null}document.getElementById('ct-tour-launch')?.focus?.()}
+function jump(n){index=clamp(n);minimized=false;showList=false;draw();route()}
+function start(){if(!active){refocus=document.activeElement}active=true;index=0;minimized=false;showList=false;jump(0);const close=root?.querySelector('[data-tour="close"]');close?.focus?.()}
+function close(){active=false;minimized=false;showList=false;store();if(highlighted){highlighted.classList.remove('ct-tour-highlight');highlighted=null}if(root){root.remove();root=null}document.getElementById('ct-tour-launch')?.focus?.()}
 function handle(action,el){
  if(action==='close'||action==='finish'){close();return}
- if(action==='minimize'){minimized=!minimized;draw();return}
- if(action==='visit'){route();highlight();minimized=true;draw();return}
+ if(action==='minimize'){minimized=!minimized;showList=false;draw();return}
+ if(action==='list'){showList=!showList;draw();return}
+ if(action==='visit'){route();highlight();minimized=true;showList=false;draw();window.setTimeout(()=>{const node=target();if(node&&typeof node.scrollIntoView==='function')node.scrollIntoView({behavior:'smooth',block:'start'});},160);return}
  if(action==='previous'){jump(index-1);return}
  if(action==='next'){jump(index+1);return}
  if(action==='jump'){jump(Number(el.dataset.step)||0);return}

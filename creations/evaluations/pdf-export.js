@@ -285,7 +285,7 @@ async function appendCopy(pdf,ctx,copy,exam,position){
  paragraph(pdf,ctx,'Fin de la copie - '+clean(copy.name||'Élève'),{fontSize:9,color:[115,123,133]});
 }
 function downloadName(copies,scope){
- const stamp=new Date().toISOString().slice(0,10);
+ const stamp=new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
  if(copies.length===1){
   const a=copies[0];
   return fileSafe('Copie_'+(a.className||'Classe')+'_'+(a.groupName||'Groupe')+'_N'+(a.studentNumber||'demo')+'_'+stamp)+'.pdf';

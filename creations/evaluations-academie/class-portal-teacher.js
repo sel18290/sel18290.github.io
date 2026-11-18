@@ -4,10 +4,20 @@ const $=id=>document.getElementById(id);
 const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;
 const cache=new Map();
-let access=[],busy=false,pending=false;
+let access=[],enrollments=[],busy=false,pending=false;
 function notice(msg,error=false){const e=$('cw-class-status');if(!e)return;e.hidden=!msg;e.textContent=msg;e.classList.toggle('error',error)}
 function permanentUrl(code){return location.origin+location.pathname+'?classe='+encodeURIComponent(code)}
-async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;return}busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];render()}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
+async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;return}busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];
+  enrollments=result.enrollments||[];
+  render();
+  window.dispatchEvent(new CustomEvent('cortex:academy-roster-ready',{detail:{
+   summaries:(B()?.classes?.()||[]).map(c=>{
+    const students=enrollments.filter(e=>e.class_id===c.id&&e.activated_at);
+    return {classId:c.id,activated:students.length,group1:students.filter(e=>e.demi_groupe===1).length,
+      group2:students.filter(e=>e.demi_groupe===2).length,
+      whole:students.filter(e=>!e.demi_groupe).length};
+   })
+  }}))}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
 function downloadPins(pins,cl){
  const rows=['Numéro;PIN'].concat(pins.map(p=>p.number+';'+p.pin));
  const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
@@ -43,6 +53,43 @@ function render(){
    await refresh();
   }));
   card.append(controls);
+  const assigned=enrollments.filter(x=>x.class_id===cl.id&&!!x.activated_at);
+  const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2),
+   whole=assigned.filter(x=>!x.demi_groupe);
+  const stats=E('div','cw-group-stats');
+  stats.append(E('span','cw-group-stat-label','Élèves inscrits : '+assigned.length),
+   E('span','cw-group-stat-one','Groupe 1 · '+group1.length),
+   E('span','cw-group-stat-two','Groupe 2 · '+group2.length));
+  if(whole.length)stats.append(E('span','cw-group-stat-whole','Classe entière · '+whole.length));
+  card.append(stats);
+  if(assigned.length){
+   const details=E('details','cw-group-roster'),summary=E('summary','','Voir les élèves inscrits par demi-groupe ('+assigned.length+')');
+   const list=E('div','cw-group-roster-list');
+   for(const row of assigned.sort((a,b)=>(a.demi_groupe||0)-(b.demi_groupe||0)||a.student_number-b.student_number)){
+    const line=E('div','cw-group-roster-line'),name=E('strong','','Élève n°'+row.student_number),
+     label=E('label','','Demi-groupe'),selector=E('select','cw-group-select');
+    selector.setAttribute('aria-label','Demi-groupe de l’élève numéro '+row.student_number+' en '+cl.code);
+    for(const [value,text] of [['1','Groupe 1'],['2','Groupe 2'],['0','Classe entière']]){
+     const opt=E('option','',text);opt.value=value;opt.selected=Number(value)===(row.demi_groupe||0);selector.append(opt);
+    }
+    selector.addEventListener('change',async()=>{
+     selector.disabled=true;
+     try{
+      const chosen=Number(selector.value);
+      await api('teacher_class_set_group',{class_id:cl.id,student_number:row.student_number,demi_groupe:chosen},null,true);
+      notice('Élève n°'+row.student_number+' affecté à '+(chosen?'demi-groupe '+chosen:'classe entière')+' dans '+cl.code+'.');
+      await refresh();
+     }catch(err){notice(err.message||'Modification impossible.',true);selector.value=String(row.demi_groupe||0)}
+     finally{selector.disabled=false}
+    });
+    label.append(selector);line.append(name,label);list.append(line);
+   }
+   details.append(summary,list);card.append(details);
+  }else{
+   card.append(E('p','cw-group-help',record?.portal_code?
+    'Aucune première inscription pour le moment : les élèves apparaîtront automatiquement ici dès leur activation.':
+    'Créez les PIN provisoires ci-dessus pour que les élèves puissent s’inscrire.'));
+  }
   if(record?.portal_code){
    const share=E('div','cw-class-share'),url=permanentUrl(record.portal_code);
    const line=E('p','cw-explainer','Accès permanent : choisir « '+cl.code+' », entrer son numéro sur la liste, puis son PIN personnel. Identification de cette classe : '+record.portal_code.slice(-4).toUpperCase()+'.');
@@ -77,5 +124,5 @@ function render(){
 window.addEventListener('cortex:academy-data-ready',refresh);
 window.addEventListener('cortex:academy-class-updated',refresh);
 window.addEventListener('cortex:class-pins',event=>{const id=event.detail?.classId,pins=event.detail?.pins||[];if(!id||!pins.length)return;const old=cache.get(id)||[];cache.set(id,old.filter(x=>!pins.some(p=>p.number===x.number)).concat(pins).sort((x,y)=>x.number-y.number));render()});
-window.addEventListener('cortex:academy-logout',()=>{access=[];cache.clear();$('cw-class-cards')?.replaceChildren()});
+window.addEventListener('cortex:academy-logout',()=>{access=[];enrollments=[];cache.clear();$('cw-class-cards')?.replaceChildren()});
 queueMicrotask(()=>{if(B()?.teacher?.())refresh()});

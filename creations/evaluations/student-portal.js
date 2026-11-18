@@ -106,6 +106,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-pin-wrap"><input id="portal-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="••••••"><button type="button" class="portal-show-pin" data-action="portal-toggle-pin" aria-label="Afficher ou masquer le PIN">Afficher</button></div></div>'+
    '<button class="portal-main-button" type="button" data-action="portal-login">Accéder à mon espace <span aria-hidden="true">↗</span></button>'+
    '<p class="portal-login-help">Première connexion ? Scanne le QR code de ton contrôle pour créer ton PIN. Si tu l’as oublié, demande sa réinitialisation au professeur.</p>'+
+   '<button class="portal-preview-button" type="button" data-action="portal-demo">✧ Voir un exemple interactif sans connexion</button>'+ 
    '<div class="portal-safety"><strong>Version de démonstration.</strong> Les données sont locales à cet appareil, non synchronisées, et l’espace professeur n’est pas protégé. N’utilise aucune donnée réelle.</div>'+
    '</section></div>';
  }
@@ -176,6 +177,7 @@ window.CORTEX_PORTAL=(function(){
    '<button class="portal-revision-button" data-action="portal-revision" data-attempt="'+esc(s.attemptId)+'" data-question="'+esc(s.qid)+'" aria-pressed="'+(s.done?'true':'false')+'">'+(s.done?'✓ Revus':'À revoir')+'</button></article>').join('');
   const periodLabel=period==='s1'?'Septembre → janvier':'Février → juin';
   return '<div class="portal-root portal-dashboard">'+
+   (opts.preview?'<div class="portal-demo-ribbon">✧ APERÇU FICTIF · AUCUNE NOTE RÉELLE</div>':'')+
    '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>BIOSPHÈRE GENESIS</span></div></div>'+
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion ↗</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div><span class="portal-tag">TON ESPACE D’APPRENTISSAGE</span>'+
@@ -240,5 +242,31 @@ window.CORTEX_PORTAL=(function(){
   }
   return '\ufeff'+rows.join('\r\n');
  }
- return {level,getClassCode,makeCode,classPanel,eligible,keyYear,periodBounds,schoolYears,average,periodAttempts,weeks,mine,candidate,studentLogin,dashboard,correction,exportCsv};
+ 
+ function previewData(){
+  const year=keyYear(Date.now())-1,cl={id:'exemple-eleve',name:'2MRC2 · Exemple',archived:false,studentCount:30,groups:[]};
+  const topics=['Le sommeil','Les rythmes biologiques','L’alimentation','Le stress','Les risques professionnels','Les addictions','Le système de santé','Les risques auditifs','L’équilibre alimentaire','L’environnement','La prévention'];
+  const records=[
+   [8,9,11],[8,23,13],[9,9,14],[9,27,15],[10,18,12],[11,9,16],
+   [0,15,17],[1,13,14],[2,10,15],[3,22,16],[4,18,17],[5,5,18]
+  ];
+  const exams=[],attempts=[];
+  records.forEach(([month,day,score],i)=>{
+   const calendarYear=month>=8?year:year+1,examId='exemple-examen-'+i;
+   const q1='expl-'+i,q2='qcm-'+i,topic=topics[i%topics.length],q1Points=Math.min(10,Math.ceil(score/2)),q2Points=Math.max(0,score-q1Points);
+   const stamp=new Date(calendarYear,month,day,11,20).getTime();
+   exams.push({id:examId,title:topic,level:'Seconde',duration:45,open:true,questions:[
+    {id:q1,prompt:'Explique une notion importante du chapitre « '+topic+' » et donne un exemple concret.',points:10,type:'text'},
+    {id:q2,prompt:'Quelle démarche favorise une meilleure prévention ?',points:10,type:'choice',
+     choices:['Ignorer les signes d’alerte','Identifier les risques et adopter une mesure adaptée','Reporter systématiquement toute action'],correct:1}
+   ]});
+   attempts.push({id:'exemple-copie-'+i,examId,classId:cl.id,className:cl.name,studentNumber:'12',
+    groupName:'Classe entière',status:'submitted',submittedAt:stamp,startedAt:stamp-2700000,
+    grade:score,reviewedAt:stamp+86400000,publishedToStudent:true,feedback:i%3===0?'Tu maîtrises plusieurs notions. Pour progresser, pense à toujours expliquer tes choix avec un exemple précis.':'Travail sérieux. Continue à structurer tes réponses et à justifier chaque étape.',
+    marks:{[q1]:{points:q1Points,comment:i%3===0?'Une définition juste, mais il manque une justification ou un exemple.':'Bonne démarche. Tu peux enrichir ton explication.'},[q2]:{points:q2Points,comment:q2Points<7?'Relis la démarche de prévention et explique pourquoi elle est utile.':'Tu identifies correctement la prévention adaptée.'}},
+    answers:{[q1]:'Je peux expliquer le principe et proposer une action de prévention.',[q2]:score<14?'0':'1'}});
+  });
+  return {classes:[cl],exams,attempts,events:[],studentPins:{},studentReviewFlags:{},activeAttemptId:null};
+ }
+return {level,getClassCode,makeCode,classPanel,eligible,keyYear,periodBounds,schoolYears,average,periodAttempts,weeks,mine,candidate,studentLogin,dashboard,correction,exportCsv,previewData};
 })();

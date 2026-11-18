@@ -4,8 +4,9 @@
 <meta name="theme-color" content="#0d1628">
 <meta name="description" content="CORTEX Académie — accès enseignants de l'académie de Paris.">
 <title>CORTEX Académie · Espace enseignant</title>
-<link rel="stylesheet" href="./style.css?v=7">
-<script type="module" src="./app.js?v=8"></script>
+<link rel="stylesheet" href="./style.css?v=8">
+<script type="module" src="./app.js?v=9"></script>
+<script type="module" src="./coursework.js?v=1.0"></script>
 </head><body>
 <header class="top"><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></header>
 <main class="layout">
@@ -29,14 +30,24 @@
 </div>
 <div id="account-view" hidden><div class="eyebrow">SESSION PROFESSEUR</div><h2>Compte académique confirmé.</h2><p class="account-email" id="account-email"></p>
 <div class="dashboard"><div><strong>Mon espace professionnel</strong><p>Classes et évaluations sauvegardées sur Supabase, uniquement accessibles à ton compte académique. Les copies élèves ne sont pas encore synchronisées.</p></div><span class="chip">Supabase · Paris</span></div>
-<nav class="academie-prof-nav" aria-label="Accès rapide aux outils"><a href="#prof-classes">Mes classes</a><a href="#prof-assessments">Mes évaluations</a><a href="#acad-integrity">◈ Anti-triche</a></nav><div id="prof-content">
+<nav class="academie-prof-nav" aria-label="Accès rapide aux outils"><a href="#prof-classes">Mes classes</a><a href="#prof-assessments">Mes évaluations</a><a href="#acad-live-workflow">◈ Dépôts & copies</a><a href="#acad-integrity">◈ Anti-triche</a></nav><div id="prof-content">
+<section class="prof-sec cw-workspace" id="acad-live-workflow">
+ <div class="prof-head"><div><span class="eyebrow">PASSATION RÉELLE · SUPABASE</span><h3>Déposer un sujet, recevoir les copies.</h3></div><button type="button" id="cw-refresh" class="cw-refresh">Actualiser les copies ↻</button></div>
+ <p class="cw-intro">Choisissez un contrôle créé ci-dessous, joignez votre PDF ou Word, publiez-le puis partagez le QR code et les PIN des élèves. Chaque remise arrive dans cet espace, avec les réponses et le fichier éventuel.</p>
+ <div id="cw-status" role="status" aria-live="polite" class="cw-status" hidden></div>
+ <div id="cw-assessment-cards" class="cw-assessments"><p class="empty">Connexion au service des évaluations…</p></div>
+ <div class="cw-copies-head"><h4>Copies remises par les élèves</h4><span id="cw-copy-count" class="chip">0 copie</span></div>
+ <div id="cw-copy-list" class="cw-copies"><p class="empty">Aucune copie reçue pour le moment.</p></div>
+ <p class="cw-safety">Les documents sont stockés dans un espace privé. Les accès élèves se font par QR code, numéro sur la liste et PIN personnel. L’usage scolaire réel nécessite les validations de l’établissement et du DPO, ainsi que des tests en conditions réelles.</p>
+</section>
 <section class="prof-sec" id="prof-classes"><div class="prof-head"><div><span class="eyebrow">01 / MES CLASSES</span><h3>Créer et organiser mes classes</h3></div><span id="classes-count" class="chip">—</span></div>
 <form id="class-form" class="prof-form"><input id="class-code" maxlength="40" autocomplete="off" placeholder="Code : 2MRC2" aria-label="Code de la classe" required><input id="class-name" maxlength="80" autocomplete="off" placeholder="Libellé : Seconde MRC2" aria-label="Nom de la classe" required><button type="submit">Ajouter</button></form>
 <div id="class-list" class="prof-list" aria-live="polite"></div></section>
 <section class="prof-sec" id="prof-assessments"><div class="prof-head"><div><span class="eyebrow">02 / MES ÉVALUATIONS</span><h3>Créer mes contrôles</h3></div><span id="exams-count" class="chip">—</span></div>
 <form id="exam-form" class="prof-exam-form"><div class="field"><label for="exam-title">Titre du contrôle</label><input id="exam-title" maxlength="180" placeholder="Ex. Le sommeil" required></div>
 <div class="field"><label for="exam-class">Classe</label><select id="exam-class"><option value="">Sans classe</option></select></div>
-<div class="field"><label for="exam-description">Consignes et document de travail</label><textarea id="exam-description" rows="4" maxlength="12000" placeholder="Consignes de l’évaluation, questions…"></textarea></div>
+<div class="field"><label for="exam-description">Consignes générales pour les élèves</label><textarea id="exam-description" rows="4" maxlength="12000" placeholder="Objectifs, consignes, documents à lire…"></textarea></div>
+<div class="field"><label for="exam-questions">Questions du contrôle (facultatif, une par ligne)</label><textarea id="exam-questions" rows="5" maxlength="12000" placeholder="1. Explique le rôle du sommeil.&#10;2. Cite deux conséquences du manque de sommeil."></textarea><small>Vous pouvez aussi donner uniquement un PDF et laisser l’élève remettre son propre document.</small></div>
 <fieldset class="academie-integrity-field"><legend>◈ Anti-triche · mode intégrité</legend>
 <p>Choisis les protections prévues pour ce contrôle. Les réglages sont sauvegardés dans Supabase. Le parcours élève serveur n’est pas encore relié : ils ne bloquent donc pas encore les élèves de la version Académie.</p>
 <label><input id="exam-integrity-on" type="checkbox"> <span><strong>Activer le mode intégrité</strong><small>Informer les élèves avant le contrôle</small></span></label>

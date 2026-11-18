@@ -827,3 +827,54 @@ body.cortex-noctis .student-exam .exam-nav .btn{
   body.cortex-noctis :is(.sidebar,.stat,.class-card,.role-card,.panel){background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}
   body.cortex-noctis :is(.side-item.active,.btn,.top-link.active){outline:2px solid Highlight}
 }
+
+
+/* NOCTIS — dérive stellaire douce / hyperespace apaisé.
+ * Deux plans très lents, déplacement inférieur à 2 % de l'écran,
+ * aucun zoom rapide, aucun flash, aucune animation des formulaires.
+ * Réduit automatiquement le mouvement sur mobile et avec prefers-reduced-motion.
+ */
+@media(prefers-reduced-motion:no-preference) and (min-width:761px){
+ body.cortex-noctis::before{
+  will-change:transform;
+  animation:nx-starfield-drift 90s ease-in-out infinite alternate;
+ }
+ body.cortex-noctis::after{
+  content:"";
+  position:fixed;inset:-3%;
+  z-index:0;
+  pointer-events:none;
+  opacity:.20;
+  background-image:
+   linear-gradient(106deg,transparent 0 48.9%,rgba(134,185,255,.12) 49.9%,transparent 50.6%),
+   linear-gradient(82deg,transparent 0 49.25%,rgba(183,175,255,.12) 49.95%,transparent 50.6%),
+   radial-gradient(ellipse at 66% 30%,rgba(93,128,202,.20),transparent 61%);
+  background-size:610px 570px,790px 640px,100% 100%;
+  background-position:12% 22%,71% 64%,center;
+  -webkit-mask-image:radial-gradient(ellipse at 60% 48%,#000 2%,transparent 77%);
+  mask-image:radial-gradient(ellipse at 60% 48%,#000 2%,transparent 77%);
+  will-change:transform,opacity;
+  animation:nx-hyperspace-calm 110s ease-in-out infinite alternate;
+ }
+}
+@keyframes nx-starfield-drift{
+ from{transform:translate3d(-.45%,.35%,0)}
+ to{transform:translate3d(.65%,-.8%,0)}
+}
+@keyframes nx-hyperspace-calm{
+ from{transform:translate3d(-.7%,.25%,0);opacity:.11}
+ to{transform:translate3d(.65%,-.65%,0);opacity:.22}
+}
+@media(max-width:760px){
+ body.cortex-noctis::before{animation:none;will-change:auto}
+ body.cortex-noctis::after{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ body.cortex-noctis::before{animation:none!important;transform:none!important;will-change:auto}
+ body.cortex-noctis::after{display:none!important}
+}
+@media print{
+ body.cortex-noctis::before,body.cortex-noctis::after{
+  display:none!important;animation:none!important
+ }
+}

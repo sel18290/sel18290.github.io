@@ -508,3 +508,34 @@ body.academy-authenticated[data-acad-view="copies"] #cw-assessment-cards{display
 @media(prefers-reduced-motion:reduce){
  .acad-overview-stats>a,.acad-overview-actions>a{transition:none}
 }
+
+
+/* v15 — inscription automatique dans la classe et le demi-groupe. */
+.cw-student-login-form label[for="cw-activation-group"]{padding:12px 13px 14px;background:linear-gradient(120deg,#3b2944,#223b50);border:1px solid #a36b85;border-radius:12px;color:#ffdbe4}
+.cw-student-login-form #cw-activation-group{width:100%;min-height:56px;padding:11px 13px;border:1px solid #ca8494;border-radius:10px;background:#183147;color:#fff;font-size:15px;font-weight:750;cursor:pointer}
+.cw-student-login-form #cw-activation-group:focus-visible{outline:3px solid #ffc2ce;outline-offset:2px}
+.cw-class-cards .cw-group-stats{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 7px;padding:11px;border-radius:11px;background:#162d40;border:1px solid #4b657c}
+.cw-group-stats>span{font-size:10px;line-height:1.4;font-weight:850;padding:6px 8px;border:1px solid #566d81;border-radius:7px;color:#d9edf9;background:#24384c}
+.cw-group-stats>.cw-group-stat-label{background:#55334b;border-color:#ae6880;color:#ffe1e8}
+.cw-group-stats>.cw-group-stat-one{background:#263e53;border-color:#5b8da9;color:#c7e9fb}
+.cw-group-stats>.cw-group-stat-two{background:#293f3d;border-color:#68a094;color:#c4f0df}
+.cw-group-help{font-size:11px;line-height:1.7;color:#9ebcd0;margin:7px 0 12px;padding:9px 11px;border-left:3px solid #6c91a4;background:#182d3e}
+.cw-group-roster{margin:12px 0 10px;background:#182c40;border:1px solid #516981;border-radius:11px;overflow:hidden}
+.cw-group-roster>summary{cursor:pointer;font-size:11px;font-weight:850;color:#dceef8;padding:12px 14px;line-height:1.45}
+.cw-group-roster>summary:hover{background:#273c50}
+.cw-group-roster-list{padding:8px 10px 11px;border-top:1px solid #405d73;max-height:290px;overflow:auto;display:grid;gap:6px}
+.cw-group-roster-line{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#10273b;border:1px solid #3c5c70;border-radius:9px;padding:8px 11px}
+.cw-group-roster-line strong{font-size:11px;font-weight:820;color:#f3f8ff}
+.cw-group-roster-line label{display:flex;align-items:center;gap:7px;font-size:10px;color:#a8c6d6}
+.cw-group-roster-line select{min-height:39px;min-width:116px;border:1px solid #597e92;border-radius:8px;background:#213c4f;color:#eaf8ff;padding:8px;font-size:11px}
+.cw-group-roster-line select:focus-visible{outline:2px solid #ffc2ce}
+.acad-class-group-summary{font-size:10px!important;color:#f0bbcb!important;border:1px solid #704d65;background:#30283e;padding:6px 9px;border-radius:7px;width:max-content;max-width:100%;margin-top:8px;line-height:1.5}
+@media(max-width:740px){
+ .cw-student-login-form label[for="cw-activation-group"]{padding:10px}
+ .cw-student-login-form #cw-activation-group{min-height:55px;font-size:15px}
+ .cw-group-stats{padding:8px!important}
+ .cw-group-roster-line{align-items:flex-start;flex-direction:column;gap:7px}
+ .cw-group-roster-line label{width:100%;justify-content:space-between}
+ .cw-group-roster-line select{min-width:148px;min-height:46px}
+ .cw-group-roster>summary{min-height:48px;display:list-item}
+}

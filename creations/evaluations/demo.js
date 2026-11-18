@@ -37,7 +37,7 @@ function load(){
 try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&Array.isArray(v.attempts)&&Array.isArray(v.events))return v;}catch(e){}
 return makeSeed();
 }
-let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null;
+let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='source',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',hiddenSince=null;
 const root=document.getElementById('app'),toast=document.getElementById('toast'),modal=document.getElementById('modal');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=v=>esc(v);
@@ -71,7 +71,7 @@ if(view==='student'&&(tab==='examen'||tab==='termine')){
    else tab='accueil';
   }
 }
-if(view!=='student'){studentSession=null;portalSession=null;}
+if(view!=='student'){studentSession=null;portalSession=null;hiddenSince=null;}
 if(view==='student'&&tab==='accueil'){studentAssignmentId=null;studentQrToken=null;studentRollNumber='';studentSession=null;}
 render();
 }
@@ -132,14 +132,14 @@ return `<div class="home"><section class="home-hero"><div class="hero-copy"><p c
 <article class="card role-card eleve"><div class="role-icon" aria-hidden="true">✎</div><div><h2>Je suis élève</h2><p>Un parcours simple et agréable pour lire les documents, répondre aux questions, enregistrer sa progression et rendre son contrôle.</p></div><div class="btn-row">${btn('Tester un contrôle →','student','secondary')}<span class="small muted">Accès par QR code + PIN</span></div></article></div></section>
 <section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Scanne le QR code, saisis ton numéro et crée ton PIN à la première connexion.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
 }
-const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['codes','⌑','PIN élèves'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
+const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['codes','⌑','PIN élèves'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['integrite','◈','Anti-triche'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherReviewFull(){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
  return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex});
 }
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
-const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
+const body=tab==='classes'?window.CORTEX_CLASSES.overview(state,selectedClassId):tab==='codes'?teacherCodes():tab==='controles'?teacherExams():tab==='copies'?teacherCopies():tab==='suivi'?teacherMonitoring():tab==='integrite'?window.CORTEX_INTEGRITY.summary(state,integrityFilter):tab==='analyses'?teacherAnalytics():tab==='import'?teacherImport():tab==='creer'?teacherEditor():teacherDashboard();
 return `<div class="workspace"><aside class="sidebar"><div class="side-title"><strong>Espace professeur</strong><span>Compte de démonstration</span></div><nav class="side-menu" aria-label="Navigation professeur">${teacherMenu.map(([id,ico,label])=>`<button type="button" class="side-item ${tab===id?'active':''}" data-action="teacher-tab" data-tab="${id}"><span class="side-icon">${ico}</span>${label}</button>`).join('')}</nav><div class="side-bottom">Données fictives, modifiables dans ce navigateur uniquement.<br><br><a href="./ancienne-interface-v04.html">Ancienne interface sauvegardée ↗</a></div></aside><div class="workspace-main">${body}</div></div>`;
 }
 function teacherImport(){const exam=examBy(importExamId);return exam?.sourceId?window.CORTEX_VISUAL.workspace(exam,visualPage,visualQuestionId):window.CORTEX_VISUAL.importHome();}
@@ -273,7 +273,7 @@ function studentShell(){
   if(!portalAuthorized())return window.CORTEX_PORTAL.studentLogin(state);
   return window.CORTEX_PORTAL.correction(portalData(),portalSession,portalCopyId);
  }
- return '<div class="student-shell">'+(tab==='examen'?studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
+ return '<div class="student-shell">'+(tab==='examen'?window.CORTEX_INTEGRITY.notice(examBy(activeAttempt()?.examId))+studentExam():tab==='termine'?studentDone():studentWelcome())+'</div>';
 }
 
 function portalAuthorized(){
@@ -598,6 +598,16 @@ const a=activeAttempt();if(!a||a.status!=='progress')return;
 const last=state.events[state.events.length-1];if(last&&last.attemptId===a.id&&Date.now()-last.at<900)return;
 a.interruptions=(a.interruptions||0)+1;state.events.push({id:'event-'+Date.now(),attemptId:a.id,kind,at:Date.now()});save();
 }
+function recordIntegrityEvent(kind,durationMs){
+ const at=activeAttempt(),c=window.CORTEX_INTEGRITY.config(examBy(at?.examId));
+ if(!at||at.status!=='progress'||!authorizedAttempt(at)||!c.enabled||!['paste_blocked','copy_blocked','tab_hidden'].includes(kind))return;
+ const last=state.events[state.events.length-1],now=Date.now();
+ if(last?.attemptId===at.id&&last.kind===kind&&now-last.at<800)return;
+ const rec={id:'integrity-'+now+'-'+Math.floor(Math.random()*9000),attemptId:at.id,kind,at:now};
+ if(kind==='tab_hidden'&&Number.isFinite(durationMs)&&durationMs>=2000)rec.durationMs=Math.min(3600000,Math.round(durationMs));
+ state.events.push(rec);at.interruptions=(at.interruptions||0)+1;save();
+ if(c.warnStudent&&kind!=='tab_hidden')showToast(kind==='paste_blocked'?'Collage désactivé pour ce contrôle.':'Copie du sujet désactivée pour ce contrôle.');
+}
 function modalShow(title,content,footer=''){
 modal.innerHTML=`<div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-top"><h2 id="modal-title">${title}</h2><button type="button" class="icon-btn" aria-label="Fermer" data-action="close-modal">✕</button></div>${content}${footer?`<div class="btn-row" style="margin-top:19px">${footer}</div>`:''}</div>`;
 modal.querySelector('[data-action="close-modal"]')?.focus();
@@ -907,6 +917,9 @@ if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
 if(a==='about'){notifyAbout();return;}
+if(a==='integrity-open'){nav('teacher','integrite');return;}
+if(a==='integrity-settings'){const ex=examBy(id);if(ex)modalShow('Protection du contrôle',window.CORTEX_INTEGRITY.settings(ex),btn('Fermer','close-modal','ghost'));return;}
+if(a==='integrity-attempt'){const at=attemptBy(id);if(at)modalShow('Événements · '+esc(at.name),window.CORTEX_INTEGRITY.attemptEvents(state.events,at),btn('Fermer','close-modal','ghost'));return;}
 if(a==='teacher-tab'){if(el.dataset.tab==='creer'){editor=editorFor(null);editorIndex=0;}nav('teacher',el.dataset.tab);return;}
 if(a==='create'){editor=editorFor(null);editorIndex=0;editorDocTab='documents';nav('teacher','creer');return;}
 if(a==='go-import'){importExamId=null;visualPage=1;visualQuestionId=null;nav('teacher','import');return;}
@@ -1112,7 +1125,7 @@ if(a==='question-next'){const e=examBy(activeAttempt()?.examId);currentQuestion=
 if(a==='question-jump'){currentQuestion=Number(el.dataset.index)||0;render();return;}
 if(a==='simulate-interruption'){registerInterruption('simulation');showToast('Interruption fictive enregistrée.');render();return;}
 if(a==='review-exam'){reviewExam();return;}
-if(a==='confirm-submit'){const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
+if(a==='confirm-submit'){hiddenSince=null;const at=activeAttempt();if(!at||!authorizedAttempt(at))return;at.status='submitted';at.submittedAt=Date.now();save();closeModal();nav('student','termine');return;}
 if(a==='reset-demo'){modalShow('Réinitialiser la démonstration ?',`<p>Les contrôles ajoutés et les copies fictives créées dans ce navigateur seront effacés. Aucun serveur n'est concerné.</p>`,btn('Tout réinitialiser','confirm-reset','danger')+btn('Annuler','close-modal','ghost'));return;}
 if(a==='confirm-reset'){studentSession=null;portalSession=null;portalPreviewState=null;studentRollNumber='';state=window.CORTEX_CLASSES.init(makeSeed());teacherClassFilter='';teacherGroupFilter='';selectedClassId='2mrc1';chosenCode='SOMMEILPDF';save();closeModal();editor=null;currentQuestion=0;showToast('Démonstration réinitialisée.');render();return;}
 }
@@ -1154,6 +1167,10 @@ if(t.hasAttribute('data-search-exams')){search=t.value.toLowerCase();document.qu
 });
 document.addEventListener('change',e=>{
 const t=e.target;
+if(t.hasAttribute('data-integrity-toggle')){
+ const ex=examBy(t.dataset.exam);if(ex){window.CORTEX_INTEGRITY.update(ex,t.dataset.integrityToggle,!!t.checked);save();modalShow('Protection du contrôle',window.CORTEX_INTEGRITY.settings(ex),btn('Fermer','close-modal','ghost'));showToast('Réglages enregistrés.');}return;
+}
+if(t.id==='integrity-filter'){integrityFilter=t.value||'';render();return;}
 if(t.id==='portal-level'){
  const opts=document.querySelectorAll('#portal-class option[data-level]');
  for(const option of opts){const allowed=!t.value||option.dataset.level===t.value;option.hidden=!allowed;option.disabled=!allowed;}
@@ -1225,13 +1242,32 @@ document.addEventListener('drop',e=>{
  if(file)visualFile(file);
 });
 document.addEventListener('paste',e=>{
+ if(view==='student'&&tab==='examen'){
+  const at=activeAttempt(),c=window.CORTEX_INTEGRITY.config(examBy(at?.examId));
+  if(at&&authorizedAttempt(at)&&c.enabled&&c.blockPaste&&e.target?.closest?.('[data-answer],[data-doc-sub],[data-doc-fill]')){
+   e.preventDefault();recordIntegrityEvent('paste_blocked');
+  }
+  return;
+ }
  if(view!=='teacher'||!['import','creer'].includes(tab))return;
  const image=Array.from(e.clipboardData?.items||[]).find(x=>x.type.startsWith('image/'));
  if(!image)return;
  const file=image.getAsFile();if(!file)return;
  e.preventDefault();visualFile(file);
 });
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&view==='student'&&tab==='examen')registerInterruption('visibility');});
+document.addEventListener('visibilitychange',()=>{
+ if(view!=='student'||tab!=='examen'||!activeAttempt()||!authorizedAttempt(activeAttempt())){hiddenSince=null;return;}
+ const c=window.CORTEX_INTEGRITY.config(examBy(activeAttempt().examId));
+ if(!c.enabled||!c.trackVisibility){hiddenSince=null;return;}
+ if(document.visibilityState==='hidden')hiddenSince={id:activeAttempt().id,at:Date.now()};
+ else if(hiddenSince){const previous=hiddenSince;hiddenSince=null;const ms=Date.now()-previous.at;if(previous.id===activeAttempt().id&&ms>=2000)recordIntegrityEvent('tab_hidden',ms);}
+});
+document.addEventListener('copy',e=>{
+ if(view!=='student'||tab!=='examen')return;
+ const at=activeAttempt(),c=window.CORTEX_INTEGRITY.config(examBy(at?.examId));
+ if(!at||!authorizedAttempt(at)||!c.enabled||!c.blockCopy)return;
+ e.preventDefault();recordIntegrityEvent('copy_blocked');
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.children.length)closeModal();});
 window.addEventListener('hashchange',routePage);
 if(typeof window.setInterval==='function'){

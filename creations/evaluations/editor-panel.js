@@ -45,17 +45,12 @@ function render({exam,index=0,docTab='source'}){
     <small>Ce texte sera également visible dans l’espace élève et pendant la correction.</small></div>`;
   const associated=q.assetIds||[];
   const documentPanel=visualPane(exam,q,docTab,documentContent(exam,q));
-  const qcm=q.type==='choice'&&!sample;
-  const typeField=sample?`<div class="ed-format-lock"><strong>Format du PDF conservé</strong><span>Réponse rédigée${q.number===6?' · tableau interactif':q.number===10?' · deux champs à compléter':''}. Pour créer un QCM, utilise l’éditeur de nouveaux contrôles.</span></div>`:
-    `<div class="field"><label for="ed-qtype">Type de question</label><select id="ed-qtype" data-question="${i}" data-qfield="type">
-      <option value="text" ${q.type!=='choice'?'selected':''}>Réponse rédigée</option><option value="choice" ${q.type==='choice'?'selected':''}>QCM à réponse unique</option>
-    </select></div>`;
-  const qcmFields=qcm?`<div class="ed-qcm-extra"><div class="field"><label for="ed-choices">Réponses proposées (séparées par ;)</label>
-    <textarea id="ed-choices" rows="4" data-question="${i}" data-qfield="choices">${esc((q.choices||['Proposition 1','Proposition 2']).join(' ; '))}</textarea>
-    <small>Une proposition par élément, séparé par un point-virgule.</small></div>
-    <div class="field"><label for="ed-correct">Réponse correcte (dans l’éditeur professeur uniquement)</label><select id="ed-correct" data-question="${i}" data-qfield="correct">
-    ${(q.choices||[]).map((choice,k)=>`<option value="${k}" ${Number(q.correct||0)===k?'selected':''}>${k+1}. ${esc(choice)}</option>`).join('')}
-    </select></div></div>`:'';
+  const types=window.CORTEX_QUESTION_TYPES;
+  const typeField=sample?'<div class="ed-format-lock"><strong>Format du contrôle de référence préservé</strong><span>Les nouveaux contrôles disposent de neuf formats personnalisables.</span></div>':
+    '<div class="field"><label for="ed-qtype">Type de question</label><select id="ed-qtype" data-question="'+i+'" data-qfield="type">'+
+     types.TYPES.map(x=>'<option value="'+esc(x[0])+'" '+(types.type(q)===x[0]?'selected':'')+'>'+esc(x[1])+'</option>').join('')+
+     '</select><small>Réponse rédigée, choix unique ou multiple, vrai/faux, tableau, association, numérique et champs à compléter.</small></div>';
+  const typeExtras=sample?'':types.editorExtra(q,i,'demo');
   const cards=exam.questions.map((v,j)=>{
     const secTag=sample &&(j===0||v.section!==exam.questions[j-1].section)?`<div class="review-group-label">PARTIE ${Number(v.section||0)+1} · ${esc(sectionNames[Number(v.section||0)]||'Documents')}</div>`:'';
     return secTag+`<button class="review-question-btn ${j===i?'selected':''}" data-action="editor-select" data-index="${j}" type="button" ${j===i?'aria-current="step"':''}>
@@ -99,7 +94,7 @@ function render({exam,index=0,docTab='source'}){
       <div class="ed-config-body"><div class="field"><label for="ed-prompt">Énoncé affiché à l'élève</label>
       <textarea id="ed-prompt" rows="5" data-question="${i}" data-qfield="prompt" placeholder="Rédige la question…">${esc(q.prompt)}</textarea></div>
       <div class="ed-qfields"><div class="field"><label for="ed-points">Barème (points)</label><input id="ed-points" type="number" min="0.25" max="20" step="0.25" data-question="${i}" data-qfield="points" value="${esc(q.points)}"></div>
-      ${typeField}</div>${qcmFields}
+      ${typeField}</div>${typeExtras}
       <hr class="divider">${sourceSelect}
       <div class="ed-tools"><button class="btn ghost small" data-action="editor-move-up" ${i===0?'disabled':''}>↑ Monter</button>
       <button class="btn ghost small" data-action="editor-move-down" ${i===exam.questions.length-1?'disabled':''}>↓ Descendre</button>

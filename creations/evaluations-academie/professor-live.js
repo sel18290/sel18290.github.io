@@ -5,7 +5,7 @@ const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=
 const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
 const state={access:[],copies:[],classAccess:[],gotSnapshot:false};
 const viewLink=(view,label,cls='btn ghost small')=>{
- const a=el('a',cls,label);a.href='#'+({overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',assessments:'prof-assessments',creer:'exam-form',import:'cw-assessment-cards',copies:'cw-copies-head',suivi:'acad-live-monitoring',analyses:'acad-live-analytics',integrity:'acad-integrity'}[view]||'prof-overview');a.dataset.acadView=view;return a;
+ const a=el('a',cls,label);a.href='#'+({overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',assessments:'prof-assessments',creer:'exam-form',import:'acad-import-workspace',copies:'cw-copies-head',suivi:'acad-live-monitoring',analyses:'acad-live-analytics',integrity:'acad-integrity'}[view]||'prof-overview');a.dataset.acadView=view;return a;
 };
 function updateText(id,value){if($(id))$(id).textContent=String(value)}
 function getClassName(id){return bridge()?.classes?.()?.find(c=>c.id===id)?.code||'Classe non renseignée'}

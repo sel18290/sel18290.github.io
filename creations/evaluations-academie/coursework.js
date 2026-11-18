@@ -162,8 +162,13 @@ function display(){
   head.append(make('strong','',(exam?.title||'Contrôle')+' · Élève n°'+copy.student_number),
     make('span','cw-pill '+(copy.released_at?'cw-open':''),copy.released_at?'Correction publiée':copy.graded_at?'Corrigé':'À corriger'));
   card.append(head,make('small','','Reçu le '+new Date(copy.submitted_at).toLocaleString('fr-FR')));
-  for(const [id,answer] of Object.entries(copy.answers||{})){
-   const p=make('div','cw-answer');p.append(make('strong','',id),make('p','',answer));card.append(p);
+  for(const [qid,answer] of Object.entries(copy.answers||{})){
+   const question=(exam?.content?.questions||[]).find(q=>q.id===qid);
+   const p=make('div','cw-answer');
+   const heading=question?.prompt?question.prompt:qid;
+   const readable=question&&window.CORTEX_QUESTION_TYPES?.summary?
+    window.CORTEX_QUESTION_TYPES.summary(question,answer):String(answer??'');
+   p.append(make('strong','',heading),make('p','',readable));card.append(p);
   }
   if(copy.file_name)card.append(createButton('📎 Ouvrir la copie jointe : '+copy.file_name,'cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
   const form=make('form','cw-grade-form'),grade=make('input');

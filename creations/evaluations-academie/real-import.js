@@ -346,7 +346,7 @@ async function paint(){
   canvas.append(doc);
  }
  wrap.style.touchAction=!state.published?'none':'auto';
- by('ri-capture').disabled=state.published;
+ 
  by('ri-full-page').disabled=state.published;
 }
 async function originalCanvas(){
@@ -472,7 +472,7 @@ async function initial(file){
   by('ri-description').value='Lire attentivement les documents et justifier les réponses à partir des sources fournies.';
   populateClasses();
   by('ri-editor').hidden=false;by('ri-save').textContent='Enregistrer le contrôle et son document';
-  await paint();renderQuestions();
+  await paint();renderQuestions();updateDetectionHint(state.questions.filter(q=>q.detected).length);
   msg('Original chargé : '+state.sourceCount+' page(s), '+state.questions.length+' question(s) détectée(s). Vérifie les énoncés et les barèmes avant enregistrement.');
  });
 }
@@ -503,7 +503,7 @@ async function openExisting(id){
   by('ri-upload-chooser').hidden=true;
   const assets=await api('teacher_asset_list',{assessment_id:id},null,true);
   state.assets=assets.assets||[];
-  await paint();renderQuestions();
+  await paint();renderQuestions();updateDetectionHint(state.questions.length);
   msg(state.published?'Contrôle publié : consultation uniquement. Les documents et réponses des élèves sont préservés.':'Atelier chargé. Tu peux modifier les questions et associer des captures au contrôle.');
   location.hash='#acad-import-workspace';document.body.dataset.acadView='import';
   by('acad-import-workspace').scrollIntoView({block:'start',behavior:'smooth'});
@@ -519,8 +519,30 @@ by('ri-add-question').addEventListener('click',()=>{
 });
 by('ri-new').addEventListener('click',()=>{clearEditor();by('ri-upload-chooser').hidden=false;by('ri-title').disabled=false;by('ri-class').disabled=false;by('ri-description').disabled=false;});
 by('ri-save').addEventListener('click',()=>operation(save));
-by('ri-capture').addEventListener('click',()=>operation(()=>captureToBank(false)));
+
 by('ri-full-page').addEventListener('click',()=>operation(()=>captureToBank(true)));
+by('ri-image-file').addEventListener('change',e=>{
+ const file=e.target.files?.[0];if(file)operation(()=>importImage(file));e.target.value='';
+});
+by('ri-paste-image').addEventListener('click',()=>operation(pasteImage));
+by('ri-redetect').addEventListener('click',()=>{
+ if(state.published||!state.file){msg('Aucun document modifiable chargé.',true);return;}
+ if(state.assets.some(a=>a.questionId||(!a.pending))) {
+  msg('Pour protéger les associations documentaires existantes, la réanalyse est bloquée après liaison des captures. Modifie les questions directement.',true);
+  return;
+ }
+ if(!confirm('Relancer l’analyse ? Les questions actuellement saisies seront remplacées par les questions détectées dans le document.'))return;
+ const questions=extractQuestions(state.pages);
+ state.questions=questions.length?questions:[emptyQuestion()];
+ renderQuestions();
+ updateDetectionHint(questions.length);
+ msg(questions.length+' question(s) proposées après nouvelle analyse. Vérifie les énoncés et les points.');
+});
+function updateDetectionHint(count){
+ const hint=by('ri-detection-hint');
+ if(hint)hint.textContent=count?'✓ '+count+' question(s) reconnue(s) automatiquement · à vérifier':
+  'Aucune question reconnue : ajoute les questions manuellement ci-dessous.';
+}
 attachSelection();
 window.CORTEX_REAL_IMPORT={openExisting};
 window.addEventListener('cortex:academy-data-ready',()=>{if(!state.id&&state.file)populateClasses(by('ri-class').value);});

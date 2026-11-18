@@ -9,6 +9,47 @@ let mode='login';
 let busy=false;
 let recoveringPassword=false;
 const redirectUrl=location.origin+location.pathname;
+const acadRoutes={
+ overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',
+ assessments:'prof-assessments',qr:'cw-assessment-cards',copies:'cw-copies-head',integrity:'acad-integrity'
+};
+function currentAcadView(){
+ const hash=decodeURIComponent(String(location.hash||'').replace(/^#/,''));
+ const found=Object.entries(acadRoutes).find(([,id])=>id===hash);
+ if(found)return found[0];
+ if(hash==='acad-live-workflow')return 'qr';
+ return 'overview';
+}
+function showAcadSection(view){
+ const key=Object.prototype.hasOwnProperty.call(acadRoutes,view)?view:'overview';
+ document.body.dataset.acadView=key;
+ for(const link of document.querySelectorAll('.academie-prof-nav [data-acad-view]')){
+  const active=link.dataset.acadView===key;
+  link.classList.toggle('is-active',active);
+  if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+ }
+ const overview=$('prof-overview');if(overview)overview.hidden=key!=='overview';
+}
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a[data-acad-view]');
+ if(!link||!document.body.classList.contains('academy-authenticated'))return;
+ const view=link.dataset.acadView;
+ if(!Object.prototype.hasOwnProperty.call(acadRoutes,view))return;
+ event.preventDefault();
+ showAcadSection(view);
+ if(location.hash!==('#'+acadRoutes[view]))location.hash='#'+acadRoutes[view];
+ requestAnimationFrame(()=>{
+  const id=view==='overview'?'prof-overview':(['pins','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+});
+window.addEventListener('hashchange',()=>{if(document.body.classList.contains('academy-authenticated'))showAcadSection(currentAcadView())});
+window.addEventListener('cortex:academy-coursework-stats',event=>{
+ const d=event.detail||{};
+ if($('acad-overview-copies'))$('acad-overview-copies').textContent=String(Number(d.copies)||0);
+ if($('acad-overview-pins'))$('acad-overview-pins').textContent=String(Number(d.pinClasses)||0);
+});
+
 
 function status(text,error=false){
  const el=$('status');el.textContent=text;el.hidden=!text;el.classList.toggle('error',error);
@@ -22,6 +63,8 @@ function strongPassword(value){
   /[^A-Za-z0-9]/.test(value);
 }
 function selectMode(next){
+ document.body.classList.remove('academy-authenticated');
+ delete document.body.dataset.acadView;
  mode=next;status('');
  const recovering=next==='update';
  $('form-title').textContent=next==='login'?'Bon retour dans CORTEX.':next==='signup'?'Créer votre compte académique.':recovering?'Choisissez un nouveau mot de passe.':'Récupérer votre accès.';
@@ -80,6 +123,8 @@ async function showUser(user){
  }
  $('account-email').textContent=user.email;
  $('auth-view').hidden=true;$('account-view').hidden=false;
+ document.body.classList.add('academy-authenticated');
+ showAcadSection(currentAcadView());
  status('');
  await loadTeacherData(user.id);
 }
@@ -190,6 +235,8 @@ function drawTeacherData(){
  $('class-list').replaceChildren();$('exam-list').replaceChildren();
  $('classes-count').textContent=myClasses.length+' classe(s)';
  $('exams-count').textContent=myExams.length+' contrôle(s)';
+ if($('acad-overview-classes'))$('acad-overview-classes').textContent=String(myClasses.length);
+ if($('acad-overview-exams'))$('acad-overview-exams').textContent=String(myExams.length);
  if(!myClasses.length)$('class-list').append(el('p','empty','Aucune classe enregistrée.'));
  for(const c of myClasses){
   const row=el('div','prof-item'),detail=el('div','prof-item-main');

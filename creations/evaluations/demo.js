@@ -358,6 +358,12 @@ function portalAction(kind,el){
   if(!P.candidate(portalData(),portalSession.classId,portalSession.number,id)){showToast('Cette correction n’est pas disponible.');return;}
   portalCopyId=id;nav('student','correction');return;
  }
+ if(kind==='portal-original'){
+  const at=P.candidate(portalData(),portalSession.classId,portalSession.number,id);
+  const exam=portalData().exams.find(e=>e.id===at?.examId);
+  if(!at||!exam?.sourceId){showToast('Document original indisponible.');return;}
+  openSavedOriginal(exam.sourceId);return;
+ }
  if(kind==='portal-revision'){
   const data=portalData(),at=P.candidate(data,portalSession.classId,portalSession.number,el.dataset.attempt),q=data.exams.find(e=>e.id===at?.examId)?.questions.find(x=>x.id===el.dataset.question);
   if(!at||!q||typeof at.marks?.[q.id]?.points!=='number'){showToast('Question indisponible.');return;}

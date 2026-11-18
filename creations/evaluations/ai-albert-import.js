@@ -3,16 +3,21 @@
    L'original PDF/Word et les captures restent dans le navigateur. */
 window.CORTEX_ALBERT_IMPORT=(function(){
  'use strict';
- async function analyze(pages){
+ async function analyze(pages,options={}){
   if(!Array.isArray(pages)||!pages.length||pages.length>35)throw Error('Albert accepte 35 pages textuelles maximum.');
   const perPage=Math.max(300,Math.min(2500,Math.floor(30000/pages.length)));
   const texts=pages.map(p=>String(p||'').slice(0,perPage));
   if(texts.reduce((a,p)=>a+p.length,0)<70)throw Error('Document probablement scanné : pas assez de texte détecté pour Albert. Ouvre l’atelier classique.');
   const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('../evaluations-academie/config.js?v=1');
+  const mode=options.mode==='academy'?'academy':'demo';
+  const headers={'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY};
+  if(mode==='academy'){
+   if(!options.accessToken)throw Error('Connexion professeur obligatoire pour cet espace.');
+   headers.Authorization='Bearer '+options.accessToken;
+  }
   const response=await fetch(SUPABASE_URL+'/functions/v1/cortex-albert-import-demo',{
-   method:'POST',cache:'no-store',
-   headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY},
-   body:JSON.stringify({action:'analyze_subject',mode:'demo',pages:texts})
+   method:'POST',cache:'no-store',headers,
+   body:JSON.stringify({action:'analyze_subject',mode,pages:texts})
   });
   const result=await response.json().catch(()=>null);
   if(!response.ok||!result?.ok)throw Error(result?.error||'Albert n’a pas pu analyser le sujet.');

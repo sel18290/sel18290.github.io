@@ -209,3 +209,55 @@
  .cs-stage-featured-tags span{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.cs-stage-featured-button{transition:none}}
+
+
+/* Recherche guidée par les référentiels du bac professionnel. */
+.cs-stage-option-field[hidden]{display:none!important}
+.cs-stage-types{
+ grid-column:1/-1;min-width:0;padding:clamp(13px,2.4vw,19px);
+ border:1px solid rgba(144,199,227,.63);border-radius:15px;
+ background:linear-gradient(150deg,rgba(36,83,117,.36),rgba(6,32,56,.68));
+}
+.cs-stage-types legend{
+ max-width:100%;padding:0 8px;color:#f3faff;
+ font-size:clamp(15px,2vw,18px);font-weight:870;line-height:1.4;
+}
+.cs-stage-types-intro,.cs-stage-types-foot{margin:4px 0 12px;color:#c7deeb;font-size:12px;line-height:1.5}
+.cs-stage-types-foot{margin:13px 0 0;font-size:11px}
+.cs-stage-types-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 13px}
+.cs-stage-types-toolbar span{flex:1 1 190px;font-weight:780;color:#d7f8ff;font-size:12px}
+.cs-stage-types-toolbar button{
+ min-height:38px;border-radius:9px;border:1px solid #8db3cd;
+ background:#1e415c;color:#e7f7ff;font:inherit;font-size:12px;font-weight:780;
+ padding:8px 11px;cursor:pointer;touch-action:manipulation
+}
+.cs-stage-types-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cs-stage-type{
+ display:flex!important;flex-direction:row!important;align-items:flex-start;
+ gap:11px!important;min-width:0;min-height:80px;padding:12px 13px;
+ border:1px solid #547b9b;border-radius:12px;background:rgba(6,31,55,.76);
+ cursor:pointer;transition:background-color .14s,border-color .14s;touch-action:manipulation
+}
+.cs-stage-type.is-checked{border-color:#a6e5fa;background:rgba(39,106,135,.38)}
+.cs-stage-type input[type="checkbox"]{
+ flex:none;width:22px;height:22px;min-width:22px;min-height:22px;
+ margin:1px 0 0;accent-color:#8bdcef;cursor:pointer
+}
+.cs-stage-type-copy{min-width:0;display:grid;gap:5px}
+.cs-stage-type-copy strong{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#f6faff;
+ font-size:13px;font-weight:800;line-height:1.45}
+.cs-stage-type-copy .cs-stage-type-description{color:#bcd8e7;font-size:11px;line-height:1.45}
+.cs-stage-type-option{font-size:10px;font-weight:800;line-height:1.2;padding:3px 6px;
+ border-radius:6px;color:#d8f5ff;background:#265575}
+.cs-stage-target{
+ padding:8px 10px;margin:0;background:rgba(63,116,147,.23);
+ border-left:2px solid #8ed5f5;color:#dbf4ff;font-size:12px;line-height:1.5
+}
+@media(max-width:760px){
+ .cs-stage-types-grid{grid-template-columns:1fr}
+ .cs-stage-types{padding:12px}
+ .cs-stage-type{min-height:72px;padding:12px}
+ .cs-stage-types-toolbar{display:grid;grid-template-columns:1fr 1fr}
+ .cs-stage-types-toolbar span{grid-column:1/-1}
+ .cs-stage-types-toolbar button{width:100%;min-height:43px}
+}

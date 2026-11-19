@@ -104,7 +104,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-demo-features" aria-hidden="true"><span>◈ Mes résultats</span><span>≈ Estimation IA</span><span>✧ Conseils Albert</span></div>'+
    '</div>'+
    '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
-   '<div class="portal-pse-teaser cs-stage-demo-teaser"><div class="portal-pse-teaser-mark">PFMP · RECHERCHE DE STAGES</div><h2>Trouver des entreprises près de chez moi</h2><p>Choisis ta filière, une ville et découvre les établissements répertoriés, avec leurs adresses et téléphones lorsqu'ils sont disponibles.</p><button class="portal-pse-teaser-action" type="button" data-action="student-stages">🎓 Recherche de stages ↗</button></div>'+
+   '<div class="portal-pse-teaser cs-stage-demo-teaser"><div class="portal-pse-teaser-mark">PFMP · RECHERCHE DE STAGES</div><h2>Trouver des entreprises près de chez moi</h2><p>Choisis ta filière, une ville et découvre les établissements répertoriés, avec leurs adresses et téléphones lorsqu’ils sont disponibles.</p><button class="portal-pse-teaser-action" type="button" data-action="student-stages">🎓 Recherche de stages ↗</button></div>'+
    '<div class="portal-login-divider"><span>OU ACCÉDER À MES COPIES</span></div>'+
    '<div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
    '<p class="portal-muted">Accès personnel avec ton numéro de liste, ton PIN et le code communiqué par ton professeur.</p>'+

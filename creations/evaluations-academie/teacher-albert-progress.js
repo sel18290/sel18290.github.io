@@ -39,8 +39,9 @@ export function openTeacherAlbertProgress({studentNumber,assessmentTitle,questio
  dialog.addEventListener('close',cleanup,{once:true});
  const hide=()=>{if(closed)return;if(typeof dialog.close==='function')dialog.close();else cleanup()};
  close.addEventListener('click',()=>{
-  if(stopped&&typeof onReveal==='function')onReveal();
+  const reveal=stopped&&typeof onReveal==='function';
   hide();
+  if(reveal)requestAnimationFrame(onReveal);
  });
  function finish(){
   stopped=true;

@@ -2,6 +2,8 @@
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
+import {renderCopyOrganizer} from './copy-organizer.js?v=1.0';
+import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
 const make=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -30,7 +32,8 @@ export async function api(action,payload={},file=null,teacher=false){
  if(!response.ok||!out?.ok)throw Error(out?.error||'Action refusée par le serveur.');
  return out;
 }
-const state={access:[],copies:[],pins:new Map(),loading:false};
+const state={access:[],copies:[],pins:new Map(),loading:false,aiBusy:0};
+const openCopyClasses=new Set(),openCopyControls=new Set(),openStudentCopies=new Set();
 const joinUrl=code=>location.origin+location.pathname+'?join='+encodeURIComponent(code);
 function message(text,error=false){const e=get('cw-status');if(!e)return;e.hidden=!text;e.textContent=text;e.classList.toggle('error',error)}
 async function reload(success=false){
@@ -180,21 +183,37 @@ function display(){
   boxes.append(card);
  }
  get('cw-copy-count').textContent=state.copies.length+' copie(s)';
- if(!state.copies.length)inbox.append(make('p','empty','Aucune copie remise pour le moment.'));
- for(const copy of state.copies){
+ renderCopyOrganizer({
+  target:inbox,copies:state.copies,exams,classes:bridge()?.classes?.()||[],
+  renderCopy:renderCopyCard,
+  openClasses:openCopyClasses,openControls:openCopyControls,openCopies:openStudentCopies
+ });
+}
+function renderCopyCard(copy,exam){
+
   const exam=exams.find(e=>e.id===copy.assessment_id);
   const card=make('article','cw-copy'),head=make('div','cw-copy-top');
-  head.append(make('strong','',(exam?.title||'Contrôle')+' · Élève n°'+copy.student_number),
+  head.append(make('strong','','Correction · élève n°'+copy.student_number),
     make('span','cw-pill '+(copy.released_at?'cw-open':''),copy.released_at?'Correction publiée':copy.graded_at?'Corrigé':'À corriger'));
   card.append(head,make('small','','Reçu le '+new Date(copy.submitted_at).toLocaleString('fr-FR')));
-  for(const [qid,answer] of Object.entries(copy.answers||{})){
-   const question=(exam?.content?.questions||[]).find(q=>q.id===qid);
-   const p=make('div','cw-answer');
-   const heading=question?.prompt?question.prompt:qid;
-   const readable=question&&window.CORTEX_QUESTION_TYPES?.summary?
-    window.CORTEX_QUESTION_TYPES.summary(question,answer):String(answer??'');
-   p.append(make('strong','',heading),make('p','',readable));card.append(p);
-  }
+  const answers=make('details','cw-copy-answers');
+  answers.append(make('summary','','▤ Consulter les réponses · '+Object.keys(copy.answers||{}).length+' question(s)'));
+  const answerList=make('div','cw-copy-answer-list');answers.append(answerList);
+  let answersLoaded=false;
+  answers.addEventListener('toggle',()=>{
+   if(!answers.open||answersLoaded)return;
+   const questions=new Map((exam?.content?.questions||[]).map(q=>[q.id,q]));
+   for(const [qid,answer] of Object.entries(copy.answers||{})){
+    const question=questions.get(qid),line=make('div','cw-answer');
+    const prompt=question?.prompt||qid;
+    const readable=question&&window.CORTEX_QUESTION_TYPES?.summary?
+     window.CORTEX_QUESTION_TYPES.summary(question,answer):String(answer??'');
+    line.append(make('strong','',prompt),make('p','',readable));
+    answerList.append(line);
+   }
+   answersLoaded=true;
+  });
+  card.append(answers);
   if(copy.file_name)card.append(createButton('📎 Ouvrir la copie jointe : '+copy.file_name,'cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
   const form=make('form','cw-grade-form'),grade=make('input');
   grade.type='number';grade.min='0';grade.max='20';grade.step='0.01';grade.required=true;grade.placeholder='Note sur 20';grade.value=copy.grade??'';
@@ -205,29 +224,44 @@ function display(){
   label.append(release,make('span','','Publier la note et la correction pour l’élève'));
   const submit=make('button','cw-accent','Enregistrer la correction');submit.type='submit';
   const aiButton=createButton('✦ Corriger avec Albert IA','cw-ai-button',async()=>{
-    if(!window.confirm('Albert IA propose uniquement un brouillon. Aucune note ne sera enregistrée. Le transfert de copies réelles exige l’autorisation de l’établissement et du DPO. Continuer ?'))return;
+   if(!window.confirm('Albert va analyser cette copie et ses documents pour proposer une correction. Aucune note ne sera enregistrée ou publiée automatiquement. Continuer ?'))return;
+   const progress=openTeacherAlbertProgress({
+    studentNumber:copy.student_number,assessmentTitle:exam?.title||'Contrôle',
+    questionCount:(exam?.content?.questions||[]).length,
+    onReveal:()=>{
+     const detail=form.querySelector('.cw-ai-detail');
+     if(detail){detail.open=true;detail.scrollIntoView({block:'start',behavior:'smooth'});}
+     else form.scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+   });
+   state.aiBusy++;
+   try{
+    progress.update('Albert examine les réponses et les documents associés, puis prépare un brouillon question par question…');
     const draft=await requestAiDraft(copy.assessment_id,copy.student_number);
     grade.value=String(draft.grade);
     feedback.value=formatDraftFeedback(draft);
     release.checked=false;
     form.querySelector('.cw-ai-draft-notice')?.remove();
     form.querySelector('.cw-ai-detail')?.remove();
-    const notice=make('div','cw-ai-draft-notice','✦ Proposition Albert non enregistrée : contrôlez chaque question, les documents et le barème avant validation.');
+    const notice=make('div','cw-ai-draft-notice','✦ Proposition Albert non enregistrée : vérifie les réponses, les documents et les points avant validation.');
     const details=make('details','cw-ai-detail');
-    details.open=true;
-    details.append(make('summary','','Albert IA · Correction détaillée des '+draft.questions.length+' questions'));
+    details.append(make('summary','','Albert IA · Corrections des '+draft.questions.length+' questions'));
     for(const q of draft.questions){
-      const line=make('section','cw-ai-question');
-      line.append(make('strong','','Question '+(q.numero||q.id)+' · '+q.points+' / '+q.max+' point(s)'));
-      if(q.attendu)line.append(make('p','','Réponse attendue : '+q.attendu));
-      line.append(make('p','','Commentaire : '+(q.commentaire||'À vérifier.')));
-      if(q.conseil)line.append(make('p','','Conseil : '+q.conseil));
-      if(q.document)line.append(make('small','','Document utilisé : '+q.document));
-      details.append(line);
+     const line=make('details','cw-ai-question');
+     line.append(make('summary','','Question '+(q.numero||q.id)+' · '+q.points+' / '+q.max+' point(s)'));
+     if(q.attendu)line.append(make('p','','Réponse attendue : '+q.attendu));
+     line.append(make('p','','Commentaire : '+(q.commentaire||'À vérifier.')));
+     if(q.conseil)line.append(make('p','','Conseil : '+q.conseil));
+     if(q.document)line.append(make('small','','Document utilisé : '+q.document));
+     details.append(line);
     }
     form.prepend(notice,details);
-    message('Brouillon Albert chargé pour la copie n°'+copy.student_number+'. La note n’est ni enregistrée ni publiée.');
-    grade.focus();
+    progress.success(draft);
+    message('Brouillon Albert prêt pour l’élève n°'+copy.student_number+'. La note reste à valider manuellement.');
+   }catch(error){
+    progress.failure(error);
+    throw error;
+   }finally{state.aiBusy=Math.max(0,state.aiBusy-1);}
   });
   form.append(aiButton,grade,feedback,label,submit);
   form.addEventListener('submit',async ev=>{
@@ -238,8 +272,8 @@ function display(){
     await reload();
    }catch(err){message(String(err.message||err),true)}finally{submit.disabled=false}
   });
-  card.append(form);inbox.append(card);
- }
+  card.append(form);
+  return card;
 }
 get('cw-refresh')?.addEventListener('click',()=>reload(true));
 
@@ -277,8 +311,10 @@ window.addEventListener('cortex:academy-data-ready',()=>reload());
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
+ openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();
  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();
  get('cw-copy-list')?.replaceChildren();
 });
-setInterval(()=>{if(bridge()?.teacher?.()&&!document.hidden)reload()},40000);
+// Ne pas interrompre la relecture d'une copie ni une analyse Albert.
+setInterval(()=>{if(bridge()?.teacher?.()&&!document.hidden&&!state.aiBusy&&!openStudentCopies.size)reload()},40000);

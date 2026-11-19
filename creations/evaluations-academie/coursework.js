@@ -2,7 +2,7 @@
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
-import {renderCopyOrganizer} from './copy-organizer.js?v=1.1';
+import {renderCopyOrganizer} from './copy-organizer.js?v=1.2';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);

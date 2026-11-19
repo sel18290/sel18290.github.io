@@ -89,3 +89,27 @@
 }
 @media(max-width:420px){.cs-stage-toolbar{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.cs-stage-spinner{animation:none;border-color:#fff}}
+
+
+/* Navigation permanente entre carnet/évaluations et stages (réel). */
+.cs-stage-student-tabs{
+ display:flex;gap:8px;flex-wrap:wrap;
+ width:100%;margin:7px 0 14px;padding:7px;
+ border:1px solid #688bad;border-radius:13px;background:#112a42;
+}
+.cs-stage-tab{
+ flex:1 1 175px;min-height:48px;padding:10px 13px;
+ border:1px solid #7598b7;border-radius:9px;
+ background:#1c3854;color:#e9f7ff;font:inherit;
+ font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation;
+}
+.cs-stage-tab.is-active{
+ border-color:#b2efff;background:linear-gradient(115deg,#d4edfd,#b9dfec);
+ color:#112c3e;
+}
+.cs-stage-tab:focus-visible{outline:3px solid #a6eaff;outline-offset:2px}
+.cs-stage-host{max-width:100%;min-width:0}
+@media(max-width:500px){
+ .cs-stage-student-tabs{padding:5px;gap:6px}
+ .cs-stage-tab{flex:1 1 120px;font-size:13px;min-height:47px}
+}

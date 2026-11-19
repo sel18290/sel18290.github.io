@@ -91,7 +91,7 @@
   function busy(flag){
    $("cs-stage-submit").disabled=flag;$("cs-stage-loader").hidden=!flag;
   }
-  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked)+'|'+Boolean(settings.demo)]);
+  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked),Boolean(settings.demo)]);
   function render(){
    if(!state)return;
    const filt=$("cs-stage-filter").value,sort=$("cs-stage-sort").value;
@@ -107,8 +107,8 @@
    summary.append(heading);
    const ai=state.ai||{enabled:false};
    const explanation=ai.enabled?
-    "✦ Albert a sélectionné des établissements répertoriés. Les missions suggérées restent à confirmer.":
-    "Classement géographique · Albert "+(ai.reason==="Clé Albert non configurée"?"non connecté":settings.demo?"non sollicité dans cette recherche":"non disponible pour cette recherche");
+    "✦ Albert IA a classé des établissements vérifiables. Les missions sont des suggestions, pas des offres de stage confirmées.":
+    "Classement par proximité · "+(ai.reason||"Albert non sollicité pour cette recherche");
    summary.append(E("p","cs-stage-ai-status",explanation));
    if(state.checked_at)summary.append(E("small","cs-stage-timestamp","Données consultées le "+new Date(state.checked_at).toLocaleString("fr-FR")));
    const cards=$("cs-stage-cards");cards.replaceChildren();

@@ -11,7 +11,7 @@ const reply=(obj,status=200)=>new Response(JSON.stringify(obj),{status,headers:{
 const fail=(error,status=400)=>reply({ok:false,error},status);
 const uuid=s=>typeof s==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 const hex64=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
-const clean=(s,n=2000)=>String(s??'').replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}/gi,'[adresse masquée]').replace(/(?:\\+33|0)[1-9](?:[ .-]?\\d{2}){4}/g,'[téléphone masqué]').replace(/\\s+/g,' ').trim().slice(0,n);
+const clean=(s,n=2000)=>String(s??'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[adresse masquée]').replace(/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/g,'[téléphone masqué]').replace(/\s+/g,' ').trim().slice(0,n);
 async function digest(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function identify(body){
  const token=String(body.session||''),id=String(body.assessment_id||'');

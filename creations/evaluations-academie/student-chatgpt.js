@@ -114,7 +114,7 @@ function buildNotebookPrompt(assessments){
  ].join('\n');
  return {prompt:limit(prompt,50000),pdfRequired:false,missingImages:0,graded:true};
 }
-function modal({title,prompt,pdfRequired,missingImages,sourceUrl,mode}){
+function modal({title,prompt,pdfRequired,missingImages,sourceUrl,mode,onOpenDocument,onOpenSubmission}){
  document.getElementById('cw-real-chatgpt-dialog')?.remove();
  const dialog=E('dialog','cw-real-chatgpt-dialog');dialog.id='cw-real-chatgpt-dialog';
  dialog.setAttribute('aria-label',title);
@@ -167,6 +167,23 @@ function modal({title,prompt,pdfRequired,missingImages,sourceUrl,mode}){
   if(!tab)status.textContent='Autorise l’ouverture de ChatGPT ou ouvre chatgpt.com manuellement, puis colle la consigne.';
  });
  footer.append(close,copy,open);
+ if(mode==='teacher'){
+  const addPrivateDocument=(title,action)=>{
+   if(typeof action!=='function')return;
+   const button=E('button','cw-real-chatgpt-secondary',title);
+   button.type='button';
+   button.addEventListener('click',async()=>{
+    if(button.disabled)return;
+    button.disabled=true;
+    try{await action();status.textContent='Fichier privé ouvert. Enregistre-le et joins-le manuellement à ChatGPT seulement si autorisé.';}
+    catch(error){status.textContent=error?.message||'Document indisponible.'}
+    finally{button.disabled=false}
+   });
+   footer.prepend(button);
+  };
+  addPrivateDocument('📄 Ouvrir le PDF / Word original',onOpenDocument);
+  addPrivateDocument('📎 Ouvrir la copie jointe',onOpenSubmission);
+ }
  if(sourceUrl&&mode==='copy'){
   const original=E('a','cw-real-chatgpt-secondary','Consulter le document d’origine');
   original.href=sourceUrl;original.target='_blank';original.rel='noopener';
@@ -277,11 +294,16 @@ function teacherPrompt(exam,copy){
  const images=questions.filter(q=>(q.assetIds||[]).length>0&&!String(q.analysisDoc||q.doc||'').trim()).length;
  return {prompt:limit(header.join('\n\n'),65000),pdfRequired:images>0||Boolean(source.sourceType),missingImages:images};
 }
-export function createTeacherChatGPTButton({exam,copy}){
+export function createTeacherChatGPTButton({exam,copy,openFile}){
  const button=makeButton('✦ Corriger avec ChatGPT',()=>{
   try{
    const bundle=teacherPrompt(exam,copy);
-   modal({...bundle,title:'Corriger la copie avec ChatGPT',mode:'teacher'});
+   modal({...bundle,title:'Corriger la copie avec ChatGPT',mode:'teacher',
+    onOpenDocument:typeof openFile==='function'&&exam?.content?.sourceType?
+      ()=>openFile(copy.assessment_id,'subject'):null,
+    onOpenSubmission:typeof openFile==='function'&&copy.file_name?
+      ()=>openFile(copy.assessment_id,'submission',copy.student_number):null
+   });
   }catch(error){window.alert(error?.message||'Préparation ChatGPT indisponible.')}
  });
  button.classList.add('cw-real-chatgpt-teacher');

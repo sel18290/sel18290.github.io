@@ -26,6 +26,9 @@ function button(label,className,fn){
 }
 function render(){
  const target=$('cw-class-cards');if(!target)return;
+ // Les nouvelles inscriptions actualisent les effectifs sans refermer les
+ // groupes que le professeur est en train de consulter.
+ const openRosters=new Set([...target.querySelectorAll('details.cw-group-roster[open]')].map(x=>x.dataset.classId));
  target.replaceChildren();
  const classes=B()?.classes?.()||[];
  if(!classes.length){target.append(E('p','empty','Créez d’abord une classe dans « Mes classes ».'));return}
@@ -89,6 +92,8 @@ function render(){
   card.append(stats);
   if(assigned.length){
    const details=E('details','cw-group-roster'),summary=E('summary','','Voir les élèves inscrits par demi-groupe ('+assigned.length+')');
+   details.dataset.classId=cl.id;
+   details.open=openRosters.has(cl.id);
    const list=E('div','cw-group-roster-list');
    const orderGroup=g=>g===1?0:g===2?1:2;
    const sorted=assigned.slice().sort((a,b)=>orderGroup(a.demi_groupe)-orderGroup(b.demi_groupe)||a.student_number-b.student_number);

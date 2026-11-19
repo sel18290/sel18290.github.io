@@ -10,7 +10,8 @@
  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
  const saveData=!!navigator.connection?.saveData;
  if(reduce.matches||saveData)return;
- const lowPower=window.matchMedia('(max-width: 760px)').matches;
+ const lowPower=window.matchMedia('(max-width: 950px) and (pointer: coarse)').matches;
+ const examPause=()=>lowPower&&document.body.classList.contains('cw-student-active');
  const fps=lowPower?20:30;
  const frameMs=1000/fps;
  let last=0,raf=0,layers=[],resizeQueued=false,heroObserver=null;
@@ -119,7 +120,7 @@
   }
  }
  function loop(now){
-  if(document.visibilityState==='hidden'){raf=0;return}
+  if(document.visibilityState==='hidden'||examPause()){raf=0;return}
   if(now-last>=frameMs){
    const dt=Math.min(2.3,Math.max(.2,(now-last)/frameMs));
    last=now;
@@ -130,7 +131,7 @@
   }
   raf=requestAnimationFrame(loop);
  }
- function start(){if(!raf&&!reduce.matches&&!saveData){last=performance.now();raf=requestAnimationFrame(loop)}}
+ function start(){if(!raf&&!reduce.matches&&!saveData&&!examPause()){last=performance.now();raf=requestAnimationFrame(loop)}}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0}
  function onResize(){
   if(resizeQueued)return;
@@ -140,6 +141,17 @@
  const global=makeCanvas(document.body,false);
  if(!global)return;
  layers.push(global);resize(global);attachHero();start();
+ // Les contrôles contiennent de longs documents : couper les animations
+ // en mode élève sur iPhone évite le coût GPU et les ralentissements.
+ if(lowPower&&typeof MutationObserver==='function'){
+  const observer=new MutationObserver(()=>{
+   const paused=examPause();
+   if(paused)stop();else start();
+   for(const layer of layers)layer.canvas.style.display=paused?'none':'';
+  });
+  observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+  if(examPause())for(const layer of layers)layer.canvas.style.display='none';
+ }
  // La démo remplace le contenu de #app à chaque changement de section.
  const root=document.getElementById('app');
  if(root&&typeof MutationObserver==='function'){

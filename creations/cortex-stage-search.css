@@ -1,0 +1,91 @@
+/* CORTEX stages — même interface sur Démo et espace élève réel.
+   Scopes isolés pour ne modifier ni les contrôles ni les boutons professeur. */
+.cs-stage-search{
+ --cs-border:#6b8eaf;--cs-text:#e9f5ff;--cs-muted:#bfd6e8;
+ box-sizing:border-box;max-width:1100px;min-width:0;width:100%;
+ margin:12px auto 24px;padding:clamp(14px,3.8vw,26px);
+ border:1px solid #577ba0;border-radius:19px;
+ background:radial-gradient(ellipse at 100% 0,rgba(60,123,183,.29),transparent 43%),linear-gradient(155deg,#12243d,#0c1d35);
+ color:var(--cs-text);box-shadow:0 15px 45px rgba(0,0,0,.19)
+}
+.cs-stage-search *{box-sizing:border-box}
+.cs-stage-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.cs-stage-eyebrow{font-size:11px;letter-spacing:.12em;color:#9bd7f0;font-weight:850}
+.cs-stage-head h2{font-size:clamp(22px,3.8vw,32px);margin:7px 0;line-height:1.25;color:#fff}
+.cs-stage-head p{margin:0;font-size:13px;line-height:1.55;color:var(--cs-muted);max-width:610px}
+.cs-stage-marker{font-size:11px;letter-spacing:.11em;color:#bbecff;border:1px solid #6399bb;border-radius:999px;padding:8px 11px}
+.cs-stage-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding:16px;border:1px solid #668cad;border-radius:14px;background:rgba(13,37,61,.72)}
+.cs-stage-form>label,.cs-stage-toolbar>label{display:grid;gap:6px;color:#c8e4f7;font-size:12px;font-weight:750;min-width:0}
+.cs-stage-form :is(select,input:not([type="checkbox"])),.cs-stage-toolbar select{
+ width:100%;min-width:0;min-height:47px;padding:10px 11px;border:1px solid #8eaac3;border-radius:10px;
+ background:#0b2038;color:#f5faff;font:inherit;font-weight:550;font-size:15px
+}
+.cs-stage-form :is(select,input):focus-visible,.cs-stage-toolbar :is(button,select):focus-visible,
+.cs-stage-search :is(a,button):focus-visible{outline:3px solid #9fdefb;outline-offset:2px}
+.cs-stage-claude-option{grid-column:1/-1;display:flex!important;flex-direction:row!important;align-items:center;gap:10px!important;font-size:13px!important}
+.cs-stage-claude-option input{min-height:20px;min-width:20px;accent-color:#a4ddff}
+.cs-stage-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;grid-column:1/-1}
+.cs-stage-primary,.cs-stage-secondary{
+ min-height:47px;border-radius:10px;padding:11px 16px;
+ border:1px solid #97b5d5;font:inherit;font-weight:820;font-size:13px;
+ cursor:pointer;touch-action:manipulation;white-space:normal
+}
+.cs-stage-primary{background:linear-gradient(115deg,#ecf6ff,#bedcf5);color:#112942}
+.cs-stage-secondary{background:#203d5b;color:#f6faff}
+.cs-stage-primary:disabled{opacity:.6;cursor:wait}
+.cs-stage-info,.cs-stage-footnote{color:#b5cede;font-size:11px;line-height:1.65;padding:9px 3px;margin:10px 0}
+.cs-stage-loader{
+ margin:15px 0;padding:14px;border:1px solid #5d8baf;background:#173a54;border-radius:11px;
+ color:#f6fbff;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap
+}
+.cs-stage-loader[hidden],.cs-stage-results[hidden]{display:none!important}
+.cs-stage-loader button{border:1px solid #8db4c8;border-radius:8px;background:#29435b;color:#fff;padding:7px 10px;min-height:37px;cursor:pointer}
+.cs-stage-spinner{width:23px;height:23px;display:inline-block;border-radius:50%;border:3px solid #79b7df;border-top-color:#fff;animation:cs-stage-spin .8s linear infinite}
+@keyframes cs-stage-spin{to{transform:rotate(360deg)}}
+.cs-stage-status{min-height:22px;margin:12px 0;color:#c8e8ef;font-size:13px;line-height:1.55}
+.cs-stage-status.is-error{color:#ffc9c2}
+.cs-stage-summary{border-top:1px solid #6083a0;margin-top:15px;padding:14px 1px}
+.cs-stage-result-heading{display:flex;gap:7px 15px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.cs-stage-result-heading strong{font-size:16px}
+.cs-stage-result-heading span{font-size:13px;color:#cce4ef}
+.cs-stage-ai-status{color:#b5e4fc;font-size:12px;margin:8px 0;line-height:1.5}
+.cs-stage-timestamp{font-size:11px;color:#a4bfcf}
+.cs-stage-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:9px 0 15px}
+.cs-stage-toolbar label{flex:1 1 180px}
+.cs-stage-toolbar button{flex:0 1 auto}
+.cs-stage-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:13px}
+.cs-stage-card{min-width:0;display:grid;align-content:start;gap:10px;padding:16px;
+ border:1px solid #6b8eae;border-radius:13px;background:linear-gradient(142deg,#193650,#12263e);overflow-wrap:anywhere}
+.cs-stage-card-title{display:grid;gap:5px}
+.cs-stage-card-title strong{font-size:15px;color:#fff;line-height:1.45}
+.cs-stage-category{font-size:11px;color:#b9e3f8;text-transform:capitalize}
+.cs-stage-address,.cs-stage-phone,.cs-stage-missions,.cs-stage-why{font-size:12px;line-height:1.55;margin:0}
+.cs-stage-address{color:#e5f0f8}.cs-stage-phone{color:#ecfaff}
+.cs-stage-phone a{color:#bfefff;font-weight:800;text-decoration:underline}
+.cs-stage-missing{font-style:italic;color:#d2c7c7}
+.cs-stage-distance{color:#b9d4e9}
+.cs-stage-missions{border-left:2px solid #77cde1;padding:8px;background:rgba(45,122,143,.14)}
+.cs-stage-why,.cs-stage-ai-rank{color:#d9f1ce}
+.cs-stage-ai-rank{font-size:11px;font-weight:820}
+.cs-stage-links{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:auto}
+.cs-stage-links a,.cs-stage-favorite{
+ border:1px solid #6f9ebc;background:#16334e;color:#d9efff;
+ border-radius:8px;padding:8px 10px;min-height:38px;
+ text-decoration:none;font-size:11px;font-weight:770;cursor:pointer
+}
+.cs-stage-favorite[aria-pressed="true"]{border-color:#ffd18e;color:#ffe4b4}
+.cs-stage-empty{border:1px dashed #6788a6;border-radius:10px;padding:20px;font-size:13px;color:#cbe6f6}
+@media(max-width:760px){
+ .cs-stage-search{padding:12px;border-radius:15px;margin:10px 0}
+ .cs-stage-form{grid-template-columns:1fr;padding:12px}
+ .cs-stage-actions{display:grid;grid-template-columns:1fr}
+ .cs-stage-primary,.cs-stage-secondary{width:100%;min-height:50px;font-size:14px}
+ .cs-stage-form :is(select,input:not([type="checkbox"])),.cs-stage-toolbar select{font-size:16px}
+ .cs-stage-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+ .cs-stage-toolbar button{width:100%}
+ .cs-stage-cards{grid-template-columns:1fr}
+ .cs-stage-card{padding:13px}
+ .cs-stage-head p{font-size:13px}
+}
+@media(max-width:420px){.cs-stage-toolbar{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.cs-stage-spinner{animation:none;border-color:#fff}}

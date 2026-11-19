@@ -2,8 +2,9 @@
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
-import {renderCopyOrganizer} from './copy-organizer.js?v=1.2';
+import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.3';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.0';
+import {openAlbertProgress} from './albert-progress-real.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
 const make=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -280,13 +281,25 @@ get('cw-refresh')?.addEventListener('click',()=>reload(true));
 
 get('cw-ai-test')?.addEventListener('click',async event=>{
  const button=event.currentTarget,status=get('cw-ai-test-status');
+ if(button.disabled)return;
+ const progress=openAlbertProgress({
+  title:'Vérification d’Albert IA',
+  description:'Test du service Albert sans envoyer de copie ni de données élève.',
+  initial:'Connexion au modèle Albert depuis le service sécurisé…'
+ });
  button.disabled=true;
- if(status)status.textContent='Vérification de la clé et du modèle Albert…';
+ if(status)status.textContent='Albert vérifie le service…';
  try{
-  const out=await testAlbertConnection();
-  if(status)status.textContent='✓ '+String(out.message||'Albert API opérationnel.');
- }catch(err){
-  if(status)status.textContent='✕ '+String(err?.message||'Test Albert échoué.');
+  const out=await testAlbertConnection({signal:progress.signal});
+  if(progress.cancelled)return;
+  const text=String(out.message||'Albert API opérationnel.');
+  if(status)status.textContent='✓ '+text;
+  progress.success(text,'Fermer le test');
+ }catch(error){
+  if(progress.cancelled)return;
+  const text=String(error?.message||'Test Albert échoué.');
+  if(status)status.textContent='✕ '+text;
+  progress.failure(text,'Fermer le test');
  }finally{button.disabled=false}
 });
 
@@ -312,7 +325,7 @@ window.addEventListener('cortex:academy-data-ready',()=>reload());
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
- openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();
+ openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();resetCopyOrganizerFilters();
  copyOrganizerInitialized=false;
  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();

@@ -138,8 +138,7 @@
     card.append(E("p","cs-stage-missions","Missions possibles à discuter : "+(business.missions?.[0]||missions[sectorSelect.value])));
     const links=E("div","cs-stage-links");
     const map=E("a","cs-stage-map","Voir la carte");
-    const coords=Number(business.lat)+","+Number(business.lon);
-    map.href="https://www.openstreetmap.org/?mlat="+encodeURIComponent(business.lat)+"&mlon="+encodeURIComponent(business.lon)+"#map=18/"+coords;
+    map.href="https://www.openstreetmap.org/?mlat="+encodeURIComponent(business.lat)+"&mlon="+encodeURIComponent(business.lon)+"#map=18/"+Number(business.lat)+"/"+Number(business.lon);
     map.target="_blank";map.rel="noopener noreferrer";links.append(map);
     if(business.website){
      const site=E("a","cs-stage-map","Site de l’entreprise");site.href=business.website;site.target="_blank";site.rel="noopener noreferrer";links.append(site)

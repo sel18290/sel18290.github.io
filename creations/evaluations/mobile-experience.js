@@ -6,9 +6,12 @@
   const mobile=window.matchMedia('(max-width:760px)');
   const onMobile=()=>mobile.matches || document.documentElement.classList.contains('cortex-phone');
   let frame=0;
+  const tableCache=new WeakSet();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   function enhanceTables(){
+    if(!onMobile())return;
     app.querySelectorAll('.table-wrap table').forEach(table=>{
+      if(tableCache.has(table))return;
       const headings=Array.from(table.querySelectorAll('thead tr:last-child th'))
         .map(th=>(th.textContent||'').replace(/\s+/g,' ').trim());
       const rows=Array.from(table.querySelectorAll('tbody tr'));
@@ -20,6 +23,7 @@
       rows.forEach(row=>Array.from(row.cells).forEach((cell,index)=>{
         if(!cell.dataset.label)cell.dataset.label=headings[index]||'Information';
       }));
+      tableCache.add(table);
     });
   }
   function centreItem(container,item){
@@ -62,7 +66,17 @@
     syncNavigation();
   }
   function schedule(){if(!frame)frame=requestAnimationFrame(refresh);}
-  const observer=new MutationObserver(schedule);
+  // Les tableaux inchangés ne doivent plus être recalculés sur chaque
+  // reconstruction d'un autre composant. Invalider seulement le tableau muté.
+  const observer=new MutationObserver(mutations=>{
+    for(const mutation of mutations){
+      const target=mutation.target;
+      const holder=target?.nodeType===1?target:target?.parentElement;
+      const table=holder?.closest?.('.table-wrap table');
+      if(table)tableCache.delete(table);
+    }
+    schedule();
+  });
   observer.observe(app,{childList:true,subtree:true});
   schedule();
   mobile.addEventListener?.('change',schedule);

@@ -190,8 +190,6 @@ function display(){
  });
 }
 function renderCopyCard(copy,exam){
-
-  const exam=exams.find(e=>e.id===copy.assessment_id);
   const card=make('article','cw-copy'),head=make('div','cw-copy-top');
   head.append(make('strong','','Correction · élève n°'+copy.student_number),
     make('span','cw-pill '+(copy.released_at?'cw-open':''),copy.released_at?'Correction publiée':copy.graded_at?'Corrigé':'À corriger'));

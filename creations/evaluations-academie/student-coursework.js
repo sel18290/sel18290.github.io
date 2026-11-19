@@ -136,6 +136,26 @@ if(qr||globalPortal){
    button('Actualiser mes résultats ↻','cw-secondary',loadClass),
    button('Changer de compte','cw-outline',async()=>{reset();await getClasses()}));
   header.append(controls);work.append(header);
+  // L'accès aux stages est une vraie porte d'entrée, au même niveau visuel
+  // que le grand accès au tableau de bord de la démonstration.
+  const stageHero=E('section','cs-stage-featured cs-stage-featured-real');
+  stageHero.setAttribute('aria-label','Trouver un stage professionnel');
+  stageHero.innerHTML=
+   '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">ALBERT IA</span></div>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · DES ENTREPRISES AUTOUR DE TOI</span>'+
+   '<h2>Découvre ton<br><em>prochain stage.</em></h2>'+
+   '<p>Choisis ta filière et ta ville, consulte les établissements répertoriés et prépare tes candidatures avec Albert.</p></div>'+
+   '<div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span></div></div>';
+  const stageCta=E('button','cs-stage-featured-button');
+  stageCta.type='button';
+  stageCta.append(E('span','cs-stage-featured-icon','🎓'));
+  const copy=E('span','cs-stage-featured-button-copy');
+  copy.append(E('strong','','Rechercher mon stage'),
+   E('small','','Entreprise · Adresse · Téléphone · Suggestions Albert'));
+  stageCta.append(copy,E('span','cs-stage-featured-arrow','↗'));
+  stageCta.addEventListener('click',renderStageView);
+  stageHero.append(stageCta);
+  work.append(stageHero);
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];
   if(!assessments.length){
    cards.append(E('div','cw-student-empty','Aucun contrôle n’est encore ouvert pour ta classe. Les prochaines évaluations apparaîtront ici.'));

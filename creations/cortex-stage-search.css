@@ -156,7 +156,7 @@ body .cs-stage-search :is(button, a, input, select, textarea, summary):focus-vis
 
 .cs-stage-nav {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .4rem;
   margin: .78rem 0 1rem;
   padding: .38rem;
@@ -649,6 +649,21 @@ body .cs-stage-search :is(button, a, input, select, textarea, summary):focus-vis
 .cs-stage-contact-suggestion p { margin-block: .28rem; }
 .cs-stage-contact-suggestion button { margin-top: .25rem; }
 .cs-stage-contact-editor :is(.cs-stage-contact-hook, .cs-stage-contact-message) textarea { scroll-margin-block: 4rem; }
+.cs-stage-cv-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); gap:.65rem; }
+.cs-stage-search :is(.cs-stage-cv-fields label,.cs-stage-cv-field,.cs-stage-cv-assistance label) {
+  display:grid; gap:.3rem; color:var(--cs-ink); font-weight:700; line-height:1.35; min-width:0;
+}
+.cs-stage-search .cs-stage-cv-check { display:flex; align-items:flex-start; gap:.55rem; font-size:.87rem; }
+.cs-stage-cv-rail { display:flex; gap:.7rem; padding:.45rem .2rem .8rem; overflow-x:auto; scroll-snap-type:x mandatory; }
+.cs-stage-cv-company { flex:0 0 min(15rem,85%); display:grid; gap:.3rem; scroll-snap-align:start;
+  text-align:left; padding:.8rem; background:#fff; border:1px solid #aac5c7; border-radius:.7rem; color:#192f3d; }
+.cs-stage-cv-company small { color:#486171; }
+.cs-stage-cv-company[aria-pressed="true"], .cs-stage-cv-tools button[aria-pressed="true"] { background:#d7efe8; border-color:#428b7c; }
+.cs-stage-cv-work { display:grid; gap:.8rem; margin-block-start:1rem; border-top:1px solid #bdd0d7; padding-block-start:1rem; }
+.cs-stage-cv-tools { display:flex; flex-wrap:wrap; gap:.45rem; margin-block:.45rem; }
+.cs-stage-cv-assistance { padding:.8rem; display:grid; gap:.55rem; border-radius:.7rem; background:#e1eeed; }
+.cs-stage-cv-assistance p:empty { display:none; }
+.cs-stage-print-frame { position:fixed; width:1px; height:1px; left:-1000px; border:0; }
 
 @container cortex-stage (max-width: 49rem) {
   .cs-stage-workspace, .cs-stage-prep-grid { grid-template-columns: minmax(0, 1fr); }
@@ -670,6 +685,7 @@ body .cs-stage-search :is(button, a, input, select, textarea, summary):focus-vis
   .cs-stage-nav .cs-stage-nav-icon { display: none; }
   .cs-stage-nav-count { min-width: 1.1rem; padding-inline: .17rem; font-size: .68rem; }
   .cs-stage-nav { gap: .19rem; padding: .25rem; }
+  .cs-stage-nav { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .cs-stage-cards, .cs-stage-board-list, .cs-stage-kind-grid { grid-template-columns: 1fr; }
   .cs-stage-board-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cs-stage-filters label { flex-basis: 7rem; }

@@ -3,18 +3,20 @@
   'use strict';
 
   const RULE = 'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029234400';
-  const GRATIFICATION = 'Mon lycée fournit la convention. Le stage ne donne pas lieu à un salaire. Une gratification est obligatoire si mes périodes de stage chez vous dépassent deux mois au total sur l’année scolaire.';
+  const ALLOCATION = 'L’allocation de mon stage est versée par l’État. Mon lycée fournit la convention.';
+  const NO_GRATIFICATION = ' Pour cette durée, vous n’avez pas de gratification à verser.';
+  const HOOK_HINT = '[Mon accroche : ce qui me motive et ce que j’aimerais apprendre.]';
   const MOTIVES = [
     ['public', 'Le contact avec le public'],
     ['metier', 'Les missions du métier'],
     ['structure', 'Un détail remarqué chez vous']
   ];
   const EXAMPLES = {
-    A: ['J’aimerais apprendre à conseiller un client et à lui proposer un produit qui répond à son besoin.', 'J’aimerais apprendre à préparer une mise en rayon qui aide le client à choisir.'],
-    B: ['J’aimerais apprendre à présenter une offre et à comprendre les besoins de nouveaux clients.', 'J’aimerais apprendre à préparer une prise de contact et à suivre les réponses des prospects.'],
-    accueil: ['J’aimerais apprendre à renseigner et à orienter des visiteurs selon leurs demandes.', 'J’aimerais apprendre à traiter une demande, au téléphone comme sur place.'],
-    'gestion-administration': ['J’aimerais apprendre à répondre à une demande et à suivre son dossier jusqu’à la réponse.', 'J’aimerais apprendre à organiser le suivi des dossiers au quotidien.'],
-    toutes: ['J’aimerais apprendre à écouter un client et à lui proposer une réponse adaptée.', 'J’aimerais découvrir comment votre équipe conseille ses clients et assure le suivi des ventes.']
+    A: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Votre magasin m’intéresse et j’aimerais apprendre à travailler avec votre équipe.'],
+    B: ['J’aimerais travailler avec vous et apprendre à présenter vos services aux clients.', 'Ce stage me motive et j’aimerais apprendre à prendre contact avec vos clients.'],
+    accueil: ['J’aime aider les gens et j’aimerais apprendre à accueillir vos visiteurs.', 'J’aimerais rejoindre votre équipe et apprendre à renseigner les personnes qui viennent chez vous.'],
+    'gestion-administration': ['Je suis motivé(e) et j’aimerais travailler avec vous pour apprendre à gérer des dossiers.', 'J’aimerais apprendre à organiser les dossiers et à aider votre équipe au quotidien.'],
+    toutes: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Je suis motivé(e) et j’aimerais découvrir le travail de votre équipe.']
   };
 
   function node(tag, name, text) {
@@ -38,21 +40,21 @@
 
   function writeMessage(context, hook, method) {
     const { label, period, recipient, place } = context;
-    const intro = 'Je suis [prénom et nom], élève en bac pro ' + label + ' au lycée [nom du lycée].';
-    const line = hook || '[Mon accroche : ce que j’ai remarqué ou ce que je souhaite apprendre.]';
+    const name = [context.identity.first, context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
+    const intro = 'Je suis ' + name + ', élève en bac pro ' + label + ' au lycée ' + (context.identity.school || '[nom du lycée]') + '.';
+    const funding = ALLOCATION + (context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.');
+    const line = hook || HOOK_HINT;
     if (method === 'call') {
       return 'Bonjour, ' + intro.charAt(0).toLowerCase() + intro.slice(1) +
-        ' J’appelle pour un stage ' + period + '. Puis-je parler à ' + recipient + ' ?\n\n' +
+        ' J’appelle pour un stage ' + period + '. ' + funding + ' Puis-je parler à ' + recipient + ' ?\n\n' +
         line + ' Accueillez-vous des stagiaires à ces dates ?\n\n' +
-        GRATIFICATION + '\n\n' +
         'À qui puis-je envoyer mon CV ou remettre ma candidature ? Merci pour votre temps.';
     }
     const subject = 'Candidature pour une PFMP' + (place ? ' — ' + place.name : '');
-    return 'Objet : ' + subject + '\n\nBonjour,\n\n' + line + ' ' + intro +
-      ' Je souhaite effectuer ma période de formation en milieu professionnel ' + period + '.\n\n' +
-      GRATIFICATION + '\n\n' +
+    return 'Objet : ' + subject + '\n\nBonjour,\n\n' + intro +
+      ' Je cherche un stage ' + period + '. ' + funding + '\n\n' + line + '\n\n' +
       'Auriez-vous la possibilité de m’accueillir à ces dates ? Je peux vous transmettre mon CV ou venir me présenter.\n\n' +
-      'Merci pour votre réponse.\n\nCordialement,\n[prénom et nom]';
+      'Merci pour votre réponse.\n\nCordialement,\n' + name;
   }
 
   function mount(context) {
@@ -60,6 +62,40 @@
     const pending = new AbortController();
     let method = 'call';
     const edits = new Map();
+    let appliedHook = HOOK_HINT;
+    const identity = node('div', 'cs-stage-cv-fields');
+    for (const [key, title] of [['first','Prénom'],['last','Nom'],['school','Nom du lycée']]) {
+      const label = node('label','',title), input = node('input');
+      input.type = 'text'; input.maxLength = 90; input.value = context.identity[key] || '';
+      input.addEventListener('input', () => {
+        const oldName = [context.identity.first,context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
+        const oldSchool = context.identity.school || '[nom du lycée]';
+        context.identity[key] = input.value.trim();
+        const name = [context.identity.first,context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
+        for (const [kind, draft] of edits) edits.set(kind,
+          key === 'school' ? draft.replaceAll(oldSchool, context.identity.school || '[nom du lycée]') :
+          draft.replace('je suis '+oldName+',','je suis '+name+',')
+            .replace('Je suis '+oldName+',','Je suis '+name+',')
+            .replace('Cordialement,\n'+oldName,'Cordialement,\n'+name));
+        context.save();
+        updateMessage();
+      });
+      label.append(input); identity.append(label);
+    }
+    root.append(node('h3','','Présente-toi'), identity);
+    const short = node('label','cs-stage-cv-check'), checked = node('input');
+    checked.type = 'checkbox';
+    checked.disabled = !context.shortEligible;
+    short.append(checked, node('span','','J’ai vérifié avec mon lycée que mes stages chez cet organisme ne dépassent pas deux mois cumulés cette année.'));
+    checked.addEventListener('change', () => {
+      const before = context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.';
+      context.shortPlacement = checked.checked;
+      const after = context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.';
+      for (const [kind,draft] of edits) edits.set(kind,draft.replace(before,after));
+      updateMessage();
+    });
+    root.append(short);
+    if (!context.shortEligible) root.append(node('small','cs-stage-contact-guidance','Renseigne tes dates de stage dans « Préparer ma PFMP » pour préciser l’absence de gratification à verser lorsque la durée le permet.'));
     root.append(node('h3', '', 'Trouve ton accroche'), node('p', 'cs-stage-contact-guidance',
       'En une phrase, dis ce qui t’intéresse chez cette structure ou ce que tu voudrais apprendre. Choisis un détail que tu as vérifié.'));
 
@@ -100,7 +136,7 @@
       if (advice) suggestion.append(node('p', 'cs-stage-contact-guidance', advice));
       suggestion.append(button('Reprendre cette accroche', 'cs-stage-pale', () => {
         hook.value = idea.slice(0, hook.maxLength);
-        updateMessage();
+        applyHook();
         hook.focus();
       }));
     }
@@ -108,7 +144,7 @@
     const example = button('Voir un exemple', 'cs-stage-pale', () => {
       const reason = motivation();
       const idea = reason === 'structure'
-        ? 'J’ai repéré [un détail sur votre structure] et j’aimerais apprendre comment votre équipe s’en occupe.'
+        ? 'J’ai remarqué [un détail sur votre structure] et j’aimerais beaucoup apprendre avec votre équipe.'
         : examples[reason === 'public' ? 0 : 1];
       showSuggestion('À adapter avec tes mots', idea, 'Tu peux remplacer le détail entre crochets par ce que tu as vérifié.');
       feedback.textContent = '';
@@ -198,7 +234,20 @@
       copied.textContent = '';
       updateMessage();
     }
-    hook.addEventListener('input', updateMessage);
+    hook.value = context.hook || '';
+    appliedHook = sentence(hook.value) || HOOK_HINT;
+    function applyHook() {
+      const next = sentence(hook.value) || HOOK_HINT;
+      for (const [kind, draft] of edits) {
+        const split = draft.indexOf('\n\n', kind === 'email' ? draft.indexOf('\n\n')+2 : 0);
+        edits.set(kind,draft.includes(appliedHook) ? draft.replace(appliedHook,next) :
+          split >= 0 ? draft.slice(0,split) + '\n\n' + next + draft.slice(split) : draft + '\n\n' + next);
+      }
+      appliedHook = next;
+      context.rememberHook(hook.value);
+      updateMessage();
+    }
+    hook.addEventListener('input', applyHook);
     message.addEventListener('input', () => {
       edits.set(method, message.value);
       reset.hidden = false;

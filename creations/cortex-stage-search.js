@@ -184,6 +184,7 @@
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
       <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
       <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
+      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> CV et lettre</button>
     </nav>
     <div class="cs-stage-panel" data-stage-panel="search" id="cs-stage-search-panel">
       <div class="cs-stage-workspace">
@@ -284,6 +285,13 @@
         <section class="cs-stage-surface cs-stage-reference" id="cs-stage-reference"></section>
       </div>
     </div>
+    <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
+      <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
+        <div class="cs-stage-panel-kicker">Atelier de candidature</div>
+        <h2 id="cs-stage-cv-title" tabindex="-1">Prépare ton CV et ta lettre</h2>
+        <div id="cs-stage-cv-workshop"></div>
+      </section>
+    </div>
     <dialog class="cs-stage-dialog" id="cs-stage-dialog" aria-labelledby="cs-stage-dialog-title">
       <div class="cs-stage-dialog-head"><h2 id="cs-stage-dialog-title"></h2><form method="dialog"><button class="cs-stage-pale" aria-label="Fermer la fenêtre">Fermer</button></form></div>
       <div id="cs-stage-dialog-content"></div>
@@ -297,6 +305,9 @@
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
     const cacheKey = 'cortex-stage-cache:v4:' + mode;
     const saved = read(key, {});
+    const identity = saved.identity || {};
+    const drafts = Object.assign(Object.create(null), saved.drafts || {});
+    const hooks = Object.assign(Object.create(null), saved.hooks || {});
     const legacy = settings.demo && !settings.storageScope ? read('cortex-stage-favoris:v1', []) : [];
     const legacyIds = new Set(Array.isArray(legacy) ? legacy : []);
     const board = new Map(Array.isArray(saved.board) ? saved.board.map(entry => [entry.place.id, entry]) : []);
@@ -340,7 +351,7 @@
         preferences: { sector, option, city: $('city').value, radius: Number($('radius').value),
           albert: $('albert').checked, types: selections },
         prep: { start: prep.start || '', end: prep.end || '', done: [...checks] },
-        board: [...board.values()]
+        board: [...board.values()], identity, drafts, hooks
       });
     }
 
@@ -355,7 +366,7 @@
       count.textContent = String(board.size);
     }
 
-    function setPanel(next, moveFocus = true) {
+    function setPanel(next, moveFocus = true, company = '') {
       panel = next;
       section.querySelectorAll('[data-stage-panel]').forEach(element => {
         element.hidden = element.dataset.stagePanel !== next;
@@ -365,12 +376,49 @@
       });
       if (next === 'board') renderBoard();
       if (next === 'prep') renderReference();
+      if (next === 'cv') workshop.show(company);
+      else workshop.hide();
       if (next === 'search' && result && contactsDirty) renderCards();
       if (moveFocus) $(next === 'search' ? 'form-title' : next + '-title').focus();
     }
 
     section.querySelectorAll('[data-stage-nav]').forEach(element => {
       element.addEventListener('click', () => setPanel(element.dataset.stageNav));
+    });
+
+    function stagePeriod() {
+      return validDate(prep.start) && validDate(prep.end)
+        ? 'du ' + formatDate(prep.start) + ' au ' + formatDate(prep.end)
+        : 'du [date de début] au [date de fin]';
+    }
+
+    async function askAlbert(input, signal) {
+      const response = await fetch(ENDPOINT, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, signal,
+        body: JSON.stringify({ ...input, demo: settings.demo === true, session: settings.session || '' })
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.ok) throw Error(data?.error || 'Albert est momentanément indisponible.');
+      return data;
+    }
+
+    const workshop = window.CORTEX_STAGE_CV.mount($('cv-workshop'), {
+      identity, drafts, save: persist, entries: () => [...board.values()],
+      openBoard: () => setPanel('board'), status: entry => STATES[entry.status],
+      program: entry => GUIDE.programs[entry.sector].name + (entry.option==='toutes'?'':' (option '+entry.option+')'),
+      getHook: entry => hooks[entry.place.id] || hooks[entry.sector+'-'+entry.option] || '',
+      period: stagePeriod,
+      async ask(entry, kind, field, raw, signal) {
+        let text = raw.replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[e-mail]').replace(/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/g,'[téléphone]');
+        for (const value of [identity.first,identity.last,identity.school,identity.email,identity.phone].filter(x=>x?.length>1)) {
+          const escaped = value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+          text = text.replace(new RegExp('(^|[^\\p{L}\\p{N}])'+escaped+'(?![\\p{L}\\p{N}])','giu'),'$1[information personnelle]');
+        }
+        const {categories} = GUIDE.forPlace(entry.sector,entry.option,entry.place.types);
+        return askAlbert({action:'improve_application',document:kind,field,text,
+          filiere:entry.sector,optionCommerce:entry.option,type:categories[0]?.[0]||'',
+          company:entry.place.name.slice(0,120)},signal);
+      }
     });
 
     const available = () => GUIDE.forSearch(sector, route());
@@ -894,6 +942,7 @@
       card.append(fields);
       const actions = node('div', 'cs-stage-board-card-actions');
       actions.append(button('Préparer le contact', 'cs-stage-pale', () => openContact(entry)),
+        button('Préparer mon CV ou ma lettre','cs-stage-pale',()=>setPanel('cv',true,place.id)),
         button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
       card.append(actions);
       return card;
@@ -913,10 +962,13 @@
 
     function confirmRemoval(entry) {
       const body = node('div', 'cs-stage-dialog-body');
-      body.append(node('p', '', 'Retirer ' + entry.place.name + ' et ses informations de suivi ?'),
+      body.append(node('p', '', 'Retirer ' + entry.place.name + ' et ses informations de suivi' +
+        (drafts[entry.place.id] ? ', y compris ses brouillons de candidature' : '') + ' ?'),
         button('Retirer ce lieu', 'cs-stage-primary', () => {
           $('dialog').close();
           board.delete(entry.place.id);
+          delete drafts[entry.place.id];
+          delete hooks[entry.place.id];
           boardChanged();
           const stored = persist();
           renderBoard();
@@ -1026,9 +1078,7 @@
       const { place, sector: program, option: track } = context;
       const { categories, profile } = GUIDE.forPlace(program, track, place?.types || []);
       const label = GUIDE.programs[program].name + (track !== 'toutes' ? ' (option ' + track + ')' : '');
-      const period = validDate(prep.start) && validDate(prep.end)
-        ? 'du ' + formatDate(prep.start) + ' au ' + formatDate(prep.end)
-        : 'du [date de début] au [date de fin]';
+      const period = stagePeriod();
       const recipient = profile?.contact || 'la personne responsable des stages ou des ventes';
       const body = node('div', 'cs-stage-dialog-body');
       if (place) {
@@ -1057,7 +1107,10 @@
       body.append(mission);
 
       const workshop = window.CORTEX_STAGE_CONTACT.mount({
-        label, period, recipient, place,
+        label, period, recipient, place, identity, save: persist,
+        shortEligible: validDate(prep.start) && validDate(prep.end),
+        hook: hooks[place?.id || program+'-'+track],
+        rememberHook: value => { hooks[place?.id || program+'-'+track] = value; persist(); },
         profile: program === 'commerce-vente' ? categories[0]?.[3] || track : program,
         async ask(motivation, signal) {
           const response = await fetch(ENDPOINT, {
@@ -1084,6 +1137,7 @@
 
     function dispose() {
       destroyed = true;
+      workshop.hide();
       pending?.abort();
       pending = null;
       if ($('dialog').open) $('dialog').close();

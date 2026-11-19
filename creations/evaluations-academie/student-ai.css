@@ -23,3 +23,26 @@
 .cw-ai-card p{margin:5px 0 0;color:#d4e1f6;font-size:.87rem;line-height:1.52}
 .cw-ai-zone-positive .cw-ai-card{border-color:rgba(104,200,170,.3)}.cw-ai-zone-action .cw-ai-card{border-color:rgba(128,171,251,.43)}
 @media(max-width:650px){.cw-ai-real{margin:16px 0 0;padding:17px 14px;border-radius:16px}.cw-ai-action{width:100%;white-space:normal;text-align:center}.cw-ai-card-list{grid-template-columns:1fr}.cw-ai-estimate-score{justify-content:center}.cw-ai-real h3{font-size:1.24rem}}
+
+
+
+/* Relecture sécurisée de sa copie après remise (élève) :
+   chargement à l'ouverture, réponses structurées lisibles sur iPhone. */
+.cw-student-my-answers{margin:16px 0;border:1px solid #678eac;border-radius:13px;background:#112a42;overflow:hidden}
+.cw-student-my-answers-toggle{min-height:48px;cursor:pointer;padding:15px;color:#ecf7ff;font-size:14px;font-weight:800;line-height:1.55}
+.cw-student-my-answers[open]>.cw-student-my-answers-toggle{border-bottom:1px solid #4f718b;background:#213c53}
+.cw-student-my-answers-info{margin:0;padding:11px 14px;font-size:12px;line-height:1.6;color:#c2dfed}
+.cw-student-my-answers-list{padding:0 12px 13px;display:grid;gap:10px}
+.cw-student-my-answer{padding:13px 14px;min-width:0;border:1px solid #4f718b;border-radius:10px;background:#172d43;display:grid;gap:8px}
+.cw-student-my-answer strong{font-size:14px;line-height:1.5;color:#f5faff;overflow-wrap:anywhere}
+.cw-student-my-answer small{color:#accddd;font-size:12px}
+.cw-student-my-answer-value{font-size:14px;font-weight:500;color:#e3f3ff;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;margin:0}
+.cw-student-my-answer.is-empty .cw-student-my-answer-value{font-style:italic;color:#9db5c6}
+.cw-student-file-download{display:block;margin:12px 0;padding:13px;border-radius:10px;border:1px solid #8bb4cf;background:#203e56;color:#f2fbff;text-decoration:none;font-size:14px;overflow-wrap:anywhere}
+.cw-student-file-download:focus-visible,.cw-student-my-answers-toggle:focus-visible{outline:3px solid #a7dfff;outline-offset:2px}
+@media(max-width:740px){
+ .cw-student-my-answers-toggle{font-size:15px;padding:13px}
+ .cw-student-my-answers-list{padding:0 9px 12px}
+ .cw-student-my-answer{padding:12px 11px}
+ .cw-student-my-answer-value{font-size:15px}
+}

@@ -62,7 +62,7 @@ function createSummary(title,description,tag,stats){
  if(tag)line.dataset.kind=tag;
  return line;
 }
-export function renderCopyOrganizer({target,copies,exams,classes,renderCopy,openClasses,openControls,openCopies}){
+export function renderCopyOrganizer({target,copies,exams,classes,renderCopy,openClasses,openControls,openCopies,defaultExpand=false}){
  const groups=groupCopies(copies,exams,classes);
  const count=copies.length;
  const heading=el('div','cw-copy-organizer-heading');
@@ -78,13 +78,13 @@ export function renderCopyOrganizer({target,copies,exams,classes,renderCopy,open
  for(const group of groups){
   const cStats=summaryStats(group.copies),classPanel=el('details','cw-copy-class');
   classPanel.dataset.classKey=group.key;
-  classPanel.open=openClasses.has(group.key)||(groups.length===1&&!openClasses.size);
+  classPanel.open=openClasses.has(group.key)||(defaultExpand&&groups.length===1);
   classPanel.append(createSummary(group.name,cStats.description,'class',cStats));
   const controlList=el('div','cw-copy-control-list');
   for(const control of group.controls){
    const eStats=summaryStats(control.copies),controlPanel=el('details','cw-copy-control');
    controlPanel.dataset.assessmentId=control.id;
-   controlPanel.open=openControls.has(control.id)||(groups.length===1&&group.controls.length===1&&!openControls.size);
+   controlPanel.open=openControls.has(control.id)||(defaultExpand&&groups.length===1&&group.controls.length===1);
    const label=control.exam?.title||'Contrôle indisponible';
    const controlSummary=createSummary(label,eStats.description+describeControl(control.exam),'control',eStats);
    controlPanel.append(controlSummary);

@@ -26,8 +26,8 @@ function svgEl(tag,attrs,text){
 }
 function chart(){
  const root=el('figure','ist-graphic ist-chart');
- root.append(el('div','ist-figure-banner','CHLAMYDIOSES : PAS D’AUGMENTATION EN 2016'));
- root.append(el('div','ist-figure-subtitle','Document 2 · Diagnostiques de Chlamydia · France · 2000–2016'));
+ root.append(el('div','ist-figure-banner','CHLAMYDIOSES : PAS D’AUGMENTATION EN 2016 (À CONFIRMER SUR LES ANNÉES À VENIR)'));
+ root.append(el('div','ist-figure-subtitle','Document 2 · Diagnostics de Chlamydia · France · 2000–2016'));
  const graph=svgEl('svg',{viewBox:'0 0 740 420',role:'img',
   'aria-label':'Graphique historique : diagnostics de Chlamydia de 2000 à 2016, en hausse. Courbe verte des femmes environ 1 300 à 9 000, courbe bleue des hommes environ 700 à 5 200. Les deux courbes ne progressent pas en 2016.',
   preserveAspectRatio:'xMidYMid meet'});

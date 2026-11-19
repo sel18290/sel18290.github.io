@@ -141,7 +141,7 @@ Deno.serve(async req=>{
    const {error}=await db.from('cortex_student_ai_cache').update({source_hash:sourceHash,result:null,requested_at:new Date().toISOString(),finished_at:null}).eq('id',existing.id);
    if(error){console.error('CORTEX_STUDENT_AI:CACHE_UPDATE',error.code||'unknown');throw Error('Impossible de réserver l’analyse (CACHE_UPDATE).');}
   }else{
-   const {error}=await db.from('cortex_student_ai_cache').insert({assessment_id:exam.id,student_number:studentNumber,kind,source_hash,result:null});
+   const {error}=await db.from('cortex_student_ai_cache').insert({assessment_id:exam.id,student_number:studentNumber,kind,source_hash:sourceHash,result:null});
    if(error){console.error('CORTEX_STUDENT_AI:CACHE_INSERT',error.code||'unknown');return fail(error.code==='23505'?'Une analyse est déjà en cours.':'Impossible de préparer cette analyse (CACHE_INSERT).',error.code==='23505'?429:503);}
   }
   let result;

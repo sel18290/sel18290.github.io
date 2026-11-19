@@ -148,7 +148,13 @@ function display(){
     pinBox.append(table,createButton('Télécharger les PIN en CSV','cw-accent',()=>downloadPins(fresh,exam.title)));share.append(pinBox);
    }
    if(exam.class_id){
-    share.append(make('p','cw-pin-class-hint','PIN de classe : les élèves choisissent eux-mêmes leurs six chiffres. Pas de code provisoire à distribuer.'));
+    share.append(make('p','cw-pin-class-hint','Le QR permet de se connecter avec son PIN. Pour créer un premier PIN depuis CE MÊME QR, ouvre les inscriptions pendant 30 minutes.'));
+    share.append(createButton('✦ Ouvrir la création des PIN par ce QR · 30 min','cw-accent',async()=>{
+     const result=await api('teacher_pin_enrollment',{class_id:exam.class_id,roster_size:Number(select.value),enabled:true},null,true);
+     const deadline=new Date(result.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+     message('Création des PIN autorisée jusqu’à '+deadline+'. Les élèves scannent le QR code affiché ici, choisissent leur numéro et créent leur PIN. Aucun autre lien nécessaire.');
+     await reload();
+    }));
     share.append(createButton('Gérer les PIN de la classe ↗','cw-secondary',()=>{
      const anchor=get('cw-persistent-classes');if(anchor){location.hash='#cw-persistent-classes';anchor.scrollIntoView({behavior:'smooth',block:'start'});}
     }));

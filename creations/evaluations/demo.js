@@ -162,23 +162,102 @@ if(view==='student'&&tab==='examen'){
 }
 }
 function home(){
-return `<div class="home"><section class="home-hero"><div class="hero-copy"><p class="eyebrow">STATION NOCTIS · SECTEUR ÉVALUATIONS</p><h1>Évaluer autrement.<br><em>Comprendre davantage.</em></h1><p class="lead">L’élève peut estimer sa note dès qu’il rend sa copie et recevoir des conseils pour progresser. Le professeur gagne du temps pour importer ses documents, créer et corriger ses contrôles. Albert IA accompagne aussi la recherche de stages.</p><div class="hero-actions">${btn('Découvrir le profil professeur <span class="button-arrow">↗</span>','teacher','')} ${btn('Essayer côté élève →','student','secondary')}</div><div class="hero-foot"><span>Optimisé iPhone et Android</span><span>Contrôles rédigés et QCM</span><span>Aucune donnée réelle</span></div></div><div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 8 / 20</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>8 / 20</strong></div></div></section>
-<section class="home-section cortex-home-benefits" aria-labelledby="cortex-home-benefits-title">
- <div class="section-head cortex-home-benefits-head"><div><p class="eyebrow">UNE PLATEFORME · QUATRE POSSIBILITÉS</p><h2 id="cortex-home-benefits-title">Un contrôle rendu. <em>Des progrès possibles.</em></h2><p class="cortex-home-benefits-lead">De l’évaluation numérique à la recherche de PFMP, chaque fonctionnalité accompagne les élèves et facilite le travail des enseignants.</p></div><span class="chip teal">CORTEX · Albert IA</span></div>
- <div class="cortex-home-benefits-grid">
- <article class="cortex-home-benefit"><span class="cortex-home-benefit-icon" aria-hidden="true">◈</span><span class="cortex-home-benefit-number">01 · APRÈS LE CONTRÔLE</span><h3>Estimer sa note immédiatement</h3><p>Juste après avoir rendu sa copie, l’élève découvre une <strong>estimation indicative de sa note</strong>, avant la correction et la validation de l’enseignant.</p><a href="#eleve/accueil">Découvrir l’espace élève <span aria-hidden="true">↗</span></a></article>
- <article class="cortex-home-benefit"><span class="cortex-home-benefit-icon" aria-hidden="true">✧</span><span class="cortex-home-benefit-number">02 · PROGRESSER</span><h3>Recevoir des conseils pédagogiques</h3><p>Des conseils personnalisés aident l’élève à identifier ses points à revoir, comprendre ses réponses et préparer ses prochaines évaluations.</p><a href="#eleve/accueil">Découvrir le suivi élève <span aria-hidden="true">↗</span></a></article>
- <article class="cortex-home-benefit"><span class="cortex-home-benefit-icon" aria-hidden="true">▤</span><span class="cortex-home-benefit-number">03 · GAGNER DU TEMPS</span><h3>PDF vers blocs de questions, copies corrigées plus vite</h3><p>Importez un PDF ou un document Word, transformez-le en <strong>blocs de questions modifiables</strong> et accélérez la préparation des corrections avec l’IA. L’enseignant conserve la vérification finale.</p><a href="#professeur/import">Explorer l’import PDF <span aria-hidden="true">↗</span></a></article>
- <article class="cortex-home-benefit cortex-home-benefit-stage"><span class="cortex-home-benefit-icon" aria-hidden="true">⌖</span><span class="cortex-home-benefit-number">04 · PARCOURS PROFESSIONNEL</span><h3>Trouver un stage avec Albert IA</h3><p>Choisissez le niveau, la filière et les types d’entreprises souhaités. CORTEX repère des établissements existants, affiche leurs coordonnées publiques disponibles et Albert aide à les classer.</p><a href="#eleve/stages">Rechercher des stages <span aria-hidden="true">↗</span></a></article>
+return `<div class="home nxp-home">
+<section class="home-hero nxp-home-hero">
+ <div class="hero-copy">
+  <p class="eyebrow">CORTEX / STATION NOCTIS · ÉCOSYSTÈME PÉDAGOGIQUE</p>
+  <h1>Un nouvel horizon<br><em>pour apprendre.</em></h1>
+  <p class="lead">Des contrôles numériques qui ne s'arrêtent pas à la remise d'une copie. CORTEX relie l'évaluation, les conseils pédagogiques, la correction accompagnée par IA et la recherche de stages.</p>
+  <div class="hero-actions">
+   ${btn('Explorer l’espace élève <span class="button-arrow">↗</span>','student','')}
+   ${btn('Découvrir les outils professeur →','teacher','secondary')}
+  </div>
+  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>PFMP & orientation</span></div>
  </div>
- <p class="cortex-home-benefits-note">Estimation non officielle · Correction validée par le professeur · Les établissements trouvés ne garantissent pas l’accueil d’un stagiaire.</p>
+ <div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 8 / 20</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>8 / 20</strong></div></div>
 </section>
-
-<section class="home-section"><div class="section-head"><div><p class="eyebrow">Deux parcours · une plateforme</p><h2>Choisis ton espace</h2></div><span class="chip teal">Démo libre · sans compte</span></div><div class="role-grid">
-<article class="card role-card prof"><div class="role-icon" aria-hidden="true">▤</div><div><h2>Je suis professeur</h2><p>Un tableau de bord pour convertir rapidement des PDF en contrôles numériques, organiser les rendus et accélérer la correction des copies.</p></div><div class="btn-row">${btn('Entrer dans l’espace professeur →','teacher','')}<span class="small muted">Accès libre en démo</span></div></article>
-<article class="card role-card eleve"><div class="role-icon" aria-hidden="true">✎</div><div><h2>Je suis élève</h2><p>Un parcours pour répondre aux questions, rendre sa copie, obtenir une estimation indicative et recevoir des conseils pédagogiques.</p></div><div class="btn-row">${btn('Tester un contrôle →','student','secondary')}<span class="small muted">Accès par QR code + PIN</span></div></article></div></section>
-<section class="home-section"><div class="section-head"><div><p class="eyebrow">Parcours guidé</p><h2>Trois étapes pour tout découvrir</h2></div></div><div class="mini-steps"><div class="mini-step"><div class="step-n">01</div><h3>Crée un contrôle</h3><p class="muted small">Ajoute tes questions et ton barème dans le profil professeur.</p></div><div class="mini-step"><div class="step-n">02</div><h3>Passe côté élève</h3><p class="muted small">Scanne le QR code, saisis ton numéro et crée ton PIN à la première connexion.</p></div><div class="mini-step"><div class="step-n">03</div><h3>Retrouve la copie</h3><p class="muted small">Reviens dans le tableau de bord et consulte le rendu.</p></div></div></section></div>`;
+<section class="home-section cortex-home-benefits nxp-benefits" aria-labelledby="cortex-home-benefits-title">
+ <div class="nxp-section-lead">
+  <div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> L'EXPÉRIENCE CORTEX <span class="nxp-lead-line" aria-hidden="true"></span> 01 / 04</div>
+  <div class="nxp-lead-row">
+   <h2 id="cortex-home-benefits-title">Bien plus qu'un <em>contrôle numérique.</em></h2>
+   <p>Une suite d'outils connectés aux apprentissages, pensée pour les élèves et pour les enseignants.</p>
+  </div>
+ </div>
+ <div class="nxp-feature-layout">
+  <article class="nxp-learning" aria-labelledby="nxp-learning-title">
+   <div class="nxp-learning-shine" aria-hidden="true"></div>
+   <div class="nxp-learning-copy">
+    <p class="nxp-category"><span class="nxp-roundel">01</span> CÔTÉ ÉLÈVE · APRÈS LA COPIE</p>
+    <h3 id="nxp-learning-title">Une copie rendue.<br><em>Un nouvel élan.</em></h3>
+    <p class="nxp-learning-intro">L'élève découvre une <strong>estimation de sa note</strong> dès la remise de son devoir et reçoit des <strong>conseils pédagogiques</strong> pour progresser.</p>
+    <div class="nxp-learning-points">
+     <span><span class="nxp-tick" aria-hidden="true">✓</span> Note estimée et non officielle</span>
+     <span><span class="nxp-tick" aria-hidden="true">✓</span> Conseils adaptés aux réponses</span>
+     <span><span class="nxp-tick" aria-hidden="true">✓</span> Validation finale par l'enseignant</span>
+    </div>
+    <a class="nxp-light-cta" href="#eleve/accueil">Découvrir l'expérience élève <span aria-hidden="true">↗</span></a>
+   </div>
+   <div class="nxp-learning-preview" aria-label="Exemple fictif de résultat pédagogique, non officiel">
+    <div class="nxp-preview-top"><span class="nxp-preview-dot"></span><span>CORTEX / BILAN</span><span class="nxp-preview-stars">✦</span></div>
+    <span class="nxp-preview-label">EXEMPLE FICTIF · NON OFFICIEL</span>
+    <div class="nxp-preview-grade">14,5<span>/20</span></div>
+    <div class="nxp-preview-caption">Estimation après rendu</div>
+    <div class="nxp-preview-rule"><span></span></div>
+    <div class="nxp-preview-tip"><span>✧ PISTE DE PROGRESSION</span><p>Approfondir les notions à revoir pour la prochaine évaluation.</p></div>
+   </div>
+   <span class="nxp-learning-id" aria-hidden="true">NX / 01</span>
+  </article>
+  <div class="nxp-service-stack">
+   <article class="nxp-service nxp-service-doc" aria-labelledby="nxp-doc-title">
+    <div class="nxp-service-top"><span class="nxp-service-id">02 / ESPACE PROFESSEUR</span><span class="nxp-service-symbol" aria-hidden="true">▤</span></div>
+    <h3 id="nxp-doc-title">Du PDF au contrôle.<br><em>En quelques étapes.</em></h3>
+    <p>Convertissez un PDF en blocs de questions modifiables. Préparez et corrigez les copies plus efficacement avec l'aide de l'IA, sous contrôle de l'enseignant.</p>
+    <a href="#professeur/import">Découvrir les outils d'évaluation <span aria-hidden="true">↗</span></a>
+    <span class="nxp-service-decoration" aria-hidden="true">PDF <span>→</span> QCM</span>
+   </article>
+   <article class="nxp-service nxp-service-stage" aria-labelledby="nxp-stage-title">
+    <div class="nxp-service-top"><span class="nxp-service-id">03 / PARCOURS PROFESSIONNEL</span><span class="nxp-service-symbol" aria-hidden="true">⌖</span></div>
+    <h3 id="nxp-stage-title">Un stage à trouver ?<br><em>Albert IA vous guide.</em></h3>
+    <p>Choisissez votre niveau, votre filière et les types d'établissements. Trouvez des structures réelles avec leurs coordonnées publiques disponibles.</p>
+    <a href="#eleve/stages">Lancer la recherche de stages <span aria-hidden="true">↗</span></a>
+    <span class="nxp-stage-orbit" aria-hidden="true"></span>
+   </article>
+  </div>
+ </div>
+ <div class="nxp-disclaimer"><span class="nxp-disclaimer-mark" aria-hidden="true">i</span> La note estimée ne remplace jamais la correction officielle. Les lieux recensés ne garantissent pas une place de stage.</div>
+</section>
+<section class="home-section nxp-access-section" aria-labelledby="nxp-access-title">
+ <div class="nxp-section-lead nxp-access-lead">
+  <div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> VOTRE POINT D'ENTRÉE <span class="nxp-lead-line" aria-hidden="true"></span> 02 / 04</div>
+  <div class="nxp-lead-row"><h2 id="nxp-access-title">Choisissez votre <em>parcours.</em></h2><p>Deux espaces distincts, un même objectif : faire progresser chaque élève.</p></div>
+ </div>
+ <div class="nxp-access-grid">
+  <article class="nxp-role nxp-role-teacher">
+   <div class="nxp-role-head"><span class="nxp-role-chip">PROFESSEUR</span><span class="nxp-role-glyph" aria-hidden="true">▤</span></div>
+   <div><h3>Créer. Évaluer.<br><em>Accompagner.</em></h3><p>Importez vos contrôles, gérez les copies et préparez vos corrections dans un espace complet.</p></div>
+   ${btn('Entrer dans l’espace professeur ↗','teacher','')}
+  </article>
+  <article class="nxp-role nxp-role-student">
+   <div class="nxp-role-head"><span class="nxp-role-chip">ÉLÈVE</span><span class="nxp-role-glyph" aria-hidden="true">✧</span></div>
+   <div><h3>Répondre. Comprendre.<br><em>Progresser.</em></h3><p>Passez une évaluation, découvrez un retour pédagogique, ou cherchez un lieu de stage.</p></div>
+   ${btn('Découvrir l’espace élève ↗','student','secondary')}
+  </article>
+ </div>
+ <p class="nxp-access-notice">Démonstration libre avec données fictives · Aucune note officielle · Espace réel distinct.</p>
+</section>
+<section class="home-section nxp-journey" aria-labelledby="nxp-journey-title">
+ <div class="nxp-section-lead"><div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> PARCOURS DE DÉMONSTRATION</div>
+ <div class="nxp-lead-row"><h2 id="nxp-journey-title">Découvrez CORTEX <em>en trois temps.</em></h2></div></div>
+ <div class="nxp-journey-steps">
+  <div><span>01</span><strong>Importez un document</strong><p>Ajoutez un PDF ou créez vos questions.</p></div>
+  <div><span>02</span><strong>Testez côté élève</strong><p>Répondez à une évaluation fictive.</p></div>
+  <div><span>03</span><strong>Retrouvez la copie</strong><p>Consultez le rendu depuis le tableau de bord.</p></div>
+ </div>
+</section>
+</div>`;
 }
+
 const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['codes','⌑','PIN élèves'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['integrite','◈','Anti-triche'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherReviewFull(){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);

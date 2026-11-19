@@ -3,7 +3,6 @@ import {api} from './coursework.js?v=2.0';
 const $=id=>document.getElementById(id);
 const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;
-const cache=new Map();
 let access=[],enrollments=[],busy=false,pending=false;
 function notice(msg,error=false){const e=$('cw-class-status');if(!e)return;e.hidden=!msg;e.textContent=msg;e.classList.toggle('error',error)}
 function permanentUrl(code){return location.origin+location.pathname+'?classe='+encodeURIComponent(code)}
@@ -18,13 +17,6 @@ async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;retur
       whole:students.filter(e=>!e.demi_groupe).length};
    })
   }}))}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
-function downloadPins(pins,cl){
- const rows=['Numéro;PIN'].concat(pins.map(p=>p.number+';'+p.pin));
- const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
- const url=URL.createObjectURL(blob),link=E('a');
- link.href=url;link.download='CORTEX_CLASSE_'+String(cl).replace(/[^a-zA-Z0-9_-]/g,'_')+'_PIN.csv';
- document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
 function button(label,className,fn){
  const el=E('button',className,label);el.type='button';
  el.addEventListener('click',async()=>{el.disabled=true;try{await fn()}catch(err){notice(err.message||'Erreur serveur.',true)}finally{el.disabled=false}});
@@ -38,20 +30,28 @@ function render(){
  for(const cl of classes){
   const record=access.find(a=>a.class_id===cl.id);
   const card=E('article','cw-class-card'),head=E('div','cw-card-head'),title=E('div');
-  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Chaque élève reçoit un PIN provisoire une seule fois, puis choisit son PIN personnel pour tous les contrôles.'));
-  head.append(title,E('span','cw-pill '+(record?'cw-open':''),record?'Accès préparé':'À préparer'));
+  const registrationOpen=!!record?.registration_open_until&&new Date(record.registration_open_until)>new Date();
+  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Tu n’as aucun PIN à distribuer.'));
+  head.append(title,E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'PIN ouverts · 30 min':record?'Connexion prête':'À préparer'));
   card.append(head);
   const controls=E('div','cw-publish-row'),selector=E('select','cw-roster-size');
   selector.setAttribute('aria-label','Effectif pour la classe '+cl.code);
   for(const n of [15,20,25,30,35,40,45,50,55,60]){
    const option=E('option','',n+' numéros');option.value=String(n);option.selected=n===(record?.roster_size||30);selector.append(option);
   }
-  controls.append(E('label','','Effectif'),selector,button(record?'Compléter les numéros':'Créer les accès de cette classe','cw-accent',async()=>{
-   const response=await api('teacher_class_prepare',{class_id:cl.id,roster_size:Number(selector.value)},null,true);
-   if(response.freshPins?.length)cache.set(cl.id,response.freshPins);
-   notice(response.freshPins?.length?'Accès créés. Téléchargez les PIN provisoires : chaque élève doit activer son espace avec ce code puis choisir son PIN personnel.':'Accès existants conservés : aucun PIN personnel n’a été modifié.');
+  controls.append(E('label','','Effectif'),selector,button(registrationOpen?'↻ Prolonger de 30 min':'✦ Ouvrir la création des PIN · 30 min','cw-accent',async()=>{
+   const response=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:Number(selector.value),enabled:true},null,true);
+   const endTime=new Date(response.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+   notice('Création des PIN ouverte pour '+cl.code+' jusqu’à '+endTime+'. Les élèves entrent leur numéro et choisissent eux-mêmes leur PIN. Surveille la première inscription en classe.');
    await refresh();
   }));
+  if(registrationOpen){
+   controls.append(button('Fermer maintenant','cw-secondary',async()=>{
+    await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:Number(selector.value),enabled:false},null,true);
+    notice('Création des PIN fermée pour '+cl.code+'. Les élèves déjà inscrits peuvent toujours se connecter.');
+    await refresh();
+   }));
+  }
   card.append(controls);
   const assigned=enrollments.filter(x=>x.class_id===cl.id&&!!x.activated_at);
   const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2),
@@ -87,12 +87,12 @@ function render(){
    details.append(summary,list);card.append(details);
   }else{
    card.append(E('p','cw-group-help',record?.portal_code?
-    'Aucune première inscription pour le moment : les élèves apparaîtront automatiquement ici dès leur activation.':
-    'Créez les PIN provisoires ci-dessus pour que les élèves puissent s’inscrire.'));
+    'Aucun PIN choisi pour le moment. Ouvre la création pendant 30 minutes pour que les élèves s’inscrivent avec leur numéro.':
+    'Clique sur « Ouvrir la création des PIN » : la classe est préparée automatiquement.'));
   }
   if(record?.portal_code){
    const share=E('div','cw-class-share'),url=permanentUrl(record.portal_code);
-   const line=E('p','cw-explainer','Accès permanent : choisir « '+cl.code+' », entrer son numéro sur la liste, puis son PIN personnel. Identification de cette classe : '+record.portal_code.slice(-4).toUpperCase()+'.');
+   const line=E('p','cw-explainer','Lien de la classe : l’élève saisit son numéro, puis son PIN. À la première visite, clique sur « Je crée mon PIN » lorsque tu as ouvert la création. Code de classe : '+record.portal_code.slice(-4).toUpperCase()+'.');
    const field=E('input','cw-join-url');field.value=url;field.readOnly=true;field.setAttribute('aria-label','Lien permanent pour '+cl.code);
    const controls=E('div','cw-share-buttons');
    controls.append(button('Copier le lien de classe','cw-secondary',async()=>{
@@ -101,20 +101,17 @@ function render(){
    }));
    const visit=E('a','cw-secondary','Tester le lien élève ↗');visit.href=url;visit.target='_blank';visit.rel='noopener';controls.append(visit);
    share.append(line,field,controls);
-   const newPins=cache.get(cl.id);
-   if(newPins?.length){
-    const panel=E('div','cw-pin-notice'),grid=E('div','cw-pin-table');
-    panel.append(E('strong','','PIN provisoires : à remettre individuellement aux élèves'));
-    newPins.forEach(p=>grid.append(E('span','','Élève n°'+p.number+' · '+p.pin)));
-    panel.append(grid,button('Télécharger les PIN (CSV)','cw-accent',()=>downloadPins(newPins,cl.code)));share.append(panel);
-   }
    const reset=E('div','cw-reset-row'),number=E('input');
    number.type='number';number.min='1';number.max=String(record.roster_size);number.placeholder='N° élève';number.setAttribute('aria-label','Numéro de l’élève dont il faut renouveler le PIN');
-   reset.append(number,button('Renouveler son PIN','cw-secondary',async()=>{
-    const result=await api('teacher_class_reset_pin',{class_id:cl.id,student_number:Number(number.value)},null,true);
-    const list=cache.get(cl.id)||[];cache.set(cl.id,list.filter(x=>x.number!==result.number).concat([result]).sort((a,b)=>a.number-b.number));
-    notice('Nouveau PIN provisoire créé pour '+cl.code+', élève n°'+result.number+'. L’élève doit réactiver son accès ; les anciennes sessions sont désactivées.');
-    render();
+   reset.append(number,button('Réinitialiser le PIN de cet élève','cw-secondary',async()=>{
+    const n=Number(number.value);
+    if(!Number.isInteger(n)||n<1||n>record.roster_size)throw Error('Indique un numéro d’élève valide.');
+    if(!confirm('Réinitialiser le PIN du n°'+n+' en '+cl.code+' ? Les anciennes connexions seront invalidées ; les copies et les notes restent conservées.'))return;
+    const result=await api('teacher_class_reset_pin',{class_id:cl.id,student_number:n},null,true);
+    const opened=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:record.roster_size,enabled:true},null,true);
+    const endTime=new Date(opened.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    notice('PIN du n°'+result.number+' réinitialisé sans effacer ses copies. Il peut en choisir un nouveau jusqu’à '+endTime+'.');
+    await refresh();
    }));share.append(reset);
    card.append(share);
   }
@@ -123,6 +120,5 @@ function render(){
 }
 window.addEventListener('cortex:academy-data-ready',refresh);
 window.addEventListener('cortex:academy-class-updated',refresh);
-window.addEventListener('cortex:class-pins',event=>{const id=event.detail?.classId,pins=event.detail?.pins||[];if(!id||!pins.length)return;const old=cache.get(id)||[];cache.set(id,old.filter(x=>!pins.some(p=>p.number===x.number)).concat(pins).sort((x,y)=>x.number-y.number));render()});
-window.addEventListener('cortex:academy-logout',()=>{access=[];enrollments=[];cache.clear();$('cw-class-cards')?.replaceChildren()});
+window.addEventListener('cortex:academy-logout',()=>{access=[];enrollments=[];$('cw-class-cards')?.replaceChildren()});
 queueMicrotask(()=>{if(B()?.teacher?.())refresh()});

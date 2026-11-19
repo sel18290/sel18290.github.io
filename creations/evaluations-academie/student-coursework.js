@@ -1,6 +1,7 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.5';
+import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
@@ -125,6 +126,7 @@ if(qr||globalPortal){
   stats.append(E('span','','Contrôles : '+assessments.length),E('span','','Copies remises : '+submitted),E('span','','Corrigés : '+graded));
   if(graded)stats.append(E('span','','Moyenne des notes publiées : '+(total/graded).toFixed(1).replace('.',',')+' / 20'));
   work.append(stats,cards);
+  renderDashboardAi(work,{session:token,assessments});
  }
  function renderExam(){
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
@@ -154,6 +156,7 @@ if(qr||globalPortal){
     receipt.append(E('h3','cw-receipt-grade','Ma note : '+submitted.grade+' / 20'),E('p','',submitted.feedback||'Aucun commentaire.'));
    }else receipt.append(E('p','','Ta note et tes conseils seront visibles après publication par le professeur.'));
    receipt.append(button('Actualiser ma correction ↻','cw-primary',()=>loadExam(currentId)));
+   renderReceiptAi(receipt,{session:token,assessmentId:currentId,submission:submitted});
    work.append(receipt);return;
   }
   // Chronomètre démarré explicitement par l'élève, conservé dans cette session.

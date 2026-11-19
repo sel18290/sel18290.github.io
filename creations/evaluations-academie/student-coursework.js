@@ -2,7 +2,7 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.5';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.0';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.1';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.2';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';

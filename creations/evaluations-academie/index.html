@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="./style.css?v=16">
 <link rel="stylesheet" href="../cortex-nav.css?v=1.0">
 <link rel="stylesheet" href="../cortex-traffic.css?v=1.0">
-<link rel="stylesheet" href="./real-entry.css?v=1.0">
 <script defer src="../cortex-traffic.js?v=1.0"></script>
 <link rel="stylesheet" href="../question-types.css?v=1.0">
 <link rel="stylesheet" href="../cortex-student-simulator.css?v=1.1">
@@ -129,7 +128,7 @@
  <div class="cw-copies-head" id="cw-copies-head"><h4>3. Copies remises par les élèves</h4><span id="cw-copy-count" class="chip">0 copie</span></div>
  <div class="cw-ai-test-controls"><button type="button" class="cw-ai-button" id="cw-ai-test">✦ Tester Albert IA (sans copie élève)</button><span id="cw-ai-test-status" role="status" aria-live="polite">Test technique Albert · aucune copie envoyée pendant le test.</span></div>
  <div id="cw-copy-list" class="cw-copies"><p class="empty">Aucune copie reçue pour le moment.</p></div>
- <p class="cw-safety">Les documents sont stockés dans un espace privé. Les accès élèves se font par QR code, numéro sur la liste et PIN personnel. L’usage scolaire réel nécessite les validations de l’établissement et du DPO, ainsi que des tests en conditions réelles.</p>
+ <p class="cw-safety">Les documents et les copies sont stockés dans un espace privé. L’élève se connecte par QR, numéro et PIN personnel. Le professeur garde la validation finale des corrections et des notes.</p>
 </section>
 <section class="prof-sec acad-live-metrics-panel" id="acad-live-monitoring">
  <div class="page-head"><div><p class="eyebrow">Espace professeur · Suivi</p><h1>Suivi des épreuves</h1><p>État des contrôles et copies réelles. La surveillance en direct des élèves n’est pas encore activée sur le serveur.</p></div><div class="btn-row"><button type="button" id="acad-live-monitor-refresh" class="btn secondary">↻ Actualiser</button></div></div>
@@ -290,11 +289,11 @@
 <article><span>▤</span><strong>Copie du sujet</strong><p>Peut empêcher la commande de copie dans la page, mais jamais une photo ou une capture d’écran.</p></article>
 <article><span>◷</span><strong>Sorties de page</strong><p>Une page masquée plus de deux secondes sera signalée. Notifications et aides techniques peuvent générer de faux positifs.</p></article>
 <article><span>◇</span><strong>Journal d’incidents</strong><p>Seuls le type, la date et la durée éventuelle sont retenus. Pas de webcam, ni de lecture du presse-papiers.</p></article><article class="academie-screenshot-card"><span>▧</span><strong>Captures d’écran</strong><p>Un site web ne peut pas bloquer les captures. Le filigrane demande aux IA de ne pas répondre, sans pouvoir les obliger à obéir.</p></article></div>
-<div class="academie-safety-notice"><strong>Confidentialité et accessibilité</strong><p>Le professeur analyse les alertes, sans sanction automatique. Des aménagements sont nécessaires pour certains élèves. Le service d’événements est raccordé ; son usage avec des élèves réels reste soumis à l’avis du DPO et aux aménagements d’accessibilité.</p></div>
+<div class="academie-safety-notice"><strong>Confidentialité et accessibilité</strong><p>Le professeur vérifie les alertes, sans sanction automatique. Les réglages anti-triche restent facultatifs, et les aménagements d’accessibilité des élèves doivent être respectés.</p></div>
 <div class="prof-head"><h3>Journal serveur</h3><span id="integrity-count" class="chip">0 événement</span></div>
 <div id="integrity-server-events" class="prof-list"><p class="empty">Aucun incident serveur enregistré.</p></div>
 <a class="academie-demo-link" href="../evaluations/#professeur/integrite" target="_blank" rel="noopener">Découvrir les outils interactifs sur le site test ↗</a></section>
-<div class="setup-notice"><strong>Service technique actif — accès protégé</strong><p>Les connexions élèves, les documents et les copies passent par le serveur sécurisé. Avant d’utiliser des données scolaires réelles, l’établissement et le DPO doivent valider la procédure et l’envoi des e-mails académiques doit être configuré et testé.</p></div></div>
+<div class="setup-notice"><strong>Service technique actif — accès protégé</strong><p>Les connexions, les copies et les fichiers sont protégés par Supabase. L’accès professeur exige un compte académique et l’accès élève un PIN. Albert ne publie jamais une note à la place de l’enseignant.</p></div></div>
  </div>
 </div>
 </div>

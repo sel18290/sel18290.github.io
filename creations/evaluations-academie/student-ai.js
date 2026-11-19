@@ -2,7 +2,7 @@
  * Les traitements ne démarrent jamais automatiquement : clic explicite requis.
  */
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js?v=1';
-import {openStudentAlbertProgress} from './student-albert-progress.js?v=1.0';
+import {openStudentAlbertProgress} from './student-albert-progress.js?v=1.1';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-student-ai';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e};
 const tiny=(s,max=600)=>String(s??'').slice(0,max);

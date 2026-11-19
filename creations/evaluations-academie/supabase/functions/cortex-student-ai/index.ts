@@ -198,6 +198,7 @@ Deno.serve(async req=>{
   const category=raw.includes('CACHE')?'CACHE':raw.includes('Albert')?'ALBERT':raw.includes('Session')?'SESSION':raw.includes('document')||raw.includes('Document')?'DOCUMENT':'ANALYSE';
   // Ne jamais consigner de réponses, de noms ou de documents dans les logs.
   console.error('CORTEX_STUDENT_AI:'+category,clean(raw,120));
-  return fail(clean(raw,260),category==='ALBERT'?502:category==='CACHE'?503:400);
+  const waiting=raw.includes('après publication')||raw.includes('déjà publiée')||raw.includes('Aucune note officielle publiée');
+   return fail(clean(raw,260),waiting?409:category==='ALBERT'?502:category==='CACHE'?503:400);
  }
 });

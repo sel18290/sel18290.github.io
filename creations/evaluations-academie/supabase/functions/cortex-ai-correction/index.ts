@@ -55,9 +55,9 @@ Deno.serve(async req=>{
   const shared=String(exam.content?.doc||'').trim();
   const imported=Boolean(exam.content?.sourceType||exam.content?.sourcePageCount||
    (exam.content?.assets||[]).length||questions.some((q:any)=>Array.isArray(q.assetIds)&&q.assetIds.length>0));
-  if(imported&&questions.some((q:any)=>String(q.doc||'').trim().length<65&&shared.length<150))
+  if(imported&&questions.some((q:any)=>String(q.analysisDoc||q.doc||'').trim().length<65&&shared.length<150))
    return fail('Certaines questions manquent de documents transcrits. Ajoutez-les dans le contrôle avant de lancer Albert.',422);
-  if(questions.some((q:any)=>Array.isArray(q.assetIds)&&q.assetIds.length>0&&String(q.doc||'').trim().length<140&&shared.length<300))
+  if(questions.some((q:any)=>Array.isArray(q.assetIds)&&q.assetIds.length>0&&String(q.analysisDoc||q.doc||'').trim().length<140&&shared.length<300))
    return fail('Une capture d’image manque de transcription exploitable. Corrigez son document avant l’analyse IA.',422);
   const answers=copy.answers||{};
   const clean=(value:any,max:number)=>String(value??'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
@@ -67,7 +67,7 @@ Deno.serve(async req=>{
     question:clean(q.prompt,1200),
     max:Number(q.points)||0,
     type:String(q.type||'text').slice(0,30),
-    document:clean(q.doc,5000),
+    document:clean(q.analysisDoc||q.doc,5000),
     choix:Array.isArray(q.choices)?q.choices.slice(0,20).map((c:any)=>clean(c,300)):undefined,
     lignes_tableau:Array.isArray(q.tableRows)?q.tableRows.slice(0,8).map((x:any)=>clean(x,100)):undefined,
     colonnes_tableau:Array.isArray(q.tableColumns)?q.tableColumns.slice(0,6).map((x:any)=>clean(x,100)):undefined,

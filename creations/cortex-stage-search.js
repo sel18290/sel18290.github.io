@@ -148,7 +148,7 @@
   if(currentClass&&!classOptions.has(currentClass)){const option=E("option","",currentClass);option.value=currentClass;classSelect.append(option)}
   if(currentClass)classSelect.value=currentClass;
   for(const [value,label] of SECTORS){const option=E("option","",label);option.value=value;sectorSelect.append(option)}
-  const inferred=currentClass+" "+(settings.filiere||"");
+  const inferred=(currentClass||classSelect.value)+" "+(settings.filiere||"");
   sectorSelect.value=inferSector(inferred);
   levelSelect.value=inferLevel(currentClass||classSelect.value);
   if(!levelSelect.value)levelSelect.value="";

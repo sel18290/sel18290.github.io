@@ -1,6 +1,6 @@
 /* CORTEX · Recherche de stages (démo + réel)
  * Annuaire géographique : source IGN/OSM, sans entreprises inventées.
- * Résultats conservés localement 48 h; Claude classera les vrais lieux si actif.
+ * Résultats conservés localement 48 h; Albert classe uniquement les lieux réels avec la même API que CORTEX.
  */
 (function(){
  "use strict";
@@ -14,7 +14,7 @@
   const e=document.createElement(tag);if(cls)e.className=cls;
   if(txt!==undefined)e.textContent=String(txt);return e;
  };
- const cachePrefix="cortex-stage:v1:";
+ const cachePrefix="cortex-stage:v2:";
  const favKey="cortex-stage-favoris:v1";
  const clean=s=>String(s??"").trim();
  const loadJson=(key,fallback)=>{
@@ -53,8 +53,8 @@
    '<label>Rayon de recherche<select id="cs-stage-radius">'+
    '<option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>'+
    '<option value="4000">4 km</option><option value="6500">6,5 km</option></select></label>'+
-   '<label class="cs-stage-claude-option"><input type="checkbox" id="cs-stage-claude" checked>'+
-   '<span>✦ Classer les entreprises avec Claude lorsque disponible</span></label>'+
+   '<label class="cs-stage-albert-option"><input type="checkbox" id="cs-stage-albert" checked>'+
+   '<span>✦ Albert IA : sélectionner les établissements les plus pertinents</span></label>'+
    '<div class="cs-stage-actions"><button type="submit" class="cs-stage-primary" id="cs-stage-submit">🔎 Rechercher des entreprises</button>'+
    '<button type="button" id="cs-stage-back" class="cs-stage-secondary">← Retour</button></div></form>'+
    '<p class="cs-stage-info">Données publiques : IGN Géoplateforme et © OpenStreetMap contributors. Les entreprises repérées ne sont pas nécessairement disponibles pour accueillir un stagiaire. Vérifie l’information avant d’appeler.</p>'+
@@ -91,7 +91,7 @@
   function busy(flag){
    $("cs-stage-submit").disabled=flag;$("cs-stage-loader").hidden=!flag;
   }
-  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-claude").checked&&settings.session)]);
+  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked&&settings.session||settings.demo)]);
   function render(){
    if(!state)return;
    const filt=$("cs-stage-filter").value,sort=$("cs-stage-sort").value;
@@ -107,8 +107,8 @@
    summary.append(heading);
    const ai=state.ai||{enabled:false};
    const explanation=ai.enabled?
-    "✦ Claude a sélectionné des établissements répertoriés. Ses suggestions de missions restent à confirmer.":
-    "Classement géographique · Claude "+(ai.reason==="Clé Claude non configurée"?"non connecté":settings.demo?"réservé aux comptes élèves authentifiés":"non disponible pour cette recherche");
+    "✦ Albert a sélectionné des établissements répertoriés. Les missions suggérées restent à confirmer.":
+    "Classement géographique · Albert "+(ai.reason==="Clé Albert non configurée"?"non connecté":settings.demo?"non sollicité dans cette recherche":"non disponible pour cette recherche");
    summary.append(E("p","cs-stage-ai-status",explanation));
    if(state.checked_at)summary.append(E("small","cs-stage-timestamp","Données consultées le "+new Date(state.checked_at).toLocaleString("fr-FR")));
    const cards=$("cs-stage-cards");cards.replaceChildren();
@@ -123,7 +123,7 @@
     const name=E("strong","",business.name);
     const badge=E("span","cs-stage-category",business.category);
     title.append(name,badge);card.append(title);
-    if(business.claude_rank)card.append(E("span","cs-stage-ai-rank","✦ Sélection Claude · n°"+business.claude_rank));
+    if(business.albert_rank)card.append(E("span","cs-stage-ai-rank","✦ Sélection Albert · n°"+business.albert_rank));
     card.append(E("p","cs-stage-address","📍 "+(business.address||"Adresse non renseignée : voir la carte")));
     const phone=E("p","cs-stage-phone");
     phone.append(E("span","","☎ "));
@@ -134,7 +134,7 @@
     }else phone.append(E("span","cs-stage-missing","Téléphone non renseigné dans l'annuaire"));
     card.append(phone);
     card.append(E("small","cs-stage-distance","À environ "+business.distance_km.toLocaleString("fr-FR")+" km du centre recherché"));
-    if(business.claude_why)card.append(E("p","cs-stage-why","✦ "+business.claude_why));
+    if(business.albert_why)card.append(E("p","cs-stage-why","✦ "+business.albert_why));
     card.append(E("p","cs-stage-missions","Missions possibles à discuter : "+(business.missions?.[0]||missions[sectorSelect.value])));
     const links=E("div","cs-stage-links");
     const map=E("a","cs-stage-map","Voir la carte");
@@ -177,7 +177,7 @@
     const response=await fetch(ENDPOINT,{
      method:"POST",headers:{"content-type":"application/json"},
      body:JSON.stringify({city,filiere:sectorSelect.value,radius:Number($("cs-stage-radius").value),
-      session:settings.session||"",claude:Boolean($("cs-stage-claude").checked&&!settings.demo)}),
+      session:settings.session||"",albert:Boolean($("cs-stage-albert").checked),demo:settings.demo===true}),
      signal:controller.signal
     });
     const data=await response.json();

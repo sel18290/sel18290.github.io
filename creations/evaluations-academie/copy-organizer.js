@@ -11,6 +11,61 @@ const el=(tag,className,text)=>{
 const sortFR=new Intl.Collator('fr',{numeric:true,sensitivity:'base'});
 export const copyEntryKey=copy=>String(copy.assessment_id)+':'+String(copy.student_number);
 
+const filterState={classKey:'',status:'all',search:''};
+let cachedArgs=null;
+function setupFilters(allGroups){
+ const target=document.getElementById('cw-copy-filters');
+ if(!target)return;
+ let cls=target.querySelector('#cw-filter-class'),status=target.querySelector('#cw-filter-status'),search=target.querySelector('#cw-filter-search');
+ if(!cls){
+  const makeField=(text,id,tag)=>{
+   const label=el('label','cw-copy-filter-field');
+   label.append(el('span','',text));
+   const input=el(tag);input.id=id;label.append(input);
+   target.append(label);return input;
+  };
+  cls=makeField('Classe','cw-filter-class','select');
+  status=makeField('État de correction','cw-filter-status','select');
+  for(const [value,text] of [['all','Toutes les copies'],['pending','À corriger'],['graded','Corrigées'],['published','Publiées']]){
+   const option=el('option','',text);option.value=value;status.append(option);
+  }
+  search=makeField('Rechercher','cw-filter-search','input');
+  search.type='search';search.autocomplete='off';search.placeholder='N° élève ou titre du contrôle';
+  target.setAttribute('role','search');target.setAttribute('aria-label','Filtrer les copies reçues');
+  const refresh=()=>{if(cachedArgs)renderCopyOrganizer({...cachedArgs,defaultExpand:false})};
+  cls.addEventListener('change',()=>{filterState.classKey=cls.value;refresh()});
+  status.addEventListener('change',()=>{filterState.status=status.value;refresh()});
+  search.addEventListener('input',()=>{filterState.search=search.value.trim().toLocaleLowerCase('fr');refresh()});
+ }
+ const selected=cls.value;
+ const desired=[['','Toutes les classes'],...allGroups.map(g=>[g.key,g.name+' · '+g.copies.length+' copie(s)'])];
+ const actual=[...cls.options].map(o=>o.value+'|'+o.textContent).join(';');
+ if(actual!==desired.map(o=>o.join('|')).join(';')){
+  cls.replaceChildren();
+  for(const [value,text] of desired){const option=el('option','',text);option.value=value;cls.append(option)}
+ }
+ if(filterState.classKey&&!allGroups.some(g=>g.key===filterState.classKey))filterState.classKey='';
+ cls.value=filterState.classKey;
+ status.value=filterState.status;
+ if(search.value!==filterState.search)search.value=filterState.search;
+}
+function matchesFilters(group,control,copy){
+ if(filterState.classKey&&group.key!==filterState.classKey)return false;
+ const status=statusOf(copy).cls;
+ if(filterState.status!=='all'&&filterState.status!==(
+  status==='is-pending'?'pending':status==='is-graded'?'graded':'published'))return false;
+ if(!filterState.search)return true;
+ const query=filterState.search;
+ const bag=[group.name,control.exam?.title||'',copy.student_number,
+  'n°'+copy.student_number,'élève '+copy.student_number].join(' ').toLocaleLowerCase('fr');
+ return bag.includes(query);
+}
+export function resetCopyOrganizerFilters(){
+ filterState.classKey='';filterState.status='all';filterState.search='';cachedArgs=null;
+ document.getElementById('cw-copy-filters')?.replaceChildren();
+}
+
+
 function statusOf(copy){
  if(copy.released_at)return {text:'Publiée',cls:'is-published'};
  if(copy.graded_at||copy.grade!==null&&copy.grade!==undefined)return {text:'Corrigée',cls:'is-graded'};
@@ -63,14 +118,26 @@ function createSummary(title,description,tag,stats){
  return line;
 }
 export function renderCopyOrganizer({target,copies,exams,classes,renderCopy,openClasses,openControls,openCopies,defaultExpand=false}){
- const groups=groupCopies(copies,exams,classes);
- const count=copies.length;
+ cachedArgs={target,copies,exams,classes,renderCopy,openClasses,openControls,openCopies,defaultExpand};
+ const all=groupCopies(copies,exams,classes);
+ setupFilters(all);
+ const groups=all.map(group=>({
+  ...group,
+  controls:group.controls.map(control=>({
+   ...control,copies:control.copies.filter(copy=>matchesFilters(group,control,copy))
+  })).filter(control=>control.copies.length)
+ })).filter(group=>group.controls.length);
+ // Recalculate visible counts from filtered copies, not the full class roster.
+ for(const group of groups)group.copies=group.controls.flatMap(control=>control.copies);
+ const count=groups.reduce((total,group)=>total+group.copies.length,0);
+ target.replaceChildren();
  const heading=el('div','cw-copy-organizer-heading');
- heading.append(el('strong','',groups.length+' classe'+(groups.length>1?'s':'')+' · '+countLabel(count)),
+ heading.append(el('strong','',countLabel(count)+(count!==copies.length?' sur '+countLabel(copies.length):'')+
+  ' · '+groups.length+' classe'+(groups.length>1?'s':'')),
   el('small','','Ouvre une classe, puis un contrôle et enfin la copie de l’élève.'));
  target.append(heading);
  if(!groups.length){
-  target.append(el('p','empty','Aucune copie remise pour le moment.'));
+  target.append(el('p','empty',copies.length?'Aucune copie ne correspond aux filtres.':'Aucune copie remise pour le moment.'));
   return;
  }
  // Une classe unique peut être dépliée immédiatement ; chaque copie demeure

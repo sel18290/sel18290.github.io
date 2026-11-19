@@ -10,7 +10,7 @@
  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
  const saveData=!!navigator.connection?.saveData;
  if(reduce.matches||saveData)return;
- const lowPower=window.matchMedia('(max-width: 950px) and (pointer: coarse)').matches;
+ const lowPower=window.matchMedia('(max-width: 1100px) and (pointer: coarse)').matches;
  const examPause=()=>lowPower&&document.body.classList.contains('cw-student-active');
  const fps=lowPower?20:30;
  const frameMs=1000/fps;

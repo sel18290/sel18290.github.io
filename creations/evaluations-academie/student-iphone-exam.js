@@ -17,7 +17,7 @@ const hasAnswer=value=>{
  }catch{}
  return true;
 };
-export const mobileExam=()=>window.matchMedia('(pointer: coarse) and (max-width: 950px)').matches;
+export const mobileExam=()=>window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
 
 export function installMobileExam({form,questions,exam,current}){
  const key='cortex-student-draft:v1:'+exam.id+':'+current.student_number;

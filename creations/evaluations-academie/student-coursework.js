@@ -215,7 +215,7 @@ if(qr||globalPortal){
     sourceBox.append(E('strong','','Documents fournis pour cette question'));
     for(const asset of related){
      const figure=E('figure','cw-student-source-figure'),img=E('img');
-     img.src=asset.url;img.alt='Extrait pédagogique : '+asset.name;img.loading='eager';
+     img.src=asset.url;img.alt='Extrait pédagogique : '+asset.name;img.loading='lazy';img.decoding='async';
      figure.append(img,E('figcaption','',asset.name));sourceBox.append(figure);
     }
     label.append(sourceBox);

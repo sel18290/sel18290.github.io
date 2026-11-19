@@ -263,6 +263,8 @@ function modelObject(response){
  return JSON.parse(text.slice(start,end+1));
 }
 
+const stageModel=()=>Deno.env.get("ALBERT_STAGE_MODEL")||"mistralai/Mistral-Small-3.2-24B-Instruct-2506";
+
 async function contactSuggestion(body,origin){
  const sector=clean(body.filiere,40),option=clean(body.optionCommerce||"toutes",10);
  const type=clean(body.type,50);
@@ -289,10 +291,10 @@ async function contactSuggestion(body,origin){
  try{
   const response=await timed("https://albert.api.etalab.gouv.fr/v1/chat/completions",{
    method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+key},
-   body:JSON.stringify({model:Deno.env.get("ALBERT_MODEL")||"openai/gpt-oss-120b",
-    temperature:0.2,max_tokens:1300,stream:false,
+   body:JSON.stringify({model:stageModel(),
+    temperature:0.2,max_tokens:460,stream:false,
     messages:[{role:"system",content:system},{role:"user",content:JSON.stringify(input)}]})
-  },36000);
+  },30000);
   if(!response.ok)throw Error("HTTP "+response.status);
   const data=modelObject(await response.json());
   const hook=typeof data.hook==="string"?clean(data.hook,225):"";
@@ -331,7 +333,7 @@ async function ranked(sector,businesses,token,demo=false,niveau="",option=""){
    "Si un établissement ne convient pas, ignore-le. Données : "+JSON.stringify(candidates);
   const res=await timed("https://albert.api.etalab.gouv.fr/v1/chat/completions",{
    method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+key},
-   body:JSON.stringify({model:Deno.env.get("ALBERT_MODEL")||"openai/gpt-oss-120b",
+   body:JSON.stringify({model:stageModel(),
     temperature:0.1,max_tokens:2000,stream:false,
     messages:[{role:"system",content:system},{role:"user",content:user}]})
   },28000);

@@ -136,7 +136,7 @@ export function installMobileExam({form,questions,exam,current}){
   strip.scrollTo({left:Math.max(0,left),behavior:'auto'});
   requestAnimationFrame(()=>{
    if(destroyed)return;
-   const pageTop=form.getBoundingClientRect().top+window.scrollY-8;
+   const pageTop=form.getBoundingClientRect().top+window.scrollY-64;
    window.scrollTo({top:Math.max(0,pageTop),behavior:'auto'});
   });
  }

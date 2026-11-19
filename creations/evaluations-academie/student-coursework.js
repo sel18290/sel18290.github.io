@@ -235,14 +235,64 @@ if(qr||globalPortal){
   const timerText=E('strong','cw-student-timer-value');
   timerText.setAttribute('role','timer');
   timerBox.append(E('span','','⏱ Temps restant'),timerText);
+  let mobileChronoValue=null,mobileChronoTab=null,mobileChronoNotice=null;
+  let expiryNotified=false;
   const refreshTimer=()=>{
+   // Les deux affichages partagent le même début de chrono, déjà conservé
+   // en session. Date.now() compense la suspension des intervalles par Safari.
    const remain=Math.max(0,durationMs-(Date.now()-localStarted));
    const secs=Math.ceil(remain/1000);
-   timerText.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+   const time=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+   timerText.textContent=time;
    timerText.classList.toggle('cw-student-timer-warning',remain<=300000);
-   if(!remain){clearInterval(countdownInterval);countdownInterval=null;message('Temps indicatif écoulé. Remets ta copie maintenant.',true)}
+   if(mobileChronoValue)mobileChronoValue.textContent=time;
+   if(mobileChronoTab){
+    mobileChronoTab.classList.toggle('is-urgent',remain>0&&remain<=300000);
+    mobileChronoTab.classList.toggle('is-expired',remain===0);
+   }
+   if(mobileChronoNotice){
+    mobileChronoNotice.textContent=remain===0?'Temps indicatif écoulé : remets ta copie.':
+     remain<=300000?'Attention : il reste moins de 5 minutes.':
+     'Le chronomètre continue pendant que tu réponds aux questions.';
+   }
+   if(!remain&&!expiryNotified){
+    expiryNotified=true;
+    if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+    message('Temps indicatif écoulé. Remets ta copie maintenant.',true);
+   }
   };
-  refreshTimer();if(!countdownInterval)countdownInterval=setInterval(refreshTimer,1000);
+  if(isPhoneExam){
+   // Un onglet fixe, consultable depuis n'importe quelle question sans
+   // démonter le formulaire ni interrompre le chronomètre.
+   const dock=E('aside','cw-mobile-chrono-dock');
+   const tab=E('button','cw-mobile-chrono-tab','⏱ Chrono');
+   tab.type='button';
+   tab.setAttribute('aria-controls','cw-mobile-chrono-panel');
+   tab.setAttribute('aria-expanded','false');
+   tab.setAttribute('aria-label','Afficher le temps restant du contrôle');
+   const panel=E('section','cw-mobile-chrono-panel');
+   panel.id='cw-mobile-chrono-panel';
+   panel.hidden=true;
+   panel.setAttribute('role','region');
+   panel.setAttribute('aria-label','Temps restant du contrôle');
+   const title=E('span','cw-mobile-chrono-title','⏱ Temps restant');
+   mobileChronoValue=E('strong','cw-mobile-chrono-time');
+   mobileChronoValue.setAttribute('role','timer');
+   mobileChronoNotice=E('p','cw-mobile-chrono-notice');
+   panel.append(title,mobileChronoValue,mobileChronoNotice);
+   tab.addEventListener('click',()=>{
+    const opening=panel.hidden;
+    panel.hidden=!opening;
+    tab.setAttribute('aria-expanded',String(opening));
+    tab.setAttribute('aria-label',opening?'Masquer le chronomètre':'Afficher le temps restant du contrôle');
+    if(opening)refreshTimer();
+   });
+   mobileChronoTab=tab;
+   dock.append(tab,panel);
+   work.append(dock);
+  }
+  refreshTimer();
+  if(Date.now()-localStarted<durationMs)countdownInterval=setInterval(refreshTimer,1000);
   work.append(timerBox);
   if(settings.enabled){
    const rules=[settings.blockPaste?'Collage limité':null,settings.blockCopy?'Copie du sujet limitée':null,settings.trackVisibility?'Sorties de page signalées':null,settings.watermarkCapture?'Filigrane de dissuasion':null].filter(Boolean);

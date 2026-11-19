@@ -52,15 +52,19 @@ async function reload(success=false){
   // Signature purement en mémoire : aucune copie d'élève persistée localement.
   const signature=JSON.stringify([state.access,state.copies,classAccess,enrollments]);
   const changed=forceNextRender||signature!==lastSnapshotSignature;
-  window.dispatchEvent(new CustomEvent('cortex:academy-live-snapshot',{
-   detail:{access:state.access,copies:state.copies,classAccess,enrollments}
-  }));
   if(changed){
+   // Recalculer l'écran avant d'enregistrer la signature : en cas d'erreur,
+   // la prochaine actualisation pourra réessayer.
+   display();
    lastSnapshotSignature=signature;forceNextRender=false;
+   // Les autres panneaux n'ont besoin d'une mise à jour que si des données
+   // ont réellement changé (évite les reconstructions inutiles toutes les 40 s).
+   window.dispatchEvent(new CustomEvent('cortex:academy-live-snapshot',{
+    detail:{access:state.access,copies:state.copies,classAccess,enrollments}
+   }));
    window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{
     detail:{copies:state.copies.length,pinClasses:classAccess.length}
    }));
-   display();
    window.dispatchEvent(new Event('cortex:academy-class-updated'));
   }
   if(success)message(changed?'Données actualisées.':'Aucune nouvelle copie.');

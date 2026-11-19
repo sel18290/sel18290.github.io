@@ -10,11 +10,63 @@
   ["commerce-vente","Commerce et vente (MCV)"],
   ["accueil","Métiers de l'accueil (MA)"]
  ];
+ const TYPES={
+  "gestion-administration":[
+   ["administrations","Mairies et administrations","Courriers, dossiers, relation avec les usagers."],
+   ["entreprises","Services administratifs d'entreprises","Suivi administratif et organisation d'activité."],
+   ["associations","Associations et structures sociales","Gestion de dossiers et suivi des adhérents."],
+   ["sante","Établissements de santé","Secrétariat et administration, hors soins."],
+   ["education","Établissements scolaires et universitaires","Secrétariat et suivi de dossiers."],
+   ["banques","Banques, assurances et mutuelles","Gestion des informations et documents administratifs."],
+   ["comptabilite","Cabinets comptables et de gestion","Classement, facturation, suivi administratif."],
+   ["rh","Agences d'emploi et services RH","Gestion de plannings, dossiers et documents."]
+  ],
+  "commerce-vente":[
+   ["distribution","Supermarchés et grands magasins","Vente, rayons, stocks et conseil.","A"],
+   ["mode","Mode, chaussures et accessoires","Conseil client et mise en valeur des produits.","A"],
+   ["beaute","Beauté, cosmétiques et parfumeries","Conseil, vente et présentation commerciale.","A"],
+   ["technologie","Téléphonie, informatique et électroménager","Vente-conseil et suivi de commandes.","A"],
+   ["maison","Maison, décoration, bricolage et jardin","Merchandising, vente et relation client.","A"],
+   ["alimentation","Commerces alimentaires spécialisés","Accueil, conseil et vente alimentaire.","A"],
+   ["sports-culture","Sport, librairies, jouets et loisirs","Vente-conseil et animation commerciale.","A"],
+   ["vehicules","Concessions automobiles, vélos et mobilité","Vente d'équipements et conseil clientèle.","A"],
+   ["immobilier","Agences immobilières","Prospection, rendez-vous et relation client.","B"],
+   ["finance","Banques et assurances","Offres de services, conseil et relation clientèle.","B"],
+   ["relation-client","Téléconseil et services commerciaux","Prospection et fidélisation à distance.","B"],
+   ["entreprises-b2b","Entreprises avec service commercial","Prospection et suivi commercial interentreprises.","B"]
+  ],
+  "accueil":[
+   ["administrations","Mairies et services publics","Accueil et orientation des usagers."],
+   ["sante","Hôpitaux, cliniques et centres de santé","Accueil et orientation, hors activités de soins."],
+   ["hotels","Hôtels et hébergements touristiques","Réception et information des visiteurs."],
+   ["tourisme","Offices de tourisme et points d'information","Renseignement et orientation du public."],
+   ["culture","Musées, bibliothèques et lieux culturels","Accueil, information et gestion des flux."],
+   ["evenementiel","Centres de congrès et espaces événementiels","Accueil de participants et organisation d'événements."],
+   ["entreprises","Accueil d'entreprises et de sièges","Accueil physique, téléphonique et numérique."],
+   ["social","Associations et centres sociaux","Accueil des bénéficiaires et orientation."],
+   ["transport","Gares et pôles de transport","Information et orientation des voyageurs."],
+   ["education","Établissements scolaires et universités","Accueil des visiteurs et communication."]
+  ]
+ };
+ const LEVELS={seconde:"Seconde",premiere:"Première",terminale:"Terminale"};
+ function inferLevel(s){
+  const v=String(s||"").trim().toLowerCase();
+  if(/^(2|seconde)/.test(v))return "seconde";
+  if(/^(1|premi)/.test(v))return "premiere";
+  if(/^(t|term)/.test(v))return "terminale";
+  return "";
+ }
+ function inferSector(s){
+  const v=String(s||"").toLowerCase();
+  if(/agora|gestion|administration|2ga|tga/.test(v))return "gestion-administration";
+  if(/accueil|(^|[^a-z])ma([^a-z]|$)|tma/.test(v))return "accueil";
+  return "commerce-vente";
+ }
  const E=(tag,cls,txt)=>{
   const e=document.createElement(tag);if(cls)e.className=cls;
   if(txt!==undefined)e.textContent=String(txt);return e;
  };
- const cachePrefix="cortex-stage:v2:";
+ const cachePrefix="cortex-stage:v3:";
  const favKey="cortex-stage-favoris:v1";
  const clean=s=>String(s??"").trim();
  const loadJson=(key,fallback)=>{
@@ -47,8 +99,21 @@
    '<p>Découvre des lieux de PFMP autour de toi, avec leurs coordonnées publiques et des idées de missions.</p></div>'+
    '<span class="cs-stage-marker">✦ STAGES</span></header>'+
    '<form class="cs-stage-form" id="cs-stage-form">'+
-   '<label>Ma classe<select id="cs-stage-class" required></select></label>'+
+   '<label>Mon niveau<select id="cs-stage-level" required><option value="">Choisir mon niveau</option>'+
+   '<option value="seconde">Seconde</option><option value="premiere">Première</option><option value="terminale">Terminale</option></select></label>'+
+   '<label>Ma classe / mon groupe<select id="cs-stage-class"></select></label>'+
    '<label>Ma filière<select id="cs-stage-sector" required></select></label>'+
+   '<label class="cs-stage-option-field" id="cs-stage-option-wrap" hidden>Mon orientation commerciale'+
+   '<select id="cs-stage-option"><option value="toutes">Toutes les orientations / à préciser</option>'+
+   '<option value="A">Option A · Vente en magasin</option>'+
+   '<option value="B">Option B · Prospection et relation client</option></select></label>'+
+   '<fieldset class="cs-stage-types" id="cs-stage-types"><legend>Quels types de lieux souhaites-tu rechercher ?</legend>'+
+   '<p class="cs-stage-types-intro">Coche les structures qui t’intéressent. Les propositions sont adaptées aux activités de ta filière.</p>'+
+   '<div class="cs-stage-types-toolbar"><span id="cs-stage-types-count" aria-live="polite"></span>'+
+   '<button type="button" id="cs-stage-all-types">Tout cocher</button>'+
+   '<button type="button" id="cs-stage-no-types">Tout décocher</button></div>'+
+   '<div class="cs-stage-types-grid" id="cs-stage-types-grid"></div>'+
+   '<p class="cs-stage-types-foot">Un stage doit comporter de vraies missions correspondant à ton diplôme. Le professeur confirme la pertinence du lieu.</p></fieldset>'+
    '<label>Ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="90" required placeholder="Ex. Paris 15e, Saint-Denis…"></label>'+
    '<label>Rayon de recherche<select id="cs-stage-radius">'+
    '<option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>'+
@@ -75,15 +140,66 @@
   container.replaceChildren(section);
   const $=id=>section.querySelector("#"+id);
   const classSelect=$("cs-stage-class"),sectorSelect=$("cs-stage-sector");
+  const levelSelect=$("cs-stage-level"),optionSelect=$("cs-stage-option");
+  const savedTypes=Object.fromEntries(Object.entries(TYPES).map(([key,values])=>[key,new Set(values.map(x=>x[0]))]));
   const chooseClass=classes.length?classes:[currentClass||"Autre classe"];
   const classOptions=new Set([...chooseClass,currentClass].filter(Boolean));
   for(const value of classOptions){const option=E("option","",value);option.value=value;classSelect.append(option)}
   if(currentClass&&!classOptions.has(currentClass)){const option=E("option","",currentClass);option.value=currentClass;classSelect.append(option)}
   if(currentClass)classSelect.value=currentClass;
   for(const [value,label] of SECTORS){const option=E("option","",label);option.value=value;sectorSelect.append(option)}
-  const inferred=(currentClass+" "+(settings.filiere||"")).toLowerCase();
-  sectorSelect.value=/agora|gestion|administration|2ga|tga/i.test(inferred)?"gestion-administration":
-   /accueil|(^|[^a-z])ma([^a-z]|$)|tma/.test(inferred)?"accueil":"commerce-vente";
+  const inferred=currentClass+" "+(settings.filiere||"");
+  sectorSelect.value=inferSector(inferred);
+  levelSelect.value=inferLevel(currentClass||classSelect.value);
+  if(!levelSelect.value)levelSelect.value="";
+  function availableTypes(){
+   const option=sectorSelect.value==="commerce-vente"?optionSelect.value:"toutes";
+   return (TYPES[sectorSelect.value]||[]).filter(x=>option==="toutes"||!x[3]||x[3]===option);
+  }
+  const selectedTypes=()=>availableTypes().filter(x=>savedTypes[sectorSelect.value]?.has(x[0])).map(x=>x[0]);
+  function updateTypeCount(){
+   const number=selectedTypes().length,total=availableTypes().length;
+   $("cs-stage-types-count").textContent=number+" type"+(number>1?"s":"")+" sélectionné"+(number>1?"s":"")+" sur "+total;
+   $("cs-stage-submit").disabled=number===0;
+  }
+  function renderTypes(){
+   $("cs-stage-option-wrap").hidden=sectorSelect.value!=="commerce-vente";
+   const grid=$("cs-stage-types-grid");grid.replaceChildren();
+   for(const [id,label,desc,option] of availableTypes()){
+    const item=E("label","cs-stage-type");
+    const box=E("input");box.type="checkbox";box.value=id;
+    box.checked=savedTypes[sectorSelect.value].has(id);
+    box.addEventListener("change",()=>{
+     if(box.checked)savedTypes[sectorSelect.value].add(id);
+     else savedTypes[sectorSelect.value].delete(id);
+     item.classList.toggle("is-checked",box.checked);updateTypeCount();
+    });
+    const body=E("span","cs-stage-type-copy");
+    const title=E("strong","",label);
+    if(option)title.append(E("small","cs-stage-type-option","Option "+option));
+    body.append(title,E("small","cs-stage-type-description",desc));
+    item.append(box,body);item.classList.toggle("is-checked",box.checked);
+    grid.append(item);
+   }
+   updateTypeCount();
+  }
+  sectorSelect.addEventListener("change",renderTypes);
+  optionSelect.addEventListener("change",renderTypes);
+  classSelect.addEventListener("change",()=>{
+   const level=inferLevel(classSelect.value);
+   if(level)levelSelect.value=level;
+   sectorSelect.value=inferSector(classSelect.value);
+   renderTypes();
+  });
+  $("cs-stage-all-types").addEventListener("click",()=>{
+   for(const [id] of availableTypes())savedTypes[sectorSelect.value].add(id);
+   renderTypes();
+  });
+  $("cs-stage-no-types").addEventListener("click",()=>{
+   for(const [id] of availableTypes())savedTypes[sectorSelect.value].delete(id);
+   renderTypes();
+  });
+  renderTypes();
   function tell(message,error=false){
    const place=$("cs-stage-status");
    place.textContent=message;place.classList.toggle("is-error",error)
@@ -91,7 +207,7 @@
   function busy(flag){
    $("cs-stage-submit").disabled=flag;$("cs-stage-loader").hidden=!flag;
   }
-  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked),Boolean(settings.demo)]);
+  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,levelSelect.value,optionSelect.value,selectedTypes().slice().sort(),clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked),Boolean(settings.demo)]);
   function render(){
    if(!state)return;
    const filt=$("cs-stage-filter").value,sort=$("cs-stage-sort").value;
@@ -103,7 +219,7 @@
    const summary=$("cs-stage-summary");summary.replaceChildren();
    const heading=E("div","cs-stage-result-heading");
    heading.append(E("strong","",all.length+" lieux repérés · "+shown.length+" affichés"),
-    E("span","",state.city+" · "+Number(state.radius)/1000+" km"));
+    E("span","",LEVELS[state.niveau||levelSelect.value]+" · "+state.city+" · "+Number(state.radius)/1000+" km"));
    summary.append(heading);
    const ai=state.ai||{enabled:false};
    const explanation=ai.enabled?
@@ -123,6 +239,7 @@
     const name=E("strong","",business.name);
     const badge=E("span","cs-stage-category",business.category);
     title.append(name,badge);card.append(title);
+    if(business.target_labels?.length)card.append(E("p","cs-stage-target","Type de lieu recherché : "+business.target_labels.join(", ")));
     if(business.albert_rank)card.append(E("span","cs-stage-ai-rank","✦ Sélection Albert · n°"+business.albert_rank));
     card.append(E("p","cs-stage-address","📍 "+(business.address||"Adresse non renseignée : voir la carte")));
     const phone=E("p","cs-stage-phone");
@@ -171,12 +288,14 @@
    if(controller)controller.abort();
    if(!force&&restore())return;
    const city=clean($("cs-stage-city").value);
-   if(city.length<2||!classSelect.value){tell("Choisis une classe et indique une ville ou un quartier.",true);return}
+   if(city.length<2||!levelSelect.value||!sectorSelect.value){tell("Indique ton niveau, ta filière et une ville ou un quartier.",true);return}
+   if(!selectedTypes().length){tell("Coche au moins un type de lieu pour lancer la recherche.",true);return}
    controller=new AbortController();busy(true);tell("Recherche en cours…");
    try{
     const response=await fetch(ENDPOINT,{
      method:"POST",headers:{"content-type":"application/json"},
-     body:JSON.stringify({city,filiere:sectorSelect.value,radius:Number($("cs-stage-radius").value),
+     body:JSON.stringify({city,filiere:sectorSelect.value,niveau:levelSelect.value,
+      optionCommerce:optionSelect.value,types:selectedTypes(),radius:Number($("cs-stage-radius").value),
       session:settings.session||"",albert:Boolean($("cs-stage-albert").checked),demo:settings.demo===true}),
      signal:controller.signal
     });
@@ -213,7 +332,7 @@
    else location.href="?espace=eleve";
   });
   // Aucun appel réseau automatique : l'élève choisit son secteur.
-  tell("Choisis ta filière et ta ville, puis lance la recherche.");
+  tell("Choisis ton niveau, ta filière et les types de structures à rechercher.");
   return {search,dispose(){destroyed=true;controller?.abort()}};
  }
  window.CORTEX_STAGE={mount,SECTORS};

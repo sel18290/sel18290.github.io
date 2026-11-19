@@ -562,8 +562,9 @@ async function studentAction(action,body,form){
   const classCode=String(body.class_code||'').toLowerCase(),
    joinCode=String(body.join_code||'').toLowerCase(),
    number=Number(body.student_number),chosen=String(body.pin||''),confirm=String(body.confirm_pin||'');
-  const group=body.demi_groupe==null||body.demi_groupe===''?0:Number(body.demi_groupe);
-  if(!Number.isInteger(number)||number<1||number>60||!Number.isInteger(group)||![0,1,2].includes(group)||
+  const group=body.demi_groupe==null||body.demi_groupe===''?null:Number(body.demi_groupe);
+  if(![1,2].includes(group))throw Error('Choisis obligatoirement ton demi-groupe 1 ou 2 avant de créer ton PIN.');
+  if(!Number.isInteger(number)||number<1||number>60||
      !/^\d{6}$/.test(chosen)||chosen!==confirm||
      /^(012345|123456|654321|000000|111111|222222|333333|444444|555555|666666|777777|888888|999999)$/.test(chosen)||
      /^(\d)\1{5}$/.test(chosen))
@@ -613,20 +614,20 @@ async function studentAction(action,body,form){
   if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Réessaye plus tard ou contacte le professeur.');
   const {data:result,error:changeErr}=await admin.from('cortex_academy_class_roster')
    .update({pin_digest:await pinHash(access.class_id,number,chosen),
-     demi_groupe:group||null,activated_at:new Date().toISOString(),
+     demi_groupe:group,activated_at:new Date().toISOString(),
      attempts:0,locked_until:null,updated_at:new Date().toISOString()})
    .eq('class_id',access.class_id).eq('student_number',number)
    .eq('pin_digest',cred.pin_digest).is('activated_at',null)
    .select('student_number').maybeSingle();
   if(changeErr||!result)throw Error('Ce numéro vient d’être activé. Reconnecte-toi ou consulte ton professeur.');
-  return ret({ok:true,activated:true,student_number:number,demi_groupe:group||null});
+  return ret({ok:true,activated:true,student_number:number,demi_groupe:group});
  }
  if(action==='student_activate'){
   const classCode=String(body.class_code||'').toLowerCase(),joinCode=String(body.join_code||'').toLowerCase();
   const number=Number(body.student_number),temporary=String(body.initial_pin||''),personal=String(body.new_pin||'');
   const group=Number(body.demi_groupe);
-  if(![0,1,2].includes(group)||body.demi_groupe===''||body.demi_groupe===undefined||body.demi_groupe===null)
-   throw Error('Choisissez votre demi-groupe (1, 2 ou classe entière).');
+  if(![1,2].includes(group)||body.demi_groupe===''||body.demi_groupe===undefined||body.demi_groupe===null)
+   throw Error('Choisissez votre demi-groupe 1 ou 2 pour cette inscription.');
   if(!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(temporary)||!/^\d{6}$/.test(personal)||temporary===personal||
      /^(012345|123456|654321|000000|111111|222222|333333|444444|555555|666666|777777|888888|999999)$/.test(personal))
    throw Error('PIN provisoire et nouveau PIN différents requis (6 chiffres, sans suite évidente).');
@@ -650,14 +651,14 @@ async function studentAction(action,body,form){
   await verifyClassPin(access,number,temporary,false);
   const nextDigest=await pinHash(classId,number,personal);
   const {data:updated,error}=await admin.from('cortex_academy_class_roster')
-   .update({pin_digest:nextDigest,demi_groupe:group||null,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
+   .update({pin_digest:nextDigest,demi_groupe:group,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
    .eq('class_id',classId).eq('student_number',number).eq('pin_digest',cred.pin_digest).is('activated_at',null).select('student_number').maybeSingle();
   if(error||!updated)throw Error('Activation impossible ou déjà effectuée. Demandez un nouveau PIN provisoire au professeur.');
   // Révoque toute session éventuellement ouverte avec les identifiants provisoires.
   await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',number);
   const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacherId);
   if(exams?.length)await admin.from('cortex_academy_sessions').delete().in('assessment_id',exams.map(x=>x.id)).eq('student_number',number);
-  return ret({ok:true,activated:true,student_number:number,demi_groupe:group||null});
+  return ret({ok:true,activated:true,student_number:number,demi_groupe:group});
  }
  if(action==='student_class_login'){
   const portal=String(body.class_code||'').toLowerCase(),number=Number(body.student_number),plain=String(body.pin||'');

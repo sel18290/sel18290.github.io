@@ -1,0 +1,109 @@
+/* CORTEX · Présentation des bénéfices, accueil démonstration + Académie.
+   Règles limitées aux blocs d'accueil ; aucun formulaire/contrôle affecté. */
+.cortex-home-benefits{
+ --cortex-benefit-border:rgba(133,191,225,.39);
+ --cortex-benefit-ink:#eefaff;
+ --cortex-benefit-muted:#bfd6e7;
+ position:relative;z-index:1;min-width:0;color:var(--cortex-benefit-ink)
+}
+.cortex-home-benefits-head{align-items:center}
+.cortex-home-benefits .section-head h2{
+ font-size:clamp(25px,3.3vw,38px);line-height:1.18;letter-spacing:-.035em
+}
+.cortex-home-benefits .section-head h2 em{font-style:normal;color:#a7eee7}
+.cortex-home-benefits-lead{font-size:14px;line-height:1.7;max-width:760px;color:var(--cortex-benefit-muted);margin:10px 0 0}
+.cortex-home-benefits-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cortex-home-benefit{
+ position:relative;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+ padding:clamp(17px,2.5vw,25px);border:1px solid var(--cortex-benefit-border);border-radius:17px;
+ background:
+ radial-gradient(ellipse at 95% 0%,rgba(104,174,223,.19),transparent 56%),
+ linear-gradient(145deg,rgba(32,62,91,.94),rgba(11,31,52,.96));
+ box-shadow:inset 0 1px 0 rgba(230,251,255,.10),0 10px 29px rgba(0,5,18,.17);
+ overflow-wrap:anywhere
+}
+.cortex-home-benefit-stage{
+ border-color:rgba(129,218,222,.60);
+ background:
+ radial-gradient(ellipse at 90% 0%,rgba(92,193,198,.24),transparent 60%),
+ linear-gradient(146deg,rgba(24,66,87,.96),rgba(11,36,58,.97))
+}
+.cortex-home-benefit-icon{
+ display:grid;place-items:center;width:43px;height:43px;flex:none;
+ border:1px solid rgba(173,229,253,.50);border-radius:13px;
+ background:rgba(97,164,209,.18);color:#c5f3ff;font-size:23px;
+ margin-bottom:14px
+}
+.cortex-home-benefit-number,.cortex-home-benefits-label{
+ font-size:10px;font-weight:850;letter-spacing:.105em;line-height:1.4;color:#9ce0ec
+}
+.cortex-home-benefit h3,.cortex-home-benefit h2{
+ margin:8px 0 9px;font-size:clamp(17px,1.9vw,21px);
+ font-weight:850;line-height:1.28;letter-spacing:-.025em;color:#fff
+}
+.cortex-home-benefit p{
+ margin:0 0 13px;color:var(--cortex-benefit-muted);
+ font-size:13px;line-height:1.65
+}
+.cortex-home-benefit p strong{color:#e6f8ff;font-weight:790}
+.cortex-home-benefit a{
+ margin-top:auto;display:inline-flex;align-items:center;gap:9px;
+ border-radius:9px;min-height:41px;padding:9px 11px;
+ border:1px solid rgba(152,216,249,.49);
+ background:rgba(43,95,124,.40);font-weight:760;font-size:12px;
+ line-height:1.4;color:#c3f1ff;text-decoration:none;
+ transition:background .16s ease,border-color .16s ease
+}
+.cortex-home-benefit a:hover{background:rgba(70,139,173,.58);border-color:#adf2ff}
+.cortex-home-benefit a:focus-visible{outline:3px solid #d6ffff;outline-offset:3px}
+.cortex-home-benefits-note{
+ margin:14px 0 0!important;color:#a8c5d5!important;
+ font-size:11px!important;line-height:1.65!important
+}
+/* La démonstration place la grille sous son héros. */
+.home>.cortex-home-benefits{margin-top:43px}
+.home .cortex-home-benefits .section-head{margin-bottom:20px}
+/* La page de connexion contient sa grille dans la colonne de présentation. */
+.layout>.hero .cortex-home-benefits-real{margin:22px 0 20px}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefits-label{margin:0 0 11px}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefits-grid{gap:10px}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefit{padding:14px;border-radius:13px}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefit-icon{
+ height:35px;width:35px;font-size:19px;border-radius:10px;margin-bottom:9px
+}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefit h2{
+ margin:7px 0 8px;font-size:16px;line-height:1.28;letter-spacing:-.02em
+}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefit p{
+ font-size:12px;line-height:1.53;margin:0 0 10px
+}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefit a{
+ font-size:11px;min-height:37px
+}
+.layout>.hero .cortex-home-benefits-real .cortex-home-benefits-note{
+ max-width:none;margin:11px 0 0!important
+}
+/* Titre plus compact afin de préserver la lisibilité à côté de la connexion. */
+.layout>.hero h1{font-size:clamp(37px,4.0vw,59px);line-height:1.08}
+.layout>.hero{padding-top:30px}
+@media(max-width:900px){
+ .cortex-home-benefits-grid{gap:10px}
+ .layout>.hero .cortex-home-benefits-real{margin-top:20px}
+}
+@media(max-width:600px){
+ .cortex-home-benefits-grid{grid-template-columns:minmax(0,1fr)}
+ .cortex-home-benefits .section-head{align-items:flex-start;flex-wrap:wrap}
+ .home>.cortex-home-benefits{margin-top:30px}
+ .cortex-home-benefit{border-radius:14px;padding:17px}
+ .cortex-home-benefit p{font-size:13px}
+ .cortex-home-benefit a{width:100%;justify-content:space-between;min-height:46px}
+ .layout>.hero .cortex-home-benefits-real .cortex-home-benefit{padding:16px}
+ .layout>.hero .cortex-home-benefits-real .cortex-home-benefit h2{font-size:17px}
+ .layout>.hero .cortex-home-benefits-real .cortex-home-benefit p{font-size:13px}
+ .layout>.hero .cortex-home-benefits-real .cortex-home-benefit a{font-size:12px}
+ .layout>.hero h1{font-size:clamp(36px,10vw,49px)}
+ .layout>.hero{padding:25px 15px}
+}
+@media(prefers-reduced-motion:reduce){
+ .cortex-home-benefit a{transition:none}
+}

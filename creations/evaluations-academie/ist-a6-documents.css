@@ -1,0 +1,78 @@
+/* Documents IST A6 · restitution visuelle du PDF d'origine.
+ * Styles isolés : aucun changement aux autres évaluations.
+ */
+.ist-source-area{
+ display:grid;gap:12px;margin:13px 0 11px;min-width:0;
+}
+.ist-graphic{
+ box-sizing:border-box;margin:0;min-width:0;max-width:100%;
+ color:#152b3f;background:#f8fbfd;
+ border:1px solid #8cadbf;border-radius:13px;
+ overflow:hidden;box-shadow:0 6px 20px #030b1b1e;
+ font-weight:400;
+}
+.ist-figure-banner{
+ background:#074891;color:#fff;padding:14px 15px;
+ font-size:14px;line-height:1.25;font-weight:900;
+ letter-spacing:.025em;text-transform:uppercase;
+}
+.ist-figure-subtitle{padding:12px 14px 5px;color:#146775;font-size:13px;font-weight:800}
+.ist-chart svg{box-sizing:border-box;width:100%;height:auto;display:block;padding:2px 10px 0}
+.ist-graphic-caption{
+ display:block;padding:10px 14px 13px;color:#465f71;font-size:12px;
+ line-height:1.55;background:#eef6f9;border-top:1px solid #ccdce5;
+ font-weight:500;
+}
+.ist-symptoms{border:2px solid #93b000}
+.ist-symptoms-title{
+ padding:12px 15px;background:#a0cb00;color:#173100;font-size:17px;
+ line-height:1.35;font-weight:850;
+}
+.ist-symptoms-group{padding:12px 16px 13px;background:#d3ecee;border-top:3px solid #a0cb00}
+.ist-symptoms-group h4{margin:0 0 8px;color:#172f30;font-size:16px;font-weight:800}
+.ist-symptoms-group ul{margin:0;padding-left:22px}
+.ist-symptoms-group li{margin:4px 0;color:#1c3033;font-size:14px;line-height:1.52;font-weight:550}
+.ist-hiv{background:linear-gradient(135deg,#fff,#edf3f6)}
+.ist-vih-title{padding:14px;background:#dce3e8;color:#152b40;font-size:18px;font-weight:900}
+.ist-hiv-row{padding:12px 16px;display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:14px;border-bottom:1px solid #d4e1e8}
+.ist-hiv-count{display:flex;justify-content:center;align-items:center;border-radius:50%;background:#fff;color:#19334b;
+ border:1px solid #d1dbe5;min-height:90px;height:90px;width:90px;font-size:20px;font-weight:900;box-shadow:0 4px 14px #132b3b1a}
+.ist-hiv-row p{margin:0;color:#152d41;font-size:14px;line-height:1.55;font-weight:550}
+.ist-hiv-world{background:#dbe7ed;padding:12px 15px;color:#19394f;font-size:13px;font-weight:700}
+.ist-doc-text{display:grid;gap:10px;min-width:0}
+.ist-doc-part{
+ box-sizing:border-box;display:grid;gap:8px;
+ padding:12px 14px;border-radius:11px;
+ border:1px solid rgba(77,158,181,.55);
+ background:linear-gradient(120deg,rgba(26,72,88,.68),rgba(24,62,91,.74));
+ box-shadow:inset 0 1px rgba(255,255,255,.08);
+}
+.ist-doc-heading{
+ color:#81e4f2!important;margin:0;font-weight:900;font-size:14px;
+ letter-spacing:.01em;line-height:1.45;
+}
+.ist-doc-paragraph{
+ color:#eef7ff!important;margin:0;
+ white-space:pre-line;overflow-wrap:anywhere;
+ font-size:13px;line-height:1.75;font-weight:500;
+}
+.ist-doc-part:has(.ist-doc-paragraph:first-child){
+ border-color:rgba(123,148,235,.5);
+ background:linear-gradient(120deg,rgba(39,53,89,.75),rgba(22,51,75,.8))
+}
+@media(max-width:680px){
+ .ist-source-area{gap:9px;margin:8px 0}
+ .ist-figure-banner{font-size:12px;padding:12px}
+ .ist-figure-subtitle{font-size:11px;padding:8px 10px 0}
+ .ist-chart svg{padding:0}
+ .ist-graphic-caption{font-size:11px;padding:10px}
+ .ist-symptoms-title{font-size:15px}
+ .ist-symptoms-group{padding:11px}
+ .ist-symptoms-group li{font-size:12.5px}
+ .ist-hiv-row{grid-template-columns:75px minmax(0,1fr);gap:10px;padding:10px}
+ .ist-hiv-count{min-height:70px;height:70px;width:70px;font-size:15px}
+ .ist-hiv-row p{font-size:12px}
+ .ist-doc-part{padding:11px}
+ .ist-doc-heading{font-size:12px}
+ .ist-doc-paragraph{font-size:12px}
+}

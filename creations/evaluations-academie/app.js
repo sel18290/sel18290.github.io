@@ -294,18 +294,63 @@ function tileButton(name,cls,handler){
  });return b;
 }
 async function duplicateRealExam(exam){
- const content=structuredClone(exam.content||{});
- if((content.assets||[]).length||content.sourceType){
-  if(!confirm('Dupliquer ? Les questions et réglages seront copiés, mais les images et fichiers privés devront être ajoutés dans la nouvelle version.'))return;
+ const classes=myClasses.filter(c=>!c.archived);
+ if(!classes.length){status('Crée d’abord une classe pour pouvoir y dupliquer le contrôle.',true);return}
+ const dialog=el('dialog','cortex-publish-dialog cortex-duplicate-dialog');
+ const form=el('form','cortex-publish-body');
+ const heading=el('h3','','Dupliquer vers une autre classe');
+ const intro=el('p','','Contrôle source : « '+exam.title+' » · '+classTitle(exam));
+ const note=el('p','cortex-publish-help',
+  'Les questions, barèmes, réglages, images et documents originaux seront copiés. Les réponses, notes et PIN des élèves ne seront jamais copiés. Le nouveau contrôle restera en brouillon.');
+ const classLabel=el('label','','Classe de destination');
+ const target=el('select');
+ target.required=true;target.setAttribute('aria-label','Classe de destination');
+ for(const c of classes){
+  const option=el('option','',c.code||c.display_name);
+  option.value=c.id;target.append(option);
  }
- content.assets=[];content.publish_scope='all';
- for(const key of ['sourceType','sourceName','sourcePages','sourcePageCount'])delete content[key];
- for(const q of content.questions||[]){q.id='q-'+crypto.randomUUID();q.assetIds=[];}
- const {error}=await supabase.from('cortex_teacher_assessments').insert({
-  teacher_id:requireTeacher(),title:exam.title+' (copie)',class_id:exam.class_id,published:false,content
+ target.value=classes.find(c=>c.id!==exam.class_id)?.id||classes[0].id;
+ classLabel.append(target);
+ const nameLabel=el('label','','Titre du contrôle dupliqué');
+ const title=el('input');
+ title.type='text';title.maxLength=180;title.required=true;title.value=exam.title;
+ nameLabel.append(title);
+ const feedback=el('p','cortex-publish-help','Tu pourras ensuite modifier ce brouillon ou le publier pour la classe sélectionnée.');
+ feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+ const row=el('div','cortex-publish-actions');
+ const cancel=el('button','btn secondary','Annuler');cancel.type='button';cancel.addEventListener('click',()=>dialog.close());
+ const submit=el('button','btn','Dupliquer pour cette classe');submit.type='submit';
+ row.append(cancel,submit);
+ form.append(heading,intro,classLabel,nameLabel,note,feedback,row);dialog.append(form);
+ document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  if(submit.disabled||!form.reportValidity())return;
+  const destination=classes.find(c=>c.id===target.value);
+  if(!destination){feedback.textContent='Sélectionne une classe active.';return}
+  const nextTitle=title.value.trim();
+  if(!nextTitle||nextTitle.length>180){feedback.textContent='Renseigne un titre valide.';return}
+  submit.disabled=true;cancel.disabled=true;
+  submit.textContent='Duplication des documents…';
+  feedback.classList.remove('error');
+  feedback.textContent='Copie indépendante des questions et fichiers privés en cours…';
+  try{
+   const result=await cortexCourseworkApi('teacher_duplicate',{
+    assessment_id:exam.id,class_id:destination.id,title:nextTitle
+   },null,true);
+   dialog.close();
+   await loadTeacherData(requireTeacher());
+   examTileClass=destination.id;examTileGroup='';examTileSearch='';
+   drawRealExamTiles();
+   status('✓ « '+result.title+' » est prêt en brouillon pour '+(destination.code||destination.display_name)+
+    ' · '+result.questions+' question(s), '+result.documents+' document(s) copiés. Aucun élève ni aucune note transférés.');
+  }catch(error){
+   feedback.textContent='Duplication impossible : '+safeError(error);
+   feedback.classList.add('error');
+   submit.disabled=false;cancel.disabled=false;submit.textContent='Réessayer';
+  }
  });
- if(error)throw error;
- await loadTeacherData(requireTeacher());status('Contrôle dupliqué en brouillon.');
+ dialog.showModal();
 }
 async function teacherStudentSimulation(exam){
  if(!window.CORTEX_STUDENT_SIMULATOR){status('Simulateur indisponible. Recharge la page.',true);return;}

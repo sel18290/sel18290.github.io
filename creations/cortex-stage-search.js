@@ -91,7 +91,7 @@
   function busy(flag){
    $("cs-stage-submit").disabled=flag;$("cs-stage-loader").hidden=!flag;
   }
-  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked&&settings.session||settings.demo)]);
+  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked)+'|'+Boolean(settings.demo)]);
   function render(){
    if(!state)return;
    const filt=$("cs-stage-filter").value,sort=$("cs-stage-sort").value;
@@ -99,7 +99,7 @@
    shown=all.filter(x=>filt==="all"||(filt==="phone"&&x.phone)||(filt==="full"&&x.address)||(filt==="favorite"&&favorites.has(x.id)));
    if(sort==="name")shown.sort((a,b)=>a.name.localeCompare(b.name,"fr"));
    else if(sort==="phone")shown.sort((a,b)=>Number(Boolean(b.phone))-Number(Boolean(a.phone))||a.distance_km-b.distance_km);
-   else shown.sort((a,b)=>(a.claude_rank||999)-(b.claude_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
+   else shown.sort((a,b)=>(a.albert_rank||999)-(b.albert_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
    const summary=$("cs-stage-summary");summary.replaceChildren();
    const heading=E("div","cs-stage-result-heading");
    heading.append(E("strong","",all.length+" lieux repérés · "+shown.length+" affichés"),

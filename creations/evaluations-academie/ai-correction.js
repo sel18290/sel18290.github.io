@@ -32,13 +32,13 @@ export function formatDraftFeedback(draft){
 }
 
 /* Test de connectivité : aucune copie, question ou donnée élève transmise. */
-export async function testAlbertConnection(){
+export async function testAlbertConnection({signal}={}){
  const client=window.CORTEX_ACADEMY_BRIDGE?.client?.();
  if(!client)throw new Error('Connectez-vous dans l’espace professeur.');
  const {data,error}=await client.auth.getSession();
  if(error||!data?.session?.access_token)throw new Error('Session expirée. Reconnectez-vous.');
  const response=await fetch(SUPABASE_URL+'/functions/v1/cortex-ai-correction',{
-  method:'POST',cache:'no-store',
+  method:'POST',cache:'no-store',signal,
   headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY,
    Authorization:'Bearer '+data.session.access_token},
   body:JSON.stringify({action:'test'})

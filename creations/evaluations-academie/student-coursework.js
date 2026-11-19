@@ -42,7 +42,7 @@ if(qr||globalPortal){
   '<label for="cw-activation-number">Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
   '<label for="cw-activation-new-pin">Je choisis mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Choisis 6 chiffres"><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-activation-new-pin">Afficher</button></div></label>'+
   '<label for="cw-activation-confirm-pin">Je confirme mon PIN<input id="cw-activation-confirm-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Répète les 6 chiffres"></label>'+
-  '<details class="cw-pin-group-choice"><summary>Mon demi-groupe (facultatif)</summary><label for="cw-activation-group">Mon groupe<select id="cw-activation-group"><option value="0" selected>Classe entière</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option></select></label><small>Ton professeur pourra modifier ton groupe ensuite.</small></details>'+
+  '<label for="cw-activation-group" class="cw-pin-group-choice">Mon demi-groupe <span class="cw-pin-group-required">(obligatoire)</span><select id="cw-activation-group" name="demi_groupe" required><option value="" selected disabled>Choisir mon demi-groupe…</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option></select><small>Choisis le groupe indiqué par ton professeur. Il apparaîtra directement dans « PIN élèves ».</small></label>'+
   '<p class="cw-pin-privacy">🔒 Ton professeur ne voit pas ton PIN. Ne le partage avec personne.</p>'+
   '<button type="submit" class="cw-student-submit">✓ Créer mon PIN et entrer →</button></form>'+
   '<p class="cw-student-help">PIN oublié ? Ton professeur peut le réinitialiser. Tu choisiras ensuite un nouveau PIN pendant la prochaine ouverture des inscriptions.</p></section>'+
@@ -65,20 +65,20 @@ if(qr||globalPortal){
    const select=$('cw-student-class');select.replaceChildren();
    const blank=E('option','','Choisir ma classe');blank.value='';select.append(blank);
    for(const cl of classList){
-    const stateText=cl.registration_open?' · Création de PIN ouverte':cl.ready?' · Accès prêt':' · À préparer';
+    const stateText=cl.registration_open?' · Création de PIN ouverte':cl.ready?' · Accès prêt':'';
     const opt=E('option','',cl.label+' · '+cl.display_name+stateText);opt.value=cl.code;select.append(opt);
    }
    const activationSelect=$('cw-activation-class');
    if(activationSelect){
     activationSelect.replaceChildren();
     const empty=E('option','','Choisir ma classe');empty.value='';activationSelect.append(empty);
-    for(const cl of classList){const status=cl.registration_open?' · PIN ouverts':cl.ready?' · Accès prêt':' · À préparer';const option=E('option','',cl.label+' · '+cl.display_name+status);option.value=cl.code;activationSelect.append(option)}
+    for(const cl of classList){const status=cl.registration_open?' · PIN ouverts':cl.ready?' · Accès prêt':'';const option=E('option','',cl.label+' · '+cl.display_name+status);option.value=cl.code;activationSelect.append(option)}
    }
    if(classPrefill&&classList.some(x=>x.code===classPrefill)){select.value=classPrefill;if(activationSelect)activationSelect.value=classPrefill}
    if(!classList.length)message('Aucune classe n’est enregistrée. Contacte ton professeur.',true);
    else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Demande au professeur d’ouvrir la création des PIN.',true);
    else if(classPrefill&&!classList.some(x=>x.code===classPrefill))message('Ce lien de classe est indisponible. Choisis une classe dans la liste.',true);
-   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe, mais le professeur doit d’abord préparer les accès.',true);
+   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe. Demande au professeur d’ouvrir la création des PIN pour cette classe.',true);
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){
@@ -295,7 +295,11 @@ if(qr||globalPortal){
   if(!/^\d{6}$/.test(pin)||pin!==confirmPin){
    message('Ton PIN doit contenir 6 chiffres et être identique dans les deux champs.',true);return;
   }
-  const group=Number($('cw-activation-group').value||0);
+  const group=Number($('cw-activation-group').value);
+  if(![1,2].includes(group)){
+   message('Choisis ton demi-groupe 1 ou 2 avant de créer ton PIN.',true);
+   $('cw-activation-group').focus();return;
+  }
   busy=true;submit.disabled=true;
   try{
    const classCode=mode==='class'?$('cw-activation-class').value:'';
@@ -311,7 +315,7 @@ if(qr||globalPortal){
     history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
    }
    if(mode==='qr')await loadExam();else await loadClass();
-   message('PIN créé ! Tu retrouveras ton espace avec ton numéro et ce même PIN.');
+   message('PIN créé ! Tu es inscrit en demi-groupe '+group+'. Tu retrouveras ton espace avec ton numéro et ce même PIN.');
   }catch(err){
    message(err.message||'Création de PIN impossible. Vérifie que le professeur a ouvert les inscriptions.',true);
   }finally{busy=false;submit.disabled=false}

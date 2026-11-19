@@ -729,7 +729,7 @@ async function studentAction(action,body,form){
   return ret({ok:true,session:token,student_number:number});
  }
  const {session,access,assessment}=await activeStudent(String(body.session||''),String(body.assessment_id||''));
- const {data:submission,error:getErr}=await admin.from('cortex_academy_submissions').select('id,answers,file_name,submitted_at,grade,feedback,graded_at,released_at').eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();
+ const {data:submission,error:getErr}=await admin.from('cortex_academy_submissions').select('id,answers,file_path,file_name,submitted_at,grade,feedback,graded_at,released_at').eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();
  if(getErr)throw Error('Impossible de consulter votre copie.');
  if(action==='student_get'){
   const raw=assessment.content||{},questions=Array.isArray(raw.questions)?raw.questions.slice(0,40):[];
@@ -761,7 +761,9 @@ async function studentAction(action,body,form){
       return visible;
      }),assets,antiCheat:raw.antiCheat||{},doc:String(raw.doc||'').slice(0,12000),duration:Math.max(5,Math.min(240,Number(raw.duration)||60))},
     student_number:session.student_number,subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,600)}:null,
-    submission:submission?{submitted_at:submission.submitted_at,answers:submission.answers,file_name:submission.file_name,graded:show,grade:show?submission.grade:null,feedback:show?submission.feedback:null}:null});
+    submission:submission?{submitted_at:submission.submitted_at,answers:submission.answers,file_name:submission.file_name,
+      file_url:submission.file_path?await signed(submission.file_path,600).catch(()=>null):null,
+      graded:show,grade:show?submission.grade:null,feedback:show?submission.feedback:null}:null});
  }
  if(action==='student_submit'){
   if(!access.active||!assessment.published)throw Error('Le contrôle est fermé aux nouvelles remises.');

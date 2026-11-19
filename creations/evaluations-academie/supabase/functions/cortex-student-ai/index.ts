@@ -120,8 +120,10 @@ Deno.serve(async req=>{
     .eq('teacher_id',teacherId).eq('student_number',studentNumber)
     .not('released_at','is',null).order('submitted_at',{ascending:true}).limit(45);
    if(pubError)throw Error('Impossible de lire les corrections publiées.');
-   const {data:exams,error:examError}=await db.from('cortex_teacher_assessments')
-    .select('id,title').eq('teacher_id',teacherId).eq('class_id',classId).limit(120);
+   let titlesQuery=db.from('cortex_teacher_assessments')
+    .select('id,title').eq('teacher_id',teacherId);
+   titlesQuery=classId?titlesQuery.eq('class_id',classId):titlesQuery.is('class_id',null);
+   const {data:exams,error:examError}=await titlesQuery.limit(120);
    if(examError)throw Error('Impossible de lire ton parcours.');
    const titles=new Map((exams||[]).map(x=>[x.id,x.title]));
    const grades=(published||[]).filter(x=>titles.has(x.assessment_id)).slice(-30).map(x=>({

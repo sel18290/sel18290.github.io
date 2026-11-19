@@ -694,13 +694,16 @@ async function processImport(file,options={}){
    try{
     progress.update('Création des captures des documents détectés…',parsed.pages.length,parsed.pages.length);
     const made=await window.CORTEX_ALBERT_IMPORT.makeCaptures(file,aiDraft,questions,{
-      max:16,signal:progress.signal,onProgress:txt=>progress.update(txt,parsed.pages.length,parsed.pages.length)
+      max:50,onlyReferenced:true,signal:progress.signal,onProgress:txt=>progress.update(txt,parsed.pages.length,parsed.pages.length)
     });
     for(const image of made.captures){
      const captureId='albert-capture-'+Date.now()+'-'+Math.floor(Math.random()*1e8);
      await window.CORTEX_VISUAL.saveImage(image.blob,captureId);
      exam.assets.push({id:captureId,name:image.name.slice(0,90),page:image.page,createdAt:Date.now(),aiSuggested:true});
-     const q=exam.questions[image.questionIndex];if(q)q.assetIds.push(captureId);
+     for(const index of image.questionIndices){
+      const q=exam.questions[index];
+      if(q){q.assetIds.push(captureId);q.doc='';}
+     }
     }
     if(made.skipped)exam.aiWarnings.push(made.skipped+' association(s) documentaire(s) restant à vérifier ou capturer manuellement.');
    }catch(err){

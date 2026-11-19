@@ -632,6 +632,23 @@ body .cs-stage-search :is(button, a, input, select, textarea, summary):focus-vis
 .cs-stage-call-script { border: 1px solid var(--cs-paper-line); border-radius: .6rem; }
 .cs-stage-call-script p { padding: .1rem .7rem .65rem; color: #375360; }
 .cs-stage-search .cs-stage-date-status { margin-bottom: .3rem; color: #793b27; font-size: .91rem; }
+.cs-stage-contact-editor { display: grid; gap: .72rem; width: 100%; padding-block: .55rem; }
+.cs-stage-contact-editor .cs-stage-contact-guidance { color: var(--cs-ink-muted); font-size: .92rem; }
+.cs-stage-contact-motives { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cs-stage-contact-motives legend { padding: 0; margin-bottom: .38rem; color: var(--cs-ink); font-weight: 750; }
+.cs-stage-contact-motives > div, .cs-stage-contact-actions, .cs-stage-contact-method { display: flex; flex-wrap: wrap; gap: .45rem; }
+.cs-stage-search .cs-stage-contact-motives label {
+  display: flex; align-items: center; gap: .36rem; width: fit-content; min-height: 2.5rem;
+  padding: .38rem .52rem; border: 1px solid var(--cs-paper-line); border-radius: .55rem; background: white;
+}
+.cs-stage-contact-motives input { accent-color: #176960; }
+.cs-stage-contact-motives label:has(input:checked), .cs-stage-contact-method button[aria-pressed="true"] {
+  border-color: #468d82; background: #d8f0e8; color: #133c39;
+}
+.cs-stage-contact-suggestion { padding: .7rem; border-radius: .6rem; border-inline-start: 3px solid #2e8c7d; background: #e5f2ee; }
+.cs-stage-contact-suggestion p { margin-block: .28rem; }
+.cs-stage-contact-suggestion button { margin-top: .25rem; }
+.cs-stage-contact-editor :is(.cs-stage-contact-hook, .cs-stage-contact-message) textarea { scroll-margin-block: 4rem; }
 
 @container cortex-stage (max-width: 49rem) {
   .cs-stage-workspace, .cs-stage-prep-grid { grid-template-columns: minmax(0, 1fr); }

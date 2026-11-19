@@ -1,8 +1,9 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.11';
-import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.2';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.2';
+import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.3';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.3';
+import { sourceFigure } from './student-source-view.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
@@ -374,11 +375,7 @@ if(qr||globalPortal){
    if(related.length){
     const sourceBox=E('div','cw-student-source-snippets');
     sourceBox.append(E('strong','','Documents fournis pour cette question'));
-    for(const asset of related){
-     const figure=E('figure','cw-student-source-figure'),img=E('img');
-     img.src=asset.url;img.alt='Extrait pédagogique : '+asset.name;img.loading='lazy';img.decoding='async';
-     figure.append(img,E('figcaption','',asset.name));sourceBox.append(figure);
-    }
+    for(const asset of related)sourceBox.append(sourceFigure(asset));
     label.append(sourceBox);
    }
    // Documents visuels du contrôle IST de 1AGORA2 : restitution des éléments

@@ -41,6 +41,11 @@ function showEstimate(target,result){
  const banner=el('div','cw-ai-estimate-score');
  banner.append(el('span','','≈'),el('strong','',Number(result.estimated_grade).toFixed(2).replace('.',',')+' / 20'));
  target.append(banner,notice('Estimation Albert IA provisoire, non validée par le professeur et exclue de toutes les moyennes.'));
+ const images=Number(result.images_used||0),sources=Number(result.sources_used||0);
+ if(sources>0){
+  const amount=images>0?' dont '+images+' '+(images===1?'capture originale':'captures originales'):'';
+  target.append(el('p','cw-ai-minor',sources+' '+(sources===1?'source du sujet consultée':'sources du sujet consultées')+amount+'.'));
+ }
  target.append(el('p','cw-ai-minor','Aucun détail de correction, aucune réponse attendue et aucun conseil ne sont dévoilés avant la publication de la correction officielle.'));
 }
 function showCorrected(target,result){
@@ -66,7 +71,9 @@ function attachAction(card,label,action,{session,assessmentId},renderer){
  const output=el('div','cw-ai-output');output.setAttribute('aria-live','polite');
  button.addEventListener('click',async()=>{
   if(button.disabled)return;
-  if(!confirm('Albert analysera les éléments nécessaires de ta copie ou de ton carnet déjà enregistré. Cette fonction est facultative, soumise à l’autorisation de l’établissement ; elle ne change jamais la note du professeur. Continuer ?'))return;
+  const subject=action==='insights'?'les notes et appréciations déjà publiées dans ton carnet':
+   'tes réponses et les documents associés au contrôle, y compris les captures originales';
+  if(!confirm('Albert analysera '+subject+'. Cette fonction est facultative et soumise à l’autorisation de l’établissement. Continuer ?'))return;
   button.disabled=true;
   output.replaceChildren(notice('✦ Albert prépare ton analyse…'));
   const progress=openStudentAlbertProgress({
@@ -86,9 +93,9 @@ function attachAction(card,label,action,{session,assessmentId},renderer){
 export function renderReceiptAi(receipt,{session,assessmentId,submission}){
  if(!receipt||!submission)return;
  if(!submission.graded){
-  const card=cardBase('✦ ALBERT · APRÈS LA REMISE','Estimer ma note avant la correction.','Ta copie est enregistrée. Albert peut te donner une estimation indicative sur 20, sans révéler la correction question par question.');
+  const card=cardBase('✦ ALBERT · APRÈS LA REMISE','Estimer ma note avant la correction.','Albert lit tes réponses, le barème et les documents associés au contrôle pour proposer une estimation sur 20.');
   attachAction(card,'✦ Estimer ma note avec Albert IA','estimate',{session,assessmentId},showEstimate);
-  card.append(el('p','cw-ai-minor','Une estimation n’est jamais une note officielle. Si un document est manquant, Albert refuse plutôt que de deviner.'));
+  card.append(el('p','cw-ai-minor','L’enseignant décide de la note officielle. Un document indispensable doit être lisible pour permettre l’estimation.'));
   receipt.append(card);
  }else{
   const card=cardBase('✦ ALBERT · CORRECTION PUBLIÉE','Comprendre ma copie corrigée.','Après la correction de ton enseignant, Albert peut expliquer tes réussites, les points à renforcer et proposer des méthodes de révision.');

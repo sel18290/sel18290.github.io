@@ -7,6 +7,10 @@ window.CORTEX_ALBERT_IMPORT=(function(){
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
  const trim=s=>String(s||'').replace(/\s+/g,' ').trim();
+ const refKey=s=>trim(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+  .replace(/\b(?:docs?|documents?)\b/g,'document').replace(/[.:\s]+/g,' ').trim();
+ const printedReferences=text=>[...String(text||'').matchAll(/\b(?:documents?|doc\.?|annexes?|figures?|tableaux?|graphiques?|schémas?|ressources?)\s*(?:n[°ºo]\s*)?(\d{1,3}[a-z]?|[A-Z](?![a-z]))\b/gi)].map(match=>match[0]);
+ const visualScope=/\b(?:d['’]apr[èe]s|[àa] partir|[àa] l['’]aide|en observant|dans)\b.{0,90}\b(?:document|annexe|figure|sch[ée]ma|graphique|image|tableau)/i;
  const qType=q=>{
   const type=['text','short','number','choice','multi','table','fill'].includes(q.type)?q.type:'text';
   if(['choice','multi'].includes(type)&&(!Array.isArray(q.choices)||q.choices.length<2))return 'text';
@@ -76,13 +80,14 @@ window.CORTEX_ALBERT_IMPORT=(function(){
     if(signal?.aborted)throw Error('Analyse annulée.');
     const page=await pdf.getPage(pageNumber);
     const natural=page.getViewport({scale:1});
-    const scale=Math.min(1.8,1150/Math.max(natural.width,natural.height));
+    const scale=Math.min(2.25,1500/Math.max(natural.width,natural.height));
     const viewport=page.getViewport({scale});
     const canvas=document.createElement('canvas');
     canvas.width=Math.max(1,Math.floor(viewport.width));canvas.height=Math.max(1,Math.floor(viewport.height));
     await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-    let data=canvas.toDataURL('image/jpeg',0.68);
-    if(data.length>600000)data=canvas.toDataURL('image/jpeg',0.42);
+    let data=canvas.toDataURL('image/jpeg',0.82);
+    if(data.length>670000)data=canvas.toDataURL('image/jpeg',0.64);
+    if(data.length>680000)data=canvas.toDataURL('image/jpeg',0.48);
     canvas.width=0;canvas.height=0;
     if(data.length>680000)throw Error('La page '+pageNumber+' est trop riche pour l’analyse IA ; réduis sa résolution.');
     return data;
@@ -90,18 +95,20 @@ window.CORTEX_ALBERT_IMPORT=(function(){
    async crop(pageNumber,bbox,signal){
     if(signal?.aborted)throw Error('Analyse annulée.');
     const page=await pdf.getPage(pageNumber),base=page.getViewport({scale:1});
-    const vp=page.getViewport({scale:Math.min(2,1450/Math.max(base.width,base.height))});
+    const vp=page.getViewport({scale:Math.min(3,2200/Math.max(base.width,base.height))});
     const original=document.createElement('canvas');
     original.width=Math.ceil(vp.width);original.height=Math.ceil(vp.height);
     await page.render({canvasContext:original.getContext('2d'),viewport:vp}).promise;
-    const b=Array.isArray(bbox)&&bbox.length===4?bbox:[0,0,1000,1000];
+    // La marge garde unités, légendes et sources près des bords indiqués par le modèle.
+    const b=Array.isArray(bbox)&&bbox.length===4?bbox.map((v,i)=>i<2?Math.max(0,v-42):Math.min(1000,v+42)):[0,0,1000,1000];
     const sx=Math.max(0,Math.round(original.width*b[0]/1000)),sy=Math.max(0,Math.round(original.height*b[1]/1000));
     const width=Math.max(1,Math.min(original.width-sx,Math.round(original.width*(b[2]-b[0])/1000)));
     const height=Math.max(1,Math.min(original.height-sy,Math.round(original.height*(b[3]-b[1])/1000)));
-    const canvas=document.createElement('canvas'),factor=Math.min(1,1300/Math.max(width,height));
+    const canvas=document.createElement('canvas'),factor=Math.min(1,2000/Math.max(width,height));
     canvas.width=Math.max(1,Math.floor(width*factor));canvas.height=Math.max(1,Math.floor(height*factor));
     canvas.getContext('2d').drawImage(original,sx,sy,width,height,0,0,canvas.width,canvas.height);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.78));
+    let blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    if(!blob||blob.size>1250000)blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.88));
     canvas.width=0;canvas.height=0;original.width=0;original.height=0;
     if(!blob)throw Error('Capture impossible');
     return blob;
@@ -234,18 +241,37 @@ window.CORTEX_ALBERT_IMPORT=(function(){
       completed,pages.length);
    }
   }finally{await renderer.close?.()}
-  if(!questions.length)throw Error('Albert a examiné le document mais n’a reconnu aucune question. Vérifie que le sujet comporte des consignes.');
+   if(!questions.length)throw Error('Albert a examiné le document mais n’a reconnu aucune question. Vérifie que le sujet comporte des consignes.');
   const unique=new Set();
   const deduplicated=questions.filter(q=>{
-   const key=trim(q.prompt).toLowerCase();
-   if(!key||unique.has(key))return false;
+    const prompt=trim(q.prompt).toLowerCase();
+    const key=[q.page,q.number,prompt].join(':');
+    if(!prompt||unique.has(key))return false;
    unique.add(key);return true;
   }).slice(0,40);
-  const docUnique=new Set();
-  const uniqueDocs=documents.filter(d=>{
-   const key=String(d.page)+'-'+trim(d.title).toLowerCase();
-   if(docUnique.has(key))return false;docUnique.add(key);return true;
-  }).slice(0,35);
+   const uniqueDocs=[...new Map(documents.map(d=>[d.id,d])).values()].slice(0,80);
+   const labelled=new Map();
+   for(const doc of uniqueDocs){
+    const label=refKey(doc.label||printedReferences(doc.title)[0]);
+    if(label)labelled.set(label,[...(labelled.get(label)||[]),doc]);
+   }
+   for(const q of deduplicated){
+    const refs=new Set(q.documentIds||[]);
+    const labels=[...new Set([...(q.documentLabels||[]),...printedReferences(q.prompt)].map(refKey).filter(Boolean))];
+    let unresolved=false;
+    for(const label of labels){
+     const candidates=labelled.get(label)||[];
+     if(candidates.some(d=>refs.has(d.id)))continue;
+     const onPage=candidates.filter(d=>d.page===q.page);
+     if(candidates.length===1)refs.add(candidates[0].id);
+     else if(onPage.length===1)refs.add(onPage[0].id);
+     else unresolved=true;
+    }
+    q.documentIds=[...refs];
+    q.requiresDocument=q.requiresDocument===true||labels.length>0||refs.size>0||visualScope.test(q.prompt);
+    q.sourceToVerify=unresolved||q.requiresDocument&&!refs.size;
+    if(q.sourceToVerify)warnings.push('Vérifie les documents de la question '+(q.number||'de la page '+q.page)+'.');
+   }
   return {ok:true,status:'draft',provider:'Albert API',vision:true,pages:pages.length,
    documents:uniqueDocs,questions:deduplicated,warnings};
  }
@@ -255,7 +281,7 @@ window.CORTEX_ALBERT_IMPORT=(function(){
   return (result.questions||[]).slice(0,40).map((q,i)=>{
    const refs=(q.documentIds||[]).map(ref=>docs.find(d=>d.id===ref)).filter(Boolean);
    const page=Math.min(pageCount,Math.max(1,Math.trunc(Number(q.page)||1)));
-   const excerpt=refs.map(d=>(d.title||'Document')+' (page '+d.page+') : '+(d.excerpt||'')).join('\n\n').slice(0,4000);
+   const excerpt=refs.map(d=>[d.label,d.title,'page '+d.page].filter(Boolean).join(' · ')+'\n'+(d.excerpt||'')).join('\n\n').slice(0,5000);
    const type=qType(q);
    const p=q.points===null||q.points===undefined||q.points===''?null:Number(q.points);
    const points=p!==null&&Number.isFinite(p)&&p>=0&&p<=20?p:1;
@@ -263,7 +289,8 @@ window.CORTEX_ALBERT_IMPORT=(function(){
     id:'ai-q-'+id()+'-'+i,number:i+1,
     detectedNo:String(q.number||i+1),prompt:String(q.prompt||'').slice(0,1200),
     type,points,pointsToVerify:p===null,correctToVerify:['choice','multi'].includes(type),page,assetIds:[],
-    doc:excerpt,docRefs:refs.map(d=>d.id),aiSuggested:true,
+    doc:excerpt,analysisDoc:excerpt,docRefs:refs.map(d=>d.id),aiSuggested:true,
+    requiresDocument:q.requiresDocument===true,sourceToVerify:q.sourceToVerify===true,
     choices:Array.isArray(q.choices)?q.choices.slice(0,8):[],
     correct:0,correctIndices:[],blanks:Array.isArray(q.blanks)?q.blanks.slice(0,10):[],
     tableRows:Array.isArray(q.tableRows)?q.tableRows.slice(0,8):[],
@@ -273,25 +300,29 @@ window.CORTEX_ALBERT_IMPORT=(function(){
  }
 
  async function makeCaptures(file,result,questions,options={}){
-  const docs=result.documents||[],max=options.max||16,signal=options.signal;
-  const relevant=[];
+  const docs=result.documents||[],max=options.max||50,signal=options.signal;
+  const relevant=new Map();
   for(let i=0;i<questions.length;i++){
    const q=questions[i],refs=docs.filter(d=>(q.docRefs||[]).includes(d.id));
-   if(refs.length){for(const d of refs)relevant.push({doc:d,questionIndex:i})}
-   else if(!options.onlyReferenced)relevant.push({doc:{id:'page-'+q.page,title:'Page '+q.page,page:q.page,bbox:null},questionIndex:i});
+   const targets=refs.length?refs:q.requiresDocument||!options.onlyReferenced
+    ?[{id:'page-'+q.page,title:'Page originale '+q.page,page:q.page,bbox:null}]:[];
+   for(const doc of targets){
+    if(!relevant.has(doc.id))relevant.set(doc.id,{doc,questionIndices:[]});
+    relevant.get(doc.id).questionIndices.push(i);
+   }
   }
-  const selected=relevant.slice(0,max),skipped=relevant.length-selected.length;
+  const selected=[...relevant.values()].slice(0,max),skipped=relevant.size-selected.length;
   const rend=(file.name||'').toLowerCase().endsWith('.pdf')?await pdfRenderer(file):await wordRenderer(file);
   const out=[];
   try{
    for(let i=0;i<selected.length;i++){
     if(signal?.aborted)break;
-    const {doc,questionIndex}=selected[i];
+    const {doc,questionIndices}=selected[i];
     try{
      options.onProgress?.('Association de la capture '+(i+1)+' / '+selected.length+'…');
      const pageNo=Math.min(rend.pages,Math.max(1,Number(doc.page)||1));
      const blob=await rend.crop(pageNo,doc.bbox,signal);
-     if(blob)out.push({blob,page:pageNo,questionIndex,name:trim(doc.title||'Document')+' · page '+pageNo});
+     if(blob)out.push({blob,page:pageNo,questionIndices,name:trim(doc.label||doc.title||'Document')+' · page '+pageNo});
     }catch(e){console.warn('Capture Albert non disponible',e)}
    }
   }finally{await rend.close?.()}

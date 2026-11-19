@@ -27,6 +27,23 @@ async function operation(task){
 function titleGuess(name){return String(name||'Contrôle').replace(/\.(pdf|docx)$/i,'').replace(/[_-]+/g,' ').trim().slice(0,180);}
 function qId(){return 'q-'+crypto.randomUUID().slice(0,22);}
 function emptyQuestion(page=1){return {id:qId(),prompt:'',type:'text',points:1,page,assetIds:[],choices:[],correct:0};}
+const pendingTargets=asset=>asset.questionIds||(asset.questionId?[asset.questionId]:[]);
+const attachedTo=(asset,question)=>(question.assetIds||[]).includes(asset.id)||
+ (asset.pending&&pendingTargets(asset).includes(question.id));
+
+async function uploadCapture(asset){
+ const targets=pendingTargets(asset).filter(id=>state.questions.some(q=>q.id===id));
+ const type=asset.blob.type;
+ const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[type];
+ if(!ext)throw Error('Format de capture non pris en charge.');
+ const name=String(asset.name||'Capture').replace(/\.(png|jpe?g|webp)$/i,'').slice(0,116)+'.'+ext;
+ const file=new File([asset.blob],name,{type});
+ const result=await api('teacher_asset_upload',{assessment_id:state.id,question_ids:targets,page:asset.page},file,true);
+ if(asset.previewUrl)URL.revokeObjectURL(asset.previewUrl);
+ state.assets[state.assets.indexOf(asset)]={...result.asset,pending:false};
+ for(const q of state.questions.filter(q=>targets.includes(q.id)))
+  q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
+}
 /* Détection prudente de questions : numéro + consigne, pas les tableaux numérotés. */
 function extractQuestions(pages){
  const out=[],seen=new Set(),max=40;
@@ -161,7 +178,7 @@ function renderQuestions(){
    if(id)operation(()=>attachCapture(id,q.id));
   });
   const header=node('div','ri-q-header');
-  const linked=(q.assetIds||[]).length+state.assets.filter(a=>a.pending&&a.questionId===q.id).length;
+  const linked=state.assets.filter(a=>attachedTo(a,q)).length;
   header.append(node('strong','','QUESTION '+(i+1)),node('small','',linked?linked+' document(s) associé(s)':'Glisse une capture ici ⇩'));
   const remove=node('button','ri-action subtle','Supprimer');remove.type='button';remove.disabled=state.published||state.questions.length<2;
   remove.onclick=()=>{state.questions.splice(i,1);renderQuestions();};
@@ -172,7 +189,7 @@ function renderQuestions(){
   item.append(ta);
   // Les captures sont des documents pédagogiques à part entière.
   // En mode « Image seule », aucun texte n’est exigé ni envoyé à l’élève.
-  const attached=state.assets.filter(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
+  const attached=state.assets.filter(a=>attachedTo(a,q));
   const hasImage=attached.length>0;
   if(q.docMode!=='image'&&q.docMode!=='text')q.docMode=!String(q.doc||'').trim()&&hasImage?'image':'text';
   if(q.docMode==='image'&&!hasImage){q.doc=String(q.docDraft||'').slice(0,5000);q.docMode='text';}
@@ -208,7 +225,7 @@ function renderQuestions(){
   docArea.value=String(q.doc||'');docArea.rows=3;docArea.maxLength=5000;
   docArea.placeholder='Texte documentaire visible par l’élève (aucun texte nécessaire en mode Image uniquement).';
   docArea.disabled=state.published;
-  docArea.oninput=()=>{q.doc=docArea.value;q.docDraft=q.doc;};
+  docArea.oninput=()=>{q.doc=docArea.value;q.docDraft=q.doc;q.analysisDoc=q.doc;};
   if(q.docMode==='image')docLabel.hidden=true;
   docLabel.append(docArea);item.append(docLabel);
   const metadata=node('div','ri-q-meta');
@@ -230,7 +247,15 @@ function renderQuestions(){
   page.onchange=()=>{q.page=Number(page.value);state.page=q.page;paint().catch(e=>msg(e.message,true));};
   metadata.append(node('label','','Type de réponse'),type,node('label','','Points'),pts,node('label','','Source'),page);
   if(q.pointsToVerify)metadata.append(node('small','ri-subtle','⚠ Barème provisoire : 1 pt par défaut. À vérifier.'));
-  if(q.correctToVerify)metadata.append(node('small','ri-subtle','⚠ QCM : sélectionne la bonne réponse avant publication.'));
+  if(q.correctToVerify){
+   const approve=node('label','ri-subtle');
+   const checked=node('input');
+   checked.type='checkbox';checked.disabled=state.published;
+   checked.onchange=()=>{q.correctToVerify=!checked.checked;};
+   approve.append(checked,document.createTextNode(' J’ai vérifié la ou les bonnes réponses dans le sujet.'));
+   metadata.append(approve);
+  }
+  if(q.sourceToVerify)metadata.append(node('small','ri-subtle','Vérifie le document de cette question dans l’original avant publication.'));
   item.append(metadata);
   const drop=node('div','ri-question-dropzone','⇩ Glisse un extrait ici, ou sélectionne cette question dans la banque documentaire.');
   drop.setAttribute('aria-label','Déposer un extrait sur la question '+(i+1));
@@ -288,8 +313,10 @@ function renderAssets(){
   row.addEventListener('dragend',()=>row.classList.remove('ri-dragging'));
   const img=node('img','ri-asset-thumb');img.src=a.previewUrl||a.url||'';
   img.alt='Capture : '+a.name;img.draggable=false;
-  const info=node('div','ri-asset-desc'),qIndex=state.questions.findIndex(q=>q.id===a.questionId||(q.assetIds||[]).includes(a.id));
-  info.append(node('strong','',a.name),node('small','',`Page ${a.page||1} · ${qIndex>=0?'Question '+(qIndex+1):'À associer'} · ${a.pending?'Capture locale':'Enregistrée'}`));
+  const info=node('div','ri-asset-desc');
+  const indexes=state.questions.map((q,index)=>attachedTo(a,q)?index+1:null).filter(Boolean);
+  const linkage=indexes.length>1?'Questions '+indexes.join(', '):indexes.length?'Question '+indexes[0]:'À associer';
+  info.append(node('strong','',a.name),node('small','','Page '+(a.page||1)+' · '+linkage+' · '+(a.pending?'Capture locale':'Enregistrée')));
   const actions=node('div','ri-asset-buttons');
   const add=node('button','ri-action subtle','＋ Ajouter à la question');
   add.type='button';add.disabled=state.published;
@@ -316,17 +343,13 @@ async function attachCapture(id,questionId){
  const a=state.assets.find(x=>x.id===id),q=state.questions.find(x=>x.id===questionId);
  if(!a||!q)throw Error('Capture ou question introuvable.');
  if(a.pending){
-  if(!state.id){a.questionId=q.id;renderQuestions();msg('Capture affectée. Enregistre le contrôle pour la synchroniser.');return;}
+  a.questionIds=[...new Set([...pendingTargets(a),q.id])];
+  if(!state.id){renderQuestions();msg('Capture affectée. Enregistre le contrôle pour la synchroniser.');return;}
   const known=bridge()?.exams?.()?.find(e=>e.id===state.id);
-  if(known&&!known.content?.questions?.some(item=>item.id===q.id)){
+  if(!known||a.questionIds.some(target=>!known.content?.questions?.some(item=>item.id===target))){
    // Une nouvelle question doit d'abord exister en base pour recevoir une capture.
    await save();
-  }
-  const file=new File([a.blob],a.name,{type:a.blob.type||'image/jpeg'});
-  const result=await api('teacher_asset_upload',{assessment_id:state.id,question_id:q.id,page:a.page},file,true);
-  if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
-  state.assets[state.assets.indexOf(a)]={...result.asset,pending:false};
-  q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
+  }else await uploadCapture(a);
   await bridge()?.refresh?.();renderQuestions();
   msg('Capture associée et enregistrée dans Supabase pour la question '+(state.questions.indexOf(q)+1)+'.');
   return;
@@ -456,16 +479,18 @@ async function pasteImage(){
 function validatedQuestions(){
  if(state.questions.length<1||state.questions.length>40)throw Error('Le contrôle doit comporter 1 à 40 questions.');
  return state.questions.map((q,i)=>{
-  const assigned=state.assets.some(a=>(q.assetIds||[]).includes(a.id)||(a.pending&&a.questionId===q.id));
+  const assigned=state.assets.some(a=>attachedTo(a,q));
   if(q.docMode==='image'&&!assigned)throw Error('Question '+(i+1)+' : aucune image associée. Ajoute une capture ou choisis le mode texte.');
   if(q.docMode==='image')q.doc='';
   const page=Number(q.page||1);
   if(!Number.isInteger(page)||page<1||page>state.sourceCount)throw Error('Page source incorrecte pour la question '+(i+1)+'.');
   try{
    const checked=window.CORTEX_QUESTION_TYPES.validate(q);
-   // Image seule pour l’élève ; transcription privée conservée pour Albert.
+   if(q.requiresDocument===true)checked.requiresDocument=true;
+   if(q.correctToVerify===true)checked.correctToVerify=true;
+   // Si seule l’image est affichée, conserve aussi sa transcription pour Albert.
    if(q.docMode==='image'){
-    const transcript=String(q.analysisDoc||q.docDraft||'').trim().slice(0,5000);
+    const transcript=String(q.docDraft||q.analysisDoc||'').trim().slice(0,5000);
     if(transcript)checked.analysisDoc=transcript;
    }
    return checked;
@@ -498,25 +523,19 @@ async function save(){
   }
  }else await api('teacher_document_update',{assessment_id:state.id,...payload},null,true);
  // Les captures préparées avant l'enregistrement sont synchronisées après la création du sujet.
- const pending=state.assets.filter(a=>a.pending&&state.questions.some(q=>q.id===a.questionId));
+ const pending=state.assets.filter(a=>a.pending&&state.questions.some(q=>pendingTargets(a).includes(q.id)));
  const failures=[];
  for(const a of pending){
   try{
-   const file=new File([a.blob],a.name,{type:a.blob.type||'image/jpeg'});
-   const result=await api('teacher_asset_upload',
-    {assessment_id:state.id,question_id:a.questionId,page:a.page},file,true);
-   if(a.previewUrl)URL.revokeObjectURL(a.previewUrl);
-   state.assets[state.assets.indexOf(a)]={...result.asset,pending:false};
-   const q=state.questions.find(q=>q.id===a.questionId);
-   if(q)q.assetIds=[...new Set([...(q.assetIds||[]),result.asset.id])];
+   await uploadCapture(a);
   }catch(error){failures.push(a.name+' : '+(error?.message||'échec'));}
  }
  const imageFailures=state.questions.some(q=>q.docMode==='image'&&
-   !state.assets.some(a=>!a.pending&&((q.assetIds||[]).includes(a.id)||a.questionId===q.id)));
+  !state.assets.some(a=>!a.pending&&(q.assetIds||[]).includes(a.id)));
  if(imageFailures){
   throw Error('Image associée non enregistrée sur Supabase. Le brouillon existe, mais la capture doit être envoyée avant publication. Réessaie « Enregistrer les modifications ». '+failures.join(' ; '));
  }
- const unlinked=state.assets.filter(a=>a.pending&&!a.questionId).length;
+ const unlinked=state.assets.filter(a=>a.pending&&!state.questions.some(q=>pendingTargets(a).includes(q.id))).length;
  msg(failures.length?
   'Contrôle enregistré. Certaines captures ne sont pas synchronisées : '+failures.join(' ; '):
   'Contrôle enregistré et '+(pending.length)+' capture(s) synchronisée(s).'+
@@ -581,24 +600,27 @@ async function initial(file,options={}){
     progress.update('Albert a répondu : génération des extraits originaux à associer…',
       state.sourceCount,state.sourceCount);
     const made=await window.CORTEX_ALBERT_IMPORT.makeCaptures(file,aiDraft,state.questions,{
-      max:16,onlyReferenced:true,signal:progress.signal,
+       max:50,onlyReferenced:true,signal:progress.signal,
       onProgress:txt=>progress.update(txt,state.sourceCount,state.sourceCount)
     });
     for(const capture of made.captures){
-     const question=state.questions[capture.questionIndex];if(!question)continue;
+      const questions=capture.questionIndices.map(index=>state.questions[index]).filter(Boolean);
+      if(!questions.length)continue;
      if(state.assets.length>=60)break;
      state.assets.push({
       id:'local-albert-'+crypto.randomUUID(),name:capture.name.slice(0,120),
-      page:capture.page,questionId:question.id,
+       page:capture.page,questionIds:questions.map(q=>q.id),
       previewUrl:URL.createObjectURL(capture.blob),blob:capture.blob,pending:true
      });
      // La capture détectée, et non la transcription Albert, est la source par défaut.
-     if(question.docMode!=='image'){
-      question.docDraft=String(question.doc||'');
-      question.doc='';question.docMode='image';
+      for(const question of questions){
+       if(question.docMode!=='image'){
+        question.docDraft=String(question.doc||'');
+        question.doc='';question.docMode='image';
+       }
      }
     }
-    if(made.skipped)msg(made.skipped+' capture(s) à vérifier manuellement.');
+     if(made.skipped)aiDraft.warnings.push(made.skipped+' capture(s) à vérifier manuellement.');
    }catch(err){
     msg('Les questions ont été préparées, mais certaines captures devront être associées manuellement : '+String(err?.message||err),true);
    }

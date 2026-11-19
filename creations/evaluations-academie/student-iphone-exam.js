@@ -2,6 +2,7 @@
  * Une seule question et ses documents montés à la fois, brouillon
  * par élève dans sessionStorage, navigation native tactile non bloquante.
  */
+import { sourceFigure } from './student-source-view.js?v=1.0';
 const E=(tag,cls,text)=>{
  const element=document.createElement(tag);
  if(cls)element.className=cls;
@@ -66,13 +67,7 @@ export function installMobileExam({form,questions,exam,current}){
   if(related.length){
    const source=E('div','cw-student-source-snippets');
    source.append(E('strong','','Documents fournis pour cette question'));
-   for(const asset of related){
-    const fig=E('figure','cw-student-source-figure'),img=E('img');
-    img.src=asset.url;
-    img.alt='Extrait pédagogique : '+asset.name;
-    img.loading='lazy';img.decoding='async';
-    fig.append(img,E('figcaption','',asset.name));source.append(fig);
-   }
+   for(const asset of related)source.append(sourceFigure(asset));
    card.append(source);
   }
   // Les graphiques éventuels ne sont construits que pour la question active.

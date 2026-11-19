@@ -172,6 +172,23 @@ function documentWarning(pdf,ctx,message){
 async function appendSources(pdf,ctx,copy,exam,q,seen){
  const sectionIndex=Number(q.section||0);
  const pageNumber=Number(q.page||1);
+ const attachments=[...new Set(q.assetIds||[])];
+ let hasOriginal=false;
+ for(const imageId of attachments){
+  const key='asset:'+imageId;
+  if(seen.has(key)){hasOriginal=true;continue;}
+  const meta=exam.assets?.find(a=>a.id===imageId);
+  try{
+   const canvas=await canvasForAsset(imageId);
+   if(canvas){
+    picture(pdf,ctx,canvas,'DOCUMENT ASSOCIÉ · '+(meta?.name||'Capture du contrôle'));
+    seen.add(key);
+    hasOriginal=true;
+   }else documentWarning(pdf,ctx,'Image liée à la question non retrouvée : '+(meta?.name||imageId));
+  }catch(error){
+   documentWarning(pdf,ctx,'Impossible d’intégrer '+(meta?.name||'une capture')+' : '+(error.message||error));
+  }
+ }
  if(exam.pdfSource){
   const sourceKey='sample-section:'+sectionIndex;
   if(!seen.has(sourceKey)){
@@ -200,7 +217,7 @@ async function appendSources(pdf,ctx,copy,exam,q,seen){
     documentWarning(pdf,ctx,'Capture du document de la partie '+(sectionIndex+1)+' impossible : '+(error.message||error));
    }
   }
- }else if(exam.sourceId){
+ }else if(exam.sourceId&&!hasOriginal&&!String(q.doc||'').trim()){
   const sourceKey='import-page:'+pageNumber;
   if(!seen.has(sourceKey)){
    seen.add(sourceKey);
@@ -244,19 +261,6 @@ async function appendSources(pdf,ctx,copy,exam,q,seen){
     paragraph(pdf,ctx,documentPlainText(doc.value),{fontSize:9.5});
     documentWarning(pdf,ctx,'Mise en page de '+doc.name+' impossible : '+(error.message||error));
    }
-  }
- }
- for(const imageId of q.assetIds||[]){
-  const assetKey='asset:'+imageId;
-  if(seen.has(assetKey))continue;
-  seen.add(assetKey);
-  const meta=exam.assets?.find(a=>a.id===imageId);
-  try{
-   const canvas=await canvasForAsset(imageId);
-   if(canvas)picture(pdf,ctx,canvas,'DOCUMENT ASSOCIÉ · '+(meta?.name||'Capture du contrôle'));
-   else documentWarning(pdf,ctx,'Image liée à la question non retrouvée : '+(meta?.name||imageId));
-  }catch(error){
-   documentWarning(pdf,ctx,'Impossible d’intégrer '+(meta?.name||'une capture')+' : '+(error.message||error));
   }
  }
 }

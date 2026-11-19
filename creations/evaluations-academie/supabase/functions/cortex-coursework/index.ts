@@ -214,13 +214,14 @@ async function input(req){
  if(contentType.includes('multipart/form-data')){
  const form=await req.formData();
  return {form,action:String(form.get('action')||''),body:{
- assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers'),question_id:form.get('question_id'),page:form.get('page')
+ assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers'),
+ question_id:form.get('question_id'),question_ids:form.get('question_ids'),page:form.get('page')
  }};
  }
  if(!contentType.includes('application/json'))throw Error('Format de requête invalide.');
  const body=await req.json();
  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('Requête incorrecte.');
- if(JSON.stringify(body).length>(String(body.action||'')==='teacher_document_update'?160000:String(body.action||'')==='student_submit'?80000:28000))throw Error('Requête trop volumineuse.');
+ if(JSON.stringify(body).length>(String(body.action||'')==='teacher_document_update'?265000:String(body.action||'')==='student_submit'?80000:28000))throw Error('Requête trop volumineuse.');
  return {form:null,action:String(body.action||''),body};
 }
 async function teacherAction(action,body,form,req){
@@ -440,6 +441,8 @@ async function teacherAction(action,body,form,req){
    const answer={id:qid,prompt,points,page,assetIds,type};
    if(typeof q.doc==='string')answer.doc=q.doc.slice(0,5000);
    if(typeof q.analysisDoc==='string')answer.analysisDoc=q.analysisDoc.slice(0,5000);
+   if(q.requiresDocument===true)answer.requiresDocument=true;
+   if(q.correctToVerify===true)answer.correctToVerify=true;
    if(type==='choice'||type==='multi'){
     const choices=(Array.isArray(q.choices)?q.choices:[]).map(x=>String(x||'').trim()).filter(Boolean);
     if(choices.length<2||choices.length>8||choices.some(x=>x.length>280))throw Error('QCM '+(i+1)+' invalide.');
@@ -483,12 +486,20 @@ async function teacherAction(action,body,form,req){
  }
  if(action==='teacher_asset_upload'){
   if(assessment.published)throw Error('Un contrôle publié ne peut pas recevoir de nouvelles captures.');
-  const file=form?.get('file'),questionId=String(body.question_id||'');
+  const file=form?.get('file');
   if(!(file instanceof File))throw Error('Choisissez une capture d’image.');
   const meta=checkedFile(file);
   if(!['png','jpg','webp'].includes(meta.ext))throw Error('Seules les captures PNG, JPEG et WebP sont acceptées.');
   const old=assessment.content||{},qs=Array.isArray(old.questions)?old.questions:[];
-  if(!qs.some(q=>q.id===questionId))throw Error('Question destinataire introuvable.');
+  let targets=[String(body.question_id||'')];
+  if(body.question_ids!=null){
+   try{targets=typeof body.question_ids==='string'?JSON.parse(body.question_ids):body.question_ids}
+   catch{throw Error('Liste de questions destinataires invalide.')}
+  }
+  if(!Array.isArray(targets)||!targets.length||targets.length>40||
+   targets.some(target=>typeof target!=='string'||!qs.some(q=>q.id===target)))
+   throw Error('Question destinataire introuvable.');
+  const targetIds=new Set(targets),questionId=targets[0];
   const assets=Array.isArray(old.assets)?old.assets:[];
   if(assets.length>=60)throw Error('Limite de 60 captures par contrôle.');
   const assetId='as-'+random(12),page=Math.max(1,Math.min(50,Math.floor(Number(body.page)||1)));
@@ -496,7 +507,7 @@ async function teacherAction(action,body,form,req){
   await upload(file,path);
   const entry={id:assetId,name:fname(file),path,page,questionId};
   const next={...old,assets:[...assets,entry],questions:qs.map(q=>
-   q.id===questionId?{...q,assetIds:[...(q.assetIds||[]),assetId]}:q)};
+   targetIds.has(q.id)?{...q,assetIds:[...(q.assetIds||[]),assetId]}:q)};
   const {error}=await admin.from('cortex_teacher_assessments').update({content:next}).eq('id',id).eq('teacher_id',teacher.id);
   if(error){await admin.storage.from(BUCKET).remove([path]);throw Error('Capture envoyée mais non associée à la question.');}
   return ret({ok:true,asset:{id:assetId,name:entry.name,page,questionId,url:await signed(path,600)}});

@@ -1029,11 +1029,7 @@
       const period = validDate(prep.start) && validDate(prep.end)
         ? 'du ' + formatDate(prep.start) + ' au ' + formatDate(prep.end)
         : 'du [date de début] au [date de fin]';
-      const goal = profile?.goal || 'développer mes compétences en vente et en relation client';
       const recipient = profile?.contact || 'la personne responsable des stages ou des ventes';
-      const message = 'Candidature pour un stage (PFMP)\n\nBonjour,\n\nJe suis [prénom et nom], élève en bac professionnel ' + label +
-        ' au lycée [nom du lycée]. Je recherche un stage ' + period + '.\n\nJe souhaiterais ' + goal +
-        ' au sein de votre équipe. Accueillez-vous des stagiaires à ces dates ? Je peux vous transmettre mon CV ou passer vous rencontrer.\n\nMerci pour votre réponse.\n\nCordialement,\n[prénom et nom]';
       const body = node('div', 'cs-stage-dialog-body');
       if (place) {
         body.append(linksFor(place));
@@ -1060,30 +1056,22 @@
       if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + place.why));
       body.append(mission);
 
-      const call = node('details', 'cs-stage-call-script');
-      call.append(node('summary', '', 'Quoi dire au téléphone ?'), node('p', '',
-        'Bonjour, je suis [prénom], élève en bac professionnel ' + label + '. Je cherche un stage ' + period +
-        '. Pourrais-je parler à ' + recipient + ' ?'));
-      body.append(call);
-
-      const emailLabel = node('label', '', 'Message à personnaliser avant l’envoi');
-      const textarea = node('textarea');
-      textarea.rows = 9;
-      textarea.value = message;
-      emailLabel.append(textarea);
-      const feedback = node('p', 'cs-stage-date-status');
-      feedback.setAttribute('role', 'status');
-      const copy = button('Copier le message', 'cs-stage-primary', async () => {
-        try {
-          await navigator.clipboard.writeText(textarea.value);
-          feedback.textContent = 'Message copié.';
-        } catch {
-          textarea.focus();
-          textarea.select();
-          feedback.textContent = 'Le message est sélectionné. Utilise la commande Copier de ton appareil.';
+      const workshop = window.CORTEX_STAGE_CONTACT.mount({
+        label, period, recipient, place,
+        profile: program === 'commerce-vente' ? categories[0]?.[3] || track : program,
+        async ask(motivation, signal) {
+          const response = await fetch(ENDPOINT, {
+            method: 'POST', headers: { 'content-type': 'application/json' }, signal,
+            body: JSON.stringify({ action: 'prepare_contact', filiere: program, optionCommerce: track,
+              type: categories[0]?.[0] || '', motivation, demo: settings.demo === true, session: settings.session || '' })
+          });
+          const result = await response.json().catch(() => null);
+          if (!response.ok || !result?.hook) throw Error(result?.error || 'Albert est momentanément indisponible.');
+          return result;
         }
       });
-      body.append(emailLabel, copy, feedback);
+      $('dialog').addEventListener('close', workshop.dispose, { once: true });
+      body.append(workshop.root);
       openDialog(place ? place.name : 'Préparer ma candidature', body);
     }
 

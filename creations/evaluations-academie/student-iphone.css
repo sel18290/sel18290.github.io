@@ -284,6 +284,31 @@
  .cw-mobile-pager{padding:10px;gap:7px}
  .cw-mobile-question-chip{min-height:43px;min-width:43px}
 }
+
+body.cw-student-active .cw-student-source-figure figcaption,
+.cw-source-dialog-head, .cw-source-dialog-tools {
+ display:flex; align-items:center; gap:.55rem; justify-content:space-between; flex-wrap:wrap;
+}
+body.cw-student-active button.cw-source-open {
+ min-height:42px; padding:.45rem .65rem; border:1px solid #84a8bb;
+ border-radius:.55rem; background:#dff0f4; color:#143444; font:inherit;
+ font-size:.88rem; font-weight:700; cursor:pointer;
+}
+body.cw-student-active button.cw-source-open:disabled { opacity:.5; cursor:default; }
+body.cw-student-active .cw-source-dialog {
+ box-sizing:border-box; width:min(68rem,calc(100% - 1rem)); max-height:calc(100dvh - 1rem);
+ border:1px solid #527383; border-radius:.85rem; padding:0; background:#f4f8f9; color:#142c36;
+}
+.cw-source-dialog::backdrop { background:#071222da; }
+.cw-source-dialog-head { padding:.6rem .8rem; border-bottom:1px solid #b4ccd6; }
+.cw-source-dialog-head strong { overflow-wrap:anywhere; }
+body.cw-student-active .cw-source-scroll {
+ overflow:auto; max-height:calc(100dvh - 9rem); min-height:8rem; padding:.25rem;
+ background:#e1ebef; color:#123441; touch-action:pan-x pan-y pinch-zoom;
+}
+body.cw-student-active .cw-source-dialog .cw-source-scroll img {
+ display:block; max-width:none; max-height:none; height:auto; width:100%; margin:0;
+}
 @media (prefers-reduced-motion:reduce){
  .cw-mobile-question-chip,.cw-mobile-pager-arrow{transition:none!important}
 }

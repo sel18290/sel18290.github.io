@@ -1,5 +1,5 @@
 /* CORTEX Académie — comptes élèves persistants par classe, gérés par le professeur. */
-import {api} from './coursework.js?v=2.0';
+import {api} from './coursework.js?v=2.4';
 const $=id=>document.getElementById(id);
 const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;

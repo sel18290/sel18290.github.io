@@ -201,7 +201,11 @@ if(qr||globalPortal){
     }
     label.append(sourceBox);
    }
-   if(q.doc)label.append(E('div','cw-student-question-doc',q.doc));
+   // Documents visuels du contrôle IST de 1AGORA2 : restitution des éléments
+   // graphiques historiques et des encadrés, sans injecter de HTML depuis la base.
+   const istVisual=window.CORTEX_IST_VISUALS?.render?.(q);
+   if(istVisual)label.append(istVisual);
+   else if(q.doc)label.append(E('div','cw-student-question-doc',q.doc));
    const answerArea=E('div','cw-question-response');
    answerArea.innerHTML=window.CORTEX_QUESTION_TYPES.studentFields(q,'');
    label.append(answerArea);form.append(label);

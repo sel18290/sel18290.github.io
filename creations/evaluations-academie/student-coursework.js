@@ -2,7 +2,6 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.11';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.2';
-import { renderChatGPTAfterSubmission,renderChatGPTNotebook } from './student-chatgpt.js?v=1.2';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.2';
 
 const params=new URLSearchParams(location.search);
@@ -134,7 +133,6 @@ if(qr||globalPortal){
   if(graded)stats.append(E('span','','Moyenne des notes publiées : '+(total/graded).toFixed(1).replace('.',',')+' / 20'));
   work.append(stats,cards);
   renderDashboardAi(work,{session:token,assessments});
-   renderChatGPTNotebook(work,{assessments});
  }
  // Relire sa véritable copie après remise, sans divulguer de corrigé avant
  // la publication. Tous les formats de réponses sont restitués comme saisis.
@@ -216,7 +214,6 @@ if(qr||globalPortal){
    }else receipt.append(E('p','','Ta note et tes conseils seront visibles après publication par le professeur.'));
    receipt.append(button('Actualiser ma correction ↻','cw-primary',()=>loadExam(currentId)));
    renderReceiptAi(receipt,{session:token,assessmentId:currentId,submission:submitted});
-    renderChatGPTAfterSubmission(receipt,{assessment:exam,submission:submitted,subject:current.subject});
    work.append(receipt);return;
   }
   // Chronomètre démarré explicitement par l'élève, conservé dans cette session.

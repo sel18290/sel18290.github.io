@@ -34,7 +34,8 @@ function render(){
   const card=E('article','cw-class-card'),head=E('div','cw-card-head'),title=E('div');
   const registrationOpen=!!record?.registration_open_until&&new Date(record.registration_open_until)>new Date();
   title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Tu n’as aucun PIN à distribuer.'));
-  head.append(title,E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'PIN ouverts · 30 min':record?'Connexion prête':'À préparer'));
+  head.append(title);
+  if(registrationOpen||record)head.append(E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'PIN ouverts · 30 min':'Accès actif'));
   card.append(head);
   const controls=E('div','cw-publish-row'),selector=E('select','cw-roster-size');
   selector.setAttribute('aria-label','Effectif pour la classe '+cl.code);
@@ -61,7 +62,7 @@ function render(){
    const info=E('section','cw-pin-invite');
    const deadline=new Date(record.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
    info.append(E('strong','','✦ Création de PIN ouverte jusqu’à '+deadline),
-     E('p','','Partage le lien d’inscription ci-dessous pendant la séance : chaque élève saisit son numéro et choisit son propre PIN. Il n’y a aucun code provisoire individuel.'));
+     E('p','','Partage le lien temporaire : chaque élève choisit sa classe, son demi-groupe 1 ou 2 et son numéro, puis crée son PIN. Les nouvelles inscriptions seront classées ci-dessous automatiquement.'));
    const invitation=pinInvitations.get(cl.id);
    if(invitation?.token){
     const url=pinJoinUrl(invitation.portal,invitation.token);
@@ -84,16 +85,27 @@ function render(){
   stats.append(E('span','cw-group-stat-label','Élèves inscrits : '+assigned.length),
    E('span','cw-group-stat-one','Groupe 1 · '+group1.length),
    E('span','cw-group-stat-two','Groupe 2 · '+group2.length));
-  if(whole.length)stats.append(E('span','cw-group-stat-whole','Classe entière · '+whole.length));
+  if(whole.length)stats.append(E('span','cw-group-stat-whole','Groupe non renseigné · '+whole.length));
   card.append(stats);
   if(assigned.length){
    const details=E('details','cw-group-roster'),summary=E('summary','','Voir les élèves inscrits par demi-groupe ('+assigned.length+')');
    const list=E('div','cw-group-roster-list');
-   for(const row of assigned.sort((a,b)=>(a.demi_groupe||0)-(b.demi_groupe||0)||a.student_number-b.student_number)){
+   const orderGroup=g=>g===1?0:g===2?1:2;
+   const sorted=assigned.slice().sort((a,b)=>orderGroup(a.demi_groupe)-orderGroup(b.demi_groupe)||a.student_number-b.student_number);
+   let previousGroup='';
+   for(const row of sorted){
+    const group=row.demi_groupe===1?'one':row.demi_groupe===2?'two':'legacy';
+    if(group!==previousGroup){
+     const heading=group==='one'?'Demi-groupe 1 · '+group1.length+' élève(s)':
+      group==='two'?'Demi-groupe 2 · '+group2.length+' élève(s)':
+      'Groupe non renseigné · '+whole.length+' ancien(s) PIN';
+     list.append(E('h5','cw-group-roster-heading cw-group-roster-'+group,heading));
+     previousGroup=group;
+    }
     const line=E('div','cw-group-roster-line'),name=E('strong','','Élève n°'+row.student_number),
      label=E('label','','Demi-groupe'),selector=E('select','cw-group-select');
     selector.setAttribute('aria-label','Demi-groupe de l’élève numéro '+row.student_number+' en '+cl.code);
-    for(const [value,text] of [['1','Groupe 1'],['2','Groupe 2'],['0','Classe entière']]){
+    for(const [value,text] of [['1','Groupe 1'],['2','Groupe 2'],['0','Non renseigné']]){
      const opt=E('option','',text);opt.value=value;opt.selected=Number(value)===(row.demi_groupe||0);selector.append(opt);
     }
     selector.addEventListener('change',async()=>{
@@ -112,7 +124,7 @@ function render(){
   }else{
    card.append(E('p','cw-group-help',record?.portal_code?
     'Aucun PIN choisi pour le moment. Ouvre la création pendant 30 minutes pour que les élèves s’inscrivent avec leur numéro.':
-    'Clique sur « Ouvrir la création des PIN » : la classe est préparée automatiquement.'));
+    'Aucun élève inscrit. Clique sur « Ouvrir la création des PIN » pour démarrer les inscriptions.'));
   }
   if(record?.portal_code){
    const share=E('div','cw-class-share'),url=permanentUrl(record.portal_code);

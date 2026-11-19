@@ -250,7 +250,7 @@ async function openTeacherSimulator(exam){
  }catch(err){showToast('Simulation indisponible : '+(err?.message||err));}
 }
 function teacherExams(){
-const visibleExams=state.exams.filter(e=>!teacherClassFilter||window.CORTEX_CLASSES.assignedTo(state,e.id,teacherClassFilter,teacherGroupFilter));
+const visibleExams=state.exams.filter(e=>!teacherClassFilter||window.CORTEX_CLASSES.assignedTo(state,e.id,teacherClassFilter,teacherGroupFilter)||(e.classId===teacherClassFilter&&!teacherGroupFilter));
 return pageHead('Mes contrôles','Retrouve tes évaluations, duplique-les et passe en aperçu élève.',btn('⇪ Importer PDF / Word','go-import','secondary')+btn('＋ Créer un contrôle','create',''))+
 `<div>${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}</div><div class="toolbar"><span class="muted small">${visibleExams.length} contrôle(s) ${teacherClassFilter?'affecté(s) à la classe':'dans la démo'}</span><input class="search-field" type="search" placeholder="Rechercher un contrôle…" aria-label="Rechercher un contrôle" data-search-exams value="${esc(search)}"></div>
 <div class="tile-grid" id="exam-tiles">${visibleExams.map(e=>`<article class="card tile" data-search="${esc((e.title+' '+e.level).toLowerCase())}"><div class="tile-stats">${pill(e.open?'Publié · Accès QR':'Brouillon',e.open?'ok':'warn')}<span class="small muted">CLASSE : ${esc(examClassHeading(e))}</span><span class="small muted">${esc(e.publishScope==="g1"?"Groupe 1":e.publishScope==="g2"?"Groupe 2":"Classe entière")}</span></div><div><h3>${esc(e.title)}</h3><div class="cortex-exam-class-heading">▣ ${esc(examClassHeading(e))} · ${esc(e.publishScope==='g1'?'Groupe 1':e.publishScope==='g2'?'Groupe 2':'Classe entière')}</div><p>${esc(e.level)} · ${e.questions.length} questions · ${sum(e)} points · ${e.duration} min</p></div><div class="tile-foot"><div class="btn-row">${btn('Modifier','edit-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}${btn('Dupliquer','duplicate-exam','ghost small').replace('data-action','data-id="'+e.id+'" data-action')}</div><div class="btn-row"><button class="table-action" data-action="publish-exam" data-id="${esc(e.id)}">${e.open?'Modifier la publication':'Publier'}</button>${e.open?`<button class="table-action" data-action="toggle-exam" data-id="${esc(e.id)}">Fermer</button>`:''}${e.sourceId?`<button class="table-action" data-action="visual-open-existing" data-id="${esc(e.id)}">Découper ↗</button>`:''}<button class="table-action" data-action="class-qr-list" data-id="${esc(e.id)}">▣ QR codes</button><button class="table-action" data-action="try-exam" data-id="${e.id}">Tester ↗</button><button type="button" class="table-action" data-action="integrity-settings" data-id="${esc(e.id)}">◈ Anti-triche</button><button type="button" class="btn-delete-exam" data-action="ask-delete-exam" data-id="${esc(e.id)}" aria-label="Supprimer le contrôle ${esc(e.title)}">Supprimer</button></div></div></article>`).join('')}${visibleExams.length===0?'<div class="empty">Aucun contrôle pour cette sélection. Affecte-en un depuis « Mes classes » ou efface le filtre.</div>':''}</div>`;
@@ -1245,7 +1245,44 @@ if(a==='editor-move-up'||a==='editor-move-down'){
 if(a==='editor-original'){if(editor?.sourceId)openSavedOriginal(editor.sourceId);return;}
 if(a==='go-copies'){nav('teacher','copies');return;}
 if(a==='edit-exam'){editor=editorFor(id);editor.isNew=false;editorIndex=0;editorDocTab='source';nav('teacher','creer');return;}
-if(a==='duplicate-exam'){const e=editorFor(id);e.id='copy-'+Date.now();e.title+=' (copie)';e.code='DEMO'+Math.floor(1000+Math.random()*9000);e.open=false;state.exams.unshift(e);save();showToast('Contrôle dupliqué.');render();return;}
+if(a==='duplicate-exam'){
+  const exam=examBy(id);if(!exam)return;
+  const validClasses=state.classes.filter(c=>!c.archived);
+  if(!validClasses.length){showToast('Crée d’abord une classe pour y dupliquer ce contrôle.');return;}
+  const selected=validClasses.find(c=>c.id!==exam.classId)?.id||validClasses[0].id;
+  modalShow('Dupliquer vers une autre classe · '+esc(exam.title),
+   '<p class="muted small">Le sujet, les barèmes, les tableaux, les images et les documents seront conservés. Les copies et les PIN des élèves ne seront pas transférés.</p>'+
+   '<div class="field"><label for="demo-duplicate-class">Classe de destination</label>'+
+   '<select id="demo-duplicate-class" required>'+
+    validClasses.map(c=>'<option value="'+esc(c.id)+'" '+(c.id===selected?'selected':'')+'>'+esc(c.name)+'</option>').join('')+
+   '</select></div>'+
+   '<div class="field"><label for="demo-duplicate-title">Titre de la nouvelle évaluation</label>'+
+    '<input id="demo-duplicate-title" type="text" maxlength="180" required value="'+esc(exam.title)+'"></div>'+
+   '<p class="muted small">Le nouveau contrôle sera un brouillon indépendant. Tu pourras le vérifier avant de le publier et de créer son QR code.</p>',
+   '<button type="button" class="btn" data-action="confirm-duplicate-exam" data-id="'+esc(exam.id)+'">Dupliquer pour cette classe</button>'+
+   btn('Annuler','close-modal','ghost'));
+  return;
+ }
+ if(a==='confirm-duplicate-exam'){
+  const origin=examBy(id),classId=document.getElementById('demo-duplicate-class')?.value,
+   destination=window.CORTEX_CLASSES.byId(state,classId),
+   title=String(document.getElementById('demo-duplicate-title')?.value||'').trim();
+  if(!origin||!destination||destination.archived){showToast('Choisis une classe de destination valide.');return;}
+  if(!title||title.length>180){showToast('Indique un titre valide.');return;}
+  const copy=JSON.parse(JSON.stringify(origin));
+  copy.id='copy-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
+  copy.title=title;copy.classId=destination.id;copy.publishScope='all';
+  copy.code='DEMO'+Math.floor(1000+Math.random()*9000);
+  copy.open=false;
+  // Ne copie jamais d’affectations, de copies ni de notes.
+  // Les références aux fichiers locaux sont partagées en lecture ; les
+  // suppressions existantes conservent un fichier encore référencé.
+  state.exams.unshift(copy);
+  teacherClassFilter=destination.id;teacherGroupFilter='';
+  save();closeModal();render();
+  showToast('Contrôle dupliqué pour '+destination.name+' · '+copy.questions.length+' questions, documents conservés. Brouillon non publié.');
+  return;
+ }
 if(a==='publish-exam'){
  const exam=examBy(id);if(!exam)return;
  const validClasses=state.classes.filter(cl=>!cl.archived);

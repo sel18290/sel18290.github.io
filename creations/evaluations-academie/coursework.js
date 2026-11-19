@@ -121,10 +121,11 @@ function display(){
   }
   group.disabled=!exam.class_id;group.setAttribute('aria-label','Publier pour la classe ou le demi-groupe');
   publish.append(make('label','','Effectif'),select,make('label','','Publication'),group,
-   createButton(access?.active?'Actualiser la publication':'Publier et créer les PIN','cw-accent',async()=>{
+   createButton(access?.active?'Actualiser la publication':'Publier le contrôle','cw-accent',async()=>{
    const out=await api('teacher_publish',{assessment_id:exam.id,roster_size:Number(select.value),publish_scope:group.value},null,true);
-   if(out.freshPins?.length){state.pins.set(exam.id,out.freshPins);if(out.class_id)window.dispatchEvent(new CustomEvent('cortex:class-pins',{detail:{classId:out.class_id,pins:out.freshPins}}));}
-   message(out.freshPins?.length?'Contrôle ouvert. Téléchargez les PIN affichés : ils ne seront plus récupérables après rechargement.':'Contrôle ouvert avec les PIN existants.');
+   if(out.freshPins?.length&&!out.class_id)state.pins.set(exam.id,out.freshPins);
+   message(exam.class_id?'Contrôle publié pour '+(group.value==='all'?'la classe entière':group.value==='g1'?'le demi-groupe 1':'le demi-groupe 2')+'. Pour la première connexion, ouvre la création des PIN pendant 30 minutes dans « PIN élèves ».':
+    out.freshPins?.length?'Contrôle publié. Télécharge les codes individuels affichés.':'Contrôle publié avec les accès existants.');
    await reload();
   }));card.append(publish);
   if(access?.join_code){
@@ -139,13 +140,19 @@ function display(){
    }));
    const visit=make('a','cw-secondary','Tester l’accès élève ↗');visit.href=joinUrl(access.join_code);visit.target='_blank';visit.rel='noopener';buttons.append(visit);share.append(buttons);
    const fresh=state.pins.get(exam.id);
-   if(fresh?.length){
+   if(fresh?.length&&!exam.class_id){
     const pinBox=make('div','cw-pin-notice');
     pinBox.append(make('strong','','PIN provisoires élèves à distribuer individuellement'));
     const table=make('div','cw-pin-table');
     for(const x of fresh)table.append(make('span','','N° '+x.number+' · PIN '+x.pin));
     pinBox.append(table,createButton('Télécharger les PIN en CSV','cw-accent',()=>downloadPins(fresh,exam.title)));share.append(pinBox);
    }
+   if(exam.class_id){
+    share.append(make('p','cw-pin-class-hint','PIN de classe : les élèves choisissent eux-mêmes leurs six chiffres. Pas de code provisoire à distribuer.'));
+    share.append(createButton('Gérer les PIN de la classe ↗','cw-secondary',()=>{
+     const anchor=get('cw-persistent-classes');if(anchor){location.hash='#cw-persistent-classes';anchor.scrollIntoView({behavior:'smooth',block:'start'});}
+    }));
+   }else{
    const reset=make('div','cw-reset-row'),number=make('input');
    number.type='number';number.min='1';number.max=String(access.roster_size);number.placeholder='N° élève';
    number.setAttribute('aria-label','Numéro élève pour nouveau PIN');
@@ -157,7 +164,9 @@ function display(){
     message('PIN régénéré pour le numéro '+out.number+'.');
     display();
    }));
-   share.append(reset,createButton(access.active?'Fermer l’accès élève':'Rouvrir l’accès','cw-outline',async()=>{
+   share.append(reset);
+   }
+   share.append(createButton(access.active?'Fermer l’accès élève':'Rouvrir l’accès','cw-outline',async()=>{
     await api('teacher_close',{assessment_id:exam.id,active:!access.active},null,true);await reload();
    }));
    card.append(share);

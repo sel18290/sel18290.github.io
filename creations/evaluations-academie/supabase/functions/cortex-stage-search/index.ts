@@ -1,4 +1,4 @@
-/* CORTEX Recherche de stages — IGN & OpenStreetMap, classement Claude optionnel.
+/* CORTEX Recherche de stages — IGN & OpenStreetMap, classement Albert IA.
  * Les données affichées proviennent exclusivement d'établissements publics OSM.
  * Aucune information sur l'élève n'est envoyée à une IA.
  */
@@ -86,7 +86,7 @@ function entries(elements,loc,radius){
    website:/^https?:\/\/[^\s]+$/i.test(site)?site:"",
    category:clean(t.shop||t.office||t.amenity||t.tourism||"établissement").replace(/_/g," "),
    lat:Math.round(lat*1e5)/1e5,lon:Math.round(lon*1e5)/1e5,distance_km:dist,
-   source:"OpenStreetMap",claude_rank:null,claude_why:"",missions:[]});
+   source:"OpenStreetMap",albert_rank:null,albert_why:"",missions:[]});
  }
  data.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id));
  return data.slice(0,160);
@@ -134,7 +134,7 @@ async function ranked(sector,businesses,token,demo=false){
    "Tu ne connais PAS la disponibilité de stages. Tu ne peux choisir QUE des identifiants dans la liste. "+
    "Aucun établissement, numéro de téléphone ou adresse ne doit être créé. "+
    "Retourne exclusivement un JSON sans markdown : "+
-   "{\\\"picks\\\":[{\\\"id\\\":\\\"identifiant existant\\\",\\\"why\\\":\\\"justification courte\\\",\\\"missions\\\":\\\"missions possibles, non confirmées\\\"}]}";
+   "Réponds uniquement en JSON avec une propriété picks : tableau de {id, why, missions}.";
   const user="Filière professionnelle : "+sectors[sector].name+
    ". Parmi ces établissements déjà identifiés sur OpenStreetMap, sélectionne au maximum "+
    "12 structures variées pertinentes, sans inventer ni compléter leurs coordonnées. "+
@@ -174,7 +174,7 @@ Deno.serve(async req=>{
    {enabled:false,reason:"Classement géographique",picks:[]};
   const map=new Map(ai.picks.map((x,i)=>[x.id,{...x,rank:i+1}]));
   for(const x of places){const match=map.get(x.id);if(match){x.albert_rank=match.rank;x.albert_why=match.why;x.missions=[match.missions].filter(Boolean)}}
-  if(map.size)places.sort((a,b)=>(a.claude_rank||999)-(b.claude_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
+  if(map.size)places.sort((a,b)=>(a.albert_rank||999)-(b.albert_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
   return respond({ok:true,filiere:sector,city:loc.label,location:{lat:loc.lat,lon:loc.lon},radius,
    businesses:places,found:places.length,ai,checked_at:new Date().toISOString(),
    sources:["IGN Géoplateforme","© OpenStreetMap contributors"],

@@ -170,6 +170,8 @@ function paint(){
 function preview(){
  const q=current(),node=$('manual-source-preview');
  node.replaceChildren();
+ const istVisual=window.CORTEX_IST_VISUALS?.render?.(q);
+ if(istVisual)node.append(istVisual);
  const items=state.assets.filter(a=>a.questionId===q?.id||(q?.assetIds||[]).includes(a.id));
  if(items.length){
   const gallery=document.createElement('div');gallery.className='real-manual-capture-gallery';
@@ -185,7 +187,7 @@ function preview(){
   }
   node.append(gallery);
  }
- if(!items.length){
+ if(!items.length&&!istVisual){
   const p=document.createElement('p');p.className='cortex-unified-empty';
   p.textContent='Aucune image associée. Fais une capture d’écran ou choisis une image.';
   node.append(p);

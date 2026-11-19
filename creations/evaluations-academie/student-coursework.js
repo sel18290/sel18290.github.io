@@ -92,17 +92,29 @@ if(qr||globalPortal){
   currentId=current.assessment.id;showWork();message('');
   renderExam();
  }
+ function studentTabs(active){
+  const nav=E('nav','cs-stage-student-tabs');
+  nav.setAttribute('aria-label','Rubriques de mon espace élève');
+  const controls=button('▤ Mes évaluations','cs-stage-tab'+(active==='controls'?' is-active':''),()=>renderClass());
+  const stages=button('🎓 Recherche de stages','cs-stage-tab'+(active==='stages'?' is-active':''),renderStageView);
+  controls.setAttribute('aria-current',active==='controls'?'page':'false');
+  stages.setAttribute('aria-current',active==='stages'?'page':'false');
+  nav.append(controls,stages);
+  return nav;
+ }
  function renderStageView(){
   // Aucune copie, aucun PIN ni correction scolaire n'est transféré à la recherche.
   releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   showWork();message('');
   const work=$('cw-student-work');work.replaceChildren();
+  work.append(studentTabs('stages'));
+  const stageHost=E('div','cs-stage-host');work.append(stageHost);
   if(!window.CORTEX_STAGE?.mount){
    work.append(E('p','cw-student-empty','Recherche de stages indisponible. Recharge la page.'));
    return;
   }
-  window.CORTEX_STAGE.mount(work,{
+  window.CORTEX_STAGE.mount(stageHost,{
    className:classData?.class?.code||'',
    classes:classList.map(c=>c.label||c.code).filter(Boolean),
    session:token,demo:false,
@@ -113,6 +125,7 @@ if(qr||globalPortal){
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!classData)return;
+  work.append(studentTabs('controls'));
   const header=E('div','cw-student-dashboard-head');
   const groupText=classData.demi_groupe===1||classData.demi_groupe===2?' · Demi-groupe '+classData.demi_groupe:' · Classe entière';
   header.append(E('small','','MON ESPACE · '+classData.class.code+groupText),

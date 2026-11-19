@@ -104,6 +104,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-demo-features" aria-hidden="true"><span>◈ Mes résultats</span><span>≈ Estimation IA</span><span>✧ Conseils Albert</span></div>'+
    '</div>'+
    '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
+   '<div class="portal-pse-teaser cs-stage-demo-teaser"><div class="portal-pse-teaser-mark">PFMP · RECHERCHE DE STAGES</div><h2>Trouver des entreprises près de chez moi</h2><p>Choisis ta filière, une ville et découvre les établissements répertoriés, avec leurs adresses et téléphones lorsqu'ils sont disponibles.</p><button class="portal-pse-teaser-action" type="button" data-action="student-stages">🎓 Recherche de stages ↗</button></div>'+
    '<div class="portal-login-divider"><span>OU ACCÉDER À MES COPIES</span></div>'+
    '<div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
    '<p class="portal-muted">Accès personnel avec ton numéro de liste, ton PIN et le code communiqué par ton professeur.</p>'+
@@ -202,7 +203,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion ↗</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div><span class="portal-tag">TON ESPACE D’APPRENTISSAGE</span>'+
    '<h1>Chaque progrès<br><em>compte.</em></h1><p>Des résultats pour comprendre, des corrections pour avancer. Voici ton parcours personnel.</p>'+
-   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button></div></div>'+
+   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button><button data-action="student-stages">🎓 Recherche de stages</button></div></div>'+
    '<div class="portal-welcome-art" aria-hidden="true"><div class="portal-art-ring"><span>'+(avg===null?'—':grade(avg))+'</span><small>/20</small></div><div class="portal-art-orbit"></div><div class="portal-art-stars">✦</div></div></section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
    '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><span class="portal-kicker">01 / TA TRAJECTOIRE</span><h2>Tes moyennes, semaine après semaine.</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+

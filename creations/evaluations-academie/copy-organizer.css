@@ -107,3 +107,25 @@ body.academy-authenticated[data-acad-view="import"] #cw-copy-filters{display:non
  .cw-copy-filter-field :is(select,input){font-size:16px;min-height:49px}
 }
 @media(max-width:410px){.cw-copy-filters{grid-template-columns:1fr}.cw-copy-filter-field:last-child{grid-column:auto}}
+
+
+/* Modale Albert réelle : barre indéterminée, adaptée aux téléphones. */
+.cortex-real-albert .cai-track.cai-indeterminate .cai-bar{
+ width:36%;
+ animation:cortex-real-ai-moving 1.55s ease-in-out infinite;
+}
+@keyframes cortex-real-ai-moving{
+ from{transform:translateX(-115%)}
+ to{transform:translateX(290%)}
+}
+.cortex-real-albert .cai-count{font-variant-numeric:tabular-nums}
+.cortex-real-albert .cai-status{min-height:2.3em}
+.cortex-real-albert .cai-footer{align-items:center}
+@media(max-width:740px){
+ .cortex-real-albert{width:calc(100vw - 18px);max-height:calc(100dvh - 24px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .cortex-real-albert .cai-track.cai-indeterminate .cai-bar{
+  animation:none;width:100%;transform:none
+ }
+}

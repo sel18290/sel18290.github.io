@@ -3,8 +3,8 @@
 import { api } from './coursework.js?v=2.0';
 
 const params=new URLSearchParams(location.search);
-const qr=params.get('join'),classPrefill=params.get('classe');
-const globalPortal=params.get('espace')==='eleve'||!!classPrefill;
+const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
+const globalPortal=params.get('espace')==='eleve'||!!classPrefill||!!registrationToken;
 if(qr||globalPortal){
  const $=id=>document.getElementById(id);
  const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
@@ -31,7 +31,7 @@ if(qr||globalPortal){
   '<label for="cw-student-pin">Mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-student-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" placeholder="●●●●●●" required><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-student-pin">Afficher</button></div></label>'+
   '<button type="submit" class="cw-student-submit">'+(qr?'Ouvrir mon contrôle →':'Accéder à mon espace →')+'</button></form>'+
   '<form id="cw-student-activation-form" class="cw-student-login-form cw-activation-form" hidden>'+
-  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>Le professeur ouvre les inscriptions pendant 30 minutes. Choisis ton numéro, crée un PIN et confirme-le. Aucun PIN provisoire n’est nécessaire.</p></div>'+
+  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>Ouvre le lien d’inscription donné par ton professeur pendant sa séance de 30 minutes. Choisis ton numéro, crée ton PIN et confirme-le. Aucun PIN provisoire individuel.</p></div>'+
   (qr?'':'<label for="cw-activation-class">Ma classe<select id="cw-activation-class" required><option value="">Choisir ma classe…</option></select></label>')+
   '<label for="cw-activation-number">Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
   '<label for="cw-activation-new-pin">Je choisis mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Choisis 6 chiffres"><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-activation-new-pin">Afficher</button></div></label>'+
@@ -281,12 +281,16 @@ if(qr||globalPortal){
   try{
    const classCode=mode==='class'?$('cw-activation-class').value:'';
    await api('student_pin_setup',{class_code:classCode,join_code:qr||'',student_number:number,
-    demi_groupe:group,pin,confirm_pin:confirmPin});
+    demi_groupe:group,pin,confirm_pin:confirmPin,registration_token:registrationToken});
    const result=mode==='qr'
     ?await api('student_login',{code:qr,student_number:number,pin})
     :await api('student_class_login',{class_code:classCode,student_number:number,pin});
    $('cw-activation-new-pin').value='';$('cw-activation-confirm-pin').value='';
    token=result.session;sessionStorage.setItem(storageKey,token);
+   if(registrationToken){
+    const cleanUrl=new URL(location.href);cleanUrl.searchParams.delete('inscription');
+    history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
+   }
    if(mode==='qr')await loadExam();else await loadClass();
    message('PIN créé ! Tu retrouveras ton espace avec ton numéro et ce même PIN.');
   }catch(err){
@@ -306,6 +310,7 @@ if(qr||globalPortal){
   }catch(err){message(err.message||'Identification impossible. Tu n’as pas encore de PIN ? Clique sur « Je crée mon PIN ».',true)}
   finally{busy=false;submit.disabled=false}
  });
+ if(registrationToken)toggleActivation(true);
  const restored=sessionStorage.getItem(storageKey);
  if(mode==='class')getClasses();
  if(restored){

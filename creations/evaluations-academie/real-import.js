@@ -461,8 +461,15 @@ function validatedQuestions(){
   if(q.docMode==='image')q.doc='';
   const page=Number(q.page||1);
   if(!Number.isInteger(page)||page<1||page>state.sourceCount)throw Error('Page source incorrecte pour la question '+(i+1)+'.');
-  try{return window.CORTEX_QUESTION_TYPES.validate(q);}
-  catch(error){throw Error('Question '+(i+1)+' : '+error.message);}
+  try{
+   const checked=window.CORTEX_QUESTION_TYPES.validate(q);
+   // Image seule pour l’élève ; transcription privée conservée pour Albert.
+   if(q.docMode==='image'){
+    const transcript=String(q.analysisDoc||q.docDraft||'').trim().slice(0,5000);
+    if(transcript)checked.analysisDoc=transcript;
+   }
+   return checked;
+  }catch(error){throw Error('Question '+(i+1)+' : '+error.message);}
  });
 }
 async function save(){

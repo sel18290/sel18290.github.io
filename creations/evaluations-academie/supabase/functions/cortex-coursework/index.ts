@@ -378,6 +378,7 @@ async function teacherAction(action,body,form,req){
    const type=allowedTypes.includes(q.type)?q.type:'text';
    const answer={id:qid,prompt,points,page,assetIds,type};
    if(typeof q.doc==='string')answer.doc=q.doc.slice(0,5000);
+   if(typeof q.analysisDoc==='string')answer.analysisDoc=q.analysisDoc.slice(0,5000);
    if(type==='choice'||type==='multi'){
     const choices=(Array.isArray(q.choices)?q.choices:[]).map(x=>String(x||'').trim()).filter(Boolean);
     if(choices.length<2||choices.length>8||choices.some(x=>x.length>280))throw Error('QCM '+(i+1)+' invalide.');

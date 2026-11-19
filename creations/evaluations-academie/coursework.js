@@ -99,7 +99,8 @@ function stopQrObservers(){
 function drawQr(node,code){
  node.replaceChildren();
  const paint=()=>{
-  if(!node.isConnected)return;
+  // Fonctionne aussi dans les navigateurs sans IntersectionObserver, pendant
+  // la construction du DOM (le QR n'est pas encore rattaché à la page).
   node.replaceChildren();
   if(typeof window.QRCode==='function'){
    try{

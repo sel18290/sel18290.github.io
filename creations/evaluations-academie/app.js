@@ -1,6 +1,6 @@
 /* CORTEX Académie — client autonome, activation Supabase après configuration. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
-import { api as cortexCourseworkApi } from './coursework.js?v=2.4';
+import { api as cortexCourseworkApi } from './coursework.js?v=2.5';
 
 const domain=/^[a-z0-9._%+-]+@ac-paris\.fr$/i;
 const $=id=>document.getElementById(id);

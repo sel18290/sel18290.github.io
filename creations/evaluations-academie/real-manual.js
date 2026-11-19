@@ -1,5 +1,5 @@
 /* Espace réel : éditeur pédagogique question par question, inspiré de la démonstration. */
-import {api} from './coursework.js?v=2.7';
+import {api} from './coursework.js?v=2.8';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);

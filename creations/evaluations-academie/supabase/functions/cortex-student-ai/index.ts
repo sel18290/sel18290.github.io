@@ -34,10 +34,10 @@ async function identify(body){
  return {exam,studentNumber:session.student_number,classId:exam.class_id,teacherId:exam.teacher_id};
 }
 function safeEntries(list,max=3){
- if(!Array.isArray(list))throw Error('Analyse Albert incomplète.');
- const entries=list.slice(0,max).map(x=>({title:clean(x?.title,100),detail:clean(x?.detail,420)})).filter(x=>x.title.length>1&&x.detail.length>6);
- if(entries.length!==max)throw Error('Analyse Albert incomplète.');
- return entries;
+ // Un conseil pertinent vaut mieux qu'une erreur si Albert en retourne
+ // un ou deux au lieu du nombre exact demandé par le prompt.
+ if(!Array.isArray(list))return [];
+ return list.slice(0,max).map(x=>({title:clean(x?.title,100),detail:clean(x?.detail,420)})).filter(x=>x.title.length>1&&x.detail.length>6);
 }
 async function callAlbert(kind,payload){
  const key=Deno.env.get('ALBERT_API_KEY')||'';
@@ -87,14 +87,24 @@ Deno.serve(async req=>{
    const questions=Array.isArray(exam.content?.questions)?exam.content.questions:[];
    if(questions.length<1||questions.length>40)throw Error('Contrôle sans questions exploitables.');
    if(kind==='estimate'&&copy.file_path)throw Error('La copie contient un fichier joint que l’IA ne peut pas lire : estimation indisponible.');
-   if(kind==='estimate'&&(exam.content?.assets?.length||questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length)))
-    throw Error('Des documents graphiques sont nécessaires : estimation bloquée pour éviter une note trompeuse.');
-   if(kind==='estimate'&&exam.content?.sourceType&&questions.some(q=>!clean(q.doc,500)))
-    throw Error('Certains documents du PDF ne sont pas disponibles dans le sujet numérique : estimation suspendue.');
+   if(kind==='estimate'){
+    const shared=clean(exam.content?.doc,3600);
+    const converted=Boolean(exam.content?.sourceType||exam.content?.sourcePageCount);
+    const captures=Boolean(exam.content?.assets?.length||questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length));
+    if((converted||captures)&&questions.some(q=>clean(q.doc,300).length<65&&shared.length<150))
+     throw Error('Le document de certaines questions n’est pas transcrit : complète-le dans le contrôle avant de demander une estimation.');
+    if(captures&&questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length>0&&clean(q.doc,300).length<140&&shared.length<300))
+     throw Error('Une capture graphique manque de transcription : estimation suspendue pour éviter une note trompeuse.');
+   }
    items=questions.map((q,i)=>({
     id:String(q.id||('q'+i)).slice(0,45),numero:i+1,question:clean(q.prompt,1200),
     type:clean(q.type,35),max:Number(q.points)||0,
     document:clean(q.doc,2200),choix:Array.isArray(q.choices)?q.choices.slice(0,10).map(x=>clean(x,250)):[],
+    lignes_tableau:Array.isArray(q.tableRows)?q.tableRows.slice(0,8).map(x=>clean(x,100)):undefined,
+    colonnes_tableau:Array.isArray(q.tableColumns)?q.tableColumns.slice(0,6).map(x=>clean(x,100)):undefined,
+    colonnes_association:Array.isArray(q.pairs)?q.pairs.slice(0,8).map(x=>({gauche:clean(x.left,120),droite:clean(x.right,120)})):undefined,
+    champs_a_completer:Array.isArray(q.blanks)?q.blanks.slice(0,10).map(x=>clean(x,100)):undefined,
+    unite:clean(q.unit,30),
     reference:q.correct??q.correctIndices??null,
     reponse:clean(copy.answers?.[q.id]??'',1800)
    }));

@@ -136,6 +136,56 @@ if(qr||globalPortal){
   renderDashboardAi(work,{session:token,assessments});
    renderChatGPTNotebook(work,{assessments});
  }
+ // Relire sa véritable copie après remise, sans divulguer de corrigé avant
+ // la publication. Tous les formats de réponses sont restitués comme saisis.
+ function showSubmittedAnswers(receipt,exam,submission){
+  const questions=Array.isArray(exam.questions)?exam.questions:[];
+  const answers=submission?.answers&&typeof submission.answers==='object'?submission.answers:{};
+  const supplied=questions.filter(q=>{
+   const val=answers[q.id];
+   return typeof val==='string'&&val.trim().length>0;
+  }).length;
+  const details=E('details','cw-student-my-answers');
+  const summary=E('summary','cw-student-my-answers-toggle',
+   '📋 Voir les réponses de ma copie ('+supplied+' / '+questions.length+' questions renseignées)');
+  const info=E('p','cw-student-my-answers-info',
+   'Ces réponses sont celles enregistrées lors de ta remise. Elles ne constituent pas un corrigé officiel.');
+  const list=E('div','cw-student-my-answers-list');
+  let populated=false;
+  const populate=()=>{
+   if(populated)return;
+   populated=true;
+   if(!questions.length){
+    list.append(E('p','cw-student-empty','Aucune question structurée n’est associée à ce contrôle.'));
+    return;
+   }
+   for(const [i,q] of questions.entries()){
+    const raw=typeof answers[q.id]==='string'?answers[q.id]:'';
+    const item=E('section','cw-student-my-answer'+(!raw.trim()?' is-empty':''));
+    item.append(E('strong','',(i+1)+'. '+q.prompt),
+     E('small','','Barème de la question : '+Number(q.points||0)+' point(s)'));
+    let human=raw;
+    try{human=window.CORTEX_QUESTION_TYPES?.summary?.(q,raw)||raw}
+    catch{human=raw}
+    item.append(E('p','cw-student-my-answer-value',raw.trim()?human:'Aucune réponse remise.'));
+    list.append(item);
+   }
+  };
+  details.append(summary,info,list);
+  details.addEventListener('toggle',()=>{if(details.open)populate()});
+  receipt.append(details);
+  if(submission?.file_name){
+   if(submission.file_url){
+    const file=E('a','cw-student-file-download',
+     '📎 Ouvrir la copie jointe : '+submission.file_name);
+    file.href=submission.file_url;file.target='_blank';file.rel='noopener noreferrer';
+    receipt.append(file);
+   }else{
+    receipt.append(E('p','cw-student-my-answers-info',
+     'Fichier joint enregistré : '+submission.file_name+'. Si son lien a expiré, clique sur « Actualiser ma correction ».'));
+   }
+  }
+ }
  function renderExam(){
   releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
@@ -160,7 +210,7 @@ if(qr||globalPortal){
   if(submitted){
    const receipt=E('section','cw-student-receipt');
    receipt.append(E('h3','','✓ Copie reçue par le professeur'),E('p','','Remise le '+new Date(submitted.submitted_at).toLocaleString('fr-FR')));
-   if(submitted.file_name)receipt.append(E('p','','Document remis : '+submitted.file_name));
+   showSubmittedAnswers(receipt,exam,submitted);
    if(submitted.graded){
     receipt.append(E('h3','cw-receipt-grade','Ma note : '+submitted.grade+' / 20'),E('p','',submitted.feedback||'Aucun commentaire.'));
    }else receipt.append(E('p','','Ta note et tes conseils seront visibles après publication par le professeur.'));

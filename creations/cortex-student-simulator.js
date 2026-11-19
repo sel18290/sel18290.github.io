@@ -65,7 +65,9 @@ window.CORTEX_STUDENT_SIMULATOR=(function(){
       for(const a of refs){const figure=create('figure'),img=create('img');img.src=a.url;img.alt='Document pédagogique : '+(a.name||'Capture');figure.append(img,create('figcaption','',a.name||'Document'));images.append(figure);}
       article.append(images);
      }
-     if(q.doc)article.append(create('div','cortex-sim-doc-text',q.doc));
+     const istVisual=window.CORTEX_IST_VISUALS?.render?.(q);
+     if(istVisual)article.append(istVisual);
+     else if(q.doc)article.append(create('div','cortex-sim-doc-text',q.doc));
      if(q.page&&subject?.url){const link=create('a','cortex-sim-subject','Consulter le document original · page '+q.page);link.href=subject.url;link.target='_blank';link.rel='noopener noreferrer';article.append(link);}
      const fields=create('div','cortex-sim-fields');fields.innerHTML=Q().studentFields(q,answers[q.id]||'');article.append(fields);
      group.append(article);

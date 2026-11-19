@@ -507,18 +507,40 @@ async function studentAction(action,body,form){
      /^(\d)\1{5}$/.test(chosen))
    throw Error('Numéro invalide ou PIN trop simple. Choisis six chiffres, puis confirme-les.');
   const registrationToken=String(body.registration_token||'').toLowerCase();
-  if(!/^[a-f0-9]{40}$/.test(registrationToken))
-   throw Error('Pour créer ton PIN, ouvre le lien temporaire transmis par ton professeur.');
-  const {data:access,error:accessError}=await admin.from('cortex_academy_class_access')
-   .select('*').eq('registration_token_hash',await digest(registrationToken))
-   .eq('active',true).maybeSingle();
-  if(accessError)throw Error('Vérification de l’inscription indisponible.');
+  let access=null;
+  if(registrationToken){
+   if(!/^[a-f0-9]{40}$/.test(registrationToken))
+    throw Error('Lien temporaire invalide. Demande au professeur de rouvrir la création des PIN.');
+   const {data,error}=await admin.from('cortex_academy_class_access')
+    .select('*').eq('registration_token_hash',await digest(registrationToken))
+    .eq('active',true).maybeSingle();
+   if(error)throw Error('Vérification de l’inscription indisponible.');
+   access=data;
+  }else if(joinCode){
+   // Un QR de contrôle est une invitation valide uniquement pendant
+   // les 30 minutes d'inscription ouvertes par le professeur.
+   if(!/^[a-f0-9]{40}$/.test(joinCode))throw Error('QR code de contrôle invalide.');
+   const {data:examAccess,error:qrError}=await admin.from('cortex_academy_access')
+    .select('assessment_id,teacher_id').eq('join_code',joinCode).eq('active',true).maybeSingle();
+   if(qrError)throw Error('Vérification du QR temporairement indisponible.');
+   if(!examAccess)throw Error('Ce contrôle est fermé ou son QR code est invalide.');
+   const {data:assessment,error:assessmentError}=await admin.from('cortex_teacher_assessments')
+    .select('class_id,teacher_id,published').eq('id',examAccess.assessment_id)
+    .eq('teacher_id',examAccess.teacher_id).eq('published',true).maybeSingle();
+   if(assessmentError)throw Error('Vérification du contrôle temporairement indisponible.');
+   if(!assessment?.class_id)throw Error('Ce contrôle ne permet pas de créer un PIN commun de classe. Contacte ton professeur.');
+   const {data:classAccess,error:classError}=await admin.from('cortex_academy_class_access')
+    .select('*').eq('class_id',assessment.class_id).eq('teacher_id',examAccess.teacher_id)
+    .eq('active',true).maybeSingle();
+   if(classError)throw Error('Vérification de la classe temporairement indisponible.');
+   access=classAccess;
+  }else throw Error('Ouvre le QR code de ton contrôle ou le lien temporaire donné par ton professeur.');
   if(access&&classCode&&classCode!==access.portal_code)
    throw Error('Le lien d’inscription ne correspond pas à la classe choisie.');
-  if(!access)throw Error('Classe indisponible. Demande le lien d’accès à ton professeur.');
+  if(!access)throw Error('Classe indisponible. Demande au professeur de préparer les accès.');
   if(!access.registration_open_until||
      new Date(access.registration_open_until).getTime()<=Date.now())
-   throw Error('La création de PIN est fermée. Demande à ton professeur de l’ouvrir pendant 30 minutes.');
+   throw Error('Le QR code est bien reconnu, mais la création de PIN est fermée. Demande à ton professeur de cliquer sur « Ouvrir la création des PIN par ce QR · 30 min » depuis ce contrôle.');
   if(number>access.roster_size)throw Error('Numéro en dehors de la liste. Vérifie avec ton professeur.');
   const {data:cred,error:readErr}=await admin.from('cortex_academy_class_roster')
    .select('student_number,pin_digest,activated_at,locked_until,demi_groupe')

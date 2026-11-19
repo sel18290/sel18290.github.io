@@ -59,3 +59,21 @@ body.academy-authenticated[data-acad-view="creer"] #prof-content>:not(#prof-asse
 #prof-assessments .tile .tile-foot{margin-top:auto;border-top-color:rgba(203,230,243,.35)}
 #prof-assessments .cortex-exam-class-heading{display:inline-flex;align-items:center;max-width:100%;padding:7px 10px;border:1px solid rgba(160,234,221,.66);border-radius:9px;background:rgba(17,58,71,.48);font-size:12px;font-weight:850;color:#d0ffed;overflow-wrap:anywhere}
 .cortex-publish-body .cortex-publish-class-line{font-size:14px;color:#baffea;font-weight:800}
+
+
+/* Duplication d'un contrôle dans une autre classe : mobile-first. */
+.cortex-publish-dialog.cortex-duplicate-dialog{
+ box-sizing:border-box;max-height:calc(100dvh - 24px);
+ overflow-y:auto;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+}
+.cortex-duplicate-dialog .cortex-publish-body{
+ padding:clamp(14px,4vw,24px);
+}
+.cortex-duplicate-dialog .cortex-publish-body :is(select,input){
+ min-height:48px;
+ font-size:16px;
+}
+.cortex-duplicate-dialog .cortex-publish-actions button{
+ min-height:48px;
+}

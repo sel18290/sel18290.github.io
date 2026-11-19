@@ -125,7 +125,7 @@ if(qr||globalPortal){
    }
    if(assessment.submitted_at)submitted++;
    if(assessment.available||assessment.submitted_at){
-    card.append(button(assessment.submitted_at?'Voir ma copie et ma correction →':'Démarrer ce contrôle →','cw-accent',()=>loadExam(assessment.id)));
+    card.append(button(assessment.submitted_at?(assessment.released?'Voir ma copie corrigée →':'Voir ma copie remise →'):'Démarrer ce contrôle →','cw-accent',()=>loadExam(assessment.id)));
    }
    cards.append(card);
   }

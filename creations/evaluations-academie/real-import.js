@@ -1,5 +1,5 @@
 /* CORTEX ACADÉMIE — atelier PDF/Word réel : source, questions, extraits privés. */
-import {api} from './coursework.js?v=2.6';
+import {api} from './coursework.js?v=2.7';
 const by=id=>document.getElementById(id);
 const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
 const state={file:null,pdf:null,kind:'',name:'',pages:[],page:1,questions:[],id:null,assets:[],selected:null,

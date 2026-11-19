@@ -83,7 +83,7 @@ function osmQuery(lat,lon,radius,sector,chosen){
  const latOffset=(radius+200)/111320,lonOffset=latOffset/Math.cos(lat*Math.PI/180);
  const box=[lat-latOffset,lon-lonOffset,lat+latOffset,lon+lonOffset].map(n=>n.toFixed(6)).join(",");
  const items=rules.map(rule=>"nwr"+rule+"[\"name\"]("+box+");").join("\n");
- return "[out:json][timeout:8];(\n"+items+"\n);out center 2500;";
+ return "[out:json][timeout:8];(\n"+items+"\n);out center;";
 }
 async function osm(query,endpoint="https://overpass.private.coffee/api/interpreter",timeout=10000){
  const url=new URL(endpoint);
@@ -123,7 +123,8 @@ function entries(elements,loc,radius,sector,chosen){
    [t["addr:housenumber"],t["addr:street"]].filter(Boolean).join(" "),
    [t["addr:postcode"],t["addr:city"]].filter(Boolean).join(" ")
   ].filter(Boolean).join(", "),220);
-  const unique=(name+"|"+address).toLowerCase();if(dedup.has(unique))continue;dedup.add(unique);
+  const unique=(name+"|"+(address||lat.toFixed(4)+","+lon.toFixed(4))).toLowerCase();
+  if(dedup.has(unique))continue;dedup.add(unique);
   const site=clean(t["contact:website"]||t.website,220);
   data.push({id:String(item.type)+"/"+String(item.id),name,address,
    phone:publicPhone(t["contact:phone"])||publicPhone(t.phone),
@@ -134,7 +135,7 @@ function entries(elements,loc,radius,sector,chosen){
    source:"OpenStreetMap",albert_rank:null,albert_why:"",missions:[]});
  }
  data.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id));
- return data.slice(0,160);
+ return data;
 }
 
 // L’annuaire classe les unités légales par code APE. Les adresses et distances
@@ -178,24 +179,26 @@ const registryActivities={
  }
 };
 
-async function registry(loc,radius,sector,chosen){
+async function registry(loc,radius,sector,chosen,page,branches){
  const activityByType=registryActivities[sector];
  const codes=[...new Set(chosen.flatMap(id=>activityByType[id]||[]))];
  const url=new URL("https://recherche-entreprises.api.gouv.fr/near_point");
  url.search=new URLSearchParams({
   lat:String(loc.lat),long:String(loc.lon),radius:String(Math.ceil(radius/1000)),
-  activite_principale:codes.join(","),etat_administratif:"A",per_page:"25",
-  limite_matching_etablissements:"8",minimal:"true",include:"matching_etablissements,siege"
+  activite_principale:codes.join(","),etat_administratif:"A",per_page:"25",page:String(page),
+  limite_matching_etablissements:"100",page_etablissements:String(branches),minimal:"true",include:"matching_etablissements,siege"
  }).toString();
  const response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},9000);
  if(!response.ok)throw Error("HTTP "+response.status);
  const payload=await response.json();
  if(!Array.isArray(payload.results))throw Error("Réponse invalide");
  const results=new Map();
+ let nextBranchPage=false;
  for(const firm of payload.results){
   if(firm.etat_administratif!=="A"||firm.statut_diffusion==="P")continue;
   const establishments=Array.isArray(firm.matching_etablissements)?firm.matching_etablissements:[];
-  for(const place of [...establishments,firm.siege].filter(Boolean)){
+  if(establishments.length===100)nextBranchPage=true;
+  for(const place of [...establishments,branches===1?firm.siege:null].filter(Boolean)){
    if(place.etat_administratif!=="A"||place.statut_diffusion_etablissement==="P")continue;
    if(!/^\d{14}$/.test(String(place.siret||""))||!place.latitude||!place.longitude)continue;
    const id="siret/"+place.siret;
@@ -215,7 +218,9 @@ async function registry(loc,radius,sector,chosen){
     albert_rank:null,albert_why:"",missions:[]});
   }
  }
- return [...results.values()].sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id)).slice(0,100);
+ const next=nextBranchPage?{page,branches:branches+1}
+  :page<Number(payload.total_pages)?{page:page+1,branches:1}:null;
+ return {places:[...results.values()],next};
 }
 
 function contactName(name){
@@ -229,8 +234,14 @@ function sameBusiness(first,second){
 }
 function combineDirectories(mapPlaces,registryPlaces){
  const combined=[...mapPlaces];
+ const mappedNames=new Map();
+ for(const place of mapPlaces){
+  const name=contactName(place.name);
+  if(!mappedNames.has(name))mappedNames.set(name,[]);
+  mappedNames.get(name).push(place);
+ }
  for(const official of registryPlaces){
-  const matches=mapPlaces.filter(place=>sameBusiness(official,place));
+  const matches=(mappedNames.get(contactName(official.name))||[]).filter(place=>sameBusiness(official,place));
   if(matches.length!==1){
    combined.push(official);
    continue;
@@ -239,18 +250,24 @@ function combineDirectories(mapPlaces,registryPlaces){
   if(!mapPlace.address)mapPlace.address=official.address;
   mapPlace.source="OpenStreetMap et Annuaire des entreprises";
  }
- return combined.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id)).slice(0,160);
+ return combined.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id));
 }
-async function lookup(loc,radius,sector,chosen){
+async function lookup(loc,radius,sector,chosen,page,branches){
+ const official=registry(loc,radius,sector,chosen,page,branches);
+ if(page!==1||branches!==1)return await official;
  const query=osmQuery(loc.lat,loc.lon,radius,sector,chosen);
  const publicMap=osm(query,"https://overpass.private.coffee/api/interpreter",5500)
   .catch(()=>osm(query,"https://overpass-api.de/api/interpreter",5500))
   .then(elements=>entries(elements,loc,radius,sector,chosen));
- const [mapResult,registryResult]=await Promise.allSettled([publicMap,registry(loc,radius,sector,chosen)]);
+ const [mapResult,registryResult]=await Promise.allSettled([publicMap,official]);
  if(mapResult.status==="rejected"&&registryResult.status==="rejected")
   throw Error("Les annuaires sont temporairement indisponibles.");
- return combineDirectories(mapResult.status==="fulfilled"?mapResult.value:[],
-  registryResult.status==="fulfilled"?registryResult.value:[]);
+ return {
+  places:combineDirectories(mapResult.status==="fulfilled"?mapResult.value:[],
+   registryResult.status==="fulfilled"?registryResult.value.places:[]),
+  next:registryResult.status==="fulfilled"?registryResult.value.next:null,
+  incomplete:registryResult.status==="rejected",
+ };
 }
 
 async function validStudent(token){
@@ -442,23 +459,26 @@ Deno.serve(async req=>{
   if(body.action==="prepare_contact")return await contactSuggestion(body,origin);
   if(body.action==="improve_application")return await applicationSuggestion(body,origin);
   const sector=clean(body.filiere,40),city=clean(body.city||"Paris 15e",90);
-  if(!sectors[sector])throw Error("Choisis une filière valide.");
+  if(!Object.hasOwn(sectors,sector))throw Error("Choisis une filière valide.");
   const niveau=clean(body.niveau,20);
   if(niveau&&!["seconde","premiere","terminale"].includes(niveau))throw Error("Niveau non valide.");
   const option=sector==="commerce-vente"?clean(body.optionCommerce||"toutes",10):"toutes";
   if(!["A","B","toutes"].includes(option))throw Error("Option commerce non valide.");
-  const inputTypes=Array.isArray(body.types)?body.types.slice(0,20).map(x=>clean(x,50)):[];
+  const inputTypes=Array.isArray(body.types)?body.types.map(x=>clean(x,50)):[];
   const chosen=categoryIds(sector,inputTypes,option);
   if(!chosen.length)throw Error("Sélectionne au moins un type de structure compatible avec ta filière.");
-  const radius=Math.min(6500,Math.max(800,Math.round(Number(body.radius)||2500)));
-  const loc=await geocode(city),places=await lookup(loc,radius,sector,chosen);
-  const ai=body.albert===true?await ranked(sector,places,clean(body.session,256),body.demo===true,niveau,option):
+  const radius=Math.min(50000,Math.max(800,Math.round(Number(body.radius)||2500)));
+  const page=body.continuation?.page??1,branches=body.continuation?.branches??1;
+  if(!Number.isSafeInteger(page)||page<1||!Number.isSafeInteger(branches)||branches<1)
+   throw Error("Page de recherche invalide.");
+  const loc=await geocode(city),{places,next,incomplete}=await lookup(loc,radius,sector,chosen,page,branches);
+  const ai=body.albert===true&&page===1&&branches===1?await ranked(sector,places,clean(body.session,256),body.demo===true,niveau,option):
    {enabled:false,reason:"Classement géographique",picks:[]};
   const map=new Map(ai.picks.map((x,i)=>[x.id,{...x,rank:i+1}]));
   for(const x of places){const match=map.get(x.id);if(match){x.albert_rank=match.rank;x.albert_why=match.why;x.missions=[match.missions].filter(Boolean)}}
   if(map.size)places.sort((a,b)=>(a.albert_rank||999)-(b.albert_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
   return respond({ok:true,filiere:sector,niveau,option_commerce:option,selected_types:chosen,city:loc.label,location:{lat:loc.lat,lon:loc.lon},radius,
-   businesses:places,found:places.length,ai,checked_at:new Date().toISOString(),
+   businesses:places,found:places.length,continuation:next,incomplete:incomplete===true,ai,checked_at:new Date().toISOString(),
    sources:[loc.source, ...new Set(places.map(place=>place.source))],
    note:"L'existence et l'acceptation de stagiaires ne sont pas garanties. Téléphones et adresses sont affichés uniquement lorsqu'ils figurent dans l'annuaire public."},200,origin);
  }catch(e){return respond({ok:false,error:clean(e?.message||"Recherche indisponible.",300)},400,origin)}

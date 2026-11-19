@@ -5,7 +5,7 @@
   const ENDPOINT = 'https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search';
   const GUIDE = window.CORTEX_STAGE_GUIDE;
   const SECTORS = Object.entries(GUIDE.programs).map(([id, program]) => [id, program.label]);
-  const RADII = [1200, 2500, 4000, 6500];
+  const RADII = [1200, 2500, 4000, 6500, 10000, 20000, 50000];
   const PAGE_SIZE = 12;
   const CACHE_AGE = 48 * 60 * 60 * 1000;
   const STATES = {
@@ -215,6 +215,7 @@
             <label for="cs-stage-radius">Rayon<select id="cs-stage-radius">
               <option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>
               <option value="4000">4 km</option><option value="6500">6,5 km</option>
+              <option value="10000">10 km</option><option value="20000">20 km</option><option value="50000">50 km</option>
             </select></label>
           </div>
           <details class="cs-stage-kinds" id="cs-stage-kinds">
@@ -254,6 +255,7 @@
         <p class="cs-stage-matches" id="cs-stage-matches" aria-live="polite"></p>
         <div class="cs-stage-cards" id="cs-stage-cards"></div>
         <button type="button" id="cs-stage-more" class="cs-stage-quiet cs-stage-more" hidden></button>
+        <button type="button" id="cs-stage-show-all" class="cs-stage-quiet" hidden>Tout afficher</button>
       </section>
       <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
     </div>
@@ -313,7 +315,7 @@
     const mode = settings.demo ? 'demo' : 'real';
     const scope = encodeURIComponent(settings.storageScope || 'public');
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
-    const cacheKey = 'cortex-stage-cache:v5:' + mode;
+    const cacheKey = 'cortex-stage-cache:v6:' + mode;
     const saved = read(key, {});
     const identity = saved.identity || {};
     const drafts = Object.assign(Object.create(null), saved.drafts || {});
@@ -604,11 +606,15 @@
       save(cacheKey, [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8));
     }
 
-    function showResult(data, query, focusResults, fromCache = false) {
-      const unique = new Map();
-      for (const item of data.businesses) {
+    function showResult(data, query, focusResults, fromCache = false, added = null) {
+      const unique = added ? result.unique : new Map();
+      const mapAddresses = added ? result.mapAddresses : new Set();
+      for (const item of added || data.businesses) {
         const place = placeFrom(item);
         if (!place || unique.has(place.id)) continue;
+        const addressKey = place.address && normalize(place.name + ' ' + place.address);
+        if (place.id.startsWith('siret/') && addressKey && mapAddresses.has(addressKey)) continue;
+        if (/^(node|way|relation)\//.test(place.id) && addressKey) mapAddresses.add(addressKey);
         unique.set(place.id, place);
         if (legacyIds.has(place.id) && !board.has(place.id)) {
           legacyIds.delete(place.id);
@@ -617,17 +623,19 @@
       }
       if (legacyIds.size !== legacy.length && save('cortex-stage-favoris:v1', [...legacyIds])) persist();
       boardChanged();
-      result = { data, query, places: [...unique.values()], fromCache };
-      pageLimit = PAGE_SIZE;
-      $('filter').value = 'all';
-      $('sort').value = 'default';
+      result = { data, query, unique, mapAddresses, places: [...unique.values()], fromCache };
+      if (!added) {
+        pageLimit = PAGE_SIZE;
+        $('filter').value = 'all';
+        $('sort').value = 'default';
+      }
       const count = unique.size;
       $('result-title').textContent = count ? count + ' ' + plural(count, 'lieu repéré', 'lieux repérés') : 'Aucun lieu repéré';
       const routeLabel = query.option === 'toutes' ? '' : ' · Option ' + query.option;
       $('result-context').textContent = (clean(data.city) || query.city) + ' · ' + numbers.format(query.radius / 1000) +
         ' km · ' + GUIDE.programs[query.sector].label + routeLabel;
       const ranked = result.places.some(place => place.rank);
-      const aiCopy = ranked ? 'Albert a classé des lieux répertoriés selon la filière. Vérifie les missions proposées lors du premier contact.'
+      const aiCopy = ranked ? 'Albert met en avant des lieux adaptés. Toutes les autres pistes restent dans la liste.'
         : query.albert && count > 0 ? 'Tri par distance : Albert n’a pas proposé de classement pour cette recherche.'
         : 'Tri par distance depuis le centre de la zone recherchée.';
       const checked = data.checked_at && !Number.isNaN(Date.parse(data.checked_at))
@@ -635,7 +643,9 @@
       const registry = result.places.some(place => place.id.startsWith('siret/'));
       $('ai-note').textContent = aiCopy + (registry ? ' · Adresses issues de l’Annuaire des entreprises' : '') +
         (checked ? ' · Annuaire consulté le ' + checked : '') +
-        (fromCache ? ' · Résultats enregistrés' : '');
+        (fromCache ? ' · Résultats enregistrés' : '') +
+        (data.continuation ? ' · Chargement des pages suivantes…' : '') +
+        (data.incomplete ? ' · Une partie des résultats est disponible' : '');
       $('results').hidden = false;
       $('filters').hidden = !count;
       renderCards();
@@ -676,25 +686,48 @@
       pending = request;
       status('');
       setBusy(query);
-      const timer = setTimeout(() => request.abort('timeout'), 120000);
+      let data;
       try {
-        const response = await fetch(ENDPOINT, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
-            optionCommerce: query.option, types: query.types, radius: query.radius, albert: query.albert,
-            demo: settings.demo === true, session: query.albert ? settings.session || '' : '' }),
-          signal: request.signal
-        });
-        const data = await response.json();
-        if (!response.ok || !data.ok || !Array.isArray(data.businesses)) {
-          throw new Error(clean(data.error) || 'Annuaire indisponible.');
-        }
-        if (destroyed || browserRequestChanged(request)) return;
-        remember(query, data);
-        showResult(data, query, focus);
+        do {
+          const continuation = data?.continuation;
+          const timer = setTimeout(() => request.abort('timeout'), 60000);
+          let batch;
+          try {
+            const response = await fetch(ENDPOINT, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
+                optionCommerce: query.option, types: query.types, radius: query.radius,
+                albert: !continuation && query.albert, continuation,
+                demo: settings.demo === true, session: !continuation && query.albert ? settings.session || '' : '' }),
+              signal: request.signal
+            });
+            batch = await response.json();
+            if (!response.ok || !batch.ok || !Array.isArray(batch.businesses)) {
+              throw new Error(clean(batch.error) || 'Annuaire indisponible.');
+            }
+          } finally {
+            clearTimeout(timer);
+          }
+          if (destroyed || browserRequestChanged(request)) return;
+          if (data) {
+            data.businesses.push(...batch.businesses);
+            data.continuation = batch.continuation;
+            data.incomplete = batch.incomplete;
+            showResult(data, query, false, false, batch.businesses);
+          } else {
+            data = batch;
+            showResult(data, query, focus);
+          }
+        } while (data.continuation);
+        if (!data.incomplete) remember(query, data);
       } catch (error) {
         if (destroyed || browserRequestChanged(request)) return;
+        if (data) {
+          markPartial();
+          status('L’annuaire n’a pas renvoyé la suite. Les lieux déjà trouvés restent consultables.');
+          return;
+        }
         if (request.signal.aborted && request.signal.reason !== 'timeout') {
           status('Recherche annulée.');
           return;
@@ -709,12 +742,18 @@
           status('L’annuaire ne répond pas. Réessaie, réduis le rayon ou désactive le classement Albert.', true);
         }
       } finally {
-        clearTimeout(timer);
         if (pending === request) {
           pending = null;
           if (!destroyed) setBusy(null);
         }
       }
+    }
+
+    function markPartial() {
+      if (!result?.data.continuation) return;
+      result.data.continuation = null;
+      result.data.incomplete = true;
+      showResult(result.data, result.query, false, false, []);
     }
 
     function browserRequestChanged(request) {
@@ -730,6 +769,7 @@
       if (!pending) return;
       pending.abort();
       pending = null;
+      markPartial();
       setBusy(null);
       status('Recherche annulée.');
       $('submit').focus();
@@ -775,6 +815,7 @@
       $('matches').textContent = count ? Math.min(pageLimit, shown.length) + ' / ' + shown.length + ' affichés' : '';
       $('export').disabled = !shown.length;
       $('more').hidden = shown.length <= pageLimit;
+      $('show-all').hidden = shown.length <= pageLimit;
       $('more').textContent = 'Afficher ' + Math.min(PAGE_SIZE, Math.max(0, shown.length - pageLimit)) + ' lieux de plus';
 
       if (!shown.length) {
@@ -857,6 +898,16 @@
     $('more').addEventListener('click', () => {
       const firstNew = pageLimit;
       pageLimit += PAGE_SIZE;
+      renderCards();
+      const next = $('cards').children[firstNew]?.querySelector('h3');
+      if (next) {
+        next.tabIndex = -1;
+        next.focus();
+      }
+    });
+    $('show-all').addEventListener('click', () => {
+      const firstNew = pageLimit;
+      pageLimit = Infinity;
       renderCards();
       const next = $('cards').children[firstNew]?.querySelector('h3');
       if (next) {

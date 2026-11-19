@@ -88,7 +88,6 @@
  };
  function mount(container,settings={}){
   if(!container)return;
-  const classes=(settings.classes||[]).map(x=>typeof x==="string"?x:(x.code||x.name||x.display_name||"")).filter(Boolean);
   const currentClass=clean(settings.className||"");
   let state=null,all=[],shown=[],controller=null,destroyed=false;
   const favorites=new Set(loadJson(favKey,[]));
@@ -101,7 +100,6 @@
    '<form class="cs-stage-form" id="cs-stage-form">'+
    '<label>Mon niveau<select id="cs-stage-level" required><option value="">Choisir mon niveau</option>'+
    '<option value="seconde">Seconde</option><option value="premiere">Première</option><option value="terminale">Terminale</option></select></label>'+
-   '<label>Ma classe / mon groupe<select id="cs-stage-class"></select></label>'+
    '<label>Ma filière<select id="cs-stage-sector" required></select></label>'+
    '<label class="cs-stage-option-field" id="cs-stage-option-wrap" hidden>Mon orientation commerciale'+
    '<select id="cs-stage-option"><option value="toutes">Toutes les orientations / à préciser</option>'+
@@ -139,18 +137,13 @@
    '</section>';
   container.replaceChildren(section);
   const $=id=>section.querySelector("#"+id);
-  const classSelect=$("cs-stage-class"),sectorSelect=$("cs-stage-sector");
+  const sectorSelect=$("cs-stage-sector");
   const levelSelect=$("cs-stage-level"),optionSelect=$("cs-stage-option");
   const savedTypes=Object.fromEntries(Object.entries(TYPES).map(([key,values])=>[key,new Set(values.map(x=>x[0]))]));
-  const chooseClass=classes.length?classes:[currentClass||"Autre classe"];
-  const classOptions=new Set([...chooseClass,currentClass].filter(Boolean));
-  for(const value of classOptions){const option=E("option","",value);option.value=value;classSelect.append(option)}
-  if(currentClass&&!classOptions.has(currentClass)){const option=E("option","",currentClass);option.value=currentClass;classSelect.append(option)}
-  if(currentClass)classSelect.value=currentClass;
   for(const [value,label] of SECTORS){const option=E("option","",label);option.value=value;sectorSelect.append(option)}
-  const inferred=(currentClass||classSelect.value)+" "+(settings.filiere||"");
+  const inferred=currentClass+" "+(settings.filiere||"");
   sectorSelect.value=inferSector(inferred);
-  levelSelect.value=inferLevel(currentClass||classSelect.value);
+  levelSelect.value=inferLevel(currentClass);
   if(!levelSelect.value)levelSelect.value="";
   function availableTypes(){
    const option=sectorSelect.value==="commerce-vente"?optionSelect.value:"toutes";
@@ -185,12 +178,6 @@
   }
   sectorSelect.addEventListener("change",renderTypes);
   optionSelect.addEventListener("change",renderTypes);
-  classSelect.addEventListener("change",()=>{
-   const level=inferLevel(classSelect.value);
-   if(level)levelSelect.value=level;
-   sectorSelect.value=inferSector(classSelect.value);
-   renderTypes();
-  });
   $("cs-stage-all-types").addEventListener("click",()=>{
    for(const [id] of availableTypes())savedTypes[sectorSelect.value].add(id);
    renderTypes();

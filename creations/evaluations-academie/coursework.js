@@ -3,7 +3,7 @@
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
 import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.3';
-import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.0';
+import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.1';
 import {openAlbertProgress} from './albert-progress-real.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);

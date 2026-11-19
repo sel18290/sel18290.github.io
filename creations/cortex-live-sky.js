@@ -14,7 +14,7 @@
  const examPause=()=>lowPower&&document.body.classList.contains('cw-student-active');
  const fps=lowPower?20:30;
  const frameMs=1000/fps;
- let last=0,raf=0,layers=[],resizeQueued=false,heroObserver=null;
+ let last=0,raf=0,layers=[],resizeQueued=false,heroObserver=null,mobileCanvasWidth=innerWidth;
  const colors=[[198,225,255],[172,196,255],[234,244,255],[132,211,251],[212,198,255]];
  const rand=(a,b)=>a+Math.random()*(b-a);
  function makeCanvas(parent,local){
@@ -147,6 +147,12 @@
  }
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0}
  function onResize(){
+  // Sur iOS, l'apparition du clavier et les barres Safari déclenchent de
+  // nombreux resize de hauteur : ne pas redessiner le ciel à chaque défilement.
+  if(lowPower){
+   if(Math.abs(innerWidth-mobileCanvasWidth)<20)return;
+   mobileCanvasWidth=innerWidth;
+  }
   if(resizeQueued)return;
   resizeQueued=true;
   requestAnimationFrame(()=>{resizeQueued=false;for(const layer of layers)resize(layer);if(lowPower)start()});

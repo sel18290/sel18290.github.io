@@ -287,3 +287,39 @@
 @media (prefers-reduced-motion:reduce){
  .cw-mobile-question-chip,.cw-mobile-pager-arrow{transition:none!important}
 }
+
+/* Partage iPhone : tableaux et onglets de l'espace professeur.
+ * Ne pas couper la chaîne native de défilement de Safari.
+ */
+@media (pointer:coarse) and (max-width:950px){
+ html:has(body.cortex-noctis:not(.cortex-preaccess)){
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch
+ }
+ body.cortex-noctis:not(.cortex-preaccess){
+  min-height:100dvh;
+  height:auto;
+  overscroll-behavior-y:auto
+ }
+ body.cortex-noctis :is(
+  .cq-table-scroller,
+  .table-wrap,
+  .review-question-scroll,
+  .real-manual-question-tabs,
+  .visual-steps,
+  .cw-pin-table
+ ){
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+  overscroll-behavior-x:auto!important
+ }
+ body.cortex-noctis :is(.real-manual-question-tabs,.review-question-scroll){
+  max-width:100%;
+  min-width:0;
+  overflow-x:auto
+ }
+ body.cortex-noctis :is(
+  .visual-page-stage,.real-manual-original,
+  .cw-student-source-snippets,.cw-student-assessment-list
+ ){min-width:0;max-width:100%}
+}

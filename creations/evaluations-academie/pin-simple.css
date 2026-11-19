@@ -1,0 +1,95 @@
+/* CORTEX Noctis — PIN simplifiés, même parcours que la démonstration.
+   Les contrôles serveur restent la référence pour l'accès et les sessions. */
+.cw-pin-entry{
+ max-width:610px;margin:0 auto;padding:18px;
+ background:radial-gradient(ellipse at 95% 0%,#6f66bb22,transparent 49%),
+ linear-gradient(130deg,#15233d,#102b40);
+ border:1px solid #657cb5;border-radius:18px;
+ box-shadow:0 10px 35px #02091873,inset 0 1px #edf4ff19;
+}
+.cw-pin-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:17px}
+.cw-pin-path{
+ border:1px solid #7788ba;border-radius:12px;
+ padding:11px 9px;min-height:54px;cursor:pointer;
+ color:#d9e5fa;background:#172741;font-size:13px;font-weight:800;
+ line-height:1.3;letter-spacing:.005em;
+ transition:background .18s,border-color .18s,box-shadow .18s;
+}
+.cw-pin-path.is-selected{
+ background:linear-gradient(120deg,#c6c9fc,#a4d6fd);
+ border-color:#e9ebff;color:#122044;
+ box-shadow:0 6px 17px #739cdd25,inset 0 1px #fff8;
+}
+.cw-pin-path:focus-visible{outline:3px solid #bcdcff;outline-offset:3px}
+.cw-pin-intro{padding:12px 14px;margin-bottom:15px;border-radius:12px;
+ background:#101f36;border:1px solid #4f7294}
+.cw-pin-intro strong{color:#f6f8ff;font-weight:850;font-size:14px}
+.cw-pin-intro p{margin:6px 0 0;font-size:12px;color:#b7cbe3;line-height:1.65}
+.cw-pin-entry .cw-student-login-form{gap:14px}
+.cw-pin-entry .cw-student-login-form>label{font-size:13px;font-weight:800;color:#dceaff}
+.cw-pin-entry .cw-student-login-form :is(input,select){
+ color:#f7fbff;background:#0c2134;border:1px solid #6d8bb1;
+ min-height:51px;font-size:16px;
+}
+.cw-pin-entry .cw-student-login-form :is(input,select):focus-visible{outline:2px solid #abdcff;outline-offset:2px}
+.cw-pin-input-wrap{display:flex;align-items:stretch;gap:7px;min-width:0}
+.cw-pin-entry .cw-pin-input-wrap input{min-width:0;flex:1;width:100%;letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.cw-pin-eye{
+ box-sizing:border-box;min-width:80px;padding:8px 10px;min-height:51px;
+ border-radius:10px;border:1px solid #7e9cd3;background:#24375a;
+ color:#dfeafa;font-size:12px;font-weight:850;cursor:pointer;
+}
+.cw-pin-eye:focus-visible{outline:2px solid #b6d9ff;outline-offset:2px}
+.cw-pin-entry .cw-activation-form{
+ padding:15px;margin:0;border:1px solid #6c80be;border-radius:13px;
+ background:linear-gradient(135deg,#172943,#16243c);
+ box-shadow:inset 0 1px #d9e9ff16;
+}
+.cw-pin-entry .cw-activation-heading>span{font-size:10px;color:#bcbaff;letter-spacing:.14em}
+.cw-pin-entry .cw-activation-heading h2{font-size:24px;line-height:1.2;color:#f9faff}
+.cw-pin-entry .cw-activation-heading p{color:#c1d4ec;font-size:12px;line-height:1.65}
+.cw-pin-group-choice{padding:10px 12px;border:1px solid #4a7296;border-radius:10px;background:#132e42;color:#d6ecff}
+.cw-pin-group-choice summary{font-size:13px;font-weight:800;cursor:pointer;min-height:28px}
+.cw-pin-group-choice>label{margin-top:11px}
+.cw-pin-group-choice small{display:block;margin-top:7px;font-size:11px;line-height:1.45;color:#aac7db}
+.cw-pin-entry .cw-student-login-form label[for="cw-activation-group"]{
+ background:transparent;border:0;border-radius:0;padding:0;color:#e2f0ff;
+}
+.cw-pin-entry .cw-student-login-form #cw-activation-group{
+ min-height:49px;border:1px solid #7b9bbf;background:#0c2134;color:#fff;font-size:15px;
+}
+.cw-pin-privacy{margin:0;padding:9px 11px;border-radius:9px;
+ background:#102c40;color:#c3e7ef;font-size:12px;line-height:1.5}
+.cw-pin-entry .cw-student-submit{
+ width:100%;min-height:53px;border:1px solid #d4ddff;
+ border-radius:12px;background:linear-gradient(110deg,#d4d0ff,#a4d7ff);
+ color:#0c2646;font-weight:900;font-size:15px;
+ box-shadow:0 5px 0 #354f86,0 10px 22px #020c1b4f;
+}
+.cw-pin-entry .cw-student-submit:hover{filter:brightness(1.06)}
+.cw-pin-entry .cw-student-submit:active{transform:translateY(2px);box-shadow:0 3px 0 #354f86}
+.cw-pin-entry .cw-student-help{margin:15px 0 1px;color:#b5cbdc;line-height:1.6;font-size:11px}
+.cw-class-card .cw-card-head{align-items:flex-start}
+.cw-class-card .cw-pill.cw-open{background:#303c6b;border-color:#929fe9;color:#e4ecff}
+.cw-class-card .cw-publish-row{align-items:center}
+.cw-class-card .cw-publish-row .cw-accent{min-height:49px;white-space:normal}
+.cw-class-card .cw-class-share{
+ border-color:#5b79a5;background:linear-gradient(135deg,#172d46,#1d2945);
+}
+.cw-pin-class-hint{margin:9px 0;padding:11px;border-radius:11px;
+ border:1px solid #6088ae;background:#173148;color:#d7efff;
+ font-size:12px;line-height:1.6}
+.cw-class-card .cw-reset-row{display:flex;flex-wrap:wrap;gap:8px}
+.cw-class-card .cw-reset-row input{min-width:110px;flex:1 1 120px}
+.cw-class-card .cw-reset-row button{flex:2 1 190px;min-height:44px}
+@media(max-width:680px){
+ .cw-pin-entry{padding:12px;border-radius:14px}
+ .cw-pin-path{font-size:12px;padding:10px 7px;min-height:54px}
+ .cw-pin-intro{padding:11px}
+ .cw-pin-entry .cw-activation-form{padding:11px}
+ .cw-pin-entry .cw-activation-heading h2{font-size:22px}
+ .cw-pin-eye{min-width:74px;padding:8px 7px}
+ .cw-class-card .cw-publish-row{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+ .cw-class-card .cw-publish-row button{width:100%;min-width:0}
+}
+@media(prefers-reduced-motion:reduce){.cw-pin-path{transition:none}}

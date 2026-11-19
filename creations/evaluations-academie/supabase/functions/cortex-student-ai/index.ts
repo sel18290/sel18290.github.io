@@ -91,15 +91,15 @@ Deno.serve(async req=>{
     const shared=clean(exam.content?.doc,3600);
     const converted=Boolean(exam.content?.sourceType||exam.content?.sourcePageCount);
     const captures=Boolean(exam.content?.assets?.length||questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length));
-    if((converted||captures)&&questions.some(q=>clean(q.doc,300).length<65&&shared.length<150))
+    if((converted||captures)&&questions.some(q=>clean(q.analysisDoc||q.doc,300).length<65&&shared.length<150))
      throw Error('Le document de certaines questions n’est pas transcrit : complète-le dans le contrôle avant de demander une estimation.');
-    if(captures&&questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length>0&&clean(q.doc,300).length<140&&shared.length<300))
+    if(captures&&questions.some(q=>Array.isArray(q.assetIds)&&q.assetIds.length>0&&clean(q.analysisDoc||q.doc,300).length<140&&shared.length<300))
      throw Error('Une capture graphique manque de transcription : estimation suspendue pour éviter une note trompeuse.');
    }
    items=questions.map((q,i)=>({
     id:String(q.id||('q'+i)).slice(0,45),numero:i+1,question:clean(q.prompt,1200),
     type:clean(q.type,35),max:Number(q.points)||0,
-    document:clean(q.doc,2200),choix:Array.isArray(q.choices)?q.choices.slice(0,10).map(x=>clean(x,250)):[],
+    document:clean(q.analysisDoc||q.doc,2200),choix:Array.isArray(q.choices)?q.choices.slice(0,10).map(x=>clean(x,250)):[],
     lignes_tableau:Array.isArray(q.tableRows)?q.tableRows.slice(0,8).map(x=>clean(x,100)):undefined,
     colonnes_tableau:Array.isArray(q.tableColumns)?q.tableColumns.slice(0,6).map(x=>clean(x,100)):undefined,
     colonnes_association:Array.isArray(q.pairs)?q.pairs.slice(0,8).map(x=>({gauche:clean(x.left,120),droite:clean(x.right,120)})):undefined,

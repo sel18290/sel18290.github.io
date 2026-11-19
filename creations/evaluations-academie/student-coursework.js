@@ -92,6 +92,23 @@ if(qr||globalPortal){
   currentId=current.assessment.id;showWork();message('');
   renderExam();
  }
+ function renderStageView(){
+  // Aucune copie, aucun PIN ni correction scolaire n'est transféré à la recherche.
+  releaseMobileEditor();
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+  showWork();message('');
+  const work=$('cw-student-work');work.replaceChildren();
+  if(!window.CORTEX_STAGE?.mount){
+   work.append(E('p','cw-student-empty','Recherche de stages indisponible. Recharge la page.'));
+   return;
+  }
+  window.CORTEX_STAGE.mount(work,{
+   className:classData?.class?.code||'',
+   classes:classList.map(c=>c.label||c.code).filter(Boolean),
+   session:token,demo:false,
+   back:()=>{if(mode==='class')renderClass();else renderExam()}
+  });
+ }
  function renderClass(){
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
@@ -102,7 +119,8 @@ if(qr||globalPortal){
    E('h2','','Mes évaluations'),
    E('p','','Élève n°'+classData.student_number+' · '+classData.class.name));
   const controls=E('div','cw-student-dashboard-tools');
-  controls.append(button('Actualiser mes résultats ↻','cw-secondary',loadClass),
+  controls.append(button('🎓 Recherche de stages','cw-accent',renderStageView),
+   button('Actualiser mes résultats ↻','cw-secondary',loadClass),
    button('Changer de compte','cw-outline',async()=>{reset();await getClasses()}));
   header.append(controls);work.append(header);
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];

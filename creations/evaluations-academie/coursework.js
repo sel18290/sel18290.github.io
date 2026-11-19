@@ -90,17 +90,42 @@ async function openFile(assessment,kind,student){
   }
  }catch(err){tab?.close();throw err}
 }
+// Les QR hors écran sont générés uniquement quand le professeur les consulte.
+const qrObservers=new Set();
+function stopQrObservers(){
+ for(const observer of qrObservers)observer.disconnect();
+ qrObservers.clear();
+}
 function drawQr(node,code){
  node.replaceChildren();
- if(typeof window.QRCode==='function'){
-  try{new window.QRCode(node,{text:joinUrl(code),width:160,height:160,colorDark:'#111c2d',colorLight:'#fff'});return}
-  catch{}
- }
- node.append(make('small','','QR indisponible : partagez le lien ci-dessous.'));
+ const paint=()=>{
+  if(!node.isConnected)return;
+  node.replaceChildren();
+  if(typeof window.QRCode==='function'){
+   try{
+    new window.QRCode(node,{text:joinUrl(code),width:160,height:160,
+     colorDark:'#111c2d',colorLight:'#fff'});
+    return;
+   }catch{}
+  }
+  node.append(make('small','','QR indisponible : partagez le lien ci-dessous.'));
+ };
+ if(typeof IntersectionObserver!=='function'){paint();return}
+ // Réserver la place du QR évite un saut de mise en page sur téléphone.
+ const placeholder=make('small','cw-qr-placeholder','Chargement du QR à l’ouverture…');
+ placeholder.style.display='flex';placeholder.style.alignItems='center';
+ placeholder.style.justifyContent='center';placeholder.style.minHeight='160px';
+ node.append(placeholder);
+ const observer=new IntersectionObserver(entries=>{
+  if(!entries.some(entry=>entry.isIntersecting))return;
+  observer.disconnect();qrObservers.delete(observer);paint();
+ },{rootMargin:'300px 0px'});
+ qrObservers.add(observer);observer.observe(node);
 }
 function display(){
  const boxes=get('cw-assessment-cards'),inbox=get('cw-copy-list');
  if(!boxes||!inbox||!bridge()?.teacher?.())return;
+ stopQrObservers();
  boxes.replaceChildren();inbox.replaceChildren();
  const exams=bridge().exams?.()||[];
  if(!exams.length)boxes.append(make('p','empty','Créez d’abord un contrôle dans la rubrique Mes évaluations.'));
@@ -342,6 +367,7 @@ window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
  openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();resetCopyOrganizerFilters();
  copyOrganizerInitialized=false;lastSnapshotSignature=null;forceNextRender=true;
+ stopQrObservers();
  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();
  get('cw-copy-list')?.replaceChildren();

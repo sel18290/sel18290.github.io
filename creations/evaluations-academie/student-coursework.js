@@ -1,6 +1,6 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
-import { api } from './coursework.js?v=2.4';
+import { api } from './coursework.js?v=2.5';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
@@ -31,7 +31,7 @@ if(qr||globalPortal){
   '<label for="cw-student-pin">Mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-student-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" placeholder="●●●●●●" required><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-student-pin">Afficher</button></div></label>'+
   '<button type="submit" class="cw-student-submit">'+(qr?'Ouvrir mon contrôle →':'Accéder à mon espace →')+'</button></form>'+
   '<form id="cw-student-activation-form" class="cw-student-login-form cw-activation-form" hidden>'+
-  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>Ouvre le lien d’inscription donné par ton professeur pendant sa séance de 30 minutes. Choisis ton numéro, crée ton PIN et confirme-le. Aucun PIN provisoire individuel.</p></div>'+
+  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>'+(qr?'Tu es bien arrivé par le QR de ton contrôle. Ton professeur doit ouvrir la création des PIN pendant 30 minutes depuis ce même contrôle.':'Ouvre le lien temporaire transmis par ton professeur pendant les 30 minutes d’inscription.')+' Choisis ton numéro, crée ton PIN et confirme-le. Aucun code individuel à demander.</p></div>'+
   (qr?'':'<label for="cw-activation-class">Ma classe<select id="cw-activation-class" required><option value="">Choisir ma classe…</option></select></label>')+
   '<label for="cw-activation-number">Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
   '<label for="cw-activation-new-pin">Je choisis mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Choisis 6 chiffres"><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-activation-new-pin">Afficher</button></div></label>'+

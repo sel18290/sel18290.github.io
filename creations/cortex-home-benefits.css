@@ -345,3 +345,15 @@ body.cortex-noctis .nxp-role>.btn:hover{filter:brightness(1.07);transform:transl
  .nxp-role,.nxp-light-cta{transition:none}
  .nxp-role:hover,.nxp-light-cta:hover{transform:none}
 }
+
+/* Sur l'accueil académique, le formulaire de connexion reste accessible en haut
+   malgré le nouveau contenu éditorial plus riche dans la colonne de gauche. */
+body:not(.academy-authenticated) .layout:has(.nxp-real-benefits){align-items:start}
+body:not(.academy-authenticated) .layout:has(.nxp-real-benefits)>.access{
+ align-self:start;margin-top:clamp(20px,4vw,48px)
+}
+@media(max-width:740px){
+ body:not(.academy-authenticated) .layout:has(.nxp-real-benefits)>.access{
+  margin-top:8px;align-self:stretch
+ }
+}

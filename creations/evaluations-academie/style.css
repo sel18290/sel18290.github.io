@@ -539,3 +539,31 @@ body.academy-authenticated[data-acad-view="copies"] #cw-assessment-cards{display
  .cw-group-roster-line select{min-width:148px;min-height:46px}
  .cw-group-roster>summary{min-height:48px;display:list-item}
 }
+
+
+/* Inscription PIN : choix obligatoire du demi-groupe et listes préclassées. */
+.cw-pin-group-choice{position:relative;gap:9px!important}
+.cw-pin-group-choice .cw-pin-group-required{
+ font-size:11px;font-weight:800;color:#bdf5e0
+}
+.cw-pin-group-choice>small{
+ display:block;font-size:11px;line-height:1.55;font-weight:500;color:#c5e5f1
+}
+.cw-student-login-form #cw-activation-group:invalid{
+ border-color:#f7bc8e;background:#29283b
+}
+.cw-group-roster-heading{
+ margin:10px 0 5px;padding:9px 11px;
+ border-radius:8px;background:#243e55;border:1px solid #668eab;
+ color:#e3f2ff;font-size:12px;font-weight:850;line-height:1.5
+}
+.cw-group-roster-heading.cw-group-roster-two{
+ background:#1f413e;border-color:#58a18c;color:#d2f6e8
+}
+.cw-group-roster-heading.cw-group-roster-legacy{
+ background:#3a3241;border-color:#836f8a;color:#f3e4f3
+}
+@media(max-width:740px){
+ .cw-pin-group-choice>small{font-size:12px}
+ .cw-group-roster-heading{font-size:13px;padding:11px}
+}

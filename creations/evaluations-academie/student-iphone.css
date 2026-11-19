@@ -323,3 +323,101 @@
   .cw-student-source-snippets,.cw-student-assessment-list
  ){min-width:0;max-width:100%}
 }
+
+
+/* Onglet CHRONO du contrôle : accès en un toucher depuis toutes les questions.
+   Décompte partagé avec le chrono initial, sans blocage du scroll iOS. */
+@media (pointer:coarse) and (max-width:1100px){
+ body.cw-student-active .cw-mobile-chrono-dock{
+  position:fixed;
+  z-index:65;
+  right:calc(12px + env(safe-area-inset-right,0px));
+  bottom:calc(15px + env(safe-area-inset-bottom,0px));
+  display:flex;
+  flex-direction:column-reverse;
+  align-items:flex-end;
+  gap:9px;
+  max-width:calc(100vw - 24px);
+  pointer-events:none;
+ }
+ body.cw-student-active .cw-mobile-chrono-dock>*,body.cw-student-active .cw-mobile-chrono-dock button{
+  pointer-events:auto;
+ }
+ body.cw-student-active .cw-mobile-chrono-tab{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:51px;
+  padding:11px 19px;
+  border:1px solid #9dcaf0;
+  border-radius:999px;
+  background:linear-gradient(105deg,#173959,#264a75);
+  color:#f3faff;
+  box-shadow:0 6px 20px rgba(3,12,30,.45);
+  font-size:15px;
+  font-weight:850;
+  letter-spacing:.015em;
+  white-space:nowrap;
+  cursor:pointer;
+  touch-action:manipulation;
+ }
+ body.cw-student-active .cw-mobile-chrono-tab[aria-expanded="true"]{
+  border-color:#a5fae4;
+  background:linear-gradient(105deg,#194b55,#1d506c);
+ }
+ body.cw-student-active .cw-mobile-chrono-tab.is-urgent{
+  border-color:#ffd39b;
+  background:linear-gradient(110deg,#66402d,#704f36);
+ }
+ body.cw-student-active .cw-mobile-chrono-tab.is-expired{
+  border-color:#ffb5ae;
+  background:linear-gradient(110deg,#703043,#632b43);
+ }
+ body.cw-student-active .cw-mobile-chrono-panel{
+  box-sizing:border-box;
+  width:min(300px,calc(100vw - 24px));
+  min-width:0;
+  padding:17px 19px;
+  border:1px solid #9ebedc;
+  border-radius:17px;
+  background:linear-gradient(145deg,#122a44,#182e49);
+  color:#f0faff;
+  box-shadow:0 12px 36px rgba(2,9,28,.65);
+  display:grid;
+  gap:8px;
+  overflow-wrap:anywhere;
+ }
+ body.cw-student-active .cw-mobile-chrono-panel[hidden]{display:none!important}
+ body.cw-student-active .cw-mobile-chrono-title{
+  color:#c7e4f5;
+  font-size:12px;
+  font-weight:750;
+ }
+ body.cw-student-active .cw-mobile-chrono-time{
+  color:#bbffdf;
+  font-size:clamp(32px,11vw,45px);
+  font-weight:850;
+  line-height:1.15;
+  letter-spacing:.045em;
+  font-variant-numeric:tabular-nums;
+ }
+ body.cw-student-active .cw-mobile-chrono-notice{
+  margin:0;
+  color:#d8e6f1;
+  font-size:12px;
+  line-height:1.5;
+ }
+ body.cw-student-active .cw-mobile-chrono-tab:focus-visible{
+  outline:3px solid #a6eaff;
+  outline-offset:3px;
+ }
+}
+@media (pointer:coarse) and (max-width:1100px) and (max-height:520px){
+ body.cw-student-active .cw-mobile-chrono-panel{
+  padding:12px 15px;
+  gap:5px;
+ }
+ body.cw-student-active .cw-mobile-chrono-time{
+  font-size:30px;
+ }
+}

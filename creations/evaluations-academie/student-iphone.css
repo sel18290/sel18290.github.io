@@ -2,7 +2,7 @@
  * Surface de défilement Safari stable et navigation par question.
  * Aucun changement de disposition sur ordinateur.
  */
-@media (pointer:coarse) and (max-width:950px){
+@media (pointer:coarse) and (max-width:1100px){
  html:has(body.cw-student-active){
   max-width:100%;
   height:auto!important;
@@ -277,7 +277,7 @@
   max-width:100%
  }
 }
-@media (pointer:coarse) and (max-width:950px) and (max-height:520px){
+@media (pointer:coarse) and (max-width:1100px) and (max-height:520px){
  body.cw-student-active .cw-student-frame{padding:10px}
  body.cw-student-active .cw-student-timer-bar{padding:7px 10px}
  body.cw-student-active .cw-answer-form-paged .cw-answer-question{padding:10px}
@@ -291,7 +291,7 @@
 /* Partage iPhone : tableaux et onglets de l'espace professeur.
  * Ne pas couper la chaîne native de défilement de Safari.
  */
-@media (pointer:coarse) and (max-width:950px){
+@media (pointer:coarse) and (max-width:1100px){
  html:has(body.cortex-noctis:not(.cortex-preaccess)){
   overflow-y:auto!important;
   -webkit-overflow-scrolling:touch

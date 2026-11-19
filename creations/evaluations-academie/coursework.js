@@ -2,7 +2,7 @@
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
-import {renderCopyOrganizer} from './copy-organizer.js?v=1.0';
+import {renderCopyOrganizer} from './copy-organizer.js?v=1.1';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
@@ -34,6 +34,7 @@ export async function api(action,payload={},file=null,teacher=false){
 }
 const state={access:[],copies:[],pins:new Map(),loading:false,aiBusy:0};
 const openCopyClasses=new Set(),openCopyControls=new Set(),openStudentCopies=new Set();
+let copyOrganizerInitialized=false;
 const joinUrl=code=>location.origin+location.pathname+'?join='+encodeURIComponent(code);
 function message(text,error=false){const e=get('cw-status');if(!e)return;e.hidden=!text;e.textContent=text;e.classList.toggle('error',error)}
 async function reload(success=false){
@@ -186,8 +187,10 @@ function display(){
  renderCopyOrganizer({
   target:inbox,copies:state.copies,exams,classes:bridge()?.classes?.()||[],
   renderCopy:renderCopyCard,
-  openClasses:openCopyClasses,openControls:openCopyControls,openCopies:openStudentCopies
+  openClasses:openCopyClasses,openControls:openCopyControls,openCopies:openStudentCopies,
+  defaultExpand:!copyOrganizerInitialized
  });
+ copyOrganizerInitialized=true;
 }
 function renderCopyCard(copy,exam){
   const card=make('article','cw-copy'),head=make('div','cw-copy-top');
@@ -310,6 +313,7 @@ queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
  openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();
+ copyOrganizerInitialized=false;
  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();
  get('cw-copy-list')?.replaceChildren();

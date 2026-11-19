@@ -4,6 +4,7 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
 import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.3';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.1';
+import {createTeacherChatGPTButton} from './student-chatgpt.js?v=1.1';
 import {openAlbertProgress} from './albert-progress-real.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-coursework';
 const get=id=>document.getElementById(id);
@@ -265,7 +266,7 @@ function renderCopyCard(copy,exam){
     throw error;
    }finally{state.aiBusy=Math.max(0,state.aiBusy-1);}
   });
-  form.append(aiButton,grade,feedback,label,submit);
+  form.append(aiButton,createTeacherChatGPTButton({exam,copy}),grade,feedback,label,submit);
   form.addEventListener('submit',async ev=>{
    ev.preventDefault();submit.disabled=true;
    try{

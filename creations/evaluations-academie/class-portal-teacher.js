@@ -5,20 +5,50 @@ const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=c
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;
 const pinInvitations=new Map();
 const pinJoinUrl=(portal,token)=>location.origin+location.pathname+'?classe='+encodeURIComponent(portal)+'&inscription='+encodeURIComponent(token);
-let access=[],enrollments=[],busy=false,pending=false;
-function notice(msg,error=false){const e=$('cw-class-status');if(!e)return;e.hidden=!msg;e.textContent=msg;e.classList.toggle('error',error)}
-function permanentUrl(code){return location.origin+location.pathname+'?classe='+encodeURIComponent(code)}
-async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;return}busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];
-  enrollments=result.enrollments||[];
+let access=[],enrollments=[],busy=false,pending=false,lastRenderedSignature=null;
+function broadcastSummaries(){
+ const classes=B()?.classes?.()||[];
+ const byClass=new Map();
+ for(const student of enrollments){
+  if(!student.activated_at)continue;
+  const previous=byClass.get(student.class_id)||{activated:0,group1:0,group2:0,whole:0};
+  previous.activated++;
+  if(student.demi_groupe===1)previous.group1++;
+  else if(student.demi_groupe===2)previous.group2++;
+  else previous.whole++;
+  byClass.set(student.class_id,previous);
+ }
+ window.dispatchEvent(new CustomEvent('cortex:academy-roster-ready',{
+  detail:{summaries:classes.map(cl=>({classId:cl.id,
+   ...(byClass.get(cl.id)||{activated:0,group1:0,group2:0,whole:0})}))}
+ }));
+}
+function applySnapshot(data){
+ const nextAccess=data.classAccess||[],nextEnrollments=data.enrollments||[];
+ const classes=B()?.classes?.()||[];
+ const signature=JSON.stringify([
+  nextAccess,nextEnrollments,classes.map(c=>[c.id,c.code,c.display_name,c.archived])
+ ]);
+ access=nextAccess;enrollments=nextEnrollments;
+ if(signature!==lastRenderedSignature){
+  lastRenderedSignature=signature;
   render();
-  window.dispatchEvent(new CustomEvent('cortex:academy-roster-ready',{detail:{
-   summaries:(B()?.classes?.()||[]).map(c=>{
-    const students=enrollments.filter(e=>e.class_id===c.id&&e.activated_at);
-    return {classId:c.id,activated:students.length,group1:students.filter(e=>e.demi_groupe===1).length,
-      group2:students.filter(e=>e.demi_groupe===2).length,
-      whole:students.filter(e=>!e.demi_groupe).length};
-   })
-  }}))}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
+ }
+ broadcastSummaries();
+}
+async function refresh(){
+ if(!B()?.teacher?.())return;
+ if(busy){pending=true;return}
+ busy=true;
+ try{
+  const result=await api('teacher_list',{},null,true);
+  applySnapshot(result);
+ }catch(err){notice(err.message||'Impossible de charger les classes.',true)}
+ finally{
+  busy=false;
+  if(pending){pending=false;queueMicrotask(refresh)}
+ }
+}
 function button(label,className,fn){
  const el=E('button',className,label);el.type='button';
  el.addEventListener('click',async()=>{el.disabled=true;try{await fn()}catch(err){notice(err.message||'Erreur serveur.',true)}finally{el.disabled=false}});
@@ -143,7 +173,20 @@ function render(){
   target.append(card);
  }
 }
-window.addEventListener('cortex:academy-data-ready',refresh);
-window.addEventListener('cortex:academy-class-updated',refresh);
-window.addEventListener('cortex:academy-logout',()=>{access=[];enrollments=[];pinInvitations.clear();$('cw-class-cards')?.replaceChildren()});
-queueMicrotask(()=>{if(B()?.teacher?.())refresh()});
+// Réutiliser la réponse déjà téléchargée pour les copies : pas de deuxième
+// appel teacher_list à chaque actualisation de 40 secondes.
+window.addEventListener('cortex:academy-live-snapshot',event=>{
+ if(!B()?.teacher?.()||busy)return;
+ applySnapshot(event.detail||{});
+});
+window.addEventListener('cortex:academy-data-ready',()=>{
+ if(!B()?.teacher?.())return;
+ // Un changement de classe peut nécessiter une mise à jour sans changer les PIN.
+ applySnapshot({classAccess:access,enrollments});
+});
+window.addEventListener('cortex:academy-logout',()=>{
+ access=[];enrollments=[];lastRenderedSignature=null;pinInvitations.clear();
+ $('cw-class-cards')?.replaceChildren();
+});
+// Fallback pour un module chargé après l'événement initial de connexion.
+queueMicrotask(()=>{if(B()?.teacher?.()&&lastRenderedSignature===null)refresh()});

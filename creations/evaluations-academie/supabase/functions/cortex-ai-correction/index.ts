@@ -96,25 +96,42 @@ Deno.serve(async req=>{
     '"conseil":"conseil concret","document":"référence ou aucun"}]}.',
     'Conserve chaque identifiant EXACTEMENT une fois. Aucune note ne doit être considérée définitive.'
   ].join('\n');
-  const upstream=await fetch('https://albert.api.etalab.gouv.fr/v1/chat/completions',{
-   method:'POST',signal:AbortSignal.timeout(90000),
-   headers:{Authorization:'Bearer '+apiKey,'Content-Type':'application/json'},
-   body:JSON.stringify({
-    model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',
-    messages:[{role:'system',content:instructions},{role:'user',content:input}],
-    temperature:0.1,max_tokens:7000,stream:false
-   })
-  });
-  if(!upstream.ok)return fail('Albert API a refusé la demande ('+upstream.status+'). Vérifiez le modèle, la clé et les quotas.',502);
-  const response=await upstream.json();
-  const rawContent=response?.choices?.[0]?.message?.content;
-  let resultText=typeof rawContent==='string'?rawContent:
-    Array.isArray(rawContent)?rawContent.map((part:any)=>part?.text||'').join(''):'';
-  resultText=resultText.trim().replace(/^\x60{3}(?:json)?\s*/i,'').replace(/\s*\x60{3}$/,'');
-  if(!resultText)return fail('Albert n’a pas renvoyé de correction.',502);
-  let parsed:any;try{parsed=JSON.parse(resultText)}catch{return fail('Réponse Albert illisible, aucun résultat conservé.',502)}
-  if(!Array.isArray(parsed.questions)||parsed.questions.length!==items.length)
-    return fail('Correction incomplète : des questions sont manquantes.',502);
+  // Les sujets longs sont traités en petits lots pour conserver une correction
+  // de chaque question et éviter la troncature d'un gros JSON.
+  const groups:any[][]=[];
+  for(let i=0;i<items.length;i+=8)groups.push(items.slice(i,i+8));
+  const batches=await Promise.all(groups.map(async(group:any[])=>{
+   const groupInput=JSON.stringify({
+    discipline:'PSE lycée professionnel',titre:exam.title,
+    contexte:clean(exam.content?.description,2000),
+    document_commun:clean(exam.content?.doc,10000),questions:group
+   });
+   const upstream=await fetch('https://albert.api.etalab.gouv.fr/v1/chat/completions',{
+    method:'POST',signal:AbortSignal.timeout(92000),
+    headers:{Authorization:'Bearer '+apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({
+     model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',
+     messages:[{role:'system',content:instructions},{role:'user',content:groupInput}],
+     temperature:0.1,max_tokens:4700,stream:false
+    })
+   });
+   if(!upstream.ok)throw Error('Albert API a refusé la demande ('+upstream.status+').');
+   const response=await upstream.json();
+   const raw=response?.choices?.[0]?.message?.content;
+   const content=(typeof raw==='string'?raw:Array.isArray(raw)?raw.map((part:any)=>part?.text||'').join(''):'').trim();
+   const open=content.indexOf('{'),close=content.lastIndexOf('}');
+   let draft:any;
+   try{draft=JSON.parse(content.slice(open,close+1))}
+   catch{throw Error('La correction Albert de ce lot est illisible. Relancez-la.')}
+   if(!Array.isArray(draft?.questions)||draft.questions.length!==group.length)
+    throw Error('Albert n’a pas corrigé toutes les questions du lot.');
+   return draft;
+  }));
+  const parsed:any={
+   commentaire:batches.map((x:any)=>String(x.commentaire||'').trim()).filter(Boolean).join(' ').slice(0,3000),
+   questions:batches.flatMap((x:any)=>x.questions)
+  };
+  if(parsed.questions.length!==items.length)throw Error('La correction de certaines questions est manquante.');
   const marks=items.map((q:any)=>{
    const matched=parsed.questions.filter((a:any)=>a?.id===q.id);
    if(matched.length!==1)throw new Error('barème');

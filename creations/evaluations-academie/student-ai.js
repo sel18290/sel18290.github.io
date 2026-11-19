@@ -2,6 +2,7 @@
  * Les traitements ne démarrent jamais automatiquement : clic explicite requis.
  */
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js?v=1';
+import {openStudentAlbertProgress} from './student-albert-progress.js?v=1.0';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-student-ai';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e};
 const tiny=(s,max=600)=>String(s??'').slice(0,max);
@@ -68,9 +69,17 @@ function attachAction(card,label,action,{session,assessmentId},renderer){
   if(!confirm('Albert analysera les éléments nécessaires de ta copie ou de ton carnet déjà enregistré. Cette fonction est facultative, soumise à l’autorisation de l’établissement ; elle ne change jamais la note du professeur. Continuer ?'))return;
   button.disabled=true;
   output.replaceChildren(notice('✦ Albert prépare ton analyse…'));
-  try{const result=await ask(action,session,assessmentId);renderer(output,result)}
-  catch(error){output.replaceChildren(notice(tiny(error?.message||'Service indisponible.'),true))}
-  finally{button.disabled=false}
+  const progress=openStudentAlbertProgress({
+   action,onReveal:()=>output.scrollIntoView({block:'start',behavior:'smooth'})
+  });
+  try{
+   const result=await ask(action,session,assessmentId);
+   renderer(output,result);
+   progress.success();
+  }catch(error){
+   output.replaceChildren(notice(tiny(error?.message||'Service indisponible.'),true));
+   progress.failure(error);
+  }finally{button.disabled=false}
  });
  card.append(button,output);return card;
 }

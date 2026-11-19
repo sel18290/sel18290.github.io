@@ -57,7 +57,7 @@
   gap:12px;
   border-radius:13px;
   scroll-margin-top:70px;
-  touch-action:pan-y pinch-zoom
+  touch-action:auto
  }
  body.cw-student-active .cw-answer-form-paged .cw-answer-question[hidden]{
   display:none!important

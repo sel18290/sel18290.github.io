@@ -2,6 +2,7 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.5';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.0';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
@@ -14,6 +15,9 @@ if(qr||globalPortal){
  const storageKey='cortex-academie-eleve:'+mode+':'+(qr||classPrefill||'general');
  let token=null,current=null,currentId=null,classData=null,classList=[],busy=false,hiddenSince=0;
  let countdownInterval=null;
+ const isPhoneExam=mobileExam();
+ let mobileController=null;
+ function releaseMobileEditor(){if(mobileController){mobileController.destroy();mobileController=null;}}
  document.body.classList.add('cw-student-active');
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
  main.innerHTML='<div class="cw-student-frame">'+
@@ -46,7 +50,7 @@ if(qr||globalPortal){
  document.body.insertBefore(main,document.querySelector('.layout'));
  function message(text,error=false){const el=$('cw-student-status');el.textContent=text||'';el.hidden=!text;el.classList.toggle('error',!!error)}
  function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false }
- function reset(){if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
+ function reset(){releaseMobileEditor();if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
  function button(text,cls,handler){
   const b=E('button',cls,text);b.type='button';
   b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await handler()}catch(err){message(err.message||String(err),true)}finally{b.disabled=false}});
@@ -77,11 +81,13 @@ if(qr||globalPortal){
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){
+  releaseMobileEditor();
   classData=await api('student_class_list',{session:token});
   current=null;currentId=null;
   showWork();message('');renderClass();
  }
  async function loadExam(id){
+  releaseMobileEditor();
   current=await api('student_get',{session:token,assessment_id:id||undefined});
   currentId=current.assessment.id;showWork();message('');
   renderExam();
@@ -129,6 +135,7 @@ if(qr||globalPortal){
   renderDashboardAi(work,{session:token,assessments});
  }
  function renderExam(){
+  releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!current)return;
@@ -193,6 +200,8 @@ if(qr||globalPortal){
   }
   const form=E('form','cw-answer-form');
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
+  if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current});
+  else{
   for(let i=0;i<questions.length;i++){
    const q=questions[i],label=E('div','cw-answer-question');
    label.append(E('strong','',(i+1)+'. '+q.prompt));
@@ -217,21 +226,25 @@ if(qr||globalPortal){
    answerArea.innerHTML=window.CORTEX_QUESTION_TYPES.studentFields(q,'');
    label.append(answerArea);form.append(label);
   }
+  }
   const upload=E('label','cw-student-attachment'),file=E('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';
   upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum. Tu peux envoyer une réponse écrite et/ou un fichier.'));
   form.append(upload);
   const submit=E('button','cw-student-submit','Remettre définitivement mon contrôle →');submit.type='submit';form.append(submit);
   form.addEventListener('submit',async event=>{
    event.preventDefault();if(busy)return;
-   if(!confirm('Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.'))return;
+   const confirmation=mobileController?
+    'Tu as répondu à '+mobileController.answeredCount()+' question(s) sur '+questions.length+'. Confirmer la remise définitive de ta copie ? Tu ne pourras plus la modifier.':
+    'Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.';
+   if(!confirm(confirmation))return;
    busy=true;submit.disabled=true;message('Envoi de ta copie en cours…');
    try{
-    const wrappers=[...form.querySelectorAll('[data-cortex-q]')];
-    const answers=Object.fromEntries(questions.map(q=>{
-     const container=wrappers.find(w=>w.dataset.cortexQ===q.id);
-     return [q.id,container?window.CORTEX_QUESTION_TYPES.readAnswer(container,q):''];
-    }));
+    const answers=mobileController?mobileController.getAnswers():(()=>{
+     const wrappers=new Map([...form.querySelectorAll('[data-cortex-q]')].map(w=>[w.dataset.cortexQ,w]));
+     return Object.fromEntries(questions.map(q=>[q.id,wrappers.has(q.id)?window.CORTEX_QUESTION_TYPES.readAnswer(wrappers.get(q.id),q):'']));
+    })();
     await api('student_submit',{session:token,assessment_id:currentId,answers:JSON.stringify(answers)},file.files?.[0]||null);
+    mobileController?.clearDraft();
     await loadExam(currentId);message('Copie bien reçue par le professeur.');
    }catch(err){message(err.message||'Impossible de remettre la copie.',true)}
    finally{busy=false;submit.disabled=false}

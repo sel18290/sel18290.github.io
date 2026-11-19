@@ -125,20 +125,24 @@ Deno.serve(async req=>{
   const source=JSON.stringify(sourceHashInput);
   if(source.length>57000)throw Error('Sujet trop volumineux pour une analyse fiable.');
   const sourceHash=await digest(source);
-  const {data:existing,error:readError}=await db.from('cortex_student_ai_cache')
-   .select('id,source_hash,result,requested_at').eq('assessment_id',exam.id)
-   .eq('student_number',studentNumber).eq('kind',kind).maybeSingle();
-  if(readError)throw Error('Suivi des analyses indisponible.');
-  if(existing&&existing.source_hash===sourceHash&&existing.result)
+  const {data:rows,error:readError}=await db.from('cortex_student_ai_cache')
+    .select('id,source_hash,result,requested_at').eq('assessment_id',exam.id)
+    .eq('student_number',studentNumber).eq('kind',kind).limit(1);
+   if(readError){
+    console.error('CORTEX_STUDENT_AI:CACHE_READ',readError.code||'unknown');
+    throw Error('Historique d’estimation indisponible (CACHE_READ).');
+   }
+   const existing=Array.isArray(rows)&&rows.length?rows[0]:null;
+   if(existing&&existing.source_hash===sourceHash&&existing.result)
    return reply({ok:true,cached:true,...existing.result});
   if(existing&&Date.now()-new Date(existing.requested_at).getTime()<30000)
    return fail('Une analyse est déjà en cours. Réessaie dans un instant.',429);
   if(existing){
    const {error}=await db.from('cortex_student_ai_cache').update({source_hash:sourceHash,result:null,requested_at:new Date().toISOString(),finished_at:null}).eq('id',existing.id);
-   if(error)throw Error('Impossible de réserver l’analyse.');
+   if(error){console.error('CORTEX_STUDENT_AI:CACHE_UPDATE',error.code||'unknown');throw Error('Impossible de réserver l’analyse (CACHE_UPDATE).');}
   }else{
    const {error}=await db.from('cortex_student_ai_cache').insert({assessment_id:exam.id,student_number:studentNumber,kind,source_hash,result:null});
-   if(error)return fail('Une analyse est déjà en cours. Réessaie dans un instant.',429);
+   if(error){console.error('CORTEX_STUDENT_AI:CACHE_INSERT',error.code||'unknown');return fail(error.code==='23505'?'Une analyse est déjà en cours.':'Impossible de préparer cette analyse (CACHE_INSERT).',error.code==='23505'?429:503);}
   }
   let result;
   try{
@@ -177,5 +181,11 @@ Deno.serve(async req=>{
     .eq('student_number',studentNumber).eq('kind',kind).eq('source_hash',sourceHash);
    throw err;
   }
- }catch(err){return fail(clean(err?.message||'Analyse indisponible.',260),400)}
+ }catch(err){
+  const raw=String(err?.message||'Analyse indisponible.');
+  const category=raw.includes('CACHE')?'CACHE':raw.includes('Albert')?'ALBERT':raw.includes('Session')?'SESSION':raw.includes('document')||raw.includes('Document')?'DOCUMENT':'ANALYSE';
+  // Ne jamais consigner de réponses, de noms ou de documents dans les logs.
+  console.error('CORTEX_STUDENT_AI:'+category,clean(raw,120));
+  return fail(clean(raw,260),category==='ALBERT'?502:category==='CACHE'?503:400);
+ }
 });

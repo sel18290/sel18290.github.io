@@ -93,3 +93,28 @@
  .cw-class-card .cw-publish-row button{width:100%;min-width:0}
 }
 @media(prefers-reduced-motion:reduce){.cw-pin-path{transition:none}}
+
+
+/* Invitation de 30 minutes, visible uniquement dans la session professeur. */
+.cw-pin-invite{
+ margin:13px 0;display:grid;gap:9px;min-width:0;
+ padding:14px;border-radius:13px;
+ border:1px solid #8c97e1;
+ background:radial-gradient(ellipse at 96% 12%,#777dc733,transparent 45%),
+ linear-gradient(125deg,#20314f,#1a2947);
+ box-shadow:inset 0 1px #dfe9ff29;
+}
+.cw-pin-invite>strong{font-size:14px;color:#eff5ff;font-weight:900}
+.cw-pin-invite>p{font-size:12px;line-height:1.6;color:#c6d8ef;margin:0}
+.cw-pin-invite .cw-join-url{
+ font-size:12px;min-height:45px;max-width:100%;
+ background:#0e1d35;border:1px solid #839ac8;color:#e9f4ff;
+}
+.cw-pin-invite .cw-share-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.cw-pin-invite .cw-share-buttons>*{flex:1 1 180px;min-height:45px;box-sizing:border-box}
+.cw-pin-invite-tip{font-size:11px;color:#d0e0f6}
+@media(max-width:680px){
+ .cw-pin-invite{padding:11px;gap:8px}
+ .cw-pin-invite .cw-share-buttons{flex-direction:column}
+ .cw-pin-invite .cw-share-buttons>*{width:100%}
+}

@@ -266,7 +266,7 @@ function renderCopyCard(copy,exam){
     throw error;
    }finally{state.aiBusy=Math.max(0,state.aiBusy-1);}
   });
-  form.append(aiButton,createTeacherChatGPTButton({exam,copy}),grade,feedback,label,submit);
+  form.append(aiButton,createTeacherChatGPTButton({exam,copy,openFile}),grade,feedback,label,submit);
   form.addEventListener('submit',async ev=>{
    ev.preventDefault();submit.disabled=true;
    try{

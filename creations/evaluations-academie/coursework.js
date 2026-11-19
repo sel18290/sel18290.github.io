@@ -37,6 +37,9 @@ export async function api(action,payload={},file=null,teacher=false){
 const state={access:[],copies:[],pins:new Map(),loading:false,aiBusy:0};
 const openCopyClasses=new Set(),openCopyControls=new Set(),openStudentCopies=new Set();
 let copyOrganizerInitialized=false;
+// Un rafraîchissement identique ne doit pas reconstituer des dizaines de
+// cartes, de QR et de formulaires (coûteux surtout sur Safari mobile).
+let lastSnapshotSignature=null,forceNextRender=true;
 const joinUrl=code=>location.origin+location.pathname+'?join='+encodeURIComponent(code);
 function message(text,error=false){const e=get('cw-status');if(!e)return;e.hidden=!text;e.textContent=text;e.classList.toggle('error',error)}
 async function reload(success=false){
@@ -45,11 +48,22 @@ async function reload(success=false){
  try{
   const data=await api('teacher_list',{},null,true);
   state.access=data.access||[];state.copies=data.submissions||[];
-  window.dispatchEvent(new CustomEvent('cortex:academy-live-snapshot',{detail:{access:state.access,copies:state.copies,classAccess:data.classAccess||[]}}));
-  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:state.copies.length,pinClasses:(data.classAccess||[]).length}}));
-  display();
-  window.dispatchEvent(new Event('cortex:academy-class-updated'));
-  if(success)message('Données actualisées.');
+  const classAccess=data.classAccess||[],enrollments=data.enrollments||[];
+  // Signature purement en mémoire : aucune copie d'élève persistée localement.
+  const signature=JSON.stringify([state.access,state.copies,classAccess,enrollments]);
+  const changed=forceNextRender||signature!==lastSnapshotSignature;
+  window.dispatchEvent(new CustomEvent('cortex:academy-live-snapshot',{
+   detail:{access:state.access,copies:state.copies,classAccess,enrollments}
+  }));
+  if(changed){
+   lastSnapshotSignature=signature;forceNextRender=false;
+   window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{
+    detail:{copies:state.copies.length,pinClasses:classAccess.length}
+   }));
+   display();
+   window.dispatchEvent(new Event('cortex:academy-class-updated'));
+  }
+  if(success)message(changed?'Données actualisées.':'Aucune nouvelle copie.');
  }catch(err){message(String(err.message||err),true)}
  finally{state.loading=false}
 }
@@ -322,12 +336,12 @@ window.CORTEX_ACADEMY_COURSEWORK={
  },
  freshPins:examId=>state.pins.get(examId)||[]
 };
-window.addEventListener('cortex:academy-data-ready',()=>reload());
+window.addEventListener('cortex:academy-data-ready',()=>{forceNextRender=true;reload()});
 queueMicrotask(()=>{if(bridge()?.teacher?.())reload()});
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.pins.clear();
  openCopyClasses.clear();openCopyControls.clear();openStudentCopies.clear();resetCopyOrganizerFilters();
- copyOrganizerInitialized=false;
+ copyOrganizerInitialized=false;lastSnapshotSignature=null;forceNextRender=true;
  window.dispatchEvent(new CustomEvent('cortex:academy-coursework-stats',{detail:{copies:0,pinClasses:0}}));
  get('cw-assessment-cards')?.replaceChildren();
  get('cw-copy-list')?.replaceChildren();

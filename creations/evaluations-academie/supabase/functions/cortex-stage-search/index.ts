@@ -1,9 +1,10 @@
-/* CORTEX Recherche de stages — IGN & OpenStreetMap, classement Albert IA.
- * Les données affichées proviennent exclusivement d'établissements publics OSM.
+/* CORTEX Recherche de stages — IGN, OpenStreetMap et Annuaire des entreprises.
+ * Le classement Albert porte uniquement sur les établissements répertoriés.
  * Aucune information sur l'élève n'est envoyée à une IA.
  */
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2.57.0";
 const ORIGINS=["https://sel18290.github.io","http://localhost:5173","http://127.0.0.1:5173"];
+const DIRECTORY_HEADERS={accept:"application/json","user-agent":"CORTEX-Academie-Stage/2.0 (https://sel18290.github.io)"};
 const sectors={
  "gestion-administration":{name:"Gestion-administration (AGOrA)",types:{
   "administrations":{label:"Mairies et administrations",rules:[["office","^(government|administrative)$"],["amenity","^(townhall|post_office|courthouse)$"]]},
@@ -78,24 +79,20 @@ async function geocode(city){
 }
 function osmQuery(lat,lon,radius,sector,chosen){
  const rules=[...new Set(chosen.flatMap(id=>sectors[sector].types[id].rules.map(([key,pattern])=>'["'+key+'"~"'+pattern+'"]')))];
- const items=rules.map(rule=>"nwr(around:"+radius+","+lat+","+lon+")[\"name\"]"+rule+";").join("\n");
- return "[out:json][timeout:25];(\n"+items+"\n);out center 2500;";
+ // La boîte réduit le travail de l’annuaire. entries() applique ensuite le rayon exact.
+ const latOffset=(radius+200)/111320,lonOffset=latOffset/Math.cos(lat*Math.PI/180);
+ const box=[lat-latOffset,lon-lonOffset,lat+latOffset,lon+lonOffset].map(n=>n.toFixed(6)).join(",");
+ const items=rules.map(rule=>"nwr"+rule+"[\"name\"]("+box+");").join("\n");
+ return "[out:json][timeout:8];(\n"+items+"\n);out center 2500;";
 }
 async function osm(query){
- let problem="Service indisponible.";
- for(const url of ["https://overpass.private.coffee/api/interpreter","https://overpass-api.de/api/interpreter"]){
-  try{
-   const res=await timed(url,{method:"POST",headers:{
-    "content-type":"application/x-www-form-urlencoded;charset=UTF-8","accept":"application/json",
-    "user-agent":"CORTEX-Academie-Stage/1.0 (https://sel18290.github.io)"},
-    body:new URLSearchParams({data:query}).toString()},30000);
-   if(!res.ok)throw Error("Annuaire HTTP "+res.status);
-   const payload=await res.json();
-   if(!Array.isArray(payload.elements))throw Error("Réponse invalide");
-   return payload.elements;
-  }catch(e){problem=clean(e?.message,120)}
- }
- throw Error("Annuaire temporairement indisponible : "+problem);
+ const url=new URL("https://overpass.private.coffee/api/interpreter");
+ url.searchParams.set("data",query);
+ const response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},10000);
+ if(!response.ok)throw Error("HTTP "+response.status);
+ const payload=await response.json();
+ if(!Array.isArray(payload.elements)||payload.remark)throw Error("Réponse incomplète");
+ return payload.elements;
 }
 function distance(a,b,c,d){
  const rad=Math.PI/180,h=Math.sin((c-a)*rad/2)**2+Math.cos(a*rad)*Math.cos(c*rad)*Math.sin((d-b)*rad/2)**2;
@@ -128,6 +125,104 @@ function entries(elements,loc,radius,sector,chosen){
  data.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id));
  return data.slice(0,160);
 }
+
+// L’annuaire classe les unités légales par code APE. Les adresses et distances
+// sont contrôlées au niveau des établissements locaux effectivement retournés.
+const registryActivities={
+ "commerce-vente":{
+  "distribution":["47.11C","47.11D","47.11F","47.19A","47.19B"],
+  "mode":["47.71Z","47.72A","47.72B","47.77Z"],
+  "beaute":["47.75Z"],
+  "technologie":["47.41Z","47.42Z","47.43Z","47.54Z"],
+  "maison":["47.52A","47.52B","47.53Z","47.59A","47.59B","47.76Z"],
+  "alimentation":["47.21Z","47.22Z","47.23Z","47.24Z","47.29Z","10.71C"],
+  "sports-culture":["47.61Z","47.62Z","47.63Z","47.64Z","47.65Z"],
+  "vehicules":["45.11Z","45.19Z","45.32Z","45.40Z"],
+  "immobilier":["68.31Z"],
+  "finance":["64.19Z","65.12Z","66.22Z"],
+  "relation-client":["82.20Z","73.11Z"],
+  "entreprises-b2b":["46.19B","46.69B","46.90Z"]
+ },
+ "accueil":{
+  "administrations":["84.11Z","84.12Z","53.10Z"],
+  "sante":["86.10Z"],
+  "hotels":["55.10Z","55.20Z"],
+  "tourisme":["79.90Z"],
+  "culture":["90.04Z","91.01Z","91.02Z"],
+  "evenementiel":["82.30Z"],
+  "entreprises":["70.10Z","82.11Z"],
+  "social":["88.99B","94.99Z"],
+  "transport":["49.10Z","49.31Z","52.21Z","52.23Z"],
+  "education":["85.20Z","85.31Z","85.32Z","85.42Z"]
+ },
+ "gestion-administration":{
+  "administrations":["84.11Z","84.12Z","53.10Z"],
+  "entreprises":["70.10Z","82.11Z","82.19Z"],
+  "associations":["88.99B","94.99Z"],
+  "sante":["86.10Z"],
+  "education":["85.20Z","85.31Z","85.32Z","85.42Z"],
+  "banques":["64.19Z","65.12Z","66.22Z"],
+  "comptabilite":["69.20Z"],
+  "rh":["78.10Z","78.20Z","78.30Z"]
+ }
+};
+
+async function registry(loc,radius,sector,chosen){
+ const activityByType=registryActivities[sector];
+ const codes=[...new Set(chosen.flatMap(id=>activityByType[id]||[]))];
+ const url=new URL("https://recherche-entreprises.api.gouv.fr/near_point");
+ url.search=new URLSearchParams({
+  lat:String(loc.lat),long:String(loc.lon),radius:String(Math.ceil(radius/1000)),
+  activite_principale:codes.join(","),etat_administratif:"A",per_page:"25",
+  limite_matching_etablissements:"8",minimal:"true",include:"matching_etablissements,siege"
+ }).toString();
+ const response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},9000);
+ if(!response.ok)throw Error("HTTP "+response.status);
+ const payload=await response.json();
+ if(!Array.isArray(payload.results))throw Error("Réponse invalide");
+ const results=new Map();
+ for(const firm of payload.results){
+  if(firm.etat_administratif!=="A"||firm.statut_diffusion==="P")continue;
+  const establishments=Array.isArray(firm.matching_etablissements)?firm.matching_etablissements:[];
+  for(const place of [...establishments,firm.siege].filter(Boolean)){
+   if(place.etat_administratif!=="A"||place.statut_diffusion_etablissement==="P")continue;
+   if(!/^\d{14}$/.test(String(place.siret||""))||!place.latitude||!place.longitude)continue;
+   const id="siret/"+place.siret;
+   if(results.has(id))continue;
+   const matched=chosen.filter(type=>activityByType[type]?.includes(place.activite_principale||firm.activite_principale));
+   const lat=Number(place.latitude),lon=Number(place.longitude);
+   if(!matched.length||!Number.isFinite(lat)||!Number.isFinite(lon))continue;
+   const dist=distance(loc.lat,loc.lon,lat,lon);
+   if(dist>radius/1000)continue;
+   const name=clean(place.liste_enseignes?.find(Boolean)||place.nom_commercial||firm.nom_complet||firm.nom_raison_sociale);
+   const address=clean(place.adresse,220);
+   if(!name||!address)continue;
+   const labels=matched.map(type=>sectors[sector].types[type].label);
+   results.set(id,{id,name,address,phone:"",website:"",
+    category:labels[0],target_types:matched,target_labels:labels,
+    lat,lon,distance_km:dist,source:"Annuaire des entreprises",
+    albert_rank:null,albert_why:"",missions:[]});
+  }
+ }
+ return [...results.values()].sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id)).slice(0,100);
+}
+
+async function lookup(loc,radius,sector,chosen){
+ let osmAvailable=false;
+ try{
+  const places=entries(await osm(osmQuery(loc.lat,loc.lon,radius,sector,chosen)),loc,radius,sector,chosen);
+  if(places.length)return places;
+  osmAvailable=true;
+ }catch(error){console.warn("CORTEX stage · OpenStreetMap",clean(error?.message,100))}
+ try{
+  return await registry(loc,radius,sector,chosen);
+ }catch(error){
+  console.warn("CORTEX stage · Annuaire des entreprises",clean(error?.message,100));
+  if(osmAvailable)return [];
+  throw Error("Les annuaires sont temporairement indisponibles.");
+ }
+}
+
 async function validStudent(token){
  if(!/^[A-Za-z0-9_-]{40,256}$/.test(token||""))return false;
  const u=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -172,8 +267,8 @@ async function ranked(sector,businesses,token,demo=false,niveau="",option=""){
    "Aucun établissement, numéro de téléphone ou adresse ne doit être créé. "+
    "Retourne exclusivement un JSON sans markdown : "+
    "Réponds uniquement en JSON avec une propriété picks : tableau de {id, why, missions}.";
-  const user="Filière professionnelle : "+sectors[sector].name+". Niveau : "+niveau+". Option commerce : "+(option||"non précisée")+
-   ". Parmi ces établissements déjà identifiés sur OpenStreetMap, sélectionne au maximum "+
+  const user="Filière professionnelle : "+sectors[sector].name+(niveau?". Niveau : "+niveau:"")+". Option commerce : "+(option||"non précisée")+
+   ". Parmi ces établissements issus d’annuaires publics, sélectionne au maximum "+
    "12 structures variées pertinentes, sans inventer ni compléter leurs coordonnées. "+
    "Si un établissement ne convient pas, ignore-le. Données : "+JSON.stringify(candidates);
   const res=await timed("https://albert.api.etalab.gouv.fr/v1/chat/completions",{
@@ -181,7 +276,7 @@ async function ranked(sector,businesses,token,demo=false,niveau="",option=""){
    body:JSON.stringify({model:Deno.env.get("ALBERT_MODEL")||"openai/gpt-oss-120b",
     temperature:0.1,max_tokens:2000,stream:false,
     messages:[{role:"system",content:system},{role:"user",content:user}]})
-  },65000);
+  },28000);
   if(!res.ok)throw Error("Albert API HTTP "+res.status);
   const response=await res.json(),body=response?.choices?.[0]?.message?.content;
   const text=typeof body==="string"?body:Array.isArray(body)?body.map(x=>x?.text||"").join(""):"";
@@ -206,14 +301,14 @@ Deno.serve(async req=>{
   const sector=clean(body.filiere,40),city=clean(body.city||"Paris 15e",90);
   if(!sectors[sector])throw Error("Choisis une filière valide.");
   const niveau=clean(body.niveau,20);
-  if(!["seconde","premiere","terminale"].includes(niveau))throw Error("Choisis ton niveau : seconde, première ou terminale.");
+  if(niveau&&!["seconde","premiere","terminale"].includes(niveau))throw Error("Niveau non valide.");
   const option=sector==="commerce-vente"?clean(body.optionCommerce||"toutes",10):"toutes";
   if(!["A","B","toutes"].includes(option))throw Error("Option commerce non valide.");
   const inputTypes=Array.isArray(body.types)?body.types.slice(0,20).map(x=>clean(x,50)):[];
   const chosen=categoryIds(sector,inputTypes,option);
   if(!chosen.length)throw Error("Sélectionne au moins un type de structure compatible avec ta filière.");
   const radius=Math.min(6500,Math.max(800,Math.round(Number(body.radius)||2500)));
-  const loc=await geocode(city),places=entries(await osm(osmQuery(loc.lat,loc.lon,radius,sector,chosen)),loc,radius,sector,chosen);
+  const loc=await geocode(city),places=await lookup(loc,radius,sector,chosen);
   const ai=body.albert===true?await ranked(sector,places,clean(body.session,256),body.demo===true,niveau,option):
    {enabled:false,reason:"Classement géographique",picks:[]};
   const map=new Map(ai.picks.map((x,i)=>[x.id,{...x,rank:i+1}]));
@@ -221,7 +316,7 @@ Deno.serve(async req=>{
   if(map.size)places.sort((a,b)=>(a.albert_rank||999)-(b.albert_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
   return respond({ok:true,filiere:sector,niveau,option_commerce:option,selected_types:chosen,city:loc.label,location:{lat:loc.lat,lon:loc.lon},radius,
    businesses:places,found:places.length,ai,checked_at:new Date().toISOString(),
-   sources:["IGN Géoplateforme","© OpenStreetMap contributors"],
+   sources:[loc.source, ...new Set(places.map(place=>place.source))],
    note:"L'existence et l'acceptation de stagiaires ne sont pas garanties. Téléphones et adresses sont affichés uniquement lorsqu'ils figurent dans l'annuaire public."},200,origin);
  }catch(e){return respond({ok:false,error:clean(e?.message||"Recherche indisponible.",300)},400,origin)}
 });

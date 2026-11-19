@@ -115,9 +115,11 @@
   }
 
   function publicSource(place) {
-    return /^(node|way|relation)\/[0-9]+$/.test(place.id)
-      ? 'https://www.openstreetmap.org/' + place.id
-      : '';
+    if (/^(node|way|relation)\/[0-9]+$/.test(place.id)) return 'https://www.openstreetmap.org/' + place.id;
+    if (/^siret\/[0-9]{14}$/.test(place.id)) {
+      return 'https://annuaire-entreprises.data.gouv.fr/etablissement/' + place.id.slice(6);
+    }
+    return '';
   }
 
   function linksFor(place) {
@@ -139,12 +141,11 @@
   }
 
   function apiLevel(className) {
-    // Compatibilité avec le service actuel. « Seconde » permet la recherche exploratoire
-    // lorsqu’aucun niveau n’est connu, comme sur l’accès public à la démonstration.
     const label = normalize(className);
+    if (/^(2|seconde)/.test(label)) return 'seconde';
     if (/^(1|premi)/.test(label)) return 'premiere';
     if (/^(t|term)/.test(label)) return 'terminale';
-    return 'seconde';
+    return '';
   }
 
   function exportCsv(name, rows) {
@@ -246,7 +247,7 @@
         <div class="cs-stage-cards" id="cs-stage-cards"></div>
         <button type="button" id="cs-stage-more" class="cs-stage-quiet cs-stage-more" hidden></button>
       </section>
-      <p class="cs-stage-sources">Annuaire <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · Géocodage IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
+      <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
     </div>
     <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
       <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
@@ -560,7 +561,9 @@
         : 'Tri par distance depuis le centre de la zone recherchée.';
       const checked = data.checked_at && !Number.isNaN(Date.parse(data.checked_at))
         ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(data.checked_at)) : '';
-      $('ai-note').textContent = aiCopy + (checked ? ' · Annuaire consulté le ' + checked : '') +
+      const registry = result.places.some(place => place.id.startsWith('siret/'));
+      $('ai-note').textContent = aiCopy + (registry ? ' · Adresses issues de l’Annuaire des entreprises' : '') +
+        (checked ? ' · Annuaire consulté le ' + checked : '') +
         (fromCache ? ' · Résultats enregistrés' : '');
       $('results').hidden = false;
       $('filters').hidden = !count;
@@ -1035,7 +1038,10 @@
       if (place) {
         body.append(linksFor(place));
         const source = publicSource(place);
-        if (source) body.append(outbound('Vérifier la fiche OpenStreetMap', source, 'cs-stage-text-button'));
+        if (source) {
+          const title = place.id.startsWith('siret/') ? 'Ouvrir la fiche de l’Annuaire des entreprises' : 'Vérifier la fiche OpenStreetMap';
+          body.append(outbound(title, source, 'cs-stage-text-button'));
+        }
       }
       const mission = node('section', 'cs-stage-dialog-subsection');
       mission.append(node('h3', '', 'Missions à vérifier'));

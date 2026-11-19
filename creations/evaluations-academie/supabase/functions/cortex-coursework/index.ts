@@ -251,12 +251,15 @@ async function teacherAction(action,body,form,req){
   if(enabled)prepared=(await classAccess(teacher,classId,size)).access;
   else await classOwned(teacher,classId);
   const until=enabled?new Date(Date.now()+30*60*1000).toISOString():null;
+  const registrationToken=enabled?random(20):null;
   const {data,error}=await admin.from('cortex_academy_class_access')
-   .update({registration_open_until:until})
+   .update({registration_open_until:until,
+    registration_token_hash:registrationToken?await digest(registrationToken):null})
    .eq('class_id',classId).eq('teacher_id',teacher.id)
    .select('class_id,portal_code,roster_size,active,registration_open_until').maybeSingle();
   if(error||!data)throw Error('Impossible de modifier la fenêtre de création de PIN.');
-  return ret({ok:true,opened:enabled,registration_open_until:until,portal_code:data.portal_code,
+  return ret({ok:true,opened:enabled,registration_open_until:until,
+   registration_token:registrationToken,portal_code:data.portal_code,
    roster_size:data.roster_size});
  }
  if(action==='teacher_class_prepare'){
@@ -503,25 +506,15 @@ async function studentAction(action,body,form){
      /^(012345|123456|654321|000000|111111|222222|333333|444444|555555|666666|777777|888888|999999)$/.test(chosen)||
      /^(\d)\1{5}$/.test(chosen))
    throw Error('Numéro invalide ou PIN trop simple. Choisis six chiffres, puis confirme-les.');
-  let access=null;
-  if(/^[a-f0-9]{16}$/.test(classCode)){
-   const {data}=await admin.from('cortex_academy_class_access').select('*')
-    .eq('portal_code',classCode).eq('active',true).maybeSingle();
-   access=data;
-  }else if(/^[a-f0-9]{40}$/.test(joinCode)){
-   const {data:exam}=await admin.from('cortex_academy_access')
-    .select('assessment_id,teacher_id').eq('join_code',joinCode).eq('active',true).maybeSingle();
-   if(exam){
-    const {data:target}=await admin.from('cortex_teacher_assessments')
-     .select('class_id,teacher_id').eq('id',exam.assessment_id).eq('teacher_id',exam.teacher_id)
-     .eq('published',true).maybeSingle();
-    if(target?.class_id){
-     const {data}=await admin.from('cortex_academy_class_access').select('*')
-      .eq('class_id',target.class_id).eq('teacher_id',target.teacher_id).eq('active',true).maybeSingle();
-     access=data;
-    }
-   }
-  }
+  const registrationToken=String(body.registration_token||'').toLowerCase();
+  if(!/^[a-f0-9]{40}$/.test(registrationToken))
+   throw Error('Pour créer ton PIN, ouvre le lien temporaire transmis par ton professeur.');
+  const {data:access,error:accessError}=await admin.from('cortex_academy_class_access')
+   .select('*').eq('registration_token_hash',await digest(registrationToken))
+   .eq('active',true).maybeSingle();
+  if(accessError)throw Error('Vérification de l’inscription indisponible.');
+  if(access&&classCode&&classCode!==access.portal_code)
+   throw Error('Le lien d’inscription ne correspond pas à la classe choisie.');
   if(!access)throw Error('Classe indisponible. Demande le lien d’accès à ton professeur.');
   if(!access.registration_open_until||
      new Date(access.registration_open_until).getTime()<=Date.now())

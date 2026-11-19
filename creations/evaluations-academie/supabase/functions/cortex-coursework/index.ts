@@ -285,6 +285,67 @@ async function teacherAction(action,body,form,req){
   return ret({ok:true,...await resetClassPin(teacher,classId,number)});
  }
  const id=String(body.assessment_id||''),assessment=await owned(teacher,id);
+ if(action==='teacher_duplicate'){
+  // L'identité professeur et la propriété du contrôle ont été validées.
+  // Les copies, notes, PIN, et accès QR ne sont JAMAIS répliqués.
+  const target=await classOwned(teacher,String(body.class_id||''));
+  const title=String(body.title||assessment.title).trim();
+  if(!title||title.length>180)throw Error('Titre invalide (maximum 180 caractères).');
+  const newId=crypto.randomUUID(),cloned=JSON.parse(JSON.stringify(assessment.content||{}));
+  cloned.publish_scope='all';
+  const assets=Array.isArray(cloned.assets)?cloned.assets:[];
+  if(assets.length>60)throw Error('Trop de captures dans le sujet.');
+  const {data:subject,error:subjectErr}=await admin.from('cortex_academy_access')
+    .select('subject_path,subject_name,subject_mime')
+    .eq('assessment_id',assessment.id).eq('teacher_id',teacher.id).maybeSingle();
+  if(subjectErr)throw Error('Document d’origine indisponible.');
+  const createdPaths=[];
+  let created=false;
+  try{
+   const {data:record,error:createdErr}=await admin.from('cortex_teacher_assessments')
+    .insert({id:newId,teacher_id:teacher.id,class_id:target.id,title,published:false,content:cloned})
+    .select('id').single();
+   if(createdErr||!record)throw Error('Impossible de créer le contrôle dupliqué.');
+   created=true;
+   const duplicateFile=async (oldPath,category)=>{
+    const prefix=category+'/'+teacher.id+'/'+assessment.id+'/';
+    if(typeof oldPath!=='string'||!oldPath.startsWith(prefix))
+     throw Error('Fichier privé du sujet inaccessible : duplication annulée.');
+    const ext=(oldPath.split('/').pop()||'').split('.').pop()?.toLowerCase()||'';
+    if(!/^(pdf|doc|docx|txt|png|jpg|jpeg|webp)$/.test(ext))
+     throw Error('Type de fichier privé non reconnu.');
+    const newPath=category+'/'+teacher.id+'/'+newId+'/'+random(14)+'.'+ext;
+    const {error}=await admin.storage.from(BUCKET).copy(oldPath,newPath);
+    if(error)throw Error('Copie du document ou de la capture impossible.');
+    createdPaths.push(newPath);
+    return newPath;
+   };
+   for(const asset of assets)asset.path=await duplicateFile(asset.path,'assets');
+   if(assets.length){
+    const {error}=await admin.from('cortex_teacher_assessments')
+     .update({content:cloned}).eq('id',newId).eq('teacher_id',teacher.id);
+    if(error)throw Error('Impossible de relier les captures dupliquées.');
+   }
+   if(subject?.subject_path){
+    const copied=await duplicateFile(subject.subject_path,'subjects');
+    const {error}=await admin.from('cortex_academy_access').insert({
+     assessment_id:newId,teacher_id:teacher.id,join_code:random(20),
+     roster_size:30,active:false,subject_path:copied,
+     subject_name:subject.subject_name||'Document original',
+     subject_mime:subject.subject_mime||null
+    });
+    if(error)throw Error('Impossible de relier le fichier original.');
+   }
+   return ret({ok:true,id:newId,title,class_id:target.id,published:false,
+    questions:Array.isArray(cloned.questions)?cloned.questions.length:0,
+    documents:assets.length+(subject?.subject_path?1:0)});
+  }catch(error){
+   // Compense les fichiers copiés si l'enregistrement échoue.
+   if(created)await admin.from('cortex_teacher_assessments').delete().eq('id',newId).eq('teacher_id',teacher.id);
+   if(createdPaths.length)await admin.storage.from(BUCKET).remove(createdPaths).catch(()=>{});
+   throw error;
+  }
+ }
  if(action==='teacher_publish'){
   const raw=Number(body.roster_size||30);
   if(!Number.isInteger(raw)||raw<1||raw>60)throw Error('Nombre d’élèves : entre 1 et 60.');

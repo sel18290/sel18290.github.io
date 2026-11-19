@@ -31,7 +31,7 @@ export function openStudentAlbertProgress({action,onReveal}){
  const remove=()=>{closed=true;dialog.remove()};
  dialog.addEventListener('close',remove,{once:true});
  const hide=()=>{if(closed)return;if(typeof dialog.close==='function')dialog.close();else remove()};
- close.addEventListener('click',()=>{if(finished&&onReveal)onReveal();hide()});
+ close.addEventListener('click',()=>{const reveal=finished&&typeof onReveal==='function';hide();if(reveal)requestAnimationFrame(onReveal)});
  function done(){
   finished=true;track.classList.remove('cw-real-indeterminate');
   track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax','100');track.setAttribute('aria-valuenow','100');

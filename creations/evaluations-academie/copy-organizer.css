@@ -72,3 +72,38 @@ details[open]>.cw-group-summary .cw-group-chevron,details[open]>.cw-copy-entry-s
  .cw-teacher-albert-dialog{width:calc(100vw - 18px);max-height:calc(100dvh - 24px)}
 }
 @media(prefers-reduced-motion:reduce){.cw-group-chevron{transition:none}.cw-teacher-albert-dialog .cw-real-indeterminate .cai-bar{animation:none;width:80%!important}}
+
+
+/* Filtres persistants : accessibles sur PC comme sur iPhone.
+ * Aucun formulaire de copie n'est remonté simplement parce qu'on filtre.
+ */
+.cw-copy-filters{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr)) minmax(190px,1.35fr);
+ gap:10px;
+ padding:13px;
+ margin:12px 0;
+ border:1px solid #536f8a;
+ border-radius:14px;
+ background:linear-gradient(135deg,#1b3048,#102239);
+ min-width:0;
+}
+.cw-copy-filter-field{display:grid;gap:6px;min-width:0}
+.cw-copy-filter-field>span{font-size:11px;font-weight:750;color:#c4dcf1}
+.cw-copy-filter-field :is(select,input){
+ width:100%;box-sizing:border-box;min-height:47px;min-width:0;
+ border:1px solid #7192ad;border-radius:10px;
+ padding:11px 12px;background:#0d2438;color:#f5fbff;
+ font:inherit;font-size:14px;outline-offset:2px
+}
+.cw-copy-filter-field :is(select,input):focus-visible{outline:3px solid #88d7ff}
+.cw-copy-filter-field input::placeholder{color:#95b3c6}
+body.academy-authenticated[data-acad-view="pins"] #cw-copy-filters,
+body.academy-authenticated[data-acad-view="qr"] #cw-copy-filters,
+body.academy-authenticated[data-acad-view="import"] #cw-copy-filters{display:none!important}
+@media(max-width:740px){
+ .cw-copy-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:10px;gap:9px}
+ .cw-copy-filter-field:last-child{grid-column:1/-1}
+ .cw-copy-filter-field :is(select,input){font-size:16px;min-height:49px}
+}
+@media(max-width:410px){.cw-copy-filters{grid-template-columns:1fr}.cw-copy-filter-field:last-child{grid-column:auto}}

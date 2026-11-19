@@ -1,0 +1,74 @@
+/* CORTEX Académie — copies classées et correction Albert (mobile-first).
+ * Respecte la direction artistique validée et n'affecte pas le contrôle élève.
+ */
+#cw-copy-list.cw-copies{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
+.cw-copy-organizer-heading{display:flex;justify-content:space-between;align-items:baseline;gap:8px 16px;flex-wrap:wrap;margin:4px 0 8px}
+.cw-copy-organizer-heading strong{color:#fff;font-size:14px}
+.cw-copy-organizer-heading small{color:#b3cadc;font-size:12px;line-height:1.5}
+.cw-copy-class,.cw-copy-control,.cw-copy-entry{min-width:0;max-width:100%;overflow:hidden;border:1px solid #4a6984;border-radius:15px;background:linear-gradient(145deg,#172b45,#111f34);box-sizing:border-box}
+.cw-copy-class[open]{border-color:#80adc9}
+.cw-copy-class>.cw-group-summary{padding:16px 17px;background:linear-gradient(105deg,#203d56,#172d44)}
+.cw-copy-control{background:#10263d;border-color:#436480;border-radius:13px}
+.cw-copy-control>.cw-group-summary{padding:14px 13px}
+.cw-copy-entry{background:#102239;border:1px solid #334e67;border-radius:12px}
+.cw-copy-entry[open]{border-color:#6e9ebe}
+.cw-group-summary,.cw-copy-entry-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;min-width:0;min-height:52px;-webkit-tap-highlight-color:transparent}
+.cw-group-summary::-webkit-details-marker,.cw-copy-entry-summary::-webkit-details-marker{display:none}
+.cw-group-summary:focus-visible,.cw-copy-entry-summary:focus-visible,.cw-copy-answers>summary:focus-visible{outline:3px solid #a3dbfa;outline-offset:-3px}
+.cw-group-summary-main,.cw-copy-entry-name{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;overflow-wrap:anywhere}
+.cw-group-summary-main strong{font-size:14px;line-height:1.35;color:#f4faff}
+.cw-group-summary-main small,.cw-copy-entry-name small{font-size:11px;line-height:1.5;color:#b6d0e3}
+.cw-copy-class>.cw-group-summary .cw-group-summary-main strong{font-size:16px;letter-spacing:.02em}
+.cw-group-summary-side{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex:0 0 auto}
+.cw-group-pending{padding:6px 8px;border:1px solid #cc768e;border-radius:99px;color:#ffcbd9;background:#462d3e;font-size:11px;font-weight:800;white-space:nowrap}
+.cw-group-chevron{font-size:20px;line-height:1;color:#bddeed;transition:transform .18s ease;display:inline-flex;align-items:center}
+details[open]>.cw-group-summary .cw-group-chevron,details[open]>.cw-copy-entry-summary .cw-group-chevron{transform:rotate(180deg)}
+.cw-copy-control-list,.cw-copy-entry-list{display:grid;gap:10px;padding:11px}
+.cw-copy-entry-summary{padding:11px 12px;min-height:57px}
+.cw-copy-entry-name strong{font-size:13px;color:#edf9ff}
+.cw-copy-entry-state{flex:0 0 auto;border-radius:99px;padding:6px 8px;white-space:nowrap;font-size:10px;font-weight:800;background:#31334f;color:#c9d8e7;border:1px solid #5c6380}
+.cw-copy-entry-state.is-pending{background:#49303b;color:#ffd0dd;border-color:#ab6779}
+.cw-copy-entry-state.is-graded{background:#2e4057;color:#d0edff;border-color:#6086a1}
+.cw-copy-entry-state.is-published{background:#23463d;color:#b7f6dd;border-color:#4e9b7e}
+.cw-copy-entry>.cw-copy{margin:0 9px 10px;border-radius:12px;background:#152d42;border-color:#466780;padding:14px;min-width:0;max-width:calc(100% - 18px);box-sizing:border-box}
+.cw-copy-answers{border:1px solid #536e89;border-radius:12px;background:#13263b;min-width:0;overflow:hidden}
+.cw-copy-answers>summary{padding:12px;cursor:pointer;color:#d9eeff;font-size:13px;font-weight:750;line-height:1.5;list-style:none}
+.cw-copy-answers>summary::-webkit-details-marker{display:none}
+.cw-copy-answer-list{display:grid;gap:8px;padding:9px}
+.cw-copy-answer-list .cw-answer{min-width:0;overflow-wrap:anywhere}
+.cw-grade-form{min-width:0}
+.cw-grade-form textarea{box-sizing:border-box;width:100%;max-width:100%;min-height:115px;font-size:16px}
+.cw-grade-form input[type=number]{box-sizing:border-box;font-size:16px}
+.cw-grade-form button{max-width:100%;white-space:normal}
+.cw-ai-detail{border:1px solid #80a9d3;border-radius:12px;background:#10283f;overflow:hidden;min-width:0}
+.cw-ai-detail>summary{list-style:none;padding:12px 14px;cursor:pointer;color:#e2f0ff;font-size:13px;font-weight:800;line-height:1.5}
+.cw-ai-detail>summary::-webkit-details-marker{display:none}
+.cw-ai-detail>.cw-ai-question{margin:7px 9px;border:1px solid #4e728f;border-radius:10px;background:#142d47;overflow:hidden}
+.cw-ai-detail>.cw-ai-question>summary{padding:11px 12px;cursor:pointer;font-size:13px;color:#e7f2ff;font-weight:750;line-height:1.4}
+.cw-ai-detail>.cw-ai-question p,.cw-ai-detail>.cw-ai-question small{display:block;line-height:1.5;font-size:12px;color:#d2e6fa;overflow-wrap:anywhere;margin:8px 12px}
+.cw-ai-detail>.cw-ai-question[open]{border-color:#7eafd3}
+.cw-real-ai-safety{color:#bddef2;font-size:12px;line-height:1.55;padding:11px;border:1px solid #54748d;background:#102b45;border-radius:10px;margin:0}
+.cw-teacher-albert-dialog .cw-real-indeterminate .cai-bar{width:38%!important;animation:cw-albert-real-loading 1.6s ease-in-out infinite;box-shadow:0 0 19px #7ad7ff}
+@keyframes cw-albert-real-loading{0%{transform:translateX(-110%)}50%{transform:translateX(85%)}100%{transform:translateX(300%)}}
+.cw-teacher-albert-dialog .cai-footer{align-items:center}
+.cw-teacher-albert-dialog .cai-status{min-height:2.6em}
+.cw-teacher-albert-dialog .cai-count{font-variant-numeric:tabular-nums}
+@media(max-width:740px){
+ #cw-copy-list.cw-copies{gap:10px;margin-top:10px}
+ .cw-copy-organizer-heading{padding:4px 0 3px}
+ .cw-copy-organizer-heading strong{font-size:14px}
+ .cw-copy-organizer-heading small{font-size:11px}
+ .cw-copy-class>.cw-group-summary{padding:13px 11px}
+ .cw-copy-control>.cw-group-summary{padding:12px 10px}
+ .cw-copy-entry-summary{padding:11px 9px;gap:5px}
+ .cw-copy-control-list,.cw-copy-entry-list{padding:8px;gap:8px}
+ .cw-copy-entry>.cw-copy{margin:0 7px 8px;padding:11px;max-width:calc(100% - 14px)}
+ .cw-group-summary-main strong{font-size:13px}
+ .cw-group-summary-main small{font-size:10px}
+ .cw-group-pending{font-size:10px;padding:5px}
+ .cw-copy-entry-state{font-size:9px;padding:5px}
+ .cw-copy-top{flex-wrap:wrap}
+ .cw-grade-form input[type=number],.cw-grade-form button{width:100%;min-height:46px}
+ .cw-teacher-albert-dialog{width:calc(100vw - 18px);max-height:calc(100dvh - 24px)}
+}
+@media(prefers-reduced-motion:reduce){.cw-group-chevron{transition:none}.cw-teacher-albert-dialog .cw-real-indeterminate .cai-bar{animation:none;width:80%!important}}

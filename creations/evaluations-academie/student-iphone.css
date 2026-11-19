@@ -328,6 +328,9 @@
 /* Onglet CHRONO du contrôle : accès en un toucher depuis toutes les questions.
    Décompte partagé avec le chrono initial, sans blocage du scroll iOS. */
 @media (pointer:coarse) and (max-width:1100px){
+ body.cw-student-active .cw-answer-form-paged{
+  padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
+ }
  body.cw-student-active .cw-mobile-chrono-dock{
   position:fixed;
   z-index:65;

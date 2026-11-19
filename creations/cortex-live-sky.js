@@ -1,7 +1,7 @@
 /* CORTEX / NOCTIS — Ciel vivant V2
  * Vraies étoiles animées, scintillement et météores rares ; profondeur douce.
  * Canevas transparent, aucune interaction interceptée.
- * 30 IPS maximum sur ordinateur, 20 sur mobile, arrêt en onglet masqué,
+ * 30 IPS maximum sur ordinateur, ciel statique sur tactile, arrêt en onglet masqué,
  * animation désactivée si prefers-reduced-motion ou économie de données.
  */
 (()=>{
@@ -131,12 +131,25 @@
   }
   raf=requestAnimationFrame(loop);
  }
- function start(){if(!raf&&!reduce.matches&&!saveData&&!examPause()){last=performance.now();raf=requestAnimationFrame(loop)}}
+ function start(){
+  if(lowPower){
+   // Un seul tracé sur téléphone : conserve les étoiles sans animation
+   // permanente qui ralentit les gestes Safari après plusieurs minutes.
+   if(!reduce.matches&&!saveData&&!examPause()){
+    const now=performance.now();
+    for(const l of layers)if(!l.local||l.parent.isConnected)paint(l,now,0);
+   }
+   return;
+  }
+  if(!raf&&!reduce.matches&&!saveData&&!examPause()){
+   last=performance.now();raf=requestAnimationFrame(loop)
+  }
+ }
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0}
  function onResize(){
   if(resizeQueued)return;
   resizeQueued=true;
-  requestAnimationFrame(()=>{resizeQueued=false;for(const layer of layers)resize(layer)});
+  requestAnimationFrame(()=>{resizeQueued=false;for(const layer of layers)resize(layer);if(lowPower)start()});
  }
  const global=makeCanvas(document.body,false);
  if(!global)return;

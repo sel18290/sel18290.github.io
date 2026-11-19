@@ -20,23 +20,26 @@ if(qr||globalPortal){
   '<div class="cw-student-hero"><span>STATION NOCTIS · ESPACE ÉLÈVE</span><h1>'+(qr?'Rejoindre mon contrôle.':'Bienvenue dans mon CORTEX.')+'</h1>'+
   '<p>'+(qr?'Le QR code t’a envoyé vers le contrôle attribué à ta classe.':'Choisis ta classe, indique ton numéro sur la liste et confirme ton PIN pour retrouver tes contrôles et corrections.')+'</p></div>'+
   '<div id="cw-student-status" role="status" aria-live="polite" class="cw-status" hidden></div>'+
-  '<section id="cw-student-login"><form id="cw-student-login-form" class="cw-student-login-form">'+
+  '<section id="cw-student-login" class="cw-pin-entry">'+
+  '<div class="cw-pin-paths" role="group" aria-label="Choisir sa connexion">'+
+  '<button id="cw-back-to-login" type="button" class="cw-pin-path is-selected" aria-pressed="true">◈ J’ai déjà mon PIN</button>'+
+  '<button id="cw-show-activation" type="button" class="cw-pin-path" aria-pressed="false">✦ Je crée mon PIN</button></div>'+
+  '<div class="cw-pin-intro"><strong>Un numéro, un PIN, tous mes contrôles.</strong><p>Comme dans la démonstration : choisis ton numéro sur la liste et utilise le même PIN à six chiffres pour toutes les évaluations de ta classe.</p></div>'+
+  '<form id="cw-student-login-form" class="cw-student-login-form">'+
   (qr?'':'<label for="cw-student-class">Ma classe<select id="cw-student-class" required><option value="">Chargement des classes…</option></select></label>')+
   '<label for="cw-student-number">Mon numéro sur la liste<input id="cw-student-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
-  '<label for="cw-student-pin">Mon PIN personnel à 6 chiffres<input id="cw-student-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" placeholder="●●●●●●" required></label>'+
+  '<label for="cw-student-pin">Mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-student-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" placeholder="●●●●●●" required><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-student-pin">Afficher</button></div></label>'+
   '<button type="submit" class="cw-student-submit">'+(qr?'Ouvrir mon contrôle →':'Accéder à mon espace →')+'</button></form>'+
-  '<div id="cw-activation-invitation" class="cw-activation-invitation"><span>Tu viens pour la première fois ?</span><button id="cw-show-activation" type="button">✦ Première connexion · Activer mon espace →</button></div>'+
   '<form id="cw-student-activation-form" class="cw-student-login-form cw-activation-form" hidden>'+
-  '<div class="cw-activation-heading"><span>CLASSE · DEMI-GROUPE · IDENTIFICATION</span><h2>Créer mon accès personnel.</h2><p>Choisis ta classe et ton demi-groupe, indique ton numéro de place, puis utilise le PIN provisoire remis par ton professeur pour activer ton espace.</p></div>'+
-  (qr?'':'<label for="cw-activation-class">1 · Ma classe<select id="cw-activation-class" required><option value="">Choisir ma classe…</option></select></label>')+
-  '<label for="cw-activation-group">'+(qr?'1':'2')+' · Mon demi-groupe<select id="cw-activation-group" required><option value="">Choisir mon demi-groupe…</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option><option value="0">Classe entière (sans demi-groupe)</option></select></label>'+
-  '<label for="cw-activation-number">'+(qr?'2':'3')+' · Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
-  '<label for="cw-activation-temp-pin">'+(qr?'3':'4')+' · PIN provisoire donné par le professeur<input id="cw-activation-temp-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" required placeholder="●●●●●●"></label>'+
-  '<label for="cw-activation-new-pin">'+(qr?'4':'5')+' · Je choisis mon PIN personnel<input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="6 chiffres différents du PIN provisoire"></label>'+
-  '<label for="cw-activation-confirm-pin">Confirmer mon nouveau PIN<input id="cw-activation-confirm-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Répéter les 6 chiffres"></label>'+
-  '<button type="submit" class="cw-student-submit">✓ Activer mon espace élève</button>'+
-  '<button id="cw-back-to-login" type="button" class="cw-return">← Je possède déjà mon PIN</button></form>'+
-  '<p class="cw-student-help">Un même PIN personnel sert pour tous les contrôles de ta classe. Si tu l’as oublié, demande un nouveau PIN provisoire à ton professeur.</p></section>'+
+  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>Le professeur ouvre les inscriptions pendant 30 minutes. Choisis ton numéro, crée un PIN et confirme-le. Aucun PIN provisoire n’est nécessaire.</p></div>'+
+  (qr?'':'<label for="cw-activation-class">Ma classe<select id="cw-activation-class" required><option value="">Choisir ma classe…</option></select></label>')+
+  '<label for="cw-activation-number">Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
+  '<label for="cw-activation-new-pin">Je choisis mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Choisis 6 chiffres"><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-activation-new-pin">Afficher</button></div></label>'+
+  '<label for="cw-activation-confirm-pin">Je confirme mon PIN<input id="cw-activation-confirm-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Répète les 6 chiffres"></label>'+
+  '<details class="cw-pin-group-choice"><summary>Mon demi-groupe (facultatif)</summary><label for="cw-activation-group">Mon groupe<select id="cw-activation-group"><option value="0" selected>Classe entière</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option></select></label><small>Ton professeur pourra modifier ton groupe ensuite.</small></details>'+
+  '<p class="cw-pin-privacy">🔒 Ton professeur ne voit pas ton PIN. Ne le partage avec personne.</p>'+
+  '<button type="submit" class="cw-student-submit">✓ Créer mon PIN et entrer →</button></form>'+
+  '<p class="cw-student-help">PIN oublié ? Ton professeur peut le réinitialiser. Tu choisiras ensuite un nouveau PIN pendant la prochaine ouverture des inscriptions.</p></section>'+
   '<section id="cw-student-work" hidden></section>'+
   '<footer>Accès personnel sécurisé · Ne communique jamais ton PIN · Les notes apparaissent seulement après publication par ton professeur.</footer></div>';
  document.body.insertBefore(main,document.querySelector('.layout'));
@@ -56,19 +59,20 @@ if(qr||globalPortal){
    const select=$('cw-student-class');select.replaceChildren();
    const blank=E('option','','Choisir ma classe');blank.value='';select.append(blank);
    for(const cl of classList){
-    const opt=E('option','',cl.label+' · '+cl.display_name+(cl.ready?' · Accès '+cl.suffix:' · PIN à préparer par le professeur'));opt.value=cl.code;select.append(opt);
+    const stateText=cl.registration_open?' · Création de PIN ouverte':cl.ready?' · Accès prêt':' · À préparer';
+    const opt=E('option','',cl.label+' · '+cl.display_name+stateText);opt.value=cl.code;select.append(opt);
    }
    const activationSelect=$('cw-activation-class');
    if(activationSelect){
     activationSelect.replaceChildren();
     const empty=E('option','','Choisir ma classe');empty.value='';activationSelect.append(empty);
-    for(const cl of classList){const option=E('option','',cl.label+' · '+cl.display_name+(cl.ready?' · Accès '+cl.suffix:' · PIN à préparer par le professeur'));option.value=cl.code;activationSelect.append(option)}
+    for(const cl of classList){const status=cl.registration_open?' · PIN ouverts':cl.ready?' · Accès prêt':' · À préparer';const option=E('option','',cl.label+' · '+cl.display_name+status);option.value=cl.code;activationSelect.append(option)}
    }
    if(classPrefill&&classList.some(x=>x.code===classPrefill)){select.value=classPrefill;if(activationSelect)activationSelect.value=classPrefill}
    if(!classList.length)message('Aucune classe n’est enregistrée. Contacte ton professeur.',true);
-   else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Le professeur doit encore distribuer les PIN provisoires avant leur activation.',true);
+   else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Demande au professeur d’ouvrir la création des PIN.',true);
    else if(classPrefill&&!classList.some(x=>x.code===classPrefill))message('Ce lien de classe est indisponible. Choisis une classe dans la liste.',true);
-   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe, mais le professeur doit encore créer les PIN provisoires avant l’inscription.',true);
+   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe, mais le professeur doit d’abord préparer les accès.',true);
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){
@@ -236,65 +240,71 @@ if(qr||globalPortal){
    work.append(mark);
   }
  }
- const loginForm=$('cw-student-login-form'),activationForm=$('cw-student-activation-form'),invite=$('cw-activation-invitation');
- const toggleActivation=(activated)=>{
-  activationForm.hidden=!activated;loginForm.hidden=activated;invite.hidden=activated;
+ const loginForm=$('cw-student-login-form'),activationForm=$('cw-student-activation-form');
+ const loginTab=$('cw-back-to-login'),createTab=$('cw-show-activation');
+ const toggleActivation=activated=>{
+  activationForm.hidden=!activated;loginForm.hidden=activated;
+  loginTab.classList.toggle('is-selected',!activated);createTab.classList.toggle('is-selected',activated);
+  loginTab.setAttribute('aria-pressed',String(!activated));createTab.setAttribute('aria-pressed',String(activated));
   if(activated){
-   if(mode==='class'){
-    const chosen=$('cw-student-class')?.value;if(chosen)$('cw-activation-class').value=chosen;
-   }
+   if(mode==='class')$('cw-activation-class').value=$('cw-student-class')?.value||'';
    if($('cw-student-number').value)$('cw-activation-number').value=$('cw-student-number').value;
    $('cw-activation-number').focus();
   }else{
-   if(mode==='class'){
-    const chosen=$('cw-activation-class')?.value;if(chosen)$('cw-student-class').value=chosen;
-   }
+   if(mode==='class')$('cw-student-class').value=$('cw-activation-class')?.value||'';
+   if($('cw-activation-number').value)$('cw-student-number').value=$('cw-activation-number').value;
    $('cw-student-number').focus();
   }
   message('');
  };
- $('cw-show-activation').addEventListener('click',()=>toggleActivation(true));
- $('cw-back-to-login').addEventListener('click',()=>toggleActivation(false));
+ createTab.addEventListener('click',()=>toggleActivation(true));
+ loginTab.addEventListener('click',()=>toggleActivation(false));
+ for(const reveal of document.querySelectorAll('.cw-pin-eye')){
+  reveal.addEventListener('click',()=>{
+   const input=$(reveal.getAttribute('aria-controls'));if(!input)return;
+   const show=input.type==='password';input.type=show?'text':'password';
+   reveal.textContent=show?'Masquer':'Afficher';
+   reveal.setAttribute('aria-label',show?'Masquer le PIN':'Afficher le PIN');
+  });
+ }
  activationForm.addEventListener('submit',async event=>{
   event.preventDefault();if(busy)return;
   const submit=event.currentTarget.querySelector('[type="submit"]');
-  const studentNumber=Number($('cw-activation-number').value);
-  const groupValue=$('cw-activation-group').value;
-  if(!['0','1','2'].includes(groupValue)){message('Sélectionne ton demi-groupe 1, 2 ou Classe entière.',true);return}
-  const temporary=$('cw-activation-temp-pin').value;
-  const chosen=$('cw-activation-new-pin').value;
-  const repeat=$('cw-activation-confirm-pin').value;
-  if(!/^\d{6}$/.test(chosen)||chosen!==repeat){message('Les deux PIN personnels doivent être identiques et comporter six chiffres.',true);return}
-  if(temporary===chosen){message('Choisis un PIN personnel différent du PIN provisoire.',true);return}
+  const number=Number($('cw-activation-number').value);
+  const pin=$('cw-activation-new-pin').value;
+  const confirmPin=$('cw-activation-confirm-pin').value;
+  if(!/^\d{6}$/.test(pin)||pin!==confirmPin){
+   message('Ton PIN doit contenir 6 chiffres et être identique dans les deux champs.',true);return;
+  }
+  const group=Number($('cw-activation-group').value||0);
   busy=true;submit.disabled=true;
   try{
    const classCode=mode==='class'?$('cw-activation-class').value:'';
-   await api('student_activate',{class_code:classCode,join_code:qr||'',student_number:studentNumber,demi_groupe:Number(groupValue),initial_pin:temporary,new_pin:chosen});
-   $('cw-activation-temp-pin').value='';$('cw-activation-new-pin').value='';$('cw-activation-confirm-pin').value='';
-   // Dès l'activation réussie, connexion immédiate avec le nouveau PIN, sans autre formulaire.
+   await api('student_pin_setup',{class_code:classCode,join_code:qr||'',student_number:number,
+    demi_groupe:group,pin,confirm_pin:confirmPin});
    const result=mode==='qr'
-    ?await api('student_login',{code:qr,student_number:studentNumber,pin:chosen})
-    :await api('student_class_login',{class_code:classCode,student_number:studentNumber,pin:chosen});
+    ?await api('student_login',{code:qr,student_number:number,pin})
+    :await api('student_class_login',{class_code:classCode,student_number:number,pin});
+   $('cw-activation-new-pin').value='';$('cw-activation-confirm-pin').value='';
    token=result.session;sessionStorage.setItem(storageKey,token);
    if(mode==='qr')await loadExam();else await loadClass();
-   message('Ton espace est activé dans '+(groupValue==='0'?'ta classe entière':'ton demi-groupe '+groupValue)+'. Ton professeur retrouve ton numéro dans ce groupe.');
+   message('PIN créé ! Tu retrouveras ton espace avec ton numéro et ce même PIN.');
   }catch(err){
-   message(err.message||'Activation impossible. Vérifie ton PIN provisoire.',true);
-   // Si le code provisoire a déjà été consommé, la connexion classique reste accessible.
+   message(err.message||'Création de PIN impossible. Vérifie que le professeur a ouvert les inscriptions.',true);
   }finally{busy=false;submit.disabled=false}
  });
- $('cw-student-login-form').addEventListener('submit',async event=>{
-  event.preventDefault();const submit=one('button',event.currentTarget);submit.disabled=true;
+ loginForm.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy)return;
+  const submit=one('button[type="submit"]',event.currentTarget);busy=true;submit.disabled=true;
   try{
    const n=Number($('cw-student-number').value),pin=$('cw-student-pin').value;
    const result=mode==='qr'
     ?await api('student_login',{code:qr,student_number:n,pin})
     :await api('student_class_login',{class_code:$('cw-student-class').value,student_number:n,pin});
    token=result.session;sessionStorage.setItem(storageKey,token);$('cw-student-pin').value='';
-   if(mode==='qr')await loadExam();
-   else await loadClass();
-  }catch(err){message(err.message||'Identification impossible.',true)}
-  finally{submit.disabled=false}
+   if(mode==='qr')await loadExam();else await loadClass();
+  }catch(err){message(err.message||'Identification impossible. Tu n’as pas encore de PIN ? Clique sur « Je crée mon PIN ».',true)}
+  finally{busy=false;submit.disabled=false}
  });
  const restored=sessionStorage.getItem(storageKey);
  if(mode==='class')getClasses();

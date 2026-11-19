@@ -106,6 +106,14 @@ if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 if(view==='student'&&window.CORTEX_ALBERT_TOOLS?.hydrate)window.CORTEX_ALBERT_TOOLS.hydrate();
+if(view==='student'&&tab==='stages'){
+ const area=document.getElementById('cortex-demo-stages');
+ window.CORTEX_STAGE?.mount(area,{
+  demo:true,classes:state.classes.filter(c=>!c.archived).map(c=>c.name),
+  className:portalSession?.classId?state.classes.find(c=>c.id===portalSession.classId)?.name||'':'',
+  back:()=>nav('student',portalAuthorized()?'espace':'accueil')
+ });
+}
 document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
 if(view==='teacher'&&tab==='creer'&&editor){
  window.CORTEX_DEMO_REAL_WORKSHOP.mount(editor,state.classes,editorIndex,async()=>{
@@ -361,6 +369,7 @@ function prepareDemoPse(){
  nav('student','pret/'+encodeURIComponent(ass.id)+'/'+encodeURIComponent(ass.token));
 }
 function studentShell(){
+ if(tab==='stages')return '<div class="student-shell"><section id="cortex-demo-stages"></section></div>';
  if(tab==='decouverte')return studentPseDiscovery();
  if(tab==='accueil')return window.CORTEX_PORTAL.studentLogin(state);
  if(tab==='espace'){
@@ -1074,6 +1083,7 @@ if(a==='demo-pse-entry'){prepareDemoPse();return;}
 if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
+if(a==='student-stages'){nav('student','stages');return;}
 if(a==='about'){notifyAbout();return;}
 if(a==='integrity-scroll-controls'||a==='integrity-scroll-journal'){document.getElementById(a==='integrity-scroll-controls'?'integrity-controls':'integrity-journal')?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
 if(a==='integrity-open'){nav('teacher','integrite');return;}

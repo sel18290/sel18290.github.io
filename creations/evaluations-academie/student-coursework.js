@@ -15,6 +15,7 @@ if(qr||globalPortal){
  const storageKey='cortex-academie-eleve:'+mode+':'+(qr||classPrefill||'general');
  let token=null,current=null,currentId=null,classData=null,classList=[],busy=false,hiddenSince=0;
  let countdownInterval=null;
+ let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
  let mobileController=null;
  function releaseMobileEditor(){if(mobileController){mobileController.destroy();mobileController=null;}}
@@ -50,7 +51,12 @@ if(qr||globalPortal){
  document.body.insertBefore(main,document.querySelector('.layout'));
  function message(text,error=false){const el=$('cw-student-status');el.textContent=text||'';el.hidden=!text;el.classList.toggle('error',!!error)}
  function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false }
- function reset(){releaseMobileEditor();if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
+ function closeStageView(){
+  stageWorkspace?.dispose();
+  stageWorkspace=null;
+  main.classList.remove('cs-stage-academy-active');
+ }
+ function reset(){closeStageView();releaseMobileEditor();if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
  function button(text,cls,handler){
   const b=E('button',cls,text);b.type='button';
   b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await handler()}catch(err){message(err.message||String(err),true)}finally{b.disabled=false}});
@@ -84,7 +90,11 @@ if(qr||globalPortal){
   releaseMobileEditor();
   classData=await api('student_class_list',{session:token});
   current=null;currentId=null;
-  showWork();message('');renderClass();
+  showWork();message('');
+  if(openStagesAfterLogin){
+   openStagesAfterLogin=false;
+   renderStageView();
+  }else renderClass();
  }
  async function loadExam(id){
   releaseMobileEditor();
@@ -103,7 +113,7 @@ if(qr||globalPortal){
   return nav;
  }
  function renderStageView(){
-  // Aucune copie, aucun PIN ni correction scolaire n'est transféré à la recherche.
+  if(stageWorkspace)return;
   releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   showWork();message('');
@@ -114,14 +124,17 @@ if(qr||globalPortal){
    work.append(E('p','cw-student-empty','Recherche de stages indisponible. Recharge la page.'));
    return;
   }
-  window.CORTEX_STAGE.mount(stageHost,{
+  main.classList.add('cs-stage-academy-active');
+  stageWorkspace=window.CORTEX_STAGE.mount(stageHost,{
    className:classData?.class?.code||'',
-   classes:classList.map(c=>c.label||c.code).filter(Boolean),
+   storageScope:classData?.class?.code&&classData?.student_number?classData.class.code+':'+classData.student_number:'',
    session:token,demo:false,
    back:()=>{if(mode==='class')renderClass();else renderExam()}
   });
+  stageHost.querySelector('h1')?.focus();
  }
  function renderClass(){
+  closeStageView();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!classData)return;
@@ -144,15 +157,14 @@ if(qr||globalPortal){
    '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">ALBERT IA</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · DES ENTREPRISES AUTOUR DE TOI</span>'+
    '<h2>Découvre ton<br><em>prochain stage.</em></h2>'+
-   '<p>Choisis ta filière et ta ville, consulte les établissements répertoriés et prépare tes candidatures avec Albert.</p></div>'+
-   '<div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span></div></div>';
+   '<p>Choisis ta filière et ta ville, prépare ton premier contact et enregistre tes candidatures dans ton carnet.</p></div></div>';
   const stageCta=E('button','cs-stage-featured-button');
   stageCta.type='button';
-  stageCta.append(E('span','cs-stage-featured-icon','🎓'));
+  const stageIcon=E('span','cs-stage-featured-icon','⌖');stageIcon.setAttribute('aria-hidden','true');stageCta.append(stageIcon);
   const copy=E('span','cs-stage-featured-button-copy');
   copy.append(E('strong','','Rechercher mon stage'),
-   E('small','','Entreprise · Adresse · Téléphone · Suggestions Albert'));
-  stageCta.append(copy,E('span','cs-stage-featured-arrow','↗'));
+   E('small','','Annuaire · Modèles de contact · Suivi des relances'));
+  stageCta.append(copy);
   stageCta.addEventListener('click',renderStageView);
   stageHero.append(stageCta);
   work.append(stageHero);
@@ -236,6 +248,7 @@ if(qr||globalPortal){
   }
  }
  function renderExam(){
+  closeStageView();
   releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();

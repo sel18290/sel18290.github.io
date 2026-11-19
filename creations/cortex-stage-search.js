@@ -1,326 +1,1109 @@
-/* CORTEX · Recherche de stages (démo + réel)
- * Annuaire géographique : source IGN/OSM, sans entreprises inventées.
- * Résultats conservés localement 48 h; Albert classe uniquement les lieux réels avec la même API que CORTEX.
- */
-(function(){
- "use strict";
- const ENDPOINT="https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search";
- const SECTORS=[
-  ["gestion-administration","Gestion-administration (AGOrA)"],
-  ["commerce-vente","Commerce et vente (MCV)"],
-  ["accueil","Métiers de l'accueil (MA)"]
- ];
- const TYPES={
-  "gestion-administration":[
-   ["administrations","Mairies et administrations","Courriers, dossiers, relation avec les usagers."],
-   ["entreprises","Services administratifs d'entreprises","Suivi administratif et organisation d'activité."],
-   ["associations","Associations et structures sociales","Gestion de dossiers et suivi des adhérents."],
-   ["sante","Établissements de santé","Secrétariat et administration, hors soins."],
-   ["education","Établissements scolaires et universitaires","Secrétariat et suivi de dossiers."],
-   ["banques","Banques, assurances et mutuelles","Gestion des informations et documents administratifs."],
-   ["comptabilite","Cabinets comptables et de gestion","Classement, facturation, suivi administratif."],
-   ["rh","Agences d'emploi et services RH","Gestion de plannings, dossiers et documents."]
-  ],
-  "commerce-vente":[
-   ["distribution","Supermarchés et grands magasins","Vente, rayons, stocks et conseil.","A"],
-   ["mode","Mode, chaussures et accessoires","Conseil client et mise en valeur des produits.","A"],
-   ["beaute","Beauté, cosmétiques et parfumeries","Conseil, vente et présentation commerciale.","A"],
-   ["technologie","Téléphonie, informatique et électroménager","Vente-conseil et suivi de commandes.","A"],
-   ["maison","Maison, décoration, bricolage et jardin","Merchandising, vente et relation client.","A"],
-   ["alimentation","Commerces alimentaires spécialisés","Accueil, conseil et vente alimentaire.","A"],
-   ["sports-culture","Sport, librairies, jouets et loisirs","Vente-conseil et animation commerciale.","A"],
-   ["vehicules","Concessions automobiles, vélos et mobilité","Vente d'équipements et conseil clientèle.","A"],
-   ["immobilier","Agences immobilières","Prospection, rendez-vous et relation client.","B"],
-   ["finance","Banques et assurances","Offres de services, conseil et relation clientèle.","B"],
-   ["relation-client","Téléconseil et services commerciaux","Prospection et fidélisation à distance.","B"],
-   ["entreprises-b2b","Entreprises avec service commercial","Prospection et suivi commercial interentreprises.","B"]
-  ],
-  "accueil":[
-   ["administrations","Mairies et services publics","Accueil et orientation des usagers."],
-   ["sante","Hôpitaux, cliniques et centres de santé","Accueil et orientation, hors activités de soins."],
-   ["hotels","Hôtels et hébergements touristiques","Réception et information des visiteurs."],
-   ["tourisme","Offices de tourisme et points d'information","Renseignement et orientation du public."],
-   ["culture","Musées, bibliothèques et lieux culturels","Accueil, information et gestion des flux."],
-   ["evenementiel","Centres de congrès et espaces événementiels","Accueil de participants et organisation d'événements."],
-   ["entreprises","Accueil d'entreprises et de sièges","Accueil physique, téléphonique et numérique."],
-   ["social","Associations et centres sociaux","Accueil des bénéficiaires et orientation."],
-   ["transport","Gares et pôles de transport","Information et orientation des voyageurs."],
-   ["education","Établissements scolaires et universités","Accueil des visiteurs et communication."]
-  ]
- };
- const LEVELS={seconde:"Seconde",premiere:"Première",terminale:"Terminale"};
- function inferLevel(s){
-  const v=String(s||"").trim().toLowerCase();
-  if(/^(2|seconde)/.test(v))return "seconde";
-  if(/^(1|premi)/.test(v))return "premiere";
-  if(/^(t|term)/.test(v))return "terminale";
-  return "";
- }
- function inferSector(s){
-  const v=String(s||"").toLowerCase();
-  if(/agora|gestion|administration|2ga|tga/.test(v))return "gestion-administration";
-  if(/accueil|(^|[^a-z])ma([^a-z]|$)|tma/.test(v))return "accueil";
-  return "commerce-vente";
- }
- const E=(tag,cls,txt)=>{
-  const e=document.createElement(tag);if(cls)e.className=cls;
-  if(txt!==undefined)e.textContent=String(txt);return e;
- };
- const cachePrefix="cortex-stage:v3:";
- const favKey="cortex-stage-favoris:v1";
- const clean=s=>String(s??"").trim();
- const loadJson=(key,fallback)=>{
-  try{return JSON.parse(localStorage.getItem(key)||"null")??fallback}catch{return fallback}
- };
- const saveJson=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}};
- const missions={
-  "gestion-administration":"Classement de dossiers, accueil administratif, suivi de tableaux, saisie et secrétariat.",
-  "commerce-vente":"Accueil client, présentation de produits, mise en rayon, vente accompagnée, gestion de stocks.",
-  "accueil":"Accueil physique et téléphonique, orientation des visiteurs, information et préparation d'évènements."
- };
- const escapeCSV=s=>{
-  let t=String(s??"");if(/^[\s]*[=+\-@\t\r]/.test(t))t="'"+t;
-  return '"'+t.replace(/"/g,'""')+'"'
- };
- const telHref=s=>{
-  const v=clean(s).split(/[;/]/)[0].replace(/[^+0-9]/g,"");
-  return /^\+?[0-9]{6,16}$/.test(v)?"tel:"+v:"";
- };
- function mount(container,settings={}){
-  if(!container)return;
-  const currentClass=clean(settings.className||"");
-  let state=null,all=[],shown=[],controller=null,destroyed=false;
-  const favorites=new Set(loadJson(favKey,[]));
-  const section=E("section","cs-stage-search");
-  section.innerHTML=
-   '<header class="cs-stage-head"><div><span class="cs-stage-eyebrow">CORTEX · PARCOURS PROFESSIONNEL</span>'+
-   '<h2>Recherche de stages</h2>'+
-   '<p>Découvre des lieux de PFMP autour de toi, avec leurs coordonnées publiques et des idées de missions.</p></div>'+
-   '<span class="cs-stage-marker">✦ STAGES</span></header>'+
-   '<form class="cs-stage-form" id="cs-stage-form">'+
-   '<label>Mon niveau<select id="cs-stage-level" required><option value="">Choisir mon niveau</option>'+
-   '<option value="seconde">Seconde</option><option value="premiere">Première</option><option value="terminale">Terminale</option></select></label>'+
-   '<label>Ma filière<select id="cs-stage-sector" required></select></label>'+
-   '<label class="cs-stage-option-field" id="cs-stage-option-wrap" hidden>Mon orientation commerciale'+
-   '<select id="cs-stage-option"><option value="toutes">Toutes les orientations / à préciser</option>'+
-   '<option value="A">Option A · Vente en magasin</option>'+
-   '<option value="B">Option B · Prospection et relation client</option></select></label>'+
-   '<fieldset class="cs-stage-types" id="cs-stage-types"><legend>Quels types de lieux souhaites-tu rechercher ?</legend>'+
-   '<p class="cs-stage-types-intro">Coche les structures qui t’intéressent. Les propositions sont adaptées aux activités de ta filière.</p>'+
-   '<div class="cs-stage-types-toolbar"><span id="cs-stage-types-count" aria-live="polite"></span>'+
-   '<button type="button" id="cs-stage-all-types">Tout cocher</button>'+
-   '<button type="button" id="cs-stage-no-types">Tout décocher</button></div>'+
-   '<div class="cs-stage-types-grid" id="cs-stage-types-grid"></div>'+
-   '<p class="cs-stage-types-foot">Un stage doit comporter de vraies missions correspondant à ton diplôme. Le professeur confirme la pertinence du lieu.</p></fieldset>'+
-   '<label>Ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="90" required placeholder="Ex. Paris 15e, Saint-Denis…"></label>'+
-   '<label>Rayon de recherche<select id="cs-stage-radius">'+
-   '<option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>'+
-   '<option value="4000">4 km</option><option value="6500">6,5 km</option></select></label>'+
-   '<label class="cs-stage-albert-option"><input type="checkbox" id="cs-stage-albert" checked>'+
-   '<span>✦ Albert IA : sélectionner les établissements les plus pertinents</span></label>'+
-   '<div class="cs-stage-actions"><button type="submit" class="cs-stage-primary" id="cs-stage-submit">🔎 Rechercher des entreprises</button>'+
-   '<button type="button" id="cs-stage-back" class="cs-stage-secondary">← Retour</button></div></form>'+
-   '<p class="cs-stage-info">Données publiques : IGN Géoplateforme et © OpenStreetMap contributors. Les entreprises repérées ne sont pas nécessairement disponibles pour accueillir un stagiaire. Vérifie l’information avant d’appeler.</p>'+
-   '<div class="cs-stage-loader" id="cs-stage-loader" hidden role="status" aria-live="polite"><span class="cs-stage-spinner" aria-hidden="true"></span><span>Recherche des lieux réels et de leurs coordonnées…</span><button type="button" id="cs-stage-cancel">Annuler</button></div>'+
-   '<div class="cs-stage-status" id="cs-stage-status" role="status" aria-live="polite"></div>'+
-   '<section class="cs-stage-results" id="cs-stage-results" hidden><div class="cs-stage-summary" id="cs-stage-summary"></div>'+
-   '<div class="cs-stage-toolbar">'+
-   '<label>Afficher<select id="cs-stage-filter"><option value="all">Tous les établissements</option>'+
-   '<option value="phone">Avec téléphone public</option><option value="full">Avec adresse</option>'+
-   '<option value="favorite">Mes favoris</option></select></label>'+
-   '<label>Trier<select id="cs-stage-sort"><option value="default">Pertinence / proximité</option>'+
-   '<option value="phone">Téléphone disponible d’abord</option><option value="name">Nom A–Z</option></select></label>'+
-   '<button type="button" id="cs-stage-export" class="cs-stage-secondary">↓ Exporter CSV</button>'+
-   '<button type="button" id="cs-stage-refresh" class="cs-stage-secondary">↻ Actualiser les données</button></div>'+
-   '<div class="cs-stage-cards" id="cs-stage-cards"></div>'+
-   '<p class="cs-stage-footnote">Source : © OpenStreetMap contributors · géocodage IGN. Les numéros manquants ne sont jamais inventés. La prise de stagiaires doit être confirmée directement auprès de la structure.</p>'+
-   '</section>';
-  container.replaceChildren(section);
-  const $=id=>section.querySelector("#"+id);
-  const sectorSelect=$("cs-stage-sector");
-  const levelSelect=$("cs-stage-level"),optionSelect=$("cs-stage-option");
-  const savedTypes=Object.fromEntries(Object.entries(TYPES).map(([key,values])=>[key,new Set(values.map(x=>x[0]))]));
-  for(const [value,label] of SECTORS){const option=E("option","",label);option.value=value;sectorSelect.append(option)}
-  const inferred=currentClass+" "+(settings.filiere||"");
-  sectorSelect.value=inferSector(inferred);
-  levelSelect.value=inferLevel(currentClass);
-  if(!levelSelect.value)levelSelect.value="";
-  function availableTypes(){
-   const option=sectorSelect.value==="commerce-vente"?optionSelect.value:"toutes";
-   return (TYPES[sectorSelect.value]||[]).filter(x=>option==="toutes"||!x[3]||x[3]===option);
+/* CORTEX · Recherche et suivi de PFMP, communs à la démonstration et à CORTEX Académie. */
+(function () {
+  'use strict';
+
+  const ENDPOINT = 'https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search';
+  const GUIDE = window.CORTEX_STAGE_GUIDE;
+  const SECTORS = Object.entries(GUIDE.programs).map(([id, program]) => [id, program.label]);
+  const RADII = [1200, 2500, 4000, 6500];
+  const PAGE_SIZE = 12;
+  const CACHE_AGE = 48 * 60 * 60 * 1000;
+  const STATES = {
+    todo: 'À contacter',
+    waiting: 'En attente',
+    meeting: 'Entretien prévu',
+    accepted: 'Accord reçu',
+    declined: 'Refus'
+  };
+  const CHECKLIST = [
+    ['cv', 'J’ai préparé mon CV et adapté mon message.'],
+    ['missions', 'J’ai vérifié les missions et identifié le tuteur.'],
+    ['school', 'J’ai fait valider le lieu et les missions par le lycée.'],
+    ['agreement', 'Ma convention est signée avant le début du stage.']
+  ];
+
+  const clean = value => String(value ?? '').trim();
+  const numbers = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+  const dates = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+  const normalize = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') && !Number.isNaN(Date.parse(value));
+  const formatDate = value => dates.format(new Date(value + 'T12:00:00'));
+  const today = () => new Date().toLocaleDateString('sv-SE');
+  const plural = (n, singular, pluralForm = singular + 's') => n === 1 ? singular : pluralForm;
+  const canRelance = status => status === 'waiting' || status === 'todo';
+
+  function node(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
   }
-  const selectedTypes=()=>availableTypes().filter(x=>savedTypes[sectorSelect.value]?.has(x[0])).map(x=>x[0]);
-  function updateTypeCount(){
-   const number=selectedTypes().length,total=availableTypes().length;
-   $("cs-stage-types-count").textContent=number+" type"+(number>1?"s":"")+" sélectionné"+(number>1?"s":"")+" sur "+total;
-   $("cs-stage-submit").disabled=number===0;
+
+  function button(label, className, action) {
+    const element = node('button', className, label);
+    element.type = 'button';
+    element.addEventListener('click', action);
+    return element;
   }
-  function renderTypes(){
-   $("cs-stage-option-wrap").hidden=sectorSelect.value!=="commerce-vente";
-   const grid=$("cs-stage-types-grid");grid.replaceChildren();
-   for(const [id,label,desc,option] of availableTypes()){
-    const item=E("label","cs-stage-type");
-    const box=E("input");box.type="checkbox";box.value=id;
-    box.checked=savedTypes[sectorSelect.value].has(id);
-    box.addEventListener("change",()=>{
-     if(box.checked)savedTypes[sectorSelect.value].add(id);
-     else savedTypes[sectorSelect.value].delete(id);
-     item.classList.toggle("is-checked",box.checked);updateTypeCount();
-    });
-    const body=E("span","cs-stage-type-copy");
-    const title=E("strong","",label);
-    if(option)title.append(E("small","cs-stage-type-option","Option "+option));
-    body.append(title,E("small","cs-stage-type-description",desc));
-    item.append(box,body);item.classList.toggle("is-checked",box.checked);
-    grid.append(item);
-   }
-   updateTypeCount();
+
+  function outbound(label, href, className) {
+    const anchor = node('a', className, label);
+    anchor.href = href;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    return anchor;
   }
-  sectorSelect.addEventListener("change",renderTypes);
-  optionSelect.addEventListener("change",renderTypes);
-  $("cs-stage-all-types").addEventListener("click",()=>{
-   for(const [id] of availableTypes())savedTypes[sectorSelect.value].add(id);
-   renderTypes();
-  });
-  $("cs-stage-no-types").addEventListener("click",()=>{
-   for(const [id] of availableTypes())savedTypes[sectorSelect.value].delete(id);
-   renderTypes();
-  });
-  renderTypes();
-  function tell(message,error=false){
-   const place=$("cs-stage-status");
-   place.textContent=message;place.classList.toggle("is-error",error)
-  }
-  function busy(flag){
-   $("cs-stage-submit").disabled=flag;$("cs-stage-loader").hidden=!flag;
-  }
-  const cacheKey=()=>cachePrefix+JSON.stringify([sectorSelect.value,levelSelect.value,optionSelect.value,selectedTypes().slice().sort(),clean($("cs-stage-city").value).toLowerCase(),Number($("cs-stage-radius").value),Boolean($("cs-stage-albert").checked),Boolean(settings.demo)]);
-  function render(){
-   if(!state)return;
-   const filt=$("cs-stage-filter").value,sort=$("cs-stage-sort").value;
-   all=Array.isArray(state.businesses)?state.businesses:[];
-   shown=all.filter(x=>filt==="all"||(filt==="phone"&&x.phone)||(filt==="full"&&x.address)||(filt==="favorite"&&favorites.has(x.id)));
-   if(sort==="name")shown.sort((a,b)=>a.name.localeCompare(b.name,"fr"));
-   else if(sort==="phone")shown.sort((a,b)=>Number(Boolean(b.phone))-Number(Boolean(a.phone))||a.distance_km-b.distance_km);
-   else shown.sort((a,b)=>(a.albert_rank||999)-(b.albert_rank||999)||a.distance_km-b.distance_km||a.id.localeCompare(b.id));
-   const summary=$("cs-stage-summary");summary.replaceChildren();
-   const heading=E("div","cs-stage-result-heading");
-   heading.append(E("strong","",all.length+" lieux repérés · "+shown.length+" affichés"),
-    E("span","",LEVELS[state.niveau||levelSelect.value]+" · "+state.city+" · "+Number(state.radius)/1000+" km"));
-   summary.append(heading);
-   const ai=state.ai||{enabled:false};
-   const explanation=ai.enabled?
-    "✦ Albert IA a classé des établissements vérifiables. Les missions sont des suggestions, pas des offres de stage confirmées.":
-    "Classement par proximité · "+(ai.reason||"Albert non sollicité pour cette recherche");
-   summary.append(E("p","cs-stage-ai-status",explanation));
-   if(state.checked_at)summary.append(E("small","cs-stage-timestamp","Données consultées le "+new Date(state.checked_at).toLocaleString("fr-FR")));
-   const cards=$("cs-stage-cards");cards.replaceChildren();
-   if(!shown.length){
-    cards.append(E("p","cs-stage-empty",all.length?
-     "Aucun établissement ne correspond à ce filtre. Essaie « Tous les établissements ».":
-     "Aucun lieu repéré ici avec ces critères. Essaie une autre ville, un autre rayon ou une autre filière."));
-   }
-   for(const business of shown){
-    const card=E("article","cs-stage-card");
-    const title=E("div","cs-stage-card-title");
-    const name=E("strong","",business.name);
-    const badge=E("span","cs-stage-category",business.category);
-    title.append(name,badge);card.append(title);
-    if(business.target_labels?.length)card.append(E("p","cs-stage-target","Type de lieu recherché : "+business.target_labels.join(", ")));
-    if(business.albert_rank)card.append(E("span","cs-stage-ai-rank","✦ Sélection Albert · n°"+business.albert_rank));
-    card.append(E("p","cs-stage-address","📍 "+(business.address||"Adresse non renseignée : voir la carte")));
-    const phone=E("p","cs-stage-phone");
-    phone.append(E("span","","☎ "));
-    if(business.phone){
-     const link=E("a","",business.phone);const href=telHref(business.phone);
-     if(href)link.href=href;else link.removeAttribute("href");
-     phone.append(link);
-    }else phone.append(E("span","cs-stage-missing","Téléphone non renseigné dans l'annuaire"));
-    card.append(phone);
-    card.append(E("small","cs-stage-distance","À environ "+business.distance_km.toLocaleString("fr-FR")+" km du centre recherché"));
-    if(business.albert_why)card.append(E("p","cs-stage-why","✦ "+business.albert_why));
-    card.append(E("p","cs-stage-missions","Missions possibles à discuter : "+(business.missions?.[0]||missions[sectorSelect.value])));
-    const links=E("div","cs-stage-links");
-    const map=E("a","cs-stage-map","Voir la carte");
-    map.href="https://www.openstreetmap.org/?mlat="+encodeURIComponent(business.lat)+"&mlon="+encodeURIComponent(business.lon)+"#map=18/"+Number(business.lat)+"/"+Number(business.lon);
-    map.target="_blank";map.rel="noopener noreferrer";links.append(map);
-    if(business.website){
-     const site=E("a","cs-stage-map","Site de l’entreprise");site.href=business.website;site.target="_blank";site.rel="noopener noreferrer";links.append(site)
+
+  function read(key, fallback) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback;
+    } catch {
+      return fallback;
     }
-    const osm=E("a","cs-stage-source","Source OSM");
-    if(/^(node|way|relation)\/[0-9]+$/.test(business.id)){
-     osm.href="https://www.openstreetmap.org/"+business.id;osm.target="_blank";osm.rel="noopener noreferrer";
+  }
+
+  function save(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch {
+      return false;
     }
-    links.append(osm);
-    const fav=E("button","cs-stage-favorite",favorites.has(business.id)?"★ Favori":"☆ Favori");
-    fav.type="button";fav.setAttribute("aria-pressed",String(favorites.has(business.id)));
-    fav.addEventListener("click",()=>{
-     if(favorites.has(business.id))favorites.delete(business.id);else favorites.add(business.id);
-     saveJson(favKey,[...favorites]);fav.textContent=favorites.has(business.id)?"★ Favori":"☆ Favori";
-     fav.setAttribute("aria-pressed",String(favorites.has(business.id)));
-     if($("cs-stage-filter").value==="favorite")render();
+  }
+
+  function webUrl(value) {
+    try {
+      const url = new URL(clean(value));
+      if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+    } catch {
+      // Le lien n’est affiché que si l’annuaire fournit une URL utilisable.
+    }
+    return '';
+  }
+
+  function phoneUrl(value) {
+    const phone = clean(value).split(/[;/]/)[0].replace(/[^+0-9]/g, '');
+    return /^\+?[0-9]{6,16}$/.test(phone) ? 'tel:' + phone : '';
+  }
+
+  function coordinates(raw) {
+    if (raw.lat == null || raw.lon == null || raw.lat === '' || raw.lon === '') return null;
+    const lat = Number(raw.lat);
+    const lon = Number(raw.lon);
+    return Number.isFinite(lat) && Math.abs(lat) <= 90 && Number.isFinite(lon) && Math.abs(lon) <= 180
+      ? { lat, lon }
+      : null;
+  }
+
+  function placeFrom(raw) {
+    if (!raw || !clean(raw.name) || !clean(raw.id)) return null;
+    const distance = raw.distance_km == null ? NaN : Number(raw.distance_km);
+    return {
+      id: clean(raw.id),
+      name: clean(raw.name),
+      address: clean(raw.address),
+      phone: clean(raw.phone),
+      website: webUrl(raw.website),
+      point: coordinates(raw),
+      distance: Number.isFinite(distance) && distance >= 0 ? distance : null,
+      types: Array.isArray(raw.target_types) ? raw.target_types : [],
+      rank: Number(raw.albert_rank) > 0 ? Number(raw.albert_rank) : 0,
+      why: clean(raw.albert_why),
+      suggestion: Array.isArray(raw.missions) ? raw.missions.map(clean).filter(Boolean)[0] || '' : '',
+      manual: raw.manual === true
+    };
+  }
+
+  function publicSource(place) {
+    return /^(node|way|relation)\/[0-9]+$/.test(place.id)
+      ? 'https://www.openstreetmap.org/' + place.id
+      : '';
+  }
+
+  function linksFor(place) {
+    const links = node('div', 'cs-stage-contact-links');
+    const tel = phoneUrl(place.phone);
+    if (tel) {
+      const call = node('a', 'cs-stage-link', 'Appeler');
+      call.href = tel;
+      links.append(call);
+    }
+    if (place.point || place.address) {
+      const destination = place.point ? place.point.lat + ',' + place.point.lon : place.address;
+      links.append(outbound('Itinéraire',
+        'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(destination),
+        'cs-stage-link'));
+    }
+    if (place.website) links.append(outbound('Site web', place.website, 'cs-stage-link'));
+    return links;
+  }
+
+  function apiLevel(className) {
+    // Compatibilité avec le service actuel. « Seconde » permet la recherche exploratoire
+    // lorsqu’aucun niveau n’est connu, comme sur l’accès public à la démonstration.
+    const label = normalize(className);
+    if (/^(1|premi)/.test(label)) return 'premiere';
+    if (/^(t|term)/.test(label)) return 'terminale';
+    return 'seconde';
+  }
+
+  function exportCsv(name, rows) {
+    const quote = value => {
+      const text = String(value ?? '');
+      const safe = /^[\s]*[=+\-@\t\r]/.test(text) ? "'" + text : text;
+      return '"' + safe.replace(/"/g, '""') + '"';
+    };
+    const data = '\ufeff' + rows.map(row => row.map(quote).join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8' }));
+    const anchor = node('a');
+    anchor.href = url;
+    anchor.download = name;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  const screen = `
+    <header class="cs-stage-hero">
+      <div class="cs-stage-hero-visual" aria-hidden="true"></div>
+      <div class="cs-stage-hero-content">
+        <div class="cs-stage-hero-top">
+          <span class="cs-stage-signature"><span aria-hidden="true"></span> CORTEX / STATION NOCTIS</span>
+          <button type="button" class="cs-stage-return" id="cs-stage-back">Retour à l’espace élève</button>
+        </div>
+        <div class="cs-stage-hero-copy">
+          <div class="cs-stage-kicker">Recherche de stage · PFMP</div>
+          <h1 tabindex="-1" id="cs-stage-title">Trouve ton<br><em>prochain stage.</em></h1>
+          <p>Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.</p>
+        </div>
+      </div>
+    </header>
+    <nav class="cs-stage-nav" aria-label="Parcours de recherche de stage">
+      <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
+      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
+    </nav>
+    <div class="cs-stage-panel" data-stage-panel="search" id="cs-stage-search-panel">
+      <div class="cs-stage-workspace">
+        <form class="cs-stage-surface cs-stage-console" id="cs-stage-form" aria-labelledby="cs-stage-form-title">
+          <div class="cs-stage-panel-kicker">Annuaire des structures</div>
+          <h2 id="cs-stage-form-title" tabindex="-1">Où veux-tu faire ton stage ?</h2>
+          <fieldset class="cs-stage-fieldset">
+            <legend>Ta filière</legend>
+            <div class="cs-stage-programs" id="cs-stage-programs"></div>
+          </fieldset>
+          <fieldset class="cs-stage-fieldset cs-stage-options" id="cs-stage-options">
+            <legend>Ton option commerce</legend>
+            <div class="cs-stage-options-row">
+              <label><input type="radio" name="stage-option" value="toutes" checked><span>Explorer A et B</span></label>
+              <label><input type="radio" name="stage-option" value="A"><span>Option A · Magasin</span></label>
+              <label><input type="radio" name="stage-option" value="B"><span>Option B · Prospection</span></label>
+            </div>
+          </fieldset>
+          <div class="cs-stage-zone">
+            <label for="cs-stage-city">Ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="90" required placeholder="Ex. Paris 15e ou Saint-Denis"></label>
+            <label for="cs-stage-radius">Rayon<select id="cs-stage-radius">
+              <option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>
+              <option value="4000">4 km</option><option value="6500">6,5 km</option>
+            </select></label>
+          </div>
+          <details class="cs-stage-kinds" id="cs-stage-kinds">
+            <summary>Types de lieux <span id="cs-stage-type-count" class="cs-stage-kind-count"></span></summary>
+            <div class="cs-stage-kind-panel">
+              <div class="cs-stage-kind-tools">
+                <button type="button" class="cs-stage-text-button" id="cs-stage-all-types">Tout cocher</button>
+                <button type="button" class="cs-stage-text-button" id="cs-stage-no-types">Tout décocher</button>
+              </div>
+              <div id="cs-stage-type-list"></div>
+            </div>
+          </details>
+          <div class="cs-stage-launch">
+            <label class="cs-stage-toggle"><input type="checkbox" id="cs-stage-albert" checked><span><strong>Classement Albert IA</strong><small>Prioriser les lieux adaptés à ta filière</small></span></label>
+            <button type="submit" class="cs-stage-primary" id="cs-stage-submit"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Trouver des lieux</button>
+          </div>
+        </form>
+        <aside class="cs-stage-brief" id="cs-stage-brief" aria-labelledby="cs-stage-brief-title"></aside>
+      </div>
+      <div class="cs-stage-loader" id="cs-stage-loader" hidden>
+        <span class="cs-stage-spinner" aria-hidden="true"></span>
+        <div><strong>Recherche en cours</strong><p id="cs-stage-loader-copy"></p></div>
+        <button type="button" id="cs-stage-cancel" class="cs-stage-quiet">Annuler</button>
+      </div>
+      <p id="cs-stage-status" class="cs-stage-status" role="status" aria-live="polite"></p>
+      <section class="cs-stage-results" id="cs-stage-results" aria-labelledby="cs-stage-result-title" hidden>
+        <div class="cs-stage-result-header">
+          <div><div class="cs-stage-kicker">Résultats de recherche</div><h2 id="cs-stage-result-title" tabindex="-1"></h2><p id="cs-stage-result-context"></p></div>
+          <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
+        </div>
+        <p class="cs-stage-ai-note" id="cs-stage-ai-note"></p>
+        <div class="cs-stage-filters" id="cs-stage-filters" hidden>
+          <label>Afficher<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes démarches</option></select></label>
+          <label>Trier par<select id="cs-stage-sort"><option value="default">Tri recommandé</option><option value="distance">Proximité</option><option value="phone">Téléphone disponible</option><option value="name">Nom A à Z</option></select></label>
+          <button type="button" id="cs-stage-export" class="cs-stage-quiet">Exporter en CSV</button>
+        </div>
+        <p class="cs-stage-matches" id="cs-stage-matches" aria-live="polite"></p>
+        <div class="cs-stage-cards" id="cs-stage-cards"></div>
+        <button type="button" id="cs-stage-more" class="cs-stage-quiet cs-stage-more" hidden></button>
+      </section>
+      <p class="cs-stage-sources">Annuaire <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · Géocodage IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
+    </div>
+    <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
+      <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
+        <div class="cs-stage-pane-head">
+          <div><div class="cs-stage-panel-kicker">Carnet de candidatures</div><h2 id="cs-stage-board-title" tabindex="-1">Mes démarches</h2><p>Organise les lieux à contacter, les réponses et les relances. Ton carnet est enregistré dans ce navigateur.</p></div>
+          <div class="cs-stage-board-actions">
+            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">Ajouter un lieu</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
+          </div>
+        </div>
+        <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
+        <p class="cs-stage-board-notice" id="cs-stage-board-notice" role="status"></p>
+        <div class="cs-stage-board-list" id="cs-stage-board-list"></div>
+      </section>
+    </div>
+    <div class="cs-stage-panel" data-stage-panel="prep" id="cs-stage-prep-panel" hidden>
+      <div class="cs-stage-prep-grid">
+        <section class="cs-stage-surface" aria-labelledby="cs-stage-prep-title">
+          <div class="cs-stage-panel-kicker">Écrire ou appeler</div>
+          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer ma PFMP</h2>
+          <p>Renseigne les dates données par ton lycée pour personnaliser les modèles de candidature.</p>
+          <div class="cs-stage-date-fields">
+            <label>Date de début <input type="date" id="cs-stage-start"></label>
+            <label>Date de fin <input type="date" id="cs-stage-end"></label>
+          </div>
+          <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
+          <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon message</button>
+          <div class="cs-stage-check-area">
+            <h3>Avant de commencer ton stage</h3>
+            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant le stage"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
+            <div id="cs-stage-checklist"></div>
+          </div>
+        </section>
+        <section class="cs-stage-surface cs-stage-reference" id="cs-stage-reference"></section>
+      </div>
+    </div>
+    <dialog class="cs-stage-dialog" id="cs-stage-dialog" aria-labelledby="cs-stage-dialog-title">
+      <div class="cs-stage-dialog-head"><h2 id="cs-stage-dialog-title"></h2><form method="dialog"><button class="cs-stage-pale" aria-label="Fermer la fenêtre">Fermer</button></form></div>
+      <div id="cs-stage-dialog-content"></div>
+    </dialog>`;
+
+  function mount(container, settings = {}) {
+    if (!container) return;
+
+    const mode = settings.demo ? 'demo' : 'real';
+    const scope = encodeURIComponent(settings.storageScope || 'public');
+    const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
+    const cacheKey = 'cortex-stage-cache:v4:' + mode;
+    const saved = read(key, {});
+    const legacy = settings.demo && !settings.storageScope ? read('cortex-stage-favoris:v1', []) : [];
+    const legacyIds = new Set(Array.isArray(legacy) ? legacy : []);
+    const board = new Map(Array.isArray(saved.board) ? saved.board.map(entry => [entry.place.id, entry]) : []);
+    const preferences = saved.preferences || {};
+    let sector = Object.hasOwn(GUIDE.programs, preferences.sector)
+      ? preferences.sector : GUIDE.inferProgram(settings.filiere || settings.className);
+    let option = ['A', 'B', 'toutes'].includes(preferences.option) ? preferences.option : 'toutes';
+    let panel = 'search';
+    let result = null;
+    let pending = null;
+    let pageLimit = PAGE_SIZE;
+    let shown = [];
+    let contactsDirty = true;
+    let destroyed = false;
+
+    const section = node('section', 'cs-stage-search');
+    section.setAttribute('aria-labelledby', 'cs-stage-title');
+    section.innerHTML = screen;
+    container.replaceChildren(section);
+    const $ = id => section.querySelector('#cs-stage-' + id);
+
+    const prep = saved.prep || { start: '', end: '', done: [] };
+    const checks = new Set(Array.isArray(prep.done) ? prep.done : []);
+    const selections = preferences.types || {};
+    $('city').value = clean(preferences.city) || 'Paris 15e';
+    $('radius').value = RADII.includes(preferences.radius) ? String(preferences.radius) : '2500';
+    $('albert').checked = preferences.albert !== false;
+    section.querySelector('input[name="stage-option"][value="' + option + '"]').checked = true;
+    $('start').value = validDate(prep.start) ? prep.start : '';
+    $('end').value = validDate(prep.end) ? prep.end : '';
+
+    const route = () => sector === 'commerce-vente' ? option : 'toutes';
+    const status = (text, error = false) => {
+      $('status').textContent = text;
+      $('status').classList.toggle('is-error', error);
+    };
+    const boardNotice = text => { $('board-notice').textContent = text; };
+
+    function persist() {
+      return save(key, {
+        preferences: { sector, option, city: $('city').value, radius: Number($('radius').value),
+          albert: $('albert').checked, types: selections },
+        prep: { start: prep.start || '', end: prep.end || '', done: [...checks] },
+        board: [...board.values()]
+      });
+    }
+
+    function needsFollowUp(entry) {
+      return canRelance(entry.status) && validDate(entry.followUp) && entry.followUp <= today();
+    }
+
+    function boardChanged() {
+      contactsDirty = true;
+      const count = $('board-count');
+      count.hidden = !board.size;
+      count.textContent = String(board.size);
+    }
+
+    function setPanel(next, moveFocus = true) {
+      panel = next;
+      section.querySelectorAll('[data-stage-panel]').forEach(element => {
+        element.hidden = element.dataset.stagePanel !== next;
+      });
+      section.querySelectorAll('[data-stage-nav]').forEach(element => {
+        element.setAttribute('aria-pressed', String(element.dataset.stageNav === next));
+      });
+      if (next === 'board') renderBoard();
+      if (next === 'prep') renderReference();
+      if (next === 'search' && result && contactsDirty) renderCards();
+      if (moveFocus) $(next === 'search' ? 'form-title' : next + '-title').focus();
+    }
+
+    section.querySelectorAll('[data-stage-nav]').forEach(element => {
+      element.addEventListener('click', () => setPanel(element.dataset.stageNav));
     });
-    links.append(fav);card.append(links);cards.append(card);
-   }
-   $("cs-stage-results").hidden=false;
-  }
-  function restore(){
-   const cached=loadJson(cacheKey(),null);
-   if(cached&&cached.data&&Date.now()-cached.time<48*3600000){
-    state=cached.data;render();tell("Derniers résultats conservés : consultation immédiate sans nouvelle recherche.");return true;
-   }
-   return false;
-  }
-  async function search(force=false){
-   if(controller)controller.abort();
-   if(!force&&restore())return;
-   const city=clean($("cs-stage-city").value);
-   if(city.length<2||!levelSelect.value||!sectorSelect.value){tell("Indique ton niveau, ta filière et une ville ou un quartier.",true);return}
-   if(!selectedTypes().length){tell("Coche au moins un type de lieu pour lancer la recherche.",true);return}
-   controller=new AbortController();busy(true);tell("Recherche en cours…");
-   try{
-    const response=await fetch(ENDPOINT,{
-     method:"POST",headers:{"content-type":"application/json"},
-     body:JSON.stringify({city,filiere:sectorSelect.value,niveau:levelSelect.value,
-      optionCommerce:optionSelect.value,types:selectedTypes(),radius:Number($("cs-stage-radius").value),
-      session:settings.session||"",albert:Boolean($("cs-stage-albert").checked),demo:settings.demo===true}),
-     signal:controller.signal
+
+    const available = () => GUIDE.forSearch(sector, route());
+    const selected = () => available().filter(type =>
+      !Array.isArray(selections[sector]) || selections[sector].includes(type[0])
+    ).map(type => type[0]);
+
+    function updateTypeSummary() {
+      const n = selected().length;
+      $('type-count').textContent = n + ' / ' + available().length;
+      $('submit').disabled = Boolean(pending) || !n;
+    }
+
+    function renderTypes() {
+      $('options').hidden = sector !== 'commerce-vente';
+      const list = $('type-list');
+      list.replaceChildren();
+      const types = available();
+      const checked = new Set(selected());
+      const groups = sector === 'commerce-vente' && option === 'toutes'
+        ? [['Option A · Magasin', types.filter(type => type[3] === 'A')], ['Option B · Prospection', types.filter(type => type[3] === 'B')]]
+        : [['', types]];
+      for (const [name, entries] of groups) {
+        if (name) list.append(node('p', 'cs-stage-kind-heading', name));
+        const grid = node('div', 'cs-stage-kind-grid');
+        for (const [id, label, description] of entries) {
+          const item = node('label', 'cs-stage-kind');
+          const box = node('input');
+          box.type = 'checkbox';
+          box.checked = checked.has(id);
+          box.addEventListener('change', () => {
+            const next = new Set(selections[sector] || GUIDE.forSearch(sector, 'toutes').map(type => type[0]));
+            if (box.checked) next.add(id); else next.delete(id);
+            selections[sector] = [...next];
+            updateTypeSummary();
+            if (selected().length) updateSearchHint();
+            else status('Coche au moins un type de lieu pour lancer la recherche.');
+            persist();
+          });
+          const copy = node('span');
+          copy.append(node('strong', '', label), node('small', '', description));
+          item.append(box, copy);
+          grid.append(item);
+        }
+        list.append(grid);
+      }
+      updateTypeSummary();
+    }
+
+    function setAllTypes(enable) {
+      const choices = new Set(selections[sector] || GUIDE.forSearch(sector, 'toutes').map(type => type[0]));
+      for (const [id] of available()) {
+        if (enable) choices.add(id); else choices.delete(id);
+      }
+      selections[sector] = [...choices];
+      renderTypes();
+      if (selected().length) updateSearchHint();
+      else status('Coche au moins un type de lieu pour lancer la recherche.');
+      persist();
+    }
+
+    $('all-types').addEventListener('click', () => setAllTypes(true));
+    $('no-types').addEventListener('click', () => setAllTypes(false));
+    for (const [id, program] of Object.entries(GUIDE.programs)) {
+      const label = node('label', 'cs-stage-program');
+      const radio = node('input');
+      radio.type = 'radio';
+      radio.name = 'stage-program';
+      radio.value = id;
+      radio.checked = sector === id;
+      radio.addEventListener('change', () => {
+        sector = id;
+        changeCriteria();
+      });
+      const card = node('span', 'cs-stage-program-card');
+      card.append(node('span', 'cs-stage-program-code', program.short),
+        node('strong', '', program.label), node('small', '', program.detail));
+      label.append(radio, card);
+      $('programs').append(label);
+    }
+    $('options').addEventListener('change', event => {
+      option = event.target.value;
+      changeCriteria();
     });
-    const data=await response.json();
-    if(!response.ok||!data.ok)throw Error(data.error||"Recherche indisponible.");
-    if(destroyed)return;
-    state=data;saveJson(cacheKey(),{time:Date.now(),data});
-    render();
-    tell(data.businesses.length+" établissement(s) répertorié(s). Vérifie les coordonnées avant toute démarche.");
-   }catch(error){
-    if(error?.name==="AbortError")tell("Recherche interrompue.");
-    else if(!restore())tell("Recherche impossible : "+(error?.message||"Service inaccessible."),true);
-   }finally{busy(false);controller=null}
+    $('city').addEventListener('change', changeCriteria);
+    $('radius').addEventListener('change', changeCriteria);
+    $('albert').addEventListener('change', changeCriteria);
+
+    function updateSearchHint() {
+      if (pending) return;
+      if (result && signature(queryFromForm()) !== signature(result.query)) {
+        status('Lance la recherche pour appliquer les nouveaux critères.');
+      } else {
+        status('');
+      }
+    }
+
+    function changeCriteria() {
+      persist();
+      updateSearchHint();
+      renderTypes();
+      renderBrief();
+    }
+
+    function programProfiles() {
+      if (sector !== 'commerce-vente') return [[GUIDE.programs[sector].short, GUIDE.profiles[sector]]];
+      if (option === 'toutes') return [['Option A', GUIDE.profiles.A], ['Option B', GUIDE.profiles.B]];
+      return [['Option ' + option, GUIDE.profiles[option]]];
+    }
+
+    function renderBrief() {
+      const brief = $('brief');
+      const heading = node('h2', '', 'Les missions à demander');
+      heading.id = 'cs-stage-brief-title';
+      brief.replaceChildren(node('div', 'cs-stage-kicker', GUIDE.programs[sector].label), heading);
+      for (const [label, profile] of programProfiles()) {
+        const item = node('div', 'cs-stage-brief-item');
+        item.append(node('span', 'cs-stage-brief-code', label), node('strong', '', profile.title), node('p', '', profile.lead));
+        brief.append(item);
+      }
+      brief.append(button('Voir les compétences et le guide', 'cs-stage-quiet cs-stage-brief-link', () => setPanel('prep')));
+    }
+
+    function renderReference() {
+      const reference = $('reference');
+      reference.replaceChildren(node('div', 'cs-stage-panel-kicker', GUIDE.programs[sector].label),
+        node('h2', '', 'Vérifier les missions'));
+      for (const [label, profile] of programProfiles()) {
+        const group = node('section', 'cs-stage-reference-group');
+        group.append(node('h3', '', label + ' · ' + profile.title));
+        const list = node('dl', 'cs-stage-competencies');
+        for (const [title, example] of profile.blocks) {
+          list.append(node('dt', '', title), node('dd', '', example));
+        }
+        group.append(list);
+        reference.append(group);
+      }
+      reference.append(outbound('Lire le référentiel officiel', programProfiles()[0][1].source, 'cs-stage-pale'));
+    }
+
+    function queryFromForm() {
+      return { city: clean($('city').value).replace(/\s+/g, ' '), sector, option: route(),
+        types: selected().sort(), radius: Number($('radius').value), albert: $('albert').checked,
+        level: apiLevel(settings.className) };
+    }
+
+    function signature(query) {
+      return JSON.stringify([normalize(query.city), query.sector, query.option, query.types, query.radius, query.albert,
+        query.albert ? query.level : '']);
+    }
+
+    function cached(query, allowOld = false) {
+      const record = read(cacheKey, []).find(item => item.key === signature(query));
+      return record && (allowOld || Date.now() - record.time < CACHE_AGE) ? record : null;
+    }
+
+    function remember(query, data) {
+      const id = signature(query);
+      const recent = read(cacheKey, []).filter(item => item.key !== id && Date.now() - item.time < CACHE_AGE);
+      save(cacheKey, [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8));
+    }
+
+    function showResult(data, query, focusResults, fromCache = false) {
+      const unique = new Map();
+      for (const item of data.businesses) {
+        const place = placeFrom(item);
+        if (!place || unique.has(place.id)) continue;
+        unique.set(place.id, place);
+        if (legacyIds.has(place.id) && !board.has(place.id)) {
+          legacyIds.delete(place.id);
+          board.set(place.id, { place, sector: query.sector, option: query.option, status: 'todo', followUp: '' });
+        }
+      }
+      if (legacyIds.size !== legacy.length && save('cortex-stage-favoris:v1', [...legacyIds])) persist();
+      boardChanged();
+      result = { data, query, places: [...unique.values()], fromCache };
+      pageLimit = PAGE_SIZE;
+      $('filter').value = 'all';
+      $('sort').value = 'default';
+      const count = unique.size;
+      $('result-title').textContent = count ? count + ' ' + plural(count, 'lieu repéré', 'lieux repérés') : 'Aucun lieu repéré';
+      const routeLabel = query.option === 'toutes' ? '' : ' · Option ' + query.option;
+      $('result-context').textContent = (clean(data.city) || query.city) + ' · ' + numbers.format(query.radius / 1000) +
+        ' km · ' + GUIDE.programs[query.sector].label + routeLabel;
+      const ranked = result.places.some(place => place.rank);
+      const aiCopy = ranked ? 'Albert a classé des lieux répertoriés selon la filière. Vérifie les missions proposées lors du premier contact.'
+        : query.albert && count > 0 ? 'Tri par distance : Albert n’a pas proposé de classement pour cette recherche.'
+        : 'Tri par distance depuis le centre de la zone recherchée.';
+      const checked = data.checked_at && !Number.isNaN(Date.parse(data.checked_at))
+        ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(data.checked_at)) : '';
+      $('ai-note').textContent = aiCopy + (checked ? ' · Annuaire consulté le ' + checked : '') +
+        (fromCache ? ' · Résultats enregistrés' : '');
+      $('results').hidden = false;
+      $('filters').hidden = !count;
+      renderCards();
+      if (focusResults && panel === 'search') $('result-title').focus();
+    }
+
+    function setBusy(query) {
+      $('loader').hidden = !query;
+      $('form').setAttribute('aria-busy', String(Boolean(query)));
+      if (query) $('loader-copy').textContent = query.albert
+        ? 'Consultation de l’annuaire et classement des lieux avec Albert.'
+        : 'Consultation des établissements répertoriés près de la zone choisie.';
+      $('refresh').disabled = Boolean(query);
+      updateTypeSummary();
+    }
+
+    async function search(query = queryFromForm(), { force = false, focus = true } = {}) {
+      if (destroyed || pending) return;
+      if (query.city.length < 2 || !/^[\p{L}0-9 .,'’\-]+$/u.test(query.city)) {
+        status('Indique une commune ou un arrondissement français.', true);
+        $('city').focus();
+        return;
+      }
+      if (!query.types.length) {
+        status('Coche au moins un type de lieu pour lancer la recherche.', true);
+        $('kinds').open = true;
+        $('kinds').querySelector('summary').focus();
+        return;
+      }
+      const recent = !force && cached(query);
+      if (recent) {
+        status('');
+        showResult(recent.data, query, focus, true);
+        return;
+      }
+
+      const request = new AbortController();
+      pending = request;
+      status('');
+      setBusy(query);
+      const timer = setTimeout(() => request.abort('timeout'), 120000);
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
+            optionCommerce: query.option, types: query.types, radius: query.radius, albert: query.albert,
+            demo: settings.demo === true, session: query.albert ? settings.session || '' : '' }),
+          signal: request.signal
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok || !Array.isArray(data.businesses)) {
+          throw new Error(clean(data.error) || 'Annuaire indisponible.');
+        }
+        if (destroyed || browserRequestChanged(request)) return;
+        remember(query, data);
+        showResult(data, query, focus);
+      } catch (error) {
+        if (destroyed || browserRequestChanged(request)) return;
+        if (request.signal.aborted && request.signal.reason !== 'timeout') {
+          status('Recherche annulée.');
+          return;
+        }
+        const backup = cached(query, true);
+        if (backup) {
+          showResult(backup.data, query, focus, true);
+          status('L’annuaire est momentanément indisponible. Les derniers résultats restent consultables.');
+        } else if (/^Ville (introuvable|ou quartier non valide)/i.test(error.message)) {
+          status(error.message, true);
+        } else {
+          status('L’annuaire ne répond pas. Réessaie, réduis le rayon ou désactive le classement Albert.', true);
+        }
+      } finally {
+        clearTimeout(timer);
+        if (pending === request) {
+          pending = null;
+          if (!destroyed) setBusy(null);
+        }
+      }
+    }
+
+    function browserRequestChanged(request) {
+      return pending !== request || !section.isConnected;
+    }
+
+    $('form').addEventListener('submit', event => {
+      event.preventDefault();
+      persist();
+      search();
+    });
+    $('cancel').addEventListener('click', () => {
+      if (!pending) return;
+      pending.abort();
+      pending = null;
+      setBusy(null);
+      status('Recherche annulée.');
+      $('submit').focus();
+    });
+    $('refresh').addEventListener('click', () => {
+      if (result) search(result.query, { force: true });
+    });
+
+    /* Résultats, carnet et préparation de la prise de contact. */
+    function filteredPlaces() {
+      const filters = {
+        all: () => true,
+        phone: place => Boolean(phoneUrl(place.phone)),
+        full: place => Boolean(place.address),
+        site: place => Boolean(place.website),
+        saved: place => board.has(place.id)
+      };
+      const list = result.places.filter(filters[$('filter').value]);
+      const byName = (a, b) => a.name.localeCompare(b.name, 'fr') || a.id.localeCompare(b.id);
+      const byDistance = (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity) || byName(a, b);
+      const sort = $('sort').value;
+      if (sort === 'name') return list.sort(byName);
+      if (sort === 'distance') return list.sort(byDistance);
+      if (sort === 'phone') {
+        return list.sort((a, b) => Number(Boolean(phoneUrl(b.phone))) - Number(Boolean(phoneUrl(a.phone))) || byDistance(a, b));
+      }
+      return list.sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity) || byDistance(a, b));
+    }
+
+    function emptyCard(title, copy, extra) {
+      const card = node('div', 'cs-stage-empty');
+      card.append(node('strong', '', title), node('p', '', copy));
+      if (extra) card.append(extra);
+      return card;
+    }
+
+    function renderCards() {
+      contactsDirty = false;
+      shown = filteredPlaces();
+      const cards = $('cards');
+      cards.replaceChildren();
+      const count = result.places.length;
+      $('matches').textContent = count ? Math.min(pageLimit, shown.length) + ' / ' + shown.length + ' affichés' : '';
+      $('export').disabled = !shown.length;
+      $('more').hidden = shown.length <= pageLimit;
+      $('more').textContent = 'Afficher ' + Math.min(PAGE_SIZE, Math.max(0, shown.length - pageLimit)) + ' lieux de plus';
+
+      if (!shown.length) {
+        const bigger = RADII.find(value => value > result.query.radius);
+        let action;
+        if (count) {
+          action = button('Afficher tous les lieux', 'cs-stage-quiet', () => {
+            $('filter').value = 'all';
+            resetResultsPage();
+            $('filter').focus();
+          });
+        } else if (bigger) {
+          action = button('Élargir le rayon à ' + numbers.format(bigger / 1000) + ' km', 'cs-stage-quiet', () => {
+            const query = { ...result.query, radius: bigger };
+            if (signature(queryFromForm()) === signature(result.query)) {
+              $('radius').value = String(bigger);
+              persist();
+            }
+            search(query);
+          });
+        }
+        cards.append(emptyCard(count ? 'Aucun lieu pour ce filtre' : 'Élargis ta recherche',
+          count ? 'Essaie un autre filtre pour voir davantage de pistes.'
+            : 'Essaie un rayon plus large, d’autres types de lieux ou une commune voisine.', action));
+        return;
+      }
+      for (const place of shown.slice(0, pageLimit)) cards.append(resultCard(place));
+    }
+
+    function resetResultsPage() {
+      pageLimit = PAGE_SIZE;
+      if (result) renderCards();
+    }
+
+    function placeTags(place, context) {
+      const { categories } = GUIDE.forPlace(context.sector, context.option, place.types);
+      const tags = node('div', 'cs-stage-tags');
+      for (const [, label] of categories.slice(0, 2)) tags.append(node('span', '', label));
+      if (!tags.children.length) {
+        tags.append(node('span', '', place.manual ? 'Ajout personnel' : GUIDE.programs[context.sector].label));
+      }
+      return tags;
+    }
+
+    function resultCard(place) {
+      const context = { place, sector: result.query.sector, option: result.query.option, status: 'todo', followUp: '' };
+      const { categories, profile } = GUIDE.forPlace(context.sector, context.option, place.types);
+      const card = node('article', 'cs-stage-card');
+      const top = node('div', 'cs-stage-card-top');
+      top.append(placeTags(place, context));
+      if (place.distance !== null) top.append(node('span', 'cs-stage-distance', numbers.format(place.distance) + ' km'));
+      card.append(top, node('h3', '', place.name));
+      const contact = node('div', 'cs-stage-coordinates');
+      contact.append(node('p', '', place.address || 'Adresse à vérifier sur la carte'),
+        node('p', 'cs-stage-contact-number', place.phone || 'Téléphone non renseigné'));
+      card.append(contact);
+      if (place.rank) card.append(node('p', 'cs-stage-ai-badge', 'Sélection Albert'));
+      const mission = categories[0]?.[2] || profile?.lead
+        || 'Vérifie si l’équipe peut te confier des missions en espace de vente ou en prospection.';
+      const missions = node('div', 'cs-stage-mission-preview');
+      missions.append(node('strong', '', 'À demander pendant le contact'), node('p', '', mission));
+      card.append(missions, linksFor(place));
+      const actions = node('div', 'cs-stage-card-actions');
+      const follow = button(board.has(place.id) ? 'Voir dans mes démarches' : 'Ajouter au suivi', 'cs-stage-track', () => {
+        if (board.has(place.id)) {
+          setPanel('board');
+        } else {
+          addEntry(context);
+          follow.textContent = 'Voir dans mes démarches';
+          status(place.name + ' ajouté à mes démarches.');
+        }
+      });
+      actions.append(follow, button('Préparer le contact', 'cs-stage-quiet', () => openContact(context)));
+      card.append(actions);
+      return card;
+    }
+
+    $('filter').addEventListener('change', resetResultsPage);
+    $('sort').addEventListener('change', resetResultsPage);
+    $('more').addEventListener('click', () => {
+      const firstNew = pageLimit;
+      pageLimit += PAGE_SIZE;
+      renderCards();
+      const next = $('cards').children[firstNew]?.querySelector('h3');
+      if (next) {
+        next.tabIndex = -1;
+        next.focus();
+      }
+    });
+    $('export').addEventListener('click', () => {
+      if (!shown.length) return;
+      const context = result.query;
+      const rows = shown.map(place => {
+        const { categories, profile } = GUIDE.forPlace(context.sector, context.option, place.types);
+        return [place.name, categories.map(type => type[1]).join(', '), place.address, place.phone,
+          place.distance === null ? '' : numbers.format(place.distance), place.website, publicSource(place),
+          categories[0]?.[2] || profile?.question || ''];
+      });
+      exportCsv('CORTEX-recherche-stages.csv',
+        [['Lieu', 'Type', 'Adresse', 'Téléphone', 'Distance (km)', 'Site web', 'Source', 'Mission à vérifier'], ...rows]);
+    });
+
+    function addEntry(entry) {
+      board.set(entry.place.id, entry);
+      boardChanged();
+      const stored = persist();
+      if (panel === 'board') renderBoard();
+      if (!stored) boardNotice('Le navigateur ne peut pas enregistrer les changements. Exporte ton carnet pour les conserver.');
+    }
+
+    function renderBoard(restore) {
+      const entries = [...board.values()].sort((a, b) => Number(needsFollowUp(b)) - Number(needsFollowUp(a))
+        || (a.followUp || '9999').localeCompare(b.followUp || '9999') || a.place.name.localeCompare(b.place.name, 'fr'));
+      const inProgress = entries.filter(entry => entry.status === 'waiting' || entry.status === 'meeting').length;
+      const accepted = entries.filter(entry => entry.status === 'accepted').length;
+      const statistics = [
+        [entries.length, plural(entries.length, 'lieu suivi', 'lieux suivis')],
+        [inProgress, 'en cours'],
+        [entries.filter(needsFollowUp).length, 'à relancer'],
+        [accepted, plural(accepted, 'accord')]
+      ];
+      const stats = $('board-stats');
+      stats.replaceChildren();
+      for (const [number, label] of statistics) {
+        const metric = node('div', 'cs-stage-board-metric');
+        metric.append(node('strong', '', String(number)), node('span', '', label));
+        stats.append(metric);
+      }
+      $('export-board').hidden = !entries.length;
+      const list = $('board-list');
+      list.replaceChildren();
+      if (!entries.length) {
+        list.append(emptyCard('Tes pistes apparaîtront ici',
+          'Ajoute un lieu depuis les résultats, ou saisis une structure que tu as déjà repérée.',
+          button('Revenir à la recherche', 'cs-stage-pale', () => setPanel('search'))));
+        return;
+      }
+      for (const entry of entries) list.append(boardCard(entry, restore));
+      list.querySelector('[data-stage-restore]')?.focus({ preventScroll: true });
+    }
+
+    function boardCard(entry, restore) {
+      const { place } = entry;
+      const due = needsFollowUp(entry);
+      const card = node('article', 'cs-stage-board-card');
+      if (due) card.classList.add('is-due');
+      const top = node('div', 'cs-stage-board-card-top');
+      const title = node('div');
+      title.append(node('h3', '', place.name),
+        node('p', '', place.address || 'Adresse à vérifier'),
+        node('p', '', place.phone || 'Téléphone non renseigné'));
+      const stage = node('span', 'cs-stage-board-state', due ? 'À relancer' : STATES[entry.status]);
+      stage.dataset.stageState = due ? 'due' : entry.status;
+      top.append(title, stage);
+      card.append(placeTags(place, entry), top, linksFor(place));
+
+      const fields = node('div', 'cs-stage-board-fields');
+      const stateLabel = node('label', '', 'Statut');
+      const select = node('select');
+      for (const [value, label] of Object.entries(STATES)) {
+        const option = node('option', '', label);
+        option.value = value;
+        select.append(option);
+      }
+      select.value = entry.status;
+      stateLabel.append(select);
+      fields.append(stateLabel);
+      select.addEventListener('change', () => {
+        entry.status = select.value;
+        if (!canRelance(entry.status)) entry.followUp = '';
+        syncBoardCard(entry, 'status');
+      });
+      if (restore?.id === place.id && restore.field === 'status') select.dataset.stageRestore = '';
+
+      if (canRelance(entry.status)) {
+        const followUpLabel = node('label', '', 'Relancer le');
+        const followUp = node('input');
+        followUp.type = 'date';
+        followUp.value = entry.followUp || '';
+        followUpLabel.append(followUp);
+        fields.append(followUpLabel);
+        followUp.addEventListener('change', () => {
+          entry.followUp = followUp.value;
+          syncBoardCard(entry, 'date');
+        });
+        if (restore?.id === place.id && restore.field === 'date') followUp.dataset.stageRestore = '';
+      }
+      card.append(fields);
+      const actions = node('div', 'cs-stage-board-card-actions');
+      actions.append(button('Préparer le contact', 'cs-stage-pale', () => openContact(entry)),
+        button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
+      card.append(actions);
+      return card;
+    }
+
+    function syncBoardCard(entry, field) {
+      const stored = persist();
+      renderBoard({ id: entry.place.id, field });
+      boardNotice(stored ? 'Carnet mis à jour.' : 'Le navigateur ne peut pas enregistrer ce changement.');
+    }
+
+    function openDialog(title, content) {
+      $('dialog-title').textContent = title;
+      $('dialog-content').replaceChildren(content);
+      if (!$('dialog').open) $('dialog').showModal();
+    }
+
+    function confirmRemoval(entry) {
+      const body = node('div', 'cs-stage-dialog-body');
+      body.append(node('p', '', 'Retirer ' + entry.place.name + ' et ses informations de suivi ?'),
+        button('Retirer ce lieu', 'cs-stage-primary', () => {
+          $('dialog').close();
+          board.delete(entry.place.id);
+          boardChanged();
+          const stored = persist();
+          renderBoard();
+          $('board-title').focus({ preventScroll: true });
+          boardNotice(stored ? 'Lieu retiré de mes démarches.' : 'Le navigateur ne peut pas enregistrer ce changement.');
+        }));
+      openDialog('Retirer du carnet', body);
+    }
+
+    $('add-place').addEventListener('click', () => {
+      const form = node('form', 'cs-stage-dialog-body cs-stage-manual-form');
+      const fields = [
+        ['name', 'Nom de la structure', 'text', true, 160],
+        ['address', 'Adresse', 'text', false, 240],
+        ['phone', 'Téléphone professionnel', 'tel', false, 80],
+        ['website', 'Site web', 'url', false, 240]
+      ];
+      for (const [name, caption, type, required, length] of fields) {
+        const label = node('label', '', caption);
+        const input = node('input');
+        input.name = name;
+        input.type = type;
+        input.required = required;
+        input.maxLength = length;
+        label.append(input);
+        form.append(label);
+      }
+      const feedback = node('p', 'cs-stage-date-status');
+      feedback.setAttribute('role', 'status');
+      const submit = node('button', 'cs-stage-primary', 'Ajouter à mes démarches');
+      submit.type = 'submit';
+      form.append(feedback, submit);
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const values = new FormData(form);
+        const name = clean(values.get('name'));
+        const address = clean(values.get('address'));
+        if (!name) {
+          feedback.textContent = 'Indique le nom du lieu.';
+          return;
+        }
+        const duplicate = [...board.values()].some(({ place }) =>
+          normalize(place.name) === normalize(name) && normalize(place.address) === normalize(address));
+        if (duplicate) {
+          feedback.textContent = 'Ce lieu figure déjà dans ton carnet.';
+          return;
+        }
+        const place = placeFrom({ id: 'manual/' + (crypto.randomUUID?.() || Date.now()), name, address,
+          phone: values.get('phone'), website: values.get('website'), manual: true });
+        $('dialog').close();
+        addEntry({ place, sector, option: route(), status: 'todo', followUp: '' });
+      });
+      openDialog('Ajouter un lieu', form);
+    });
+
+    $('export-board').addEventListener('click', () => {
+      const rows = [...board.values()].map(({ place, sector, option, status, followUp }) => [
+        place.name, GUIDE.programs[sector].label, option === 'toutes' ? '' : option,
+        place.address, place.phone, place.website, STATES[status], followUp, publicSource(place)
+      ]);
+      exportCsv('CORTEX-mes-demarches-de-stage.csv',
+        [['Lieu', 'Filière', 'Option', 'Adresse', 'Téléphone', 'Site web', 'Statut', 'Relance prévue', 'Source'], ...rows]);
+    });
+
+    function updateDates() {
+      const start = $('start').value;
+      const end = $('end').value;
+      const invalid = Boolean(start && end && start > end);
+      $('date-status').textContent = invalid ? 'La date de fin doit venir après la date de début.' : '';
+      $('end').setAttribute('aria-invalid', String(invalid));
+      $('make-message').disabled = invalid;
+      if (invalid) return;
+      prep.start = start;
+      prep.end = end;
+      persist();
+    }
+
+    function renderChecklist() {
+      const list = $('checklist');
+      for (const [id, text] of CHECKLIST) {
+        const label = node('label', 'cs-stage-check');
+        const input = node('input');
+        input.type = 'checkbox';
+        input.checked = checks.has(id);
+        input.addEventListener('change', () => {
+          if (input.checked) checks.add(id); else checks.delete(id);
+          updateProgress();
+          persist();
+        });
+        label.append(input, node('span', '', text));
+        list.append(label);
+      }
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const done = CHECKLIST.filter(([id]) => checks.has(id)).length;
+      $('progress').value = done;
+      $('progress-label').textContent = done + ' / ' + CHECKLIST.length;
+    }
+
+    $('start').addEventListener('change', updateDates);
+    $('end').addEventListener('change', updateDates);
+    $('make-message').addEventListener('click', () => openContact({ sector, option: route() }));
+
+    function openContact(context) {
+      const { place, sector: program, option: track } = context;
+      const { categories, profile } = GUIDE.forPlace(program, track, place?.types || []);
+      const label = GUIDE.programs[program].name + (track !== 'toutes' ? ' (option ' + track + ')' : '');
+      const period = validDate(prep.start) && validDate(prep.end)
+        ? 'du ' + formatDate(prep.start) + ' au ' + formatDate(prep.end)
+        : 'du [date de début] au [date de fin]';
+      const goal = profile?.goal || 'développer mes compétences en vente et en relation client';
+      const recipient = profile?.contact || 'la personne responsable des stages ou des ventes';
+      const message = 'Candidature pour un stage (PFMP)\n\nBonjour,\n\nJe suis [prénom et nom], élève en bac professionnel ' + label +
+        ' au lycée [nom du lycée]. Je recherche un stage ' + period + '.\n\nJe souhaiterais ' + goal +
+        ' au sein de votre équipe. Accueillez-vous des stagiaires à ces dates ? Je peux vous transmettre mon CV ou passer vous rencontrer.\n\nMerci pour votre réponse.\n\nCordialement,\n[prénom et nom]';
+      const body = node('div', 'cs-stage-dialog-body');
+      if (place) {
+        body.append(linksFor(place));
+        const source = publicSource(place);
+        if (source) body.append(outbound('Vérifier la fiche OpenStreetMap', source, 'cs-stage-text-button'));
+      }
+      const mission = node('section', 'cs-stage-dialog-subsection');
+      mission.append(node('h3', '', 'Missions à vérifier'));
+      const list = node('ul');
+      if (categories.length) {
+        for (const type of categories.slice(0, 3)) list.append(node('li', '', type[2]));
+      } else if (profile) {
+        list.append(node('li', '', profile.blocks.at(-1)[1]));
+      } else {
+        list.append(node('li', '', GUIDE.profiles.A.question), node('li', '', GUIDE.profiles.B.question));
+      }
+      if (profile) list.append(node('li', '', profile.question));
+      list.append(node('li', '', 'Qui sera mon tuteur et quelles missions pourra-t-on inscrire dans la convention ?'));
+      mission.append(list);
+      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + place.suggestion));
+      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + place.why));
+      body.append(mission);
+
+      const call = node('details', 'cs-stage-call-script');
+      call.append(node('summary', '', 'Quoi dire au téléphone ?'), node('p', '',
+        'Bonjour, je suis [prénom], élève en bac professionnel ' + label + '. Je cherche un stage ' + period +
+        '. Pourrais-je parler à ' + recipient + ' ?'));
+      body.append(call);
+
+      const emailLabel = node('label', '', 'Message à personnaliser avant l’envoi');
+      const textarea = node('textarea');
+      textarea.rows = 9;
+      textarea.value = message;
+      emailLabel.append(textarea);
+      const feedback = node('p', 'cs-stage-date-status');
+      feedback.setAttribute('role', 'status');
+      const copy = button('Copier le message', 'cs-stage-primary', async () => {
+        try {
+          await navigator.clipboard.writeText(textarea.value);
+          feedback.textContent = 'Message copié.';
+        } catch {
+          textarea.focus();
+          textarea.select();
+          feedback.textContent = 'Le message est sélectionné. Utilise la commande Copier de ton appareil.';
+        }
+      });
+      body.append(emailLabel, copy, feedback);
+      openDialog(place ? place.name : 'Préparer ma candidature', body);
+    }
+
+    $('back').addEventListener('click', () => {
+      dispose();
+      if (typeof settings.back === 'function') settings.back();
+      else if (settings.demo) location.hash = '#eleve/accueil';
+      else location.href = '?espace=eleve';
+    });
+
+    function dispose() {
+      destroyed = true;
+      pending?.abort();
+      pending = null;
+      if ($('dialog').open) $('dialog').close();
+    }
+
+    renderTypes();
+    renderBrief();
+    renderChecklist();
+    boardChanged();
+    const initial = queryFromForm();
+    const earlier = cached(initial);
+    if (earlier) showResult(earlier.data, initial, false, true);
+    return { search: () => search(), dispose };
   }
-  $("cs-stage-form").addEventListener("submit",e=>{e.preventDefault();search(false)});
-  $("cs-stage-cancel").addEventListener("click",()=>controller?.abort());
-  $("cs-stage-filter").addEventListener("change",render);
-  $("cs-stage-sort").addEventListener("change",render);
-  $("cs-stage-refresh").addEventListener("click",()=>search(true));
-  $("cs-stage-export").addEventListener("click",()=>{
-   if(!shown.length){tell("Aucun résultat à exporter.",true);return}
-   const header=["Entreprise","Catégorie","Adresse","Téléphone","Distance (km)","Site web","Source OSM","Missions possibles"];
-   const rows=shown.map(x=>[x.name,x.category,x.address||"À vérifier",x.phone||"Non renseigné",
-    x.distance_km,x.website||"",x.id,(x.missions?.[0]||missions[sectorSelect.value])]);
-   const contents="\ufeff"+[header,...rows].map(row=>row.map(escapeCSV).join(";")).join("\r\n");
-   const blob=new Blob([contents],{type:"text/csv;charset=utf-8"});
-   const url=URL.createObjectURL(blob),a=E("a");a.href=url;a.download="CORTEX-stages-"+sectorSelect.value+".csv";
-   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
-  });
-  $("cs-stage-back").addEventListener("click",()=>{
-   destroyed=true;controller?.abort();
-   if(typeof settings.back==="function")settings.back();
-   else if(settings.demo)location.hash="#eleve/accueil";
-   else location.href="?espace=eleve";
-  });
-  // Aucun appel réseau automatique : l'élève choisit son secteur.
-  tell("Choisis ton niveau, ta filière et les types de structures à rechercher.");
-  return {search,dispose(){destroyed=true;controller?.abort()}};
- }
- window.CORTEX_STAGE={mount,SECTORS};
+
+  window.CORTEX_STAGE = { mount, SECTORS };
 })();

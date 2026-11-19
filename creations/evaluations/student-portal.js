@@ -107,10 +107,10 @@ window.CORTEX_PORTAL=(function(){
    '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · TON AVENIR PROFESSIONNEL</span><span class="cs-stage-featured-status">OUTIL STAGES</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · 3 FILIÈRES</span>'+
    '<h2>Ton prochain stage<br><em>commence ici.</em></h2>'+
-   '<p>Explore les entreprises autour de toi, trouve leurs coordonnées publiques et découvre avec Albert IA des missions adaptées à ta filière.</p></div>'+
+    '<p>Repère des lieux adaptés à ta filière, prépare ton premier contact et retrouve tes candidatures dans ton carnet.</p></div>'+
    '<div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span><span class="cs-stage-featured-dot"></span></div></div>'+
    '<button class="cs-stage-featured-button" type="button" data-action="student-stages"><span class="cs-stage-featured-icon">🎓</span>'+
-   '<span class="cs-stage-featured-button-copy"><strong>Rechercher mon stage</strong><small>Entreprise · Adresse · Téléphone · Albert IA</small></span>'+
+    '<span class="cs-stage-featured-button-copy"><strong>Rechercher mon stage</strong><small>Annuaire · Modèles de contact · Suivi des relances</small></span>'+
    '<span class="cs-stage-featured-arrow" aria-hidden="true">↗</span></button>'+
    '<div class="cs-stage-featured-tags"><span>◈ Gestion-administration</span><span>◈ Commerce-vente</span><span>◈ Accueil</span></div></section>'+
    '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
@@ -214,10 +214,10 @@ window.CORTEX_PORTAL=(function(){
    '<h1>Chaque progrès<br><em>compte.</em></h1><p>Des résultats pour comprendre, des corrections pour avancer. Voici ton parcours personnel.</p>'+
    '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button><button data-action="student-stages">🎓 Recherche de stages</button></div></div>'+
    '<div class="portal-welcome-art" aria-hidden="true"><div class="portal-art-ring"><span>'+(avg===null?'—':grade(avg))+'</span><small>/20</small></div><div class="portal-art-orbit"></div><div class="portal-art-stars">✦</div></div></section>'+
-   '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver un stage"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">🎓 PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">NOUVEAU</span></div>'+
+    '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver un stage"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ton<br><em>prochain stage.</em></h2>'+
-   '<p>Gestion-administration, commerce-vente ou accueil : explore les lieux autour de toi et prépare tes prises de contact avec Albert.</p></div><div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span></div></div>'+
-   '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon">📍</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de stages</strong><small>Annuaire réel · Informations vérifiables</small></span><span class="cs-stage-featured-arrow" aria-hidden="true">↗</span></button></section>'+
+    '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+
+    '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de stages</strong><small>Recherche par filière · Carnet de candidatures</small></span></button></section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
    '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><span class="portal-kicker">01 / TA TRAJECTOIRE</span><h2>Tes moyennes, semaine après semaine.</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+
    '<div class="portal-select"><label for="portal-year">Année scolaire</label><select id="portal-year">'+

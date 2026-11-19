@@ -38,6 +38,7 @@ try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.exams)&&
 return makeSeed();
 }
 let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='documents',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integrityFilter='',integritySetupId='',hiddenSince=null;
+let stageWorkspace=null;
 const PSE_DEMO_ASSIGNMENT='demo-pse-sans-compte-60',PSE_DEMO_TOKEN='DEMO-PSE-60-MINUTES',PSE_DEMO_CLASS='2mrc1',PSE_PREVIEW_STORAGE='cortex-pse-preview-session-1';
 function persistPsePreview(){
  try{
@@ -102,19 +103,26 @@ document.querySelectorAll('.top-link').forEach(el=>{
 }
 function render(){
 header();
+const stages=view==='student'&&tab==='stages';
+if(stages&&stageWorkspace&&document.getElementById('cortex-demo-stages'))return;
+stageWorkspace?.dispose();
+stageWorkspace=null;
 if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 if(view==='student'&&window.CORTEX_ALBERT_TOOLS?.hydrate)window.CORTEX_ALBERT_TOOLS.hydrate();
-if(view==='student'&&tab==='stages'){
+if(stages){
  const area=document.getElementById('cortex-demo-stages');
- window.CORTEX_STAGE?.mount(area,{
-  demo:true,classes:state.classes.filter(c=>!c.archived).map(c=>c.name),
-  className:portalSession?.classId?state.classes.find(c=>c.id===portalSession.classId)?.name||'':'',
+ const activePortal=portalAuthorized()?portalSession:null;
+ stageWorkspace=window.CORTEX_STAGE?.mount(area,{
+  demo:true,
+  className:activePortal?state.classes.find(c=>c.id===activePortal.classId)?.name||'':'',
+  storageScope:activePortal&&!activePortal.demo?activePortal.classId+':'+activePortal.number:'',
   back:()=>nav('student',portalAuthorized()?'espace':'accueil')
  });
+ area.querySelector('h1')?.focus();
 }
-document.title=(view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+document.title=(stages?'Recherche de stage':view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
 if(view==='teacher'&&tab==='creer'&&editor){
  window.CORTEX_DEMO_REAL_WORKSHOP.mount(editor,state.classes,editorIndex,async()=>{
   action({dataset:{action:'save-exam'}});
@@ -219,7 +227,7 @@ return `<div class="home nxp-home">
    <article class="nxp-service nxp-service-stage" aria-labelledby="nxp-stage-title">
     <div class="nxp-service-top"><span class="nxp-service-id">03 / PARCOURS PROFESSIONNEL</span><span class="nxp-service-symbol" aria-hidden="true">⌖</span></div>
     <h3 id="nxp-stage-title">Un stage à trouver ?<br><em>Albert IA vous guide.</em></h3>
-    <p>Choisissez votre niveau, votre filière et les types d'établissements. Trouvez des structures réelles avec leurs coordonnées publiques disponibles.</p>
+     <p>Trouvez des structures adaptées à votre filière, préparez votre candidature et suivez vos relances.</p>
     <a href="#eleve/stages">Lancer la recherche de stages <span aria-hidden="true">↗</span></a>
     <span class="nxp-stage-orbit" aria-hidden="true"></span>
    </article>

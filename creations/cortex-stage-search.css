@@ -1,4 +1,4 @@
-/* Station Noctis · interface de recherche et de suivi des PFMP. */
+/* Station Noctis · interface de recherche et de suivi des stages. */
 .cs-stage-search {
   --cs-night: #0a1423;
   --cs-panel: #111f30;
@@ -792,4 +792,65 @@ body .cs-stage-search :is(button, a, input, select, textarea, summary):focus-vis
   background: #153046b0;
   color: #deedf7;
   font-size: .78rem;
+}
+.cs-stage-search .cs-stage-doc-launch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.cs-stage-search .cs-stage-doc-launch[hidden] { display: none; }
+.cs-stage-search .cs-stage-doc-launch button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 13px 16px;
+  border: 1px solid #4b7687;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 0 0, #254a55 0, transparent 65%), #101d2c;
+  color: #f3fbff;
+  text-align: left;
+  cursor: pointer;
+}
+.cs-stage-search .cs-stage-doc-launch button:hover,
+.cs-stage-search .cs-stage-doc-launch button:focus-visible {
+  border-color: #9ee3db;
+  background-color: #173647;
+}
+.cs-stage-search .cs-stage-doc-launch strong,
+.cs-stage-search .cs-stage-doc-launch small { display: block; }
+.cs-stage-search .cs-stage-doc-launch small { color: #c4dce6; margin-top: 2px; }
+.cs-stage-search .cs-stage-doc-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 44px;
+  border: 1px solid #77b6ba;
+  border-radius: 5px;
+  font-weight: 700;
+  color: #c4fcf4;
+}
+.cs-stage-search .cs-stage-doc-icon.is-letter { font-size: 1.25rem; }
+.cs-stage-search .cs-stage-contact-target { display: grid; gap: 6px; margin: 0 0 12px; }
+.cs-stage-search .cs-stage-contact-target select {
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #9bb5c3;
+  border-radius: 8px;
+  background: #f7fbfd;
+  color: #1b3342;
+  font: inherit;
+}
+.cs-stage-search .cs-stage-fixed-motive { font-weight: 700; }
+.cs-stage-search .cs-stage-fixed-motive input { opacity: 1; }
+.cs-stage-search .cs-stage-fixed-opening {
+  padding: 9px 13px;
+  border-inline-start: 3px solid #36837b;
+  background: #eaf6f4;
+  color: #183d40;
+}
+@media (max-width: 580px) {
+  .cs-stage-search .cs-stage-doc-launch { grid-template-columns: 1fr; }
 }

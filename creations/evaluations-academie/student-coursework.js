@@ -156,7 +156,7 @@ if(qr||globalPortal){
   stageHero.setAttribute('aria-label','Trouver un stage professionnel');
   stageHero.innerHTML=
    '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">ALBERT IA</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · DES ENTREPRISES AUTOUR DE TOI</span>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">STAGES · DES ENTREPRISES AUTOUR DE TOI</span>'+
    '<h2>Découvre ton<br><em>prochain stage.</em></h2>'+
    '<p>Choisis ta filière et ta ville, prépare ton premier contact et enregistre tes candidatures dans ton carnet.</p></div></div>';
   const stageCta=E('button','cs-stage-featured-button');

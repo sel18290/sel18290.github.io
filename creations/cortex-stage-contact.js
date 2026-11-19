@@ -1,10 +1,10 @@
-/* Atelier de candidature dans la rubrique PFMP. */
+/* Atelier de candidature dans la rubrique stage. */
 (function () {
   'use strict';
 
-  const RULE = 'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029234400';
   const ALLOCATION = 'L’allocation de mon stage est versée par l’État. Mon lycée fournit la convention.';
-  const NO_GRATIFICATION = ' Pour cette durée, vous n’avez pas de gratification à verser.';
+  const fundingOpening = 'C’est un stage non rémunéré par votre entreprise si la durée cumulée reste sous le seuil de gratification.';
+  const withoutOpening = text => text.trim().replace(/^c['’]est un stage non rémunéré[^.!?]*[.!?]\s*/i, '');
   const HOOK_HINT = '[Mon accroche : ce qui me motive et ce que j’aimerais apprendre.]';
   const MOTIVES = [
     ['public', 'Le contact avec le public'],
@@ -42,17 +42,17 @@
     const { label, period, recipient, place } = context;
     const name = [context.identity.first, context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
     const intro = 'Je suis ' + name + ', élève en bac pro ' + label + ' au lycée ' + (context.identity.school || '[nom du lycée]') + '.';
-    const funding = ALLOCATION + (context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.');
+    const funding = fundingOpening + ' ' + ALLOCATION;
     const line = hook || HOOK_HINT;
     if (method === 'call') {
-      return 'Bonjour, ' + intro.charAt(0).toLowerCase() + intro.slice(1) +
-        ' J’appelle pour un stage ' + period + '. ' + funding + ' Puis-je parler à ' + recipient + ' ?\n\n' +
+      return 'Bonjour. ' + funding + ' ' + intro +
+        ' J’appelle pour un stage ' + period + '. Puis-je parler à ' + recipient + ' ?\n\n' +
         line + ' Accueillez-vous des stagiaires à ces dates ?\n\n' +
         'À qui puis-je envoyer mon CV ou remettre ma candidature ? Merci pour votre temps.';
     }
-    const subject = 'Candidature pour une PFMP' + (place ? ' — ' + place.name : '');
-    return 'Objet : ' + subject + '\n\nBonjour,\n\n' + intro +
-      ' Je cherche un stage ' + period + '. ' + funding + '\n\n' + line + '\n\n' +
+    const subject = 'Candidature pour un stage' + (place ? ' — ' + place.name : '');
+    return 'Objet : ' + subject + '\n\nBonjour,\n\n' + funding + ' ' + intro +
+      ' Je cherche un stage ' + period + '.' + '\n\n' + line + '\n\n' +
       'Auriez-vous la possibilité de m’accueillir à ces dates ? Je peux vous transmettre mon CV ou venir me présenter.\n\n' +
       'Merci pour votre réponse.\n\nCordialement,\n' + name;
   }
@@ -64,9 +64,23 @@
     const edits = new Map();
     let appliedHook = HOOK_HINT;
     const identity = node('div', 'cs-stage-cv-fields');
+    const nameInputs = [];
+    const nameFeedback = node('p', 'cs-stage-date-status');
+    nameFeedback.setAttribute('role', 'status');
     for (const [key, title] of [['first','Prénom'],['last','Nom'],['school','Nom du lycée']]) {
       const label = node('label','',title), input = node('input');
       input.type = 'text'; input.maxLength = 90; input.value = context.identity[key] || '';
+      if (key !== 'school') {
+        input.required = true;
+        input.autocomplete = key === 'first' ? 'given-name' : 'family-name';
+        nameInputs.push(input);
+      }
+      input.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' || event.isComposing) return;
+        event.preventDefault();
+        const next = nameInputs.find(field => field !== input && !field.value.trim());
+        (next || message).focus();
+      });
       input.addEventListener('input', () => {
         const oldName = [context.identity.first,context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
         const oldSchool = context.identity.school || '[nom du lycée]';
@@ -78,30 +92,24 @@
             .replace('Je suis '+oldName+',','Je suis '+name+',')
             .replace('Cordialement,\n'+oldName,'Cordialement,\n'+name));
         context.save();
+        nameFeedback.textContent = '';
         updateMessage();
       });
       label.append(input); identity.append(label);
     }
-    root.append(node('h3','','Présente-toi'), identity);
-    const short = node('label','cs-stage-cv-check'), checked = node('input');
-    checked.type = 'checkbox';
-    checked.disabled = !context.shortEligible;
-    short.append(checked, node('span','','J’ai vérifié avec mon lycée que mes stages chez cet organisme ne dépassent pas deux mois cumulés cette année.'));
-    checked.addEventListener('change', () => {
-      const before = context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.';
-      context.shortPlacement = checked.checked;
-      const after = context.shortPlacement ? NO_GRATIFICATION : ' Cette allocation n’est pas à votre charge.';
-      for (const [kind,draft] of edits) edits.set(kind,draft.replace(before,after));
-      updateMessage();
-    });
-    root.append(short);
-    if (!context.shortEligible) root.append(node('small','cs-stage-contact-guidance','Renseigne tes dates de stage dans « Préparer ma PFMP » pour préciser l’absence de gratification à verser lorsque la durée le permet.'));
     root.append(node('h3', '', 'Trouve ton accroche'), node('p', 'cs-stage-contact-guidance',
       'En une phrase, dis ce qui t’intéresse chez cette structure ou ce que tu voudrais apprendre. Choisis un détail que tu as vérifié.'));
 
     const choices = node('fieldset', 'cs-stage-contact-motives');
     choices.append(node('legend', '', 'Je veux parler de…'));
     const choiceList = node('div');
+    const fixed = node('label', 'cs-stage-fixed-motive');
+    const unpaid = node('input');
+    unpaid.type = 'checkbox';
+    unpaid.checked = true;
+    unpaid.disabled = true;
+    fixed.append(unpaid, node('span', '', 'Stage non rémunéré'));
+    choiceList.append(fixed);
     for (const [value, text] of MOTIVES) {
       const label = node('label');
       const input = node('input');
@@ -113,9 +121,11 @@
       choiceList.append(label);
     }
     choices.append(choiceList);
-    root.append(choices);
+    const opening = node('strong', 'cs-stage-fixed-opening', fundingOpening);
+    root.append(choices, opening, node('small', 'cs-stage-contact-guidance',
+      'L’entreprise peut proposer une gratification volontaire. Si elle le fait, préviens ton lycée.'));
 
-    const hookLabel = node('label', 'cs-stage-contact-hook', 'Ma phrase d’accroche');
+    const hookLabel = node('label', 'cs-stage-contact-hook', 'La suite de mon accroche');
     const hook = node('textarea');
     hook.rows = 2;
     hook.maxLength = 250;
@@ -127,15 +137,17 @@
     feedback.setAttribute('role', 'status');
     const suggestion = node('div', 'cs-stage-contact-suggestion');
     suggestion.hidden = true;
-    const motivation = () => choiceList.querySelector('input:checked').value;
+    const motivation = () => choiceList.querySelector('input[type="radio"]:checked').value;
     const examples = EXAMPLES[context.profile] || EXAMPLES.toutes;
 
     function showSuggestion(title, idea, advice) {
       suggestion.hidden = false;
-      suggestion.replaceChildren(node('strong', '', title), node('p', '', idea));
+      const continuation = withoutOpening(idea);
+      suggestion.replaceChildren(node('strong', '', title),
+        node('p', '', fundingOpening + ' ' + continuation));
       if (advice) suggestion.append(node('p', 'cs-stage-contact-guidance', advice));
       suggestion.append(button('Reprendre cette accroche', 'cs-stage-pale', () => {
-        hook.value = idea.slice(0, hook.maxLength);
+        hook.value = continuation.slice(0, hook.maxLength);
         applyHook();
         hook.focus();
       }));
@@ -173,17 +185,6 @@
       feedback.textContent = '';
     });
 
-    const notice = node('details', 'cs-stage-call-script');
-    notice.append(node('summary', '', 'Que dire sur la rémunération ?'));
-    const rule = node('p', '', 'Une PFMP se fait sous convention et ne donne pas lieu à un salaire. Le seuil légal de gratification s’apprécie en cumulant les périodes chez le même organisme sur la même année scolaire. Le lycée peut t’aider à vérifier le calcul. ');
-    const link = node('a', '', 'Article L. 124-6 du Code de l’éducation');
-    link.href = RULE;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    rule.append(link);
-    notice.append(rule);
-    root.append(notice);
-
     const methodControls = node('div', 'cs-stage-contact-method');
     methodControls.setAttribute('role', 'group');
     methodControls.setAttribute('aria-label', 'Type de contact');
@@ -205,6 +206,12 @@
       copied.textContent = 'Modèle mis à jour.';
     });
     const copy = button('Copier le texte', 'cs-stage-primary', async () => {
+      const missing = nameInputs.find(input => !input.value.trim());
+      if (missing) {
+        nameFeedback.textContent = 'Renseigne ton prénom et ton nom pour personnaliser et copier ton message.';
+        missing.focus();
+        return;
+      }
       try {
         await navigator.clipboard.writeText(message.value);
         copied.textContent = 'Texte copié.';
@@ -217,7 +224,11 @@
     const note = node('p', 'cs-stage-contact-guidance');
     const actions = node('div', 'cs-stage-contact-actions');
     actions.append(copy, reset);
-    root.append(messageLabel, note, actions, copied);
+    root.append(messageLabel, note);
+    if (!context.identity.first || !context.identity.last || !context.identity.school) {
+      root.append(node('h3', '', 'Tes coordonnées'), identity, nameFeedback);
+    }
+    root.append(actions, copied);
 
     function updateMessage() {
       message.value = edits.has(method) ? edits.get(method) : writeMessage(context, sentence(hook.value), method);
@@ -234,17 +245,17 @@
       copied.textContent = '';
       updateMessage();
     }
-    hook.value = context.hook || '';
+    hook.value = withoutOpening(context.hook || '');
     appliedHook = sentence(hook.value) || HOOK_HINT;
     function applyHook() {
-      const next = sentence(hook.value) || HOOK_HINT;
+      const next = sentence(withoutOpening(hook.value)) || HOOK_HINT;
       for (const [kind, draft] of edits) {
         const split = draft.indexOf('\n\n', kind === 'email' ? draft.indexOf('\n\n')+2 : 0);
         edits.set(kind,draft.includes(appliedHook) ? draft.replace(appliedHook,next) :
           split >= 0 ? draft.slice(0,split) + '\n\n' + next + draft.slice(split) : draft + '\n\n' + next);
       }
       appliedHook = next;
-      context.rememberHook(hook.value);
+      context.rememberHook(withoutOpening(hook.value));
       updateMessage();
     }
     hook.addEventListener('input', applyHook);

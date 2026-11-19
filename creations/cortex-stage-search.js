@@ -1,4 +1,4 @@
-/* CORTEX · Recherche et suivi de PFMP, communs à la démonstration et à CORTEX Académie. */
+/* CORTEX · Recherche et suivi de stages, communs à la démonstration et à CORTEX Académie. */
 (function () {
   'use strict';
 
@@ -136,6 +136,9 @@
         'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(destination),
         'cs-stage-link'));
     }
+    const mapQuery = [place.name, place.address, !place.address && place.point ? place.point.lat + ',' + place.point.lon : ''].filter(Boolean).join(' ');
+    links.append(outbound(tel ? 'Fiche Google Maps' : 'Chercher le numéro sur Google Maps',
+      'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapQuery), 'cs-stage-link'));
     if (place.website) links.append(outbound('Site web', place.website, 'cs-stage-link'));
     return links;
   }
@@ -174,7 +177,7 @@
           <button type="button" class="cs-stage-return" id="cs-stage-back">Retour à l’espace élève</button>
         </div>
         <div class="cs-stage-hero-copy">
-          <div class="cs-stage-kicker">Recherche de stage · PFMP</div>
+          <div class="cs-stage-kicker">Recherche de stage</div>
           <h1 tabindex="-1" id="cs-stage-title">Trouve ton<br><em>prochain stage.</em></h1>
           <p>Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.</p>
         </div>
@@ -183,9 +186,13 @@
     <nav class="cs-stage-nav" aria-label="Parcours de recherche de stage">
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
       <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer mon stage</button>
       <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> CV et lettre</button>
     </nav>
+    <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
+      <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span><span aria-hidden="true">→</span></button>
+      <button type="button" data-stage-document="lettre" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon is-letter" aria-hidden="true">✉</span><span><strong>Préparer ma lettre de motivation</strong><small>Explique pourquoi tu veux faire ton stage ici.</small></span><span aria-hidden="true">→</span></button>
+    </div>
     <div class="cs-stage-panel" data-stage-panel="search" id="cs-stage-search-panel">
       <div class="cs-stage-workspace">
         <form class="cs-stage-surface cs-stage-console" id="cs-stage-form" aria-labelledby="cs-stage-form-title">
@@ -268,13 +275,16 @@
       <div class="cs-stage-prep-grid">
         <section class="cs-stage-surface" aria-labelledby="cs-stage-prep-title">
           <div class="cs-stage-panel-kicker">Écrire ou appeler</div>
-          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer ma PFMP</h2>
+          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer mon stage</h2>
           <p>Renseigne les dates données par ton lycée pour personnaliser les modèles de candidature.</p>
           <div class="cs-stage-date-fields">
             <label>Date de début <input type="date" id="cs-stage-start"></label>
             <label>Date de fin <input type="date" id="cs-stage-end"></label>
           </div>
           <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
+          <label class="cs-stage-contact-target">Entreprise à contacter
+            <select id="cs-stage-contact-target"><option value="">Message sans entreprise choisie</option></select>
+          </label>
           <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon message</button>
           <div class="cs-stage-check-area">
             <h3>Avant de commencer ton stage</h3>
@@ -303,7 +313,7 @@
     const mode = settings.demo ? 'demo' : 'real';
     const scope = encodeURIComponent(settings.storageScope || 'public');
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
-    const cacheKey = 'cortex-stage-cache:v4:' + mode;
+    const cacheKey = 'cortex-stage-cache:v5:' + mode;
     const saved = read(key, {});
     const identity = saved.identity || {};
     const drafts = Object.assign(Object.create(null), saved.drafts || {});
@@ -366,7 +376,7 @@
       count.textContent = String(board.size);
     }
 
-    function setPanel(next, moveFocus = true, company = '') {
+    function setPanel(next, moveFocus = true, company = '', kind = '') {
       panel = next;
       section.querySelectorAll('[data-stage-panel]').forEach(element => {
         element.hidden = element.dataset.stagePanel !== next;
@@ -375,8 +385,16 @@
         element.setAttribute('aria-pressed', String(element.dataset.stageNav === next));
       });
       if (next === 'board') renderBoard();
-      if (next === 'prep') renderReference();
-      if (next === 'cv') workshop.show(company);
+      if (next === 'prep') {
+        renderReference();
+        const target = $('contact-target');
+        const previous = target.value;
+        target.replaceChildren(new Option('Message sans entreprise choisie', ''),
+          ...[...board.values()].map(({place}) => new Option(place.name, place.id)));
+        if (board.has(previous)) target.value = previous;
+      }
+      $('doc-launch').hidden = next === 'cv';
+      if (next === 'cv') workshop.show(company, kind);
       else workshop.hide();
       if (next === 'search' && result && contactsDirty) renderCards();
       if (moveFocus) $(next === 'search' ? 'form-title' : next + '-title').focus();
@@ -384,6 +402,11 @@
 
     section.querySelectorAll('[data-stage-nav]').forEach(element => {
       element.addEventListener('click', () => setPanel(element.dataset.stageNav));
+    });
+
+    section.querySelectorAll('[data-stage-document]').forEach(element => {
+      element.addEventListener('click', () => setPanel('cv', true,
+        panel === 'prep' ? $('contact-target').value : '', element.dataset.stageDocument));
     });
 
     function stagePeriod() {
@@ -824,7 +847,7 @@
           status(place.name + ' ajouté à mes démarches.');
         }
       });
-      actions.append(follow, button('Préparer le contact', 'cs-stage-quiet', () => openContact(context)));
+      actions.append(follow);
       card.append(actions);
       return card;
     }
@@ -941,9 +964,7 @@
       }
       card.append(fields);
       const actions = node('div', 'cs-stage-board-card-actions');
-      actions.append(button('Préparer le contact', 'cs-stage-pale', () => openContact(entry)),
-        button('Préparer mon CV ou ma lettre','cs-stage-pale',()=>setPanel('cv',true,place.id)),
-        button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
+      actions.append(button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
       card.append(actions);
       return card;
     }
@@ -1072,7 +1093,7 @@
 
     $('start').addEventListener('change', updateDates);
     $('end').addEventListener('change', updateDates);
-    $('make-message').addEventListener('click', () => openContact({ sector, option: route() }));
+    $('make-message').addEventListener('click', () => openContact(board.get($('contact-target').value) || { sector, option: route() }));
 
     function openContact(context) {
       const { place, sector: program, option: track } = context;
@@ -1108,7 +1129,6 @@
 
       const workshop = window.CORTEX_STAGE_CONTACT.mount({
         label, period, recipient, place, identity, save: persist,
-        shortEligible: validDate(prep.start) && validDate(prep.end),
         hook: hooks[place?.id || program+'-'+track],
         rememberHook: value => { hooks[place?.id || program+'-'+track] = value; persist(); },
         profile: program === 'commerce-vente' ? categories[0]?.[3] || track : program,

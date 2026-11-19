@@ -105,7 +105,7 @@ window.CORTEX_PORTAL=(function(){
    '</div>'+
    '<section class="cs-stage-featured cs-stage-featured-demo" aria-label="Accéder à la recherche de stages">'+
    '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · TON AVENIR PROFESSIONNEL</span><span class="cs-stage-featured-status">OUTIL STAGES</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · 3 FILIÈRES</span>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">STAGES · 3 FILIÈRES</span>'+
    '<h2>Ton prochain stage<br><em>commence ici.</em></h2>'+
     '<p>Repère des lieux adaptés à ta filière, prépare ton premier contact et retrouve tes candidatures dans ton carnet.</p></div>'+
    '<div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span><span class="cs-stage-featured-dot"></span></div></div>'+
@@ -215,7 +215,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button><button data-action="student-stages">🎓 Recherche de stages</button></div></div>'+
    '<div class="portal-welcome-art" aria-hidden="true"><div class="portal-art-ring"><span>'+(avg===null?'—':grade(avg))+'</span><small>/20</small></div><div class="portal-art-orbit"></div><div class="portal-art-stars">✦</div></div></section>'+
     '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver un stage"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ton<br><em>prochain stage.</em></h2>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">STAGES · RECHERCHE ASSISTÉE</span><h2>Trouve ton<br><em>prochain stage.</em></h2>'+
     '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+
     '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de stages</strong><small>Recherche par filière · Carnet de candidatures</small></span></button></section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+

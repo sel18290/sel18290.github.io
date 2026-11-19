@@ -200,7 +200,11 @@
     }
     function focusStep(){host.querySelector('.cs-stage-cv-step')?.focus();}
     return {
-      show(company) { if (company) {selected=company;step=2;} render(); },
+      show(company, preferredKind) {
+        if (preferredKind) { kind = preferredKind; step = 2; }
+        if (company) { selected = company; step = 2; }
+        render();
+      },
       hide() { request?.abort(); }
     };
   }

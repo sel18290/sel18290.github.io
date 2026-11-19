@@ -180,7 +180,7 @@ return `<div class="home nxp-home">
    ${btn('Explorer l’espace élève <span class="button-arrow">↗</span>','student','')}
    ${btn('Découvrir les outils professeur →','teacher','secondary')}
   </div>
-  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>PFMP & orientation</span></div>
+  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>Stages & orientation</span></div>
  </div>
  <div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 8 / 20</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>8 / 20</strong></div></div>
 </section>

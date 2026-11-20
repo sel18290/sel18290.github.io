@@ -67,27 +67,41 @@
       node('p','','Prépare ce que tu vas dire, personnalise ton message et copie-le quand il te convient.')
     );
     root.append(header);
+    const stepbar = node('nav','cs-stage-contact-v3-progress');
+    stepbar.setAttribute('aria-label','Progression de la préparation de candidature');
+    const stepIndicators = [];
+    for (const [index, title] of ['Mes coordonnées','Mon accroche','Mon message'].entries()) {
+      const part = node('span','cs-stage-contact-v3-progress-step');
+      part.append(node('span','cs-stage-contact-v3-progress-index',String(index+1)),
+        node('span','cs-stage-contact-v3-progress-label',title));
+      stepIndicators.push(part);
+      stepbar.append(part);
+    }
+    root.append(stepbar);
     const pending = new AbortController();
+    let currentStep = 1;
     let method = 'call';
     const edits = new Map();
     let appliedHook = HOOK_HINT;
     const identity = node('div', 'cs-stage-cv-fields');
     const nameInputs = [];
+    const identityInputs = [];
     const nameFeedback = node('p', 'cs-stage-date-status');
     nameFeedback.setAttribute('role', 'status');
     for (const [key, title] of [['first','Prénom'],['last','Nom'],['school','Nom du lycée']]) {
       const label = node('label','',title), input = node('input');
       input.type = 'text'; input.maxLength = 90; input.value = context.identity[key] || '';
-      if (key !== 'school') {
-        input.required = true;
-        input.autocomplete = key === 'first' ? 'given-name' : 'family-name';
-        nameInputs.push(input);
-      }
+      input.required = true;
+      input.autocomplete = key === 'first' ? 'given-name' : key === 'last' ? 'family-name' : 'organization';
+      identityInputs.push(input);
+      if (key !== 'school') nameInputs.push(input);
       input.addEventListener('keydown', event => {
         if (event.key !== 'Enter' || event.isComposing) return;
         event.preventDefault();
-        const next = nameInputs.find(field => field !== input && !field.value.trim());
-        (next || message).focus();
+        const currentIndex = identityInputs.indexOf(input);
+        const next = identityInputs[currentIndex+1];
+        if (next) next.focus();
+        else validateIdentity();
       });
       input.addEventListener('input', () => {
         const oldName = [context.identity.first,context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
@@ -105,15 +119,22 @@
       });
       label.append(input); identity.append(label);
     }
-    const identityPanel = node('details','cs-stage-contact-v2-identity');
-    identityPanel.open = !context.identity.first || !context.identity.last || !context.identity.school;
-    identityPanel.append(node('summary','','01 · Vérifier mes coordonnées'),
-      node('p','cs-stage-contact-guidance','Ces informations servent uniquement à personnaliser ton message.'));
+    const identityPanel = node('section','cs-stage-contact-v2-identity cs-stage-contact-v3-panel');
+    const identityTitle = node('h3','cs-stage-contact-v3-step-title','01 · Vérifie tes coordonnées');
+    identityTitle.tabIndex = -1;
+    identityPanel.append(node('span','cs-stage-contact-overline','ÉTAPE 1 SUR 3'),
+      identityTitle,
+      node('p','cs-stage-contact-guidance','Ces informations seront utilisées dans le message, mais ne sont pas transmises à Albert.'));
     identityPanel.append(identity,nameFeedback);
+    const identityNext = button('Valider et continuer →','cs-stage-primary cs-stage-contact-v3-next',validateIdentity);
+    identityPanel.append(node('div','cs-stage-contact-v3-navigation'));
+    identityPanel.querySelector('.cs-stage-contact-v3-navigation').append(identityNext);
     root.append(identityPanel);
-    const personal = node('section','cs-stage-contact-v2-step');
-    personal.append(node('span','cs-stage-contact-overline','ÉTAPE 02 / PERSONNALISER'),
-      node('h3','','Une phrase qui te ressemble'),
+    const personal = node('section','cs-stage-contact-v2-step cs-stage-contact-v3-panel');
+    const personalTitle = node('h3','cs-stage-contact-v3-step-title','02 · Une phrase qui te ressemble');
+    personalTitle.tabIndex = -1;
+    personal.append(node('span','cs-stage-contact-overline','ÉTAPE 2 SUR 3'),
+      personalTitle,
       node('p','cs-stage-contact-guidance','Explique pourquoi cette structure t’intéresse ou ce que tu souhaites apprendre.'));
 
     const choices = node('fieldset', 'cs-stage-contact-motives');
@@ -201,6 +222,12 @@
     assistance.append(tools, node('small', 'cs-stage-contact-guidance',
       'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton message reste dans cette fenêtre.'),feedback,suggestion);
     personal.append(assistance);
+    const hookFeedback = node('p','cs-stage-date-status cs-stage-contact-v3-error');
+    hookFeedback.setAttribute('role','status');
+    const personalNav = node('div','cs-stage-contact-v3-navigation');
+    personalNav.append(button('← Retour','cs-stage-pale cs-stage-contact-v3-back',()=>showStep(1)),
+      button('Valider et continuer →','cs-stage-primary cs-stage-contact-v3-next',validateMotivation));
+    personal.append(hookFeedback,personalNav);
     root.append(personal);
     choiceList.addEventListener('change', () => {
       suggestion.hidden = true;
@@ -215,9 +242,11 @@
     const email = button('✉ Écrire un e-mail', 'cs-stage-pale', () => selectMethod('email'));
     email.setAttribute('aria-label','Préparer un message e-mail');
     methodControls.append(call, email);
-    const output = node('section','cs-stage-contact-v2-step cs-stage-contact-v2-output');
-    output.append(node('span','cs-stage-contact-overline','ÉTAPE 03 / FINALISER'),
-      node('h3','','Choisis comment contacter la structure'),
+    const output = node('section','cs-stage-contact-v2-step cs-stage-contact-v2-output cs-stage-contact-v3-panel');
+    const outputTitle = node('h3','cs-stage-contact-v3-step-title','03 · Finalise ton message');
+    outputTitle.tabIndex = -1;
+    output.append(node('span','cs-stage-contact-overline','ÉTAPE 3 SUR 3'),
+      outputTitle,
       node('p','cs-stage-contact-guidance','Sélectionne Appeler ou Écrire un e-mail. Le modèle reste modifiable.'));
     output.append(methodControls);
 
@@ -234,10 +263,10 @@
       copied.textContent = 'Modèle mis à jour.';
     });
     const copy = button('Copier mon message →', 'cs-stage-primary cs-stage-contact-v2-copy', async () => {
-      const missing = nameInputs.find(input => !input.value.trim());
+      const missing = identityInputs.find(input => !input.value.trim());
       if (missing) {
-        identityPanel.open = true;
-        nameFeedback.textContent = 'Renseigne ton prénom et ton nom pour personnaliser et copier ton message.';
+        nameFeedback.textContent = 'Complète ton prénom, ton nom et ton lycée avant de copier.';
+        showStep(1);
         missing.focus();
         return;
       }
@@ -254,7 +283,49 @@
     const actions = node('div', 'cs-stage-contact-actions cs-stage-contact-v2-actions');
     actions.append(copy,reset);
     output.append(messageLabel,note,actions,copied);
+    const outputNav = node('div','cs-stage-contact-v3-navigation');
+    outputNav.append(button('← Modifier mon accroche','cs-stage-pale cs-stage-contact-v3-back',()=>showStep(2)));
+    output.append(outputNav);
     root.append(output);
+
+    const panels = [identityPanel,personal,output];
+    const headings = [identityTitle,personalTitle,outputTitle];
+    function showStep(step, focus = true) {
+      currentStep = step;
+      panels.forEach((panel,index)=>{ panel.hidden = index !== step-1; });
+      stepIndicators.forEach((indicator,index)=>{
+        const status = index+1===step ? 'current' : index+1<step ? 'complete' : 'upcoming';
+        indicator.dataset.status = status;
+        if (status==='current') indicator.setAttribute('aria-current','step');
+        else indicator.removeAttribute('aria-current');
+      });
+      root.dataset.currentStep = String(step);
+      if (focus) {
+        headings[step-1].focus({preventScroll:true});
+        root.scrollIntoView?.({behavior:'auto',block:'start'});
+      }
+    }
+    function validateIdentity() {
+      const missing = identityInputs.find(input => !input.value.trim());
+      if (missing) {
+        nameFeedback.textContent = 'Renseigne ton prénom, ton nom et ton lycée pour continuer.';
+        missing.focus();
+        return;
+      }
+      nameFeedback.textContent = '';
+      showStep(2);
+    }
+    function validateMotivation() {
+      const phrase = withoutOpening(hook.value);
+      if (phrase.length < 12) {
+        hookFeedback.textContent = 'Écris au moins une phrase personnelle (12 caractères minimum), ou utilise l’exemple ou Albert.';
+        hook.focus();
+        return;
+      }
+      hookFeedback.textContent = '';
+      applyHook();
+      showStep(3);
+    }
 
     function updateMessage() {
       message.value = edits.has(method) ? edits.get(method) : writeMessage(context, sentence(hook.value), method);
@@ -291,6 +362,7 @@
       note.textContent = 'Texte modifié. Vérifie les dates, le nom du lycée et les éléments entre crochets.';
     });
     selectMethod('call');
+    showStep(1,false);
 
     return { root, dispose: () => pending.abort() };
   }

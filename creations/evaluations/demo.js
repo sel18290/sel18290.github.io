@@ -187,100 +187,39 @@ if(view==='student'&&tab==='examen'){
 }
 }
 function home(){
-return `<div class="home nxp-home">
-<section class="home-hero nxp-home-hero">
- <div class="hero-copy">
-  <p class="eyebrow">CORTEX / STATION NOCTIS · ÉCOSYSTÈME PÉDAGOGIQUE</p>
-  <h1>Un nouvel horizon<br><em>pour apprendre.</em></h1>
-  <p class="lead">Des contrôles numériques qui ne s'arrêtent pas à la remise d'une copie. CORTEX relie l'évaluation, les conseils pédagogiques, la correction accompagnée par IA et la recherche de PFMP.</p>
-  <div class="hero-actions">
-   ${btn('Explorer l’espace élève <span class="button-arrow">↗</span>','student','')}
-   ${btn('Découvrir les outils professeur →','teacher','secondary')}
+return `<div class="home cortex-focus-home">
+ <section class="cortex-focus-hero" aria-labelledby="cortex-focus-title">
+  <div class="cortex-focus-copy">
+   <span class="cortex-focus-kicker">CORTEX · STATION NOCTIS</span>
+   <h1 id="cortex-focus-title">Apprendre.<br><em>Autrement.</em></h1>
+   <p>Des contrôles plus simples, des corrections accompagnées et une recherche de PFMP facilitée.</p>
+   <div class="cortex-focus-actions">
+    ${btn('Je suis élève <span aria-hidden="true">↗</span>','student','')}
+    ${btn('Je suis professeur <span aria-hidden="true">↗</span>','teacher','secondary')}
+   </div>
+   <small class="cortex-focus-meta">Démonstration libre · Sans inscription · Données fictives</small>
   </div>
-  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>PFMP & orientation</span></div>
- </div>
- <div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 8 / 20</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>8 / 20</strong></div></div>
-</section>
-<section class="cortex-home-safety-features" aria-label="Réponses manuscrites et anti-triche"><article><strong>✎ Photographier ses réponses manuscrites</strong><p>À chaque question, l’élève peut photographier sa réponse écrite sur papier. Les images sont regroupées dans un PDF associé à sa copie, consultable par le professeur.</p><small>Disponible dans l’espace élève réel · Caméra ou image importée</small></article><article><strong>◈ Des évaluations avec mode anti-triche</strong><p>Selon les réglages de l’enseignant : limitation du collage et de la copie, détection des sorties d’écran avec durée, suivi de la passation et filigrane dissuasif.</p><small>Alertes à vérifier humainement · Pas de surveillance webcam ni de blocage garanti des captures</small></article></section>
-<section class="home-section cortex-home-benefits nxp-benefits" aria-labelledby="cortex-home-benefits-title">
- <div class="nxp-section-lead">
-  <div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> L'EXPÉRIENCE CORTEX <span class="nxp-lead-line" aria-hidden="true"></span> 01 / 04</div>
-  <div class="nxp-lead-row">
-   <h2 id="cortex-home-benefits-title">Bien plus qu'un <em>contrôle numérique.</em></h2>
-   <p>Une suite d'outils connectés aux apprentissages, pensée pour les élèves et pour les enseignants.</p>
-  </div>
- </div>
- <div class="nxp-feature-layout">
-  <article class="nxp-learning" aria-labelledby="nxp-learning-title">
-   <div class="nxp-learning-shine" aria-hidden="true"></div>
-   <div class="nxp-learning-copy">
-    <p class="nxp-category"><span class="nxp-roundel">01</span> CÔTÉ ÉLÈVE · APRÈS LA COPIE</p>
-    <h3 id="nxp-learning-title">Une copie rendue.<br><em>Un nouvel élan.</em></h3>
-    <p class="nxp-learning-intro">L'élève découvre une <strong>estimation de sa note</strong> dès la remise de son devoir et reçoit des <strong>conseils pédagogiques</strong> pour progresser.</p>
-    <div class="nxp-learning-points">
-     <span><span class="nxp-tick" aria-hidden="true">✓</span> Note estimée et non officielle</span>
-     <span><span class="nxp-tick" aria-hidden="true">✓</span> Conseils adaptés aux réponses</span>
-     <span><span class="nxp-tick" aria-hidden="true">✓</span> Validation finale par l'enseignant</span>
+  <div class="cortex-focus-visual" aria-hidden="true">
+   <div class="cortex-focus-halo"></div>
+   <div class="cortex-focus-panel">
+    <div class="cortex-focus-panel-top"><span>CORTEX / ÉVALUATION</span><span class="cortex-focus-dots"><i></i><i></i><i></i></span></div>
+    <div class="cortex-focus-sheet">
+     <span class="cortex-focus-sheet-tag">QUESTION 04 / 20</span>
+     <strong>Comprendre.<br>Répondre.<br>Progresser.</strong>
+     <div class="cortex-focus-lines"><i></i><i></i><i></i></div>
+     <div class="cortex-focus-progress"><i></i></div>
     </div>
-    <a class="nxp-light-cta" href="#eleve/accueil">Découvrir l'expérience élève <span aria-hidden="true">↗</span></a>
+    <div class="cortex-focus-panel-bottom"><span>SESSION NOCTIS</span><b>● EN COURS</b></div>
    </div>
-   <div class="nxp-learning-preview" aria-label="Exemple fictif de résultat pédagogique, non officiel">
-    <div class="nxp-preview-top"><span class="nxp-preview-dot"></span><span>CORTEX / BILAN</span><span class="nxp-preview-stars">✦</span></div>
-    <span class="nxp-preview-label">EXEMPLE FICTIF · NON OFFICIEL</span>
-    <div class="nxp-preview-grade">14,5<span>/20</span></div>
-    <div class="nxp-preview-caption">Estimation après rendu</div>
-    <div class="nxp-preview-rule"><span></span></div>
-    <div class="nxp-preview-tip"><span>✧ PISTE DE PROGRESSION</span><p>Approfondir les notions à revoir pour la prochaine évaluation.</p></div>
-   </div>
-   <span class="nxp-learning-id" aria-hidden="true">NX / 01</span>
-  </article>
-  <div class="nxp-service-stack">
-   <article class="nxp-service nxp-service-doc" aria-labelledby="nxp-doc-title">
-    <div class="nxp-service-top"><span class="nxp-service-id">02 / ESPACE PROFESSEUR</span><span class="nxp-service-symbol" aria-hidden="true">▤</span></div>
-    <h3 id="nxp-doc-title">Du PDF au contrôle.<br><em>En quelques étapes.</em></h3>
-    <p>Convertissez un PDF en blocs de questions modifiables. Préparez et corrigez les copies plus efficacement avec l'aide de l'IA, sous contrôle de l'enseignant.</p>
-    <a href="#professeur/import">Découvrir les outils d'évaluation <span aria-hidden="true">↗</span></a>
-    <span class="nxp-service-decoration" aria-hidden="true">PDF <span>→</span> QCM</span>
-   </article>
-   <article class="nxp-service nxp-service-stage" aria-labelledby="nxp-stage-title">
-    <div class="nxp-service-top"><span class="nxp-service-id">03 / PARCOURS PROFESSIONNEL</span><span class="nxp-service-symbol" aria-hidden="true">⌖</span></div>
-    <h3 id="nxp-stage-title">Une PFMP à trouver ?<br><em>Albert IA vous guide.</em></h3>
-     <p>Trouvez des structures adaptées à votre filière, préparez votre candidature et suivez vos relances.</p>
-    <a href="#eleve/stages">Lancer la recherche de PFMP <span aria-hidden="true">↗</span></a>
-    <span class="nxp-stage-orbit" aria-hidden="true"></span>
-   </article>
+   <div class="cortex-focus-orbit-note"><small>Parcours</small><strong>Élève + prof</strong></div>
   </div>
- </div>
- <div class="nxp-disclaimer"><span class="nxp-disclaimer-mark" aria-hidden="true">i</span> La note estimée ne remplace jamais la correction officielle. Les lieux recensés ne garantissent pas une place de PFMP.</div>
-</section>
-<section class="home-section nxp-access-section" aria-labelledby="nxp-access-title">
- <div class="nxp-section-lead nxp-access-lead">
-  <div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> VOTRE POINT D'ENTRÉE <span class="nxp-lead-line" aria-hidden="true"></span> 02 / 04</div>
-  <div class="nxp-lead-row"><h2 id="nxp-access-title">Choisissez votre <em>parcours.</em></h2><p>Deux espaces distincts, un même objectif : faire progresser chaque élève.</p></div>
- </div>
- <div class="nxp-access-grid">
-  <article class="nxp-role nxp-role-teacher">
-   <div class="nxp-role-head"><span class="nxp-role-chip">PROFESSEUR</span><span class="nxp-role-glyph" aria-hidden="true">▤</span></div>
-   <div><h3>Créer. Évaluer.<br><em>Accompagner.</em></h3><p>Importez vos contrôles, gérez les copies et préparez vos corrections dans un espace complet.</p></div>
-   ${btn('Entrer dans l’espace professeur ↗','teacher','')}
-  </article>
-  <article class="nxp-role nxp-role-student">
-   <div class="nxp-role-head"><span class="nxp-role-chip">ÉLÈVE</span><span class="nxp-role-glyph" aria-hidden="true">✧</span></div>
-   <div><h3>Répondre. Comprendre.<br><em>Progresser.</em></h3><p>Passez une évaluation, découvrez un retour pédagogique, ou cherchez un lieu de PFMP.</p></div>
-   ${btn('Découvrir l’espace élève ↗','student','secondary')}
-  </article>
- </div>
- <p class="nxp-access-notice">Démonstration libre avec données fictives · Aucune note officielle · Espace réel distinct.</p>
-</section>
-<section class="home-section nxp-journey" aria-labelledby="nxp-journey-title">
- <div class="nxp-section-lead"><div class="nxp-section-kicker"><span class="nxp-signal" aria-hidden="true"></span> PARCOURS DE DÉMONSTRATION</div>
- <div class="nxp-lead-row"><h2 id="nxp-journey-title">Découvrez CORTEX <em>en trois temps.</em></h2></div></div>
- <div class="nxp-journey-steps">
-  <div><span>01</span><strong>Importez un document</strong><p>Ajoutez un PDF ou créez vos questions.</p></div>
-  <div><span>02</span><strong>Testez côté élève</strong><p>Répondez à une évaluation fictive.</p></div>
-  <div><span>03</span><strong>Retrouvez la copie</strong><p>Consultez le rendu depuis le tableau de bord.</p></div>
- </div>
-</section>
+ </section>
+ <section class="cortex-focus-capabilities" aria-label="Les trois essentiels de CORTEX">
+  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">▤</span><div><strong>Évaluer</strong><span>Questions numériques ou réponses manuscrites en photo.</span></div></article>
+  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">✧</span><div><strong>Accompagner</strong><span>Estimation, conseils et aide à la correction par IA.</span></div></article>
+  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">⌖</span><div><strong>Trouver une PFMP</strong><span>Recherche de structures adaptée à la filière avec Albert IA.</span></div></article>
+ </section>
+ <div class="cortex-focus-trust"><span class="cortex-focus-trust-mark" aria-hidden="true">◈</span><strong>Mode anti-triche configurable</strong><span>Copier-coller, sorties d'écran et suivi selon les réglages.</span><span class="cortex-focus-separator" aria-hidden="true"></span><small>Alerte ≠ preuve de triche.</small></div>
 </div>`;
 }
 

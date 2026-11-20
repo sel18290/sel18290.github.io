@@ -459,7 +459,25 @@ async function confirmedPlaces(loc,radius,sector,chosen,body){
 async function contactSuggestion(body,origin){
  const sector=clean(body.filiere,40),option=clean(body.optionCommerce||"toutes",10);
  const type=clean(body.type,50);
- const motives={public:"le contact avec le public",metier:"les missions concrètes",structure:"un détail à vérifier sur la structure"};
+ const motives={
+  public: "le contact avec le public",
+  metier: "les missions concrètes",
+  structure: "un détail à vérifier sur la structure",
+  aider: "apprendre à aider les gens",
+  clients: "apprendre à parler avec les clients",
+  accueil: "apprendre à accueillir les visiteurs",
+  decouvrir: "découvrir comment se passe ce métier",
+  equipe: "apprendre à travailler avec une équipe",
+  outils: "découvrir les outils utilisés au travail",
+  organiser: "apprendre à mieux m'organiser au travail",
+  conseiller: "apprendre à conseiller les clients",
+  documents: "apprendre à gérer des documents",
+  journee: "découvrir une journée de travail",
+  confiance: "prendre confiance pour parler avec des gens",
+  entreprise: "découvrir comment fonctionne la structure",
+  vendre: "apprendre à présenter et vendre des produits",
+  apprendre: "apprendre de nouvelles choses utiles au métier"
+ };
  const motive=motives[clean(body.motivation,20)];
  if(!Object.hasOwn(sectors,sector)||!["A","B","toutes"].includes(option)||typeof motive!=="string"||
   (type&&!categoryIds(sector,[type],option).length))
@@ -475,6 +493,7 @@ async function contactSuggestion(body,origin){
   "Exemple AGOrA : Je suis motivé et j’aimerais travailler avec vous pour apprendre à gérer des dossiers. Exemple accueil : J’aime aider les gens et j’aimerais apprendre à accueillir vos visiteurs.",
   "Pour le commerce, parle d’aider les clients, de présenter un produit ou de prendre contact avec eux. Interdiction d’employer les termes prospection, valorisation, portefeuille, flux, démarchage et fidélisation dans l’accroche.",
   "Si le thème porte sur la structure, garde un emplacement [détail vérifié] au lieu d’inventer une information.",
+  "Adapte vraiment la phrase au thème demandé dans le champ motivation, avec des mots simples pour un élève de 15 ans. N'ajoute aucune compétence ou expérience non indiquée.",
   "Dans la phrase de motivation qui suit l’ouverture fixe, n’évoque ni dates, ni salaire, ni gratification. Ne présume aucune disponibilité d’accueil, aucune expérience de l’élève, aucun fait sur le lieu. Utilise le mot PFMP.",
   "Pronoms et mots simples, ton poli, pas de flatterie. Conseil oral distinct et pratique pour dire la phrase.",
   'Retourne seulement un objet JSON {"hook":"ouverture fixe suivie de la phrase de motivation, 340 caractères maximum","tip":"conseil oral, 160 caractères maximum"}.'

@@ -863,6 +863,8 @@ Deno.serve(async req=>{
   if(Number(req.headers.get("content-length")||0)>11000)throw Error("Requête trop volumineuse.");
   const body=await req.json();
   if(body.action==="create_sector")return await createCustomProgram(body,origin);
+  if(/^perso-/.test(clean(body.filiere,40))&&!body.customFiliere)
+   throw Error("Cette filière personnalisée doit être chargée depuis ton espace PFMP.");
   attachCustomProgram(body);
   if(body.action==="prepare_contact")return await contactSuggestion(body,origin);
   if(body.action==="improve_application")return await applicationSuggestion(body,origin);

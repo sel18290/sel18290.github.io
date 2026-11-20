@@ -113,18 +113,6 @@ async function classAccess(teacher,classId,size=30){
  }
  return {access,freshPins};
 }
-async function resetClassPin(teacher,classId,n){
- const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classId).eq('teacher_id',teacher.id).maybeSingle();
- if(!access||!Number.isInteger(n)||n<1||n>access.roster_size)throw Error('Numéro élève invalide dans cette classe.');
- const value=pin();
- const {error}=await admin.from('cortex_academy_class_roster').upsert({class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null,activated_at:null,pin_origin_class_id:null,updated_at:new Date().toISOString()},{onConflict:'class_id,student_number'});
- if(error)throw Error('PIN non réinitialisé.');
- await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',n);
- const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacher.id);
- const ids=(exams||[]).map(e=>e.id);
- if(ids.length)await admin.from('cortex_academy_sessions').delete().in('assessment_id',ids).eq('student_number',n);
- return {number:n,pin:value};
-}
 async function verifyClassPin(access,n,p,requireActivated=true){
  if(!Number.isInteger(n)||n<1||n>access.roster_size||!/^[0-9]{6}$/.test(p))throw Error('Classe, numéro ou PIN incorrect.');
  const {data:cred,error:readError}=await admin.from('cortex_academy_class_roster')
@@ -143,7 +131,7 @@ async function verifyClassPin(access,n,p,requireActivated=true){
   const tries=Number(cred.attempts||0)+1;
   await admin.from('cortex_academy_class_roster')
    .update({attempts:tries>=5?0:tries,locked_until:tries>=5?new Date(Date.now()+900000).toISOString():null})
-   .eq('class_id',access.class_id).eq('student_number',n);
+   .eq('class_id',access.class_id).eq('student_number',n).eq('pin_digest',cred.pin_digest);
   throw Error('Classe, numéro ou PIN incorrect.');
  }
  if(requireActivated&&!cred.activated_at)
@@ -153,9 +141,9 @@ async function verifyClassPin(access,n,p,requireActivated=true){
   changes.pin_digest=expected;
   changes.pin_origin_class_id=null;
  }
- const {error:updateError}=await admin.from('cortex_academy_class_roster')
-  .update(changes).eq('class_id',access.class_id).eq('student_number',n).eq('pin_digest',cred.pin_digest);
- if(updateError)throw Error('Vérification du PIN impossible. Réessayez.');
+ const {data:verified,error:updateError}=await admin.from('cortex_academy_class_roster')
+  .update(changes).eq('class_id',access.class_id).eq('student_number',n).eq('pin_digest',cred.pin_digest).select('student_number').maybeSingle();
+ if(updateError||!verified)throw Error('Vérification du PIN impossible. Réessayez.');
 }
 async function activeClassStudent(token){
  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))throw Error('Session expirée. Reconnectez-vous.');
@@ -233,14 +221,14 @@ async function input(req){
  if(contentType.includes('multipart/form-data')){
  const form=await req.formData();
  return {form,action:String(form.get('action')||''),body:{
- assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers'),
+ assessment_id:form.get('assessment_id'),session:form.get('session'),answers:form.get('answers'),revision:form.get('revision'),
  question_id:form.get('question_id'),question_ids:form.get('question_ids'),page:form.get('page')
  }};
  }
  if(!contentType.includes('application/json'))throw Error('Format de requête invalide.');
  const body=await req.json();
  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('Requête incorrecte.');
- if(JSON.stringify(body).length>(String(body.action||'')==='teacher_document_update'?265000:String(body.action||'')==='student_submit'?80000:28000))throw Error('Requête trop volumineuse.');
+ if(JSON.stringify(body).length>(String(body.action||'')==='teacher_document_update'?265000:['student_submit','student_save'].includes(String(body.action||''))?150000:28000))throw Error('Requête trop volumineuse.');
  return {form:null,action:String(body.action||''),body};
 }
 async function teacherAction(action,body,form,req){
@@ -248,7 +236,7 @@ async function teacherAction(action,body,form,req){
  if(action==='teacher_list'){
   const [access,subs]=await Promise.all([
    admin.from('cortex_academy_access').select('assessment_id,join_code,active,roster_size,subject_name,created_at').eq('teacher_id',teacher.id),
-   admin.from('cortex_academy_submissions').select('id,assessment_id,student_number,answers,file_name,submitted_at,grade,feedback,graded_at,released_at').eq('teacher_id',teacher.id).order('submitted_at',{ascending:false}).limit(500)
+   admin.from('cortex_academy_submissions').select('id,assessment_id,student_number,answers,file_name,submitted_at,grade,feedback,graded_at,released_at,auto_submitted').eq('teacher_id',teacher.id).order('submitted_at',{ascending:false}).limit(500)
   ]);
   if(access.error||subs.error)throw Error('Impossible de charger les remises.');
   const {data:classAccess,error:caErr}=await admin.from('cortex_academy_class_access').select('class_id,portal_code,active,roster_size,registration_open_until').eq('teacher_id',teacher.id);
@@ -299,10 +287,16 @@ async function teacherAction(action,body,form,req){
   if(error||!data)throw Error('Élève non activé ou numéro introuvable.');
   return ret({ok:true,student_number:n,demi_groupe:data.demi_groupe});
  }
- if(action==='teacher_class_reset_pin'){
+ if(action==='teacher_class_reset_pin'||action==='teacher_class_remove_assignment'){
   const classId=String(body.class_id||''),number=Number(body.student_number);
   await classOwned(teacher,classId);
-  return ret({ok:true,...await resetClassPin(teacher,classId,number)});
+  if(!Number.isInteger(number)||number<1||number>60)throw Error('Numéro élève invalide.');
+  const {data,error}=await admin.rpc('cortex_release_class_pin',{
+   p_teacher:teacher.id,p_class:classId,p_student:number,p_digest:await pinHash(classId,number,random()),
+   p_remove_assignment:action==='teacher_class_remove_assignment'
+  });
+  if(error||!data)throw Error('Ce numéro ne possède plus de compte actif. Actualise le tableau.');
+  return ret({ok:true,number});
  }
  const id=String(body.assessment_id||''),assessment=await owned(teacher,id);
  if(action==='teacher_duplicate'){
@@ -566,6 +560,27 @@ async function teacherAction(action,body,form,req){
  }
  throw Error('Action professeur inconnue.');
 }
+function beforeAssignment(copy,cutoff){
+ return !!copy&&!!cutoff&&Date.parse(copy.attempt_started_at||copy.submitted_at)<Date.parse(cutoff);
+}
+function readAnswers(raw){
+ let answers;
+ try{answers=JSON.parse(String(raw||'{}'))}catch{throw Error('Réponses illisibles.')}
+ if(!answers||typeof answers!=='object'||Array.isArray(answers)||Object.keys(answers).length>40||JSON.stringify(answers).length>70000)throw Error('Réponses trop volumineuses.');
+ const clean:Record<string,string>=Object.create(null);
+ for(const [key,value] of Object.entries(answers)){
+  if(!/^[\da-z_-]{1,45}$/i.test(key)||typeof value!=='string'||value.length>18000)throw Error('Une réponse dépasse la limite autorisée.');
+  clean[key]=value;
+ }
+ return clean;
+}
+async function recordAttempt(id,number,action,params={}){
+ const {data,error}=await admin.rpc('cortex_record_attempt',{
+  p_assessment:id,p_student:number,p_action:action,...params
+ });
+ if(error)throw Error('Impossible d’enregistrer la copie sur le serveur. Réessaie.');
+ return data;
+}
 async function studentAction(action,body,form){
  if(action==='student_link_info'){
   // Le lien reçu de l'enseignant détermine la classe, jamais le numéro seul.
@@ -744,15 +759,16 @@ async function studentAction(action,body,form){
   const [exams,links,submissions,cl,placement]=await Promise.all([
    admin.from('cortex_teacher_assessments').select('id,title,published,created_at,content').eq('class_id',access.class_id).eq('teacher_id',access.teacher_id).order('created_at',{ascending:false}),
    admin.from('cortex_academy_access').select('assessment_id,active').eq('teacher_id',access.teacher_id),
-   admin.from('cortex_academy_submissions').select('assessment_id,submitted_at,grade,feedback,released_at').eq('teacher_id',access.teacher_id).eq('student_number',session.student_number),
+   admin.from('cortex_academy_submissions').select('assessment_id,submitted_at,attempt_started_at,grade,feedback,released_at').eq('teacher_id',access.teacher_id).eq('student_number',session.student_number),
    admin.from('cortex_teacher_classes').select('code,display_name').eq('id',access.class_id).eq('teacher_id',access.teacher_id).maybeSingle(),
-   admin.from('cortex_academy_class_roster').select('demi_groupe').eq('class_id',access.class_id).eq('student_number',session.student_number).maybeSingle()
+   admin.from('cortex_academy_class_roster').select('demi_groupe,assignment_released_at').eq('class_id',access.class_id).eq('student_number',session.student_number).maybeSingle()
   ]);
   if(exams.error||links.error||submissions.error||cl.error||placement.error)throw Error('Impossible de récupérer vos contrôles.');
   const byAccess=new Map((links.data||[]).map(x=>[x.assessment_id,x]));
   const bySubmission=new Map((submissions.data||[]).map(x=>[x.assessment_id,x]));
   const cards=(exams.data||[]).map(e=>{
    const submitted=bySubmission.get(e.id),link=byAccess.get(e.id);
+   if(beforeAssignment(submitted,placement.data?.assignment_released_at))return null;
    const scope=publicationScope(e),allowed=scope==='all'||Number(placement.data?.demi_groupe)===(scope==='g1'?1:2);
    if(!((e.published&&link?.active&&allowed)||submitted))return null;
    return {id:e.id,title:e.title,available:!!(e.published&&link?.active&&allowed),
@@ -797,9 +813,36 @@ async function studentAction(action,body,form){
   return ret({ok:true,session:token,student_number:number});
  }
  const {session,access,assessment}=await activeStudent(String(body.session||''),String(body.assessment_id||''));
- const {data:submission,error:getErr}=await admin.from('cortex_academy_submissions').select('id,answers,file_path,file_name,submitted_at,grade,feedback,graded_at,released_at').eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();
- if(getErr)throw Error('Impossible de consulter votre copie.');
+ const readSubmission=()=>admin.from('cortex_academy_submissions')
+  .select('id,answers,file_path,file_name,submitted_at,grade,feedback,graded_at,released_at,auto_submitted,attempt_started_at')
+  .eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();
+ const saved=await readSubmission();
+ let submission=saved.data;
+ if(saved.error)throw Error('Impossible de consulter votre copie.');
+ let attempt=null,reassignedNumber=false;
+ if(['student_get','student_start','student_save','student_submit'].includes(action)){
+  const [draft,roster]=await Promise.all([
+   submission?{data:null,error:null}:admin.from('cortex_academy_attempts')
+    .select('started_at,deadline_at,answers,revision,file_name').eq('assessment_id',assessment.id)
+    .eq('student_number',session.student_number).maybeSingle(),
+   assessment.class_id?admin.from('cortex_academy_class_roster').select('assignment_released_at')
+    .eq('class_id',assessment.class_id).eq('student_number',session.student_number).maybeSingle():{data:null,error:null}
+  ]);
+  if(draft.error||roster.error)throw Error('Impossible de consulter le brouillon serveur.');
+  attempt=draft.data;
+  reassignedNumber=!!roster.data?.assignment_released_at;
+  if(beforeAssignment(submission,roster.data?.assignment_released_at)||
+    (attempt&&roster.data?.assignment_released_at&&Date.parse(attempt.started_at)<Date.parse(roster.data.assignment_released_at)))
+   throw Error('Une copie de ce contrôle est liée à l’ancienne affectation de ce numéro.');
+ }
  if(action==='student_get'){
+  if(attempt&&Date.parse(attempt.deadline_at)<=Date.now()){
+   await recordAttempt(assessment.id,session.student_number,'start');
+   const latest=await readSubmission();
+   if(latest.error)throw Error('Impossible de consulter votre copie.');
+   submission=latest.data;
+   if(submission)attempt=null;
+  }
   const raw=assessment.content||{},questions=Array.isArray(raw.questions)?raw.questions.slice(0,40):[];
   const {data:classHeader}=assessment.class_id?await admin.from('cortex_teacher_classes')
    .select('code').eq('id',assessment.class_id).eq('teacher_id',assessment.teacher_id).maybeSingle():{data:null};
@@ -828,36 +871,39 @@ async function studentAction(action,body,form){
       if(type==='fill')visible.blanks=Array.isArray(q.blanks)?q.blanks.slice(0,10).map(x=>String(x).slice(0,120)):[];
       return visible;
      }),assets,antiCheat:raw.antiCheat||{},doc:String(raw.doc||'').slice(0,12000),duration:Math.max(5,Math.min(240,Number(raw.duration)||60))},
-    student_number:session.student_number,subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,600)}:null,
-    submission:submission?{submitted_at:submission.submitted_at,answers:submission.answers,file_name:submission.file_name,
+    student_number:session.student_number,attempt,reassigned_number:reassignedNumber,server_now:Date.now(),subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,600)}:null,
+    submission:submission?{submitted_at:submission.submitted_at,auto_submitted:submission.auto_submitted,answers:submission.answers,file_name:submission.file_name,
       file_url:submission.file_path?await signed(submission.file_path,600).catch(()=>null):null,
       graded:show,grade:show?submission.grade:null,feedback:show?submission.feedback:null}:null});
  }
- if(action==='student_submit'){
-  if(!access.active||!assessment.published)throw Error('Le contrôle est fermé aux nouvelles remises.');
-  if(submission)throw Error('Votre copie a déjà été remise. Elle ne peut plus être modifiée.');
-  let answers;
-  try{answers=JSON.parse(String(body.answers||'{}'))}catch{throw Error('Réponses illisibles.')}
-  if(!answers||typeof answers!=='object'||Array.isArray(answers)||Object.keys(answers).length>40||JSON.stringify(answers).length>70000)throw Error('Réponses trop volumineuses.');
-  const clean={};
-  for(const [key,val] of Object.entries(answers)){
-   if(!/^[\da-z_-]{1,45}$/i.test(key)||typeof val!=='string'||val.length>18000)throw Error('Une réponse dépasse la limite autorisée.');
-   clean[key]=val;
-  }
+ if(action==='student_start'){
+  const result=await recordAttempt(assessment.id,session.student_number,'start');
+  return ret({ok:true,...result,server_now:Date.now()});
+ }
+ if(action==='student_save'||action==='student_submit'){
+  if(submission)return ret({ok:true,status:'submitted',submitted:true});
+  const clean=readAnswers(body.answers);
   const file=form?.get('file'),hasFile=file instanceof File&&file.size>0;
-  if(!Object.values(clean).some(x=>x.trim())&&!hasFile)throw Error('Rédigez au moins une réponse ou joignez un fichier.');
+  const revision=body.revision==null?null:Number(body.revision);
+  if(revision!==null&&(!Number.isSafeInteger(revision)||revision<0||revision>2147483646))
+   throw Error('Version du brouillon invalide.');
+  const submit=action==='student_submit';
+  const removeFile=body.remove_file===true;
+  if(submit&&!Object.values(clean).some(x=>x.trim())&&!hasFile&&(!attempt?.file_name||removeFile))
+   throw Error('Rédigez au moins une réponse ou joignez un fichier.');
   let path=null,name=null;
-  if(hasFile){
+  if(hasFile&&(!attempt||Date.parse(attempt.deadline_at)>Date.now())){
    const meta=checkedFile(file);
    path='submissions/'+assessment.id+'/'+session.student_number+'/'+random(16)+'.'+meta.ext;
    await upload(file,path);name=fname(file);
   }
-  const {error}=await admin.from('cortex_academy_submissions').insert({assessment_id:assessment.id,teacher_id:access.teacher_id,student_number:session.student_number,answers:clean,file_path:path,file_name:name});
-  if(error){
-   if(path)await admin.storage.from(BUCKET).remove([path]);
-   throw Error('La copie ne peut pas être enregistrée. Si vous avez déjà rendu, rechargez la page.');
-  }
-  return ret({ok:true,submitted:true});
+  const result=await recordAttempt(assessment.id,session.student_number,submit?'submit':'save',{
+   p_answers:clean,p_revision:revision,p_file_path:path,p_file_name:name,p_remove_file:removeFile
+  });
+  const unused=[path&&!result.accepted_file?path:null,result.replaced_file].filter(Boolean);
+  if(unused.length)await admin.storage.from(BUCKET).remove(unused);
+  if(result.status==='closed'&&submit)throw Error('Le contrôle est fermé aux nouvelles remises.');
+  return ret({ok:true,...result,submitted:result.status==='submitted',server_now:Date.now()});
  }
  if(action==='student_event'){
   const options={paste_blocked:'blockPaste',copy_blocked:'blockCopy',tab_hidden:'trackVisibility'};

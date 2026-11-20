@@ -166,7 +166,7 @@ export function renderCopyOrganizer({target,copies,exams,classes,renderCopy,open
     const summary=el('summary','cw-copy-entry-summary');
     const primary=el('span','cw-copy-entry-name');
     primary.append(el('strong','','Élève n°'+copy.student_number),
-     el('small','',copy.submitted_at?'Reçue le '+new Date(copy.submitted_at).toLocaleString('fr-FR'):'Copie reçue'));
+     el('small','',copy.submitted_at?(copy.auto_submitted?'Remise automatique le ':'Reçue le ')+new Date(copy.submitted_at).toLocaleString('fr-FR'):'Copie reçue'));
     summary.append(primary,el('span','cw-copy-entry-state '+status.cls,status.text),el('span','cw-group-chevron','▾'));
     panel.append(summary);
     let loaded=false;

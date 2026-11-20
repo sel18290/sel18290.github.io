@@ -1,6 +1,6 @@
 /* CORTEX Académie — parcours examen iPhone.
- * Une seule question et ses documents montés à la fois, brouillon
- * par élève dans sessionStorage, navigation native tactile non bloquante.
+ * Une seule question et ses documents montés à la fois. Le formulaire
+ * parent assure la sauvegarde du brouillon sur mobile et sur ordinateur.
  */
 import { sourceFigure } from './student-source-view.js?v=1.0';
 const E=(tag,cls,text)=>{
@@ -20,18 +20,10 @@ const hasAnswer=value=>{
 };
 export const mobileExam=()=>window.matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)').matches;
 
-export function installMobileExam({form,questions,exam,current}){
- const key='cortex-student-draft:v1:'+exam.id+':'+current.student_number;
- const answers=Object.create(null);
- try{
-  const stored=JSON.parse(sessionStorage.getItem(key)||'null');
-  if(stored?.answers&&Date.now()-Number(stored.updated||0)<12*3600000){
-   for(const q of questions)if(typeof stored.answers[q.id]==='string'&&stored.answers[q.id].length<=18000)
-    answers[q.id]=stored.answers[q.id];
-  }
- }catch{}
+export function installMobileExam({form,questions,exam,current,initialAnswers,onNavigate}){
+ const answers=Object.assign(Object.create(null),initialAnswers);
  form.classList.add('cw-answer-form-paged');
- let active=0,saveTimer=null,destroyed=false,cleared=false;
+ let active=0,destroyed=false;
  const cards=[],steps=[],previous=[],next=[];
  const pager=E('nav','cw-mobile-pager');
  pager.setAttribute('aria-label','Navigation dans les questions du contrôle');
@@ -103,17 +95,6 @@ export function installMobileExam({form,questions,exam,current}){
   previous.forEach(b=>b.disabled=active===0);
   next.forEach(b=>b.disabled=active===questions.length-1);
  }
- function persist(){
-  if(destroyed||cleared)return;
-  if(saveTimer){clearTimeout(saveTimer);saveTimer=null}
-  readVisible();
-  try{sessionStorage.setItem(key,JSON.stringify({updated:Date.now(),answers}))}catch{}
-  refresh();
- }
- function queueSave(){
-  if(saveTimer)clearTimeout(saveTimer);
-  saveTimer=setTimeout(persist,500);
- }
  function show(i){
   if(destroyed||!Number.isInteger(i)||i<0||i>=questions.length)return;
   readVisible();
@@ -127,7 +108,8 @@ export function installMobileExam({form,questions,exam,current}){
   }
   const focused=document.activeElement;
   if(focused&&focused!==document.body&&/^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName))focused.blur();
-  persist();
+  refresh();
+  onNavigate();
   const chip=steps[i];
   const left=chip.offsetLeft-strip.offsetLeft-(strip.clientWidth-chip.offsetWidth)/2;
   strip.scrollTo({left:Math.max(0,left),behavior:'auto'});
@@ -154,8 +136,9 @@ export function installMobileExam({form,questions,exam,current}){
  renderCard(0);
  form.append(footer);
  selector.addEventListener('change',()=>show(Number(selector.value)));
- form.addEventListener('input',queueSave,{passive:true});
- form.addEventListener('change',queueSave,{passive:true});
+ const updateCount=()=>{readVisible();refresh()};
+ form.addEventListener('input',updateCount,{passive:true});
+ form.addEventListener('change',updateCount,{passive:true});
  // La zone de texte et les tableaux gardent leur défilement natif iOS.
  // Les gestes latéraux sur l'énoncé seulement permettent précédent/suivant.
  let finger=null;
@@ -175,28 +158,12 @@ export function installMobileExam({form,questions,exam,current}){
   if(Math.abs(dx)>75&&Math.abs(dx)>Math.abs(dy)*1.65)
    show(Math.max(0,Math.min(questions.length-1,active+(dx<0?1:-1))));
  },{passive:true});
- const onPageHide=()=>persist();
- const onVisibility=()=>{if(document.visibilityState==='hidden')persist()};
- window.addEventListener('pagehide',onPageHide);
- document.addEventListener('visibilitychange',onVisibility);
  refresh();
  return {
   getAnswers(){
    readVisible();
    return Object.fromEntries(questions.map(q=>[q.id,String(answers[q.id]??'')]));
   },
-  answeredCount(){readVisible();return answeredCount()},
-  clearDraft(){
-   cleared=true;
-   if(saveTimer){clearTimeout(saveTimer);saveTimer=null}
-   try{sessionStorage.removeItem(key)}catch{}
-  },
-  destroy(keepDraft=true){
-   if(!destroyed&&keepDraft&&!cleared)persist();
-   destroyed=true;
-   if(saveTimer)clearTimeout(saveTimer);
-   window.removeEventListener('pagehide',onPageHide);
-   document.removeEventListener('visibilitychange',onVisibility);
-  }
+  destroy(){destroyed=true}
  };
 }

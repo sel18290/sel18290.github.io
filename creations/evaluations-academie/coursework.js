@@ -2,7 +2,7 @@
 /* CORTEX Académie : dépôt et réception réels via Supabase Edge Functions. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
-import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.3';
+import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.4';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.1';
 import {createTeacherChatGPTButton} from './student-chatgpt.js?v=1.2';
 import {openAlbertProgress} from './albert-progress-real.js?v=1.0';
@@ -28,7 +28,8 @@ export async function api(action,payload={},file=null,teacher=false){
   form.set('file',file,file.name);body=form;
  }else{headers['Content-Type']='application/json';body=JSON.stringify({action,...payload})}
  let response;
- try{response=await fetch(ENDPOINT,{method:'POST',headers,body,cache:'no-store'})}
+ const keepalive=action==='student_save'&&typeof body==='string'&&new TextEncoder().encode(body).length<60000;
+ try{response=await fetch(ENDPOINT,{method:'POST',headers,body,cache:'no-store',keepalive})}
  catch{throw Error('Le service des évaluations est inaccessible.')}
  const out=await response.json().catch(()=>null);
  if(!response.ok||!out?.ok)throw Error(out?.error||'Action refusée par le serveur.');
@@ -242,7 +243,7 @@ function renderCopyCard(copy,exam){
   const card=make('article','cw-copy'),head=make('div','cw-copy-top');
   head.append(make('strong','','Correction · élève n°'+copy.student_number),
     make('span','cw-pill '+(copy.released_at?'cw-open':''),copy.released_at?'Correction publiée':copy.graded_at?'Corrigé':'À corriger'));
-  card.append(head,make('small','','Reçu le '+new Date(copy.submitted_at).toLocaleString('fr-FR')));
+  card.append(head,make('small','',(copy.auto_submitted?'Remise automatique le ':'Reçu le ')+new Date(copy.submitted_at).toLocaleString('fr-FR')));
   const answers=make('details','cw-copy-answers');
   answers.append(make('summary','','▤ Consulter les réponses · '+Object.keys(copy.answers||{}).length+' question(s)'));
   const answerList=make('div','cw-copy-answer-list');answers.append(answerList);

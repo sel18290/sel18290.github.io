@@ -1,5 +1,5 @@
 /* CORTEX Académie — comptes élèves persistants par classe, gérés par le professeur. */
-import {api} from './coursework.js?v=2.11';
+import {api} from './coursework.js?v=2.12';
 const $=id=>document.getElementById(id);
 const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
 const B=()=>window.CORTEX_ACADEMY_BRIDGE;
@@ -36,7 +36,7 @@ function render(){
   const record=access.find(a=>a.class_id===cl.id);
   const card=E('article','cw-class-card'),head=E('div','cw-card-head'),title=E('div');
   const registrationOpen=!!record?.registration_open_until&&new Date(record.registration_open_until)>new Date();
-  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Tu n’as aucun PIN à distribuer.'));
+  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Les PIN personnels restent masqués.'));
   head.append(title);
   if(registrationOpen||record)head.append(E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'Création de PIN ouverte':'Connexion possible · créations fermées'));
   card.append(head);
@@ -83,76 +83,85 @@ function render(){
   }
   const prepared=enrollments.filter(x=>x.class_id===cl.id);
   const assigned=prepared.filter(x=>!!x.activated_at);
-  const waiting=prepared.filter(x=>!x.activated_at);
-  const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2),
-   whole=assigned.filter(x=>!x.demi_groupe);
+  const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2);
   const stats=E('div','cw-group-stats');
-  stats.append(E('span','cw-group-stat-label','Élèves inscrits : '+assigned.length),
+  stats.append(E('span','cw-group-stat-label','Comptes créés : '+assigned.length),
    E('span','cw-group-stat-one','Groupe 1 · '+group1.length),
    E('span','cw-group-stat-two','Groupe 2 · '+group2.length));
-  if(whole.length)stats.append(E('span','cw-group-stat-whole','Groupe non renseigné · '+whole.length));
   card.append(stats);
-  if(record?.portal_code){
-   // Un PIN provisoire prégénéré ne signifie pas que l'élève a créé son compte.
-   // L'inspection est réservée au professeur authentifié et ne montre jamais un PIN.
-   const check=E('div','cw-reset-row'),numberCheck=E('input');
-   numberCheck.type='number';numberCheck.min='1';numberCheck.max=String(record.roster_size);
-   numberCheck.placeholder='Vérifier un n° (ex. 5)';
-   numberCheck.setAttribute('aria-label','Vérifier si un numéro a créé son compte en '+cl.code);
-   const result=E('p','cw-group-help');result.setAttribute('role','status');result.setAttribute('aria-live','polite');
-   const checkNumber=()=>{
-    const n=Number(numberCheck.value);
-    if(!Number.isInteger(n)||n<1||n>record.roster_size){result.textContent='Saisis un numéro valide (1 à '+record.roster_size+').';return}
-    const entry=prepared.find(row=>row.student_number===n);
-    result.textContent=!entry?'N° '+n+' : accès à préparer.':entry.activated_at?
-     'N° '+n+' : compte déjà créé dans '+cl.code+'. L’élève doit se connecter avec son PIN. Sinon, utilise « Réinitialiser le PIN » après vérification de son identité.':
-     'N° '+n+' : compte NON créé dans '+cl.code+'. Ouvre les inscriptions 30 min, partage le lien temporaire et laisse l’élève choisir son PIN.';
-   };
-   numberCheck.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();checkNumber()}});
-   check.append(numberCheck,button('Vérifier le compte','cw-secondary',checkNumber));
-   card.append(E('p','cw-group-help',waiting.length+' numéro(s) préparé(s), sans compte personnel activé. Un numéro préparé n’est pas un compte déjà créé.'),check,result);
+  const details=E('details','cw-group-roster');
+  details.dataset.classId=cl.id;
+  details.open=openRosters.has(cl.id);
+  const size=record?.roster_size||30;
+  details.append(E('summary','','Tableau des PIN · '+assigned.length+' / '+size+' comptes créés'));
+  const scroll=E('div','cw-pin-table-scroll');
+  const table=E('table','cw-pin-table');
+  table.setAttribute('aria-label','Comptes élèves et PIN de '+cl.code);
+  const header=table.createTHead().insertRow(),rows=table.createTBody();
+  for(const column of ['N°','Compte','PIN','Demi-groupe','Actions']){
+   const cell=E('th','',column);cell.scope='col';header.append(cell);
   }
-  if(assigned.length){
-   const details=E('details','cw-group-roster'),summary=E('summary','','Voir les élèves inscrits par demi-groupe ('+assigned.length+')');
-   details.dataset.classId=cl.id;
-   details.open=openRosters.has(cl.id);
-   const list=E('div','cw-group-roster-list');
-   const orderGroup=g=>g===1?0:g===2?1:2;
-   const sorted=assigned.slice().sort((a,b)=>orderGroup(a.demi_groupe)-orderGroup(b.demi_groupe)||a.student_number-b.student_number);
-   let previousGroup='';
-   for(const row of sorted){
-    const group=row.demi_groupe===1?'one':row.demi_groupe===2?'two':'legacy';
-    if(group!==previousGroup){
-     const heading=group==='one'?'Demi-groupe 1 · '+group1.length+' élève(s)':
-      group==='two'?'Demi-groupe 2 · '+group2.length+' élève(s)':
-      'Groupe non renseigné · '+whole.length+' ancien(s) PIN';
-     list.append(E('h5','cw-group-roster-heading cw-group-roster-'+group,heading));
-     previousGroup=group;
-    }
-    const line=E('div','cw-group-roster-line'),name=E('strong','','Élève n°'+row.student_number),
-     label=E('label','','Demi-groupe'),selector=E('select','cw-group-select');
-    selector.setAttribute('aria-label','Demi-groupe de l’élève numéro '+row.student_number+' en '+cl.code);
-    for(const [value,text] of [['1','Groupe 1'],['2','Groupe 2'],['0','Non renseigné']]){
-     const opt=E('option','',text);opt.value=value;opt.selected=Number(value)===(row.demi_groupe||0);selector.append(opt);
-    }
-    selector.addEventListener('change',async()=>{
-     selector.disabled=true;
-     try{
-      const chosen=Number(selector.value);
-      await api('teacher_class_set_group',{class_id:cl.id,student_number:row.student_number,demi_groupe:chosen},null,true);
-      notice('Élève n°'+row.student_number+' affecté à '+(chosen?'demi-groupe '+chosen:'classe entière')+' dans '+cl.code+'.');
-      await refresh();
-     }catch(err){notice(err.message||'Modification impossible.',true);selector.value=String(row.demi_groupe||0)}
-     finally{selector.disabled=false}
-    });
-    label.append(selector);line.append(name,label);list.append(line);
+  const byNumber=new Map(prepared.map(row=>[row.student_number,row]));
+  for(let n=1;n<=size;n++){
+   const student=byNumber.get(n),active=!!student?.activated_at;
+   const row=rows.insertRow();
+   const number=E('th','',n);number.scope='row';row.append(number);
+   const account=row.insertCell();
+   account.append(E('span','cw-pill'+(active?' cw-open':''),active?'Créé':'Libre'));
+   if(active)account.append(E('small','',new Date(student.activated_at).toLocaleDateString('fr-FR')));
+   const pin=row.insertCell();
+   pin.textContent=active?'••••••':'—';
+   if(active)pin.setAttribute('aria-label','PIN personnel masqué');
+   const group=row.insertCell();
+   const actions=row.insertCell();
+   if(!active){group.textContent=student?.demi_groupe||'—';continue}
+   const select=E('select','cw-group-select');
+   select.setAttribute('aria-label','Demi-groupe du n°'+n+' en '+cl.code);
+   for(const [value,label] of [['0','Non renseigné'],['1','Groupe 1'],['2','Groupe 2']]){
+    const option=E('option','',label);option.value=value;option.selected=Number(value)===(student.demi_groupe||0);select.append(option);
    }
-   details.append(summary,list);card.append(details);
-  }else{
-   card.append(E('p','cw-group-help',record?.portal_code?
-    'Aucun PIN choisi pour le moment. Ouvre la création pendant 30 minutes pour que les élèves s’inscrivent avec leur numéro.':
-    'Aucun élève inscrit. Clique sur « Ouvrir la création des PIN » pour démarrer les inscriptions.'));
+   select.addEventListener('change',async()=>{
+    select.disabled=true;
+    try{
+     await api('teacher_class_set_group',{class_id:cl.id,student_number:n,demi_groupe:Number(select.value)},null,true);
+     notice('Demi-groupe mis à jour pour le n°'+n+' en '+cl.code+'.');
+     await refresh();
+    }catch(err){notice(err.message,true);select.value=String(student.demi_groupe||0)}
+    finally{select.disabled=false}
+   });
+   group.append(select);
+   const buttons=E('div','cw-pin-table-actions');
+   buttons.append(button('Réinitialiser le PIN','cw-secondary',()=>confirmPinAction(false)),
+    button('Libérer le numéro','cw-secondary',()=>confirmPinAction(true)));
+   const prompt=E('div','cw-pin-confirm');prompt.hidden=true;
+   const promptText=E('p');prompt.append(promptText);
+   actions.append(buttons,prompt);
+   function confirmPinAction(remove){
+    buttons.hidden=true;
+    prompt.hidden=false;
+    promptText.textContent=remove?'Libérer le n°'+n+' ? Le PIN et le demi-groupe seront retirés. Les copies restent dans l’espace professeur.':
+     'Réinitialiser le PIN du n°'+n+' ? L’élève devra en choisir un nouveau.';
+    const confirm=button('Confirmer','cw-accent',async()=>{
+     await api(remove?'teacher_class_remove_assignment':'teacher_class_reset_pin',{class_id:cl.id,student_number:n},null,true);
+     if(!remove&&!(registrationOpen&&pinInvitations.has(cl.id))){
+      try{
+       const opened=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:size,enabled:true},null,true);
+       pinInvitations.set(cl.id,{portal:opened.portal_code,token:opened.registration_token});
+      }catch(err){
+       await refresh();
+       notice('PIN réinitialisé. Ouvre la création des PIN pour transmettre un lien à l’élève.',true);
+       return;
+      }
+     }
+     notice(remove?'Le n°'+n+' est libre en '+cl.code+'.':'Le n°'+n+' peut choisir un nouveau PIN avec le lien d’inscription de '+cl.code+'.');
+     await refresh();
+    });
+    const cancel=button('Annuler','cw-secondary',()=>{prompt.hidden=true;buttons.hidden=false});
+    prompt.replaceChildren(promptText,confirm,cancel);
+    confirm.focus();
+   }
   }
+  scroll.append(table);details.append(scroll);card.append(details);
   if(record?.portal_code){
    const share=E('div','cw-class-share'),url=permanentUrl(record.portal_code);
    const line=E('p','cw-explainer','Lien de la classe : l’élève saisit son numéro, puis son PIN. À la première visite, clique sur « Je crée mon PIN » lorsque tu as ouvert la création. Code de classe : '+record.portal_code.slice(-4).toUpperCase()+'.');
@@ -164,19 +173,6 @@ function render(){
    }));
    const visit=E('a','cw-secondary','Tester le lien élève ↗');visit.href=url;visit.target='_blank';visit.rel='noopener';controls.append(visit);
    share.append(line,field,controls);
-   const reset=E('div','cw-reset-row'),number=E('input');
-   number.type='number';number.min='1';number.max=String(record.roster_size);number.placeholder='N° élève';number.setAttribute('aria-label','Numéro de l’élève dont il faut renouveler le PIN');
-   reset.append(number,button('Réinitialiser le PIN de cet élève','cw-secondary',async()=>{
-    const n=Number(number.value);
-    if(!Number.isInteger(n)||n<1||n>record.roster_size)throw Error('Indique un numéro d’élève valide.');
-    if(!confirm('Réinitialiser le PIN du n°'+n+' en '+cl.code+' ? Les anciennes connexions seront invalidées ; les copies et les notes restent conservées.'))return;
-    const result=await api('teacher_class_reset_pin',{class_id:cl.id,student_number:n},null,true);
-    const opened=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:record.roster_size,enabled:true},null,true);
-    pinInvitations.set(cl.id,{portal:opened.portal_code,token:opened.registration_token});
-    const endTime=new Date(opened.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    notice('PIN du n°'+result.number+' réinitialisé sans effacer ses copies. Il peut en choisir un nouveau jusqu’à '+endTime+'.');
-    await refresh();
-   }));share.append(reset);
    card.append(share);
   }
   target.append(card);

@@ -1,8 +1,9 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
-import { api } from './coursework.js?v=2.11';
+import { api } from './coursework.js?v=2.12';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.4';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.5';
+import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
@@ -18,7 +19,7 @@ if(qr||globalPortal){
  let countdownInterval=null;
  let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
- let mobileController=null;
+ let mobileController=null, draftEditor=null, clearDraftListeners=null;
  const integrity=window.CORTEX_EXAM_INTEGRITY;
  const guard=integrity.create({storageKey:storageKey+':sortie',onEvent:queueEvent,onNotice:showIntegrityNotice});
  const eventQueueKey=storageKey+':journal';
@@ -28,7 +29,11 @@ if(qr||globalPortal){
   if(Array.isArray(saved))pendingEvents=saved;
  }catch{}
  let sendingEvents=false,eventRetry=null,noticeTimeout=null;
- function releaseMobileEditor(){if(mobileController){mobileController.destroy();mobileController=null;}}
+ function releaseEditor(){
+  draftEditor?.dispose();draftEditor=null;
+  clearDraftListeners?.();clearDraftListeners=null;
+  if(mobileController){mobileController.destroy();mobileController=null;}
+ }
  document.body.classList.add('cw-student-active');
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
  main.innerHTML='<div class="cw-student-frame">'+
@@ -79,7 +84,7 @@ if(qr||globalPortal){
   main.classList.remove('cs-stage-academy-active');
  }
  function reset(){
-  closeStageView();releaseMobileEditor();stopIntegrity();
+  closeStageView();releaseEditor();stopIntegrity();
   clearTimeout(eventRetry);
   pendingEvents=[];
   saveEventQueue();
@@ -133,7 +138,7 @@ if(qr||globalPortal){
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){
-  releaseMobileEditor();
+  releaseEditor();
   classData=await api('student_class_list',{session:token});
   stopIntegrity();
   current=null;currentId=null;
@@ -144,7 +149,6 @@ if(qr||globalPortal){
   }else renderClass();
  }
  async function loadExam(id){
-  releaseMobileEditor();
   current=await api('student_get',{session:token,assessment_id:id||undefined});
   currentId=current.assessment.id;showWork();message('');
   renderExam();
@@ -163,7 +167,7 @@ if(qr||globalPortal){
  function renderStageView(){
   if(stageWorkspace)return;
   stopIntegrity();
-  releaseMobileEditor();
+  releaseEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   showWork();message('');
   const work=$('cw-student-work');work.replaceChildren();
@@ -304,7 +308,7 @@ if(qr||globalPortal){
  }
  function renderExam(){
   closeStageView();
-  releaseMobileEditor();
+  releaseEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!current)return;
@@ -317,7 +321,7 @@ if(qr||globalPortal){
   subject.append(E('span','cw-student-eyebrow','ÉLÈVE N°'+current.student_number),E('h2','',exam.title));
   if(exam.description)subject.append(E('p','cw-instructions',exam.description));
   if(exam.doc)subject.append(E('div','cw-student-common-doc',exam.doc));
-  if(exam.duration)subject.append(E('p','cw-student-rules','Durée indicative : '+exam.duration+' minutes.'));
+  if(exam.duration)subject.append(E('p','cw-student-rules','Durée : '+exam.duration+' minutes.'));
   if(current.subject){
    const file=E('a','cw-student-document','📄 Consulter le document : '+current.subject.name);
    file.href=current.subject.url;file.target='_blank';file.rel='noopener';subject.append(file);
@@ -327,7 +331,7 @@ if(qr||globalPortal){
   if(submitted){
    stopIntegrity();
    const receipt=E('section','cw-student-receipt');
-   receipt.append(E('h3','','✓ Copie reçue par le professeur'),E('p','','Remise le '+new Date(submitted.submitted_at).toLocaleString('fr-FR')));
+   receipt.append(E('h3','','✓ Copie reçue par le professeur'),E('p','',(submitted.auto_submitted?'Remise automatiquement à la fin du chrono le ':'Remise le ')+new Date(submitted.submitted_at).toLocaleString('fr-FR')));
    showSubmittedAnswers(receipt,exam,submitted);
    if(submitted.graded){
     receipt.append(E('h3','cw-receipt-grade','Ma note : '+submitted.grade+' / 20'),E('p','',submitted.feedback||'Aucun commentaire.'));
@@ -336,34 +340,44 @@ if(qr||globalPortal){
    renderReceiptAi(receipt,{session:token,assessmentId:currentId,submission:submitted});
    work.append(receipt);return;
   }
-  // Chronomètre démarré explicitement par l'élève, conservé dans cette session.
-  // Indication côté navigateur : l'application ne prétend pas faire appliquer
-  // une échéance par le serveur en l'absence de contrôle serveur.
-  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const timerKey='cortex-student-timer:'+mode+':'+(qr||classPrefill||'general')+':'+currentId+':'+current.student_number;
-  const durationMs=Math.max(5,Math.min(240,Number(exam.duration)||60))*60000;
-  const localStarted=Number(sessionStorage.getItem(timerKey)||0);
   const integrityRules=integrity.describe(settings);
   if(integrityRules)work.append(E('p','cw-student-rules',integrityRules));
-  if(!localStarted){
+  const attempt=current.attempt;
+  if(!attempt){
    stopIntegrity();
    const launch=E('section','cw-student-timer-start');
-   launch.append(E('strong','','⏱ Prêt à commencer ?'),E('p','','Le chronomètre de '+(Number(exam.duration)||60)+' minutes démarre quand tu cliques sur « Démarrer le contrôle ».'));
-   launch.append(button('▶ Démarrer le contrôle et le chrono','cw-student-submit',()=>{
-    sessionStorage.setItem(timerKey,String(Date.now()));renderExam();
+   launch.append(E('strong','','⏱ Prêt à commencer ?'),
+    E('p','','Le serveur conserve ton brouillon et remet ta copie à la fin du chrono, même si tu quittes la page.'));
+   launch.append(button('▶ Démarrer le contrôle et le chrono','cw-student-submit',async()=>{
+    const id=currentId,launchSession=token;
+    const result=await api('student_start',{session:launchSession,assessment_id:id});
+    if(token!==launchSession||currentId!==id)return;
+    if(result.status==='submitted'){await loadExam(id);return}
+    if(result.status!=='open')throw Error('Ce contrôle ne peut pas être démarré.');
+    current.attempt=result;
+    current.server_now=result.server_now;
+    renderExam();
    }));
    work.append(launch);return;
   }
+  const view=current;
+  const localStarted=Date.parse(attempt.started_at);
+  const deadline=Date.parse(attempt.deadline_at)-(current.server_now-Date.now());
+  const currentSession=token;
+  const storage=sessionStorage;
+  const legacyKey='cortex-student-draft:v1:'+currentId+':'+current.student_number;
+  if(current.reassigned_number)try{storage.removeItem(legacyKey)}catch{}
+  const draftKey='cortex-student-draft:v2:'+currentId+':'+current.student_number+':'+attempt.started_at;
+  const initialAnswers=recoverAnswers({attempt,key:draftKey,legacyKey,storage});
   const timerBox=E('div','cw-student-timer-bar');
   const timerText=E('strong','cw-student-timer-value');
   timerText.setAttribute('role','timer');
   timerBox.append(E('span','','⏱ Temps restant'),timerText);
   let mobileChronoValue=null,mobileChronoTab=null,mobileChronoNotice=null;
-  let expiryNotified=false;
+  let expiryNotified=false, receiptRetry=null;
   const refreshTimer=()=>{
-   // Les deux affichages partagent le même début de chrono, déjà conservé
-   // en session. Date.now() compense la suspension des intervalles par Safari.
-   const remain=Math.max(0,durationMs-(Date.now()-localStarted));
+   const remain=Math.max(0,deadline-Date.now());
    const secs=Math.ceil(remain/1000);
    const time=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
    timerText.textContent=time;
@@ -374,14 +388,17 @@ if(qr||globalPortal){
     mobileChronoTab.classList.toggle('is-expired',remain===0);
    }
    if(mobileChronoNotice){
-    mobileChronoNotice.textContent=remain===0?'Temps indicatif écoulé : remets ta copie.':
+    mobileChronoNotice.textContent=remain===0?'Temps écoulé. Ta copie est remise automatiquement.':
      remain<=300000?'Attention : il reste moins de 5 minutes.':
      'Le chronomètre continue pendant que tu réponds aux questions.';
    }
    if(!remain&&!expiryNotified){
     expiryNotified=true;
     if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
-    message('Temps indicatif écoulé. Remets ta copie maintenant.',true);
+    form.inert=true;
+    stopIntegrity();
+    message('Temps écoulé. Le serveur remet ta dernière sauvegarde.');
+    void showReceipt();
    }
   };
   if(isPhoneExam){
@@ -414,15 +431,13 @@ if(qr||globalPortal){
    dock.append(tab,panel);
    work.append(dock);
   }
-  refreshTimer();
-  if(Date.now()-localStarted<durationMs)countdownInterval=setInterval(refreshTimer,1000);
   work.append(timerBox);
   const form=E('form','cw-answer-form');
   const examGuard={key:timerKey,startedAt:localStarted,root:work,settings,
     subjectSelector:'.cw-student-subject, .cw-answer-question',
     assessmentId:currentId,studentNumber:current.student_number};
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
-  if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current});
+  if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current,initialAnswers,onNavigate:()=>draftEditor?.update(true)});
   else{
   for(let i=0;i<questions.length;i++){
    const q=questions[i],label=E('div','cw-answer-question');
@@ -441,13 +456,23 @@ if(qr||globalPortal){
    if(istVisual)label.append(istVisual);
    else if(q.doc)label.append(E('div','cw-student-question-doc',q.doc));
    const answerArea=E('div','cw-question-response');
-   answerArea.innerHTML=window.CORTEX_QUESTION_TYPES.studentFields(q,'');
+   answerArea.innerHTML=window.CORTEX_QUESTION_TYPES.studentFields(q,initialAnswers[q.id]??'');
    label.append(answerArea);form.append(label);
   }
   }
   const upload=E('label','cw-student-attachment'),file=E('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';
-  upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum. Tu peux envoyer une réponse écrite et/ou un fichier.'));
-  form.append(upload);
+  upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum.'));
+  const attachmentName=E('small');
+  const removeAttachment=E('button','cw-outline','Retirer le fichier');
+  removeAttachment.type='button';
+  const draftStatus=E('p','cw-draft-status','Tes réponses sont sauvegardées pendant le contrôle.');
+  draftStatus.setAttribute('role','status');
+  form.append(upload,attachmentName,removeAttachment,draftStatus);
+  function updateAttachment(name){
+   attachmentName.textContent=name?'Fichier sauvegardé : '+name:'';
+   removeAttachment.hidden=!name;
+  }
+  updateAttachment(attempt.file_name);
   // La boîte native confirm() est peu fiable dans certains webviews/iPhone.
   // Une étape de validation visible empêche le faux « bouton qui ne fait rien ».
   // Les réponses et le brouillon restent conservés jusqu'à réception serveur.
@@ -485,17 +510,67 @@ if(qr||globalPortal){
    return Object.fromEntries(questions.map(q=>[q.id,
     String(wrappers.has(q.id)?window.CORTEX_QUESTION_TYPES.readAnswer(wrappers.get(q.id),q):'')]));
   }
+  async function showReceipt(){
+   if(current!==view||token!==currentSession)return;
+   try{
+    const receipt=await api('student_get',{session:currentSession,assessment_id:exam.id});
+    if(current!==view||token!==currentSession)return;
+    if(receipt.submission){
+     draftEditor?.finish();
+     current=receipt;
+     renderExam();
+     message('✓ Copie bien reçue par le professeur.');
+     return;
+    }
+   }catch{
+    if(current!==view||token!==currentSession)return;
+    message('Le reçu est indisponible. La vérification reprendra automatiquement.',true);
+   }
+   clearTimeout(receiptRetry);
+   receiptRetry=setTimeout(showReceipt,5000);
+  }
+  const editor=createStudentDraft({
+   attempt,key:draftKey,legacyKey,storage,initialAnswers,collect:collectAnswers,
+   request:(action,payload,attachment)=>api(action,{session:currentSession,assessment_id:exam.id,...payload},attachment),
+   onStatus:(text,error=false)=>{
+    draftStatus.textContent=text;draftStatus.classList.toggle('error',error);
+   },
+   onReceipt:()=>{void showReceipt()},
+   onAttachment:updateAttachment
+  });
+  draftEditor=editor;
+  const saveNow=()=>editor.update(true);
+  const onVisibility=()=>{if(document.visibilityState==='hidden')saveNow();else refreshTimer()};
+  form.addEventListener('input',()=>editor.update());
+  form.addEventListener('change',event=>{if(event.target!==file)saveNow()});
+  form.addEventListener('focusout',event=>{
+   const question=event.target.closest('.cw-answer-question');
+   if(question&&!question.contains(event.relatedTarget))saveNow();
+  });
+  file.addEventListener('change',()=>{
+   const chosen=file.files?.[0];
+   if(!chosen)return;
+   if(chosen.size>8*1024*1024){file.value='';submissionMessage('Le fichier dépasse 8 Mo.',true);return}
+   editor.attach(chosen);
+  });
+  removeAttachment.addEventListener('click',()=>{file.value='';editor.attach(null)});
+  window.addEventListener('pagehide',saveNow);
+  window.addEventListener('online',saveNow);
+  document.addEventListener('visibilitychange',onVisibility);
+  clearDraftListeners=()=>{
+   window.removeEventListener('pagehide',saveNow);
+   window.removeEventListener('online',saveNow);
+   document.removeEventListener('visibilitychange',onVisibility);
+   clearTimeout(receiptRetry);
+  };
   function openConfirmation(){
    if(busy)return;
    try{
-    const answers=collectAnswers(),attached=file.files?.[0]||null;
+    const answers=collectAnswers(),attached=editor.attachment;
     const completed=Object.values(answers).filter(v=>String(v??'').trim()).length;
     if(!completed&&!attached){
      submissionMessage('Aucune réponse à envoyer. Réponds à au moins une question ou joins un fichier.',true);
      return;
-    }
-    if(attached&&attached.size>8*1024*1024){
-     submissionMessage('Le fichier dépasse 8 Mo. Choisis un document plus petit.',true);return;
     }
     submissionMessage('');
     confirmDetails.textContent='Tu as répondu à '+completed+' question(s) sur '+questions.length+
@@ -527,13 +602,12 @@ if(qr||globalPortal){
    const examId=currentId;
    try{
     const answers=collectAnswers();
-    if(!Object.values(answers).some(v=>String(v??'').trim())&&!file.files?.[0])
+    if(!Object.values(answers).some(v=>String(v??'').trim())&&!editor.attachment)
      throw Error('La copie est vide : réponds à une question avant de l’envoyer.');
     // Arrêter la surveillance uniquement lorsque l'envoi commence, pas au clic initial.
     stopIntegrity();
-    await api('student_submit',{session:token,assessment_id:examId,answers:JSON.stringify(answers)},file.files?.[0]||null);
+    await editor.submit();
     sent=true;
-    mobileController?.clearDraft();
     submissionMessage('✓ Copie bien enregistrée. Ouverture du reçu…');
     try{
      await loadExam(examId);
@@ -543,7 +617,7 @@ if(qr||globalPortal){
      message('La copie a été enregistrée. Recharge ton espace pour voir le reçu.');
     }
    }catch(error){
-    guard.setActive(examGuard);
+    if(!expiryNotified)guard.setActive(examGuard);
     const detail=String(error?.message||error||'Erreur inconnue');
     submissionMessage('Envoi impossible : '+detail+' Tes réponses sont conservées. Tu peux réessayer.',true);
    }finally{
@@ -565,6 +639,11 @@ if(qr||globalPortal){
    work.append(mark);
   }
   guard.setActive(examGuard);
+  refreshTimer();
+  if(!expiryNotified){
+   countdownInterval=setInterval(refreshTimer,1000);
+   editor.update();
+  }
  }
  const loginForm=$('cw-student-login-form'),activationForm=$('cw-student-activation-form');
  const loginTab=$('cw-back-to-login'),createTab=$('cw-show-activation');

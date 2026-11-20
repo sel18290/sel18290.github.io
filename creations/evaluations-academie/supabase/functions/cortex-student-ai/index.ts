@@ -93,11 +93,16 @@ Deno.serve(async req=>{
   // de copie scolaire à Albert tant que l'établissement ne l'a pas validé.
   if(Deno.env.get('CORTEX_AI_ENABLED')!=='true')return fail('Albert sur copies réelles non activé : accord de l’établissement et du DPO requis. La copie n’a pas été transmise à l’IA.',503);
   const {exam,studentNumber,classId,teacherId}=await identify(body);
+  const placement=classId?await db.from('cortex_academy_class_roster').select('assignment_released_at')
+   .eq('class_id',classId).eq('student_number',studentNumber).maybeSingle():{data:null,error:null};
+  if(placement.error)throw Error('Impossible de vérifier ton numéro.');
+  const cutoff=Date.parse(placement.data?.assignment_released_at||'');
+  const currentAssignment=copy=>!(Date.parse(copy.attempt_started_at||copy.submitted_at)<cutoff);
   const {data:copy,error:copyError}=await db.from('cortex_academy_submissions')
-   .select('answers,file_path,submitted_at,grade,feedback,released_at')
+   .select('answers,file_path,submitted_at,attempt_started_at,grade,feedback,released_at')
    .eq('assessment_id',exam.id).eq('teacher_id',teacherId)
    .eq('student_number',studentNumber).maybeSingle();
-  if(copyError||!copy)throw Error('Aucune copie remise pour ce contrôle.');
+  if(copyError||!copy||!currentAssignment(copy))throw Error('Aucune copie remise pour ce contrôle.');
   if(kind==='estimate'&&copy.released_at)throw Error('La note officielle est déjà publiée. Utilise « Comprendre ma correction ».');
   if(kind!=='estimate'&&!copy.released_at)throw Error('Albert pourra donner des conseils après publication de la correction officielle.');
   let payload,sourceHashInput,evidence;
@@ -110,7 +115,7 @@ Deno.serve(async req=>{
     questions:evidence.items,documents:[...evidence.documents.values()]};
   }else{
    const {data:published,error:pubError}=await db.from('cortex_academy_submissions')
-    .select('assessment_id,submitted_at,grade,feedback,released_at')
+    .select('assessment_id,submitted_at,attempt_started_at,grade,feedback,released_at')
     .eq('teacher_id',teacherId).eq('student_number',studentNumber)
     .not('released_at','is',null).order('submitted_at',{ascending:true}).limit(45);
    if(pubError)throw Error('Impossible de lire les corrections publiées.');
@@ -120,7 +125,7 @@ Deno.serve(async req=>{
    const {data:exams,error:examError}=await titlesQuery.limit(120);
    if(examError)throw Error('Impossible de lire ton parcours.');
    const titles=new Map((exams||[]).map(x=>[x.id,x.title]));
-   const grades=(published||[]).filter(x=>titles.has(x.assessment_id)&&x.grade!==null&&Number.isFinite(Number(x.grade))).slice(-30).map(x=>({
+   const grades=(published||[]).filter(x=>currentAssignment(x)&&titles.has(x.assessment_id)&&x.grade!==null&&Number.isFinite(Number(x.grade))).slice(-30).map(x=>({
     controle:clean(titles.get(x.assessment_id),180),note:Number(x.grade),
     appreciation:clean(x.feedback,1700),date:x.submitted_at
    }));

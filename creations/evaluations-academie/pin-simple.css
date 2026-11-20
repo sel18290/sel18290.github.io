@@ -118,3 +118,13 @@
  .cw-pin-invite .cw-share-buttons{flex-direction:column}
  .cw-pin-invite .cw-share-buttons>*{width:100%}
 }
+
+.cw-pin-table-scroll { overflow-x: auto; margin-top: .75rem; }
+.cw-pin-table { width: 100%; min-width: 36rem; border-collapse: collapse; text-align: left; }
+.cw-pin-table th, .cw-pin-table td { padding: .55rem; border-bottom: 1px solid rgba(140, 170, 200, .25); vertical-align: middle; }
+.cw-pin-table thead th { white-space: nowrap; }
+.cw-pin-table td small { display: block; margin-top: .2rem; }
+.cw-pin-table td .cw-group-select { min-width: 7.25rem; }
+.cw-pin-table-actions, .cw-pin-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.cw-pin-table-actions[hidden], .cw-pin-confirm[hidden] { display: none; }
+.cw-pin-confirm p { flex-basis: 100%; margin: 0; }

@@ -109,6 +109,32 @@
       return element('span',cls,content);
     }
 
+    // Le choix du lieu personnalise le document sans effacer les réponses.
+    // Pour un lieu suivi encore vierge, réutiliser les réponses déjà saisies.
+    function selectPlace(nextId) {
+      const entries = api.entries();
+      const destination = entries.find(item => item.place.id === nextId) || api.general();
+      const previous = entries.find(item => item.place.id === selected) || api.general();
+      if (destination.place.id !== previous.place.id) {
+        const from = draftFor(previous);
+        const general = draftFor(api.general());
+        const to = draftFor(destination);
+        let copied = false;
+        for (const type of ['cv','lettre']) {
+          if (progress(to[type], type).count) continue;
+          const source = progress(from[type], type).count ? from[type] : general[type];
+          for (const [field] of fields[type]) {
+            if (!filled(source[field])) continue;
+            to[type][field] = source[field];
+            copied = true;
+          }
+        }
+        if (copied) api.save();
+      }
+      selected = entries.some(item => item.place.id === nextId) ? nextId : '';
+      step = 2;
+    }
+
     function scrollToWork() {
       host.querySelector('.cs-stage-cv-step')?.focus({preventScroll:true});
       host.querySelector('.cs-stage-cv-step')?.scrollIntoView({block:'nearest',behavior:'auto'});
@@ -154,16 +180,36 @@
       }
       chooser.append(choices);
 
-      // Aucun sélecteur de version : la structure éventuelle est transmise
-      // directement depuis « Mes démarches », sans étape supplémentaire.
-      const recipient = kind === 'lettre' && entry.place.name
-        ? element('p','cs-stage-cv-recipient','Lettre destinée à : ' + entry.place.name) : null;
+      const placePicker = element('section','cs-stage-cv-place-picker');
+      const placeLabel = element('label','cs-stage-cv-place-label');
+      placeLabel.append(
+        element('strong','','Adapter mon document à un lieu suivi'),
+        element('small','','Facultatif : choisis une structure parmi tes lieux de stage potentiels. Albert pourra tenir compte de son nom et du type de lieu.')
+      );
+      const placeSelect = element('select','cs-stage-cv-place-input');
+      placeSelect.setAttribute('aria-label','Choisir un lieu de stage suivi pour personnaliser mon document');
+      placeSelect.replaceChildren(
+        new Option('Sans structure précise — conseils généraux',''),
+        ...entries.map(item => new Option(item.place.name, item.place.id))
+      );
+      placeSelect.value = selected;
+      placeSelect.addEventListener('change',()=>{
+        selectPlace(placeSelect.value);
+        render();
+        scrollToWork();
+      });
+      placeLabel.append(placeSelect);
+      const placeSummary = element('p','cs-stage-cv-place-summary',entry.place.name
+        ? 'Lieu sélectionné : '+entry.place.name+'. Albert utilisera le nom et la catégorie du lieu pour adapter ses propositions.'
+        : 'Aucun lieu sélectionné : Albert donne des conseils adaptés à ta filière.');
+      placePicker.append(placeLabel,placeSummary);
+      if(!entries.length) placePicker.append(button(
+        'Ajouter un lieu à suivre','cs-stage-cv-aside-link',api.openBoard
+      ));
 
       const folio = element('div','cs-stage-cv-work');
       if (step===2) folio.classList.add('is-editing');
-      shell.append(chooser);
-      if(recipient) shell.append(recipient);
-      shell.append(folio);
+      shell.append(chooser,placePicker,folio);
       host.replaceChildren(shell);
 
       if (step===3) {
@@ -368,10 +414,13 @@
           if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Tes réponses restent accessibles.';
         }finally{if(request===own)ask.disabled=false;}
       });
-      box.append(selectLabel,ask,feedback,suggestion);
+      const albertContext = element('p','cs-stage-cv-albert-context',entry.place.name
+        ? 'Conseils personnalisés pour : '+entry.place.name
+        : 'Conseils généraux pour ta filière. Choisis un lieu ci-dessus pour préciser la candidature.');
+      box.append(albertContext,selectLabel,ask,feedback,suggestion);
       sidebar.append(box);
       sidebar.append(button('Renseigner mes dates de PFMP','cs-stage-cv-aside-link',api.openPrep));
-      if(!entries.length)sidebar.append(button('Retrouver mes démarches','cs-stage-cv-aside-link',api.openBoard));
+      if(!entries.length)sidebar.append(button('Voir mes lieux de stage potentiels','cs-stage-cv-aside-link',api.openBoard));
       const quick=button('Aide Albert','cs-stage-cv-ai-jump',()=>{
         box.scrollIntoView({block:'start',behavior:'smooth'});
         aiSelect.focus({preventScroll:true});
@@ -385,7 +434,7 @@
     return {
       show(company, preferredKind){
         if(preferredKind && ['cv','lettre'].includes(preferredKind)){kind=preferredKind;step=2;}
-        if(company){selected=company;step=2;}
+        if(company) selectPlace(company);
         render();
       },
       hide(){request?.abort();}

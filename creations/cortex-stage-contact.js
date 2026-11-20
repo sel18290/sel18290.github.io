@@ -199,7 +199,7 @@
     assistance.append(node('summary','','✦ Besoin d’une idée ? Exemple et Albert'),
       node('p','cs-stage-contact-guidance','Tu peux écrire seul(e). L’aide est facultative.'));
     assistance.append(tools, node('small', 'cs-stage-contact-guidance',
-      'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton brouillon reste dans cette fenêtre.'),feedback,suggestion);
+      'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton message reste dans cette fenêtre.'),feedback,suggestion);
     personal.append(assistance);
     root.append(personal);
     choiceList.addEventListener('change', () => {

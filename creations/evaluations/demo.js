@@ -220,6 +220,19 @@ return `<div class="home cortex-focus-home">
   <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">⌖</span><div><strong>Trouver une PFMP</strong><span>Recherche de structures adaptée à la filière avec Albert IA.</span></div></article>
  </section>
  <div class="cortex-focus-trust"><span class="cortex-focus-trust-mark" aria-hidden="true">◈</span><strong>Mode anti-triche configurable</strong><span>Copier-coller, sorties d'écran et suivi selon les réglages.</span><span class="cortex-focus-separator" aria-hidden="true"></span><small>Alerte ≠ preuve de triche.</small></div>
+ <section class="cortex-focus-vista" aria-labelledby="cortex-focus-vista-title">
+  <div class="cortex-focus-vista-copy">
+   <span class="cortex-focus-vista-kicker"><span class="cortex-focus-vista-led" aria-hidden="true"></span> STATION NOCTIS · LE PARCOURS</span>
+   <h2 id="cortex-focus-vista-title">De l'évaluation<br><em>à la progression.</em></h2>
+   <p>Un parcours simple, du premier document jusqu'au retour pédagogique.</p>
+  </div>
+  <div class="cortex-focus-vista-terminal" aria-label="Parcours de démonstration en trois étapes">
+   <div class="cortex-focus-vista-terminal-top"><span>CORTEX / FLUX PÉDAGOGIQUE</span><span aria-hidden="true">● SIGNAL ACTIF</span></div>
+   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">01</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">▤</span><strong>Préparer</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Document ou questions</small></div>
+   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">02</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">✎</span><strong>Évaluer</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Copie numérique ou manuscrite</small></div>
+   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">03</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">✧</span><strong>Progresser</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Estimation et conseils</small></div>
+  </div>
+ </section>
 </div>`;
 }
 

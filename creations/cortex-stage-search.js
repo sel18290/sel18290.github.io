@@ -364,6 +364,29 @@
       </section>
     </div>
     <div class="cs-stage-panel" data-stage-panel="assistant" id="cs-stage-assistant-panel" hidden>
+      <div class="cs-stage-brief cs-stage-chat-launch">
+        <div><h2>Pose ta question à Albert</h2><p>Demande un conseil, fais reformuler un message ou entraîne-toi à un entretien.</p></div>
+        <button type="button" id="cs-stage-chat-open" class="cs-stage-track" aria-haspopup="dialog">Ouvrir le chat avec Albert</button>
+      </div>
+      <dialog id="cs-stage-chat" class="cs-stage-dialog" aria-labelledby="cs-stage-chat-title">
+        <div class="cs-stage-chat-head">
+          <h2 id="cs-stage-chat-title">Chat avec Albert</h2>
+          <form method="dialog"><button class="cs-stage-pale">Fermer</button></form>
+        </div>
+        <div class="cs-stage-chat-body">
+          <div class="cs-stage-chat-log" role="log" aria-label="Messages de la discussion" tabindex="0"></div>
+          <form class="cs-stage-chat-form">
+            <label for="cs-stage-chat-input">Ton message</label>
+            <textarea id="cs-stage-chat-input" rows="3" maxlength="800" required aria-describedby="cs-stage-chat-privacy" placeholder="Ex. Comment relancer une entreprise qui ne répond pas ?" autofocus></textarea>
+            <p id="cs-stage-chat-privacy">Évite les noms, adresses personnelles, numéros et mots de passe.</p>
+            <div class="cs-stage-action-row">
+              <button type="submit" class="cs-stage-primary">Envoyer</button>
+              <button type="button" data-chat-reset class="cs-stage-pale">Nouvelle discussion</button>
+            </div>
+            <p role="status"></p>
+          </form>
+        </div>
+      </dialog>
       <div class="cs-stage-advisor-grid">
         <form class="cs-stage-surface cs-stage-advisor-form" id="cs-stage-advisor-form">
           <h2 id="cs-stage-assistant-title" tabindex="-1">Comment Albert peut t’aider ?</h2>
@@ -533,6 +556,15 @@
       return data;
     }
 
+    function redactPersonal(raw) {
+      let text = raw.replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[e-mail]').replace(/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/g,'[téléphone]');
+      for (const value of [identity.first,identity.last,identity.school,identity.email,identity.phone].filter(x=>x?.length>1)) {
+        const escaped = value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        text = text.replace(new RegExp('(^|[^\\p{L}\\p{N}])'+escaped+'(?![\\p{L}\\p{N}])','giu'),'$1[information personnelle]');
+      }
+      return text;
+    }
+
     const workshop = window.CORTEX_STAGE_CV.mount($('cv-workshop'), {
       identity, drafts, save: persist, entries: () => [...board.values()],
       general: () => ({ place:{id:'general/' + sector + '/' + route(),name:'',address:'',types:[]}, sector, option:route() }),
@@ -541,11 +573,7 @@
       getHook: entry => hooks[entry.place.id] || hooks[entry.sector+'-'+entry.option] || '',
       period: stagePeriod,
       async ask(entry, kind, field, raw, signal) {
-        let text = raw.replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[e-mail]').replace(/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/g,'[téléphone]');
-        for (const value of [identity.first,identity.last,identity.school,identity.email,identity.phone].filter(x=>x?.length>1)) {
-          const escaped = value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-          text = text.replace(new RegExp('(^|[^\\p{L}\\p{N}])'+escaped+'(?![\\p{L}\\p{N}])','giu'),'$1[information personnelle]');
-        }
+        const text = redactPersonal(raw);
         const {categories} = GUIDE.forPlace(entry.sector,entry.option,entry.place.types);
         return askAlbert({action:'improve_application',document:kind,field,text,
           filiere:entry.sector,optionCommerce:entry.option,type:categories[0]?.[0]||'',
@@ -589,6 +617,14 @@
       node, button, context:assistantContext, targets:targetEntries,
       refreshScrollOffset: setScrollOffset,
       ask: (input, signal) => askAlbert({action:'guide_search', ...input}, signal),
+      chat(history, signal) {
+        const messages = history.map(({role, content}) => ({
+          role, content:redactPersonal(content).slice(0, role === 'user' ? 800 : 1200)
+        }));
+        while (messages.length > 1 && new TextEncoder().encode(JSON.stringify(messages)).length > 8500) messages.splice(0, 2);
+        return askAlbert({action:'chat_pfmp', filiere:sector, optionCommerce:route(),
+          niveau:apiLevel(settings.className), types:selected(), messages}, signal);
+      },
       isSaved: entry => board.has(entry.place.id), keep: addEntry, contact: openContact,
       search: () => setPanel('search'), board: showBoardEntry,
       documents(entry) {

@@ -1034,3 +1034,20 @@ body:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-pers
   .cs-stage-search .cs-stage-advisor-form > button, .cs-stage-search .cs-stage-cv-editor > .cs-stage-primary { width: 100%; }
   .cs-stage-search .cs-stage-board-card-actions :is(.cs-stage-primary, .cs-stage-pale) { flex: 1 1 auto; }
 }
+
+.cs-stage-chat-launch { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .8rem; margin-bottom: 1rem; }
+.cs-stage-chat-launch h2 { margin: 0 0 .3rem; }
+.cs-stage-chat-launch p { margin: 0; color: var(--cs-muted); }
+.cs-stage-search #cs-stage-chat { width: min(42rem, calc(100% - 1rem)); padding: 0; }
+.cs-stage-chat-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .8rem 1rem; border-bottom: 1px solid var(--cs-paper-line); }
+.cs-stage-chat-head h2 { margin: 0; font-size: 1.3rem; }
+.cs-stage-chat-body { display: grid; grid-template-rows: minmax(0, 1fr) auto; height: min(38rem, 72vh); height: min(38rem, 72dvh); }
+.cs-stage-chat-log { overflow-y: auto; overscroll-behavior: contain; padding: .85rem 1rem; }
+.cs-stage-chat-message { width: fit-content; max-width: 92%; padding: .6rem .8rem; margin-bottom: .65rem; border-radius: .75rem; background: #e5edf2; color: var(--cs-ink); overflow-wrap: anywhere; }
+.cs-stage-chat-message.is-user { margin-left: auto; background: #d7efe8; }
+.cs-stage-chat-message p { white-space: pre-wrap; margin-top: .25rem; }
+.cs-stage-chat-form { display: grid; gap: .35rem; padding: .7rem 1rem; border-top: 1px solid var(--cs-paper-line); }
+.cs-stage-chat-form label { font-weight: 700; }
+.cs-stage-chat-form textarea { max-height: 7rem; }
+.cs-stage-chat-form p { margin: 0; font-size: .875rem; color: var(--cs-ink-muted); }
+.cs-stage-chat-form p:empty { display: none; }

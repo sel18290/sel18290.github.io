@@ -562,6 +562,46 @@ const stageCurricula={
  "gestion-administration":"Traiter les dossiers des clients, usagers ou adhérents, suivre l’activité et ses documents, contribuer à l’organisation du personnel."
 };
 
+async function chatPfmp(sector,option,niveau,body,origin){
+ const turns=body.messages;
+ if(!Array.isArray(turns)||!turns.length||turns.length>5||turns.length%2===0||
+  !turns.every((turn,i)=>turn?.role===(i%2===0?"user":"assistant")&&typeof turn.content==="string"&&turn.content.trim()&&turn.content.length<=(i%2===0?800:1200)))
+  return respond({ok:false,error:"Écris un message de 800 caractères maximum."},400,origin);
+ const key=Deno.env.get("ALBERT_API_KEY");
+ if(!key)return respond({ok:false,error:"Albert est momentanément indisponible."},503,origin);
+ const denied=await stageAlbertAccess(clean(body.session,256),body.demo===true);
+ if(denied)return respond({ok:false,error:denied},body.demo===true?429:403,origin);
+ const chosen=categoryIds(sector,Array.isArray(body.types)?body.types:[],option);
+ const types=chosen.map(id=>sectors[sector].types[id].label);
+ const curriculum=stageCurricula[sector];
+ const programme=sector==="commerce-vente"&&option!=="toutes"?curriculum[option]:curriculum;
+ const system=[
+  "Tu es Albert, le conseiller PFMP de CORTEX. Échange en français avec un élève de bac professionnel. Tiens compte des messages précédents et réponds précisément à la dernière question.",
+  "Aide à chercher une structure d’accueil, à préparer une candidature, un appel, une relance ou un entretien. Si un élément essentiel manque, pose une question courte. Pour un jeu de rôle, laisse l’élève répondre avant de poursuivre.",
+  "Utilise le terme PFMP et des mots simples. Écris en texte clair, avec de courts paragraphes. Garde les informations inconnues sous forme de repères entre crochets.",
+  "Ne demande pas de données personnelles. Tu ne peux ni vérifier des coordonnées ou des disponibilités, ni contacter une entreprise. N’invente aucun contact, lieu disponible, règle juridique ou expérience de l’élève.",
+  "Contexte de formation : "+JSON.stringify({filiere:sectors[sector].name,option,niveau,programme,types})
+ ].join("\n");
+ const messages=turns.map(({role,content})=>({role,content:content.trim()
+  .replace(/[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}/gi,"[e-mail]")
+  .replace(/(?:\\+33|0)[1-9](?:[ .-]?\\d{2}){4}/g,"[téléphone]")}));
+ const primary=Deno.env.get("ALBERT_MODEL")||"openai/gpt-oss-120b";
+ const models=[...new Set([primary,stageModel()])];
+ for(const [i,model] of models.entries()){
+  try{
+   const result=await timed("https://albert.api.etalab.gouv.fr/v1/chat/completions",{
+    method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+key},
+    body:JSON.stringify({model,stream:false,max_tokens:2100,messages:[{role:"system",content:system},...messages]})
+   },i===0?22000:14000);
+   if(!result.ok){await result.body?.cancel();continue;}
+   const data=await result.json(),content=data?.choices?.[0]?.message?.content;
+   const reply=typeof content==="string"?content.trim().slice(0,4500):"";
+   if(reply)return respond({ok:true,reply},200,origin);
+  }catch{/* Le modèle utilisé pour les autres fonctions PFMP peut reprendre si nécessaire. */}
+ }
+ return respond({ok:false,error:"Albert ne répond pas pour le moment. Tu peux renvoyer ton message."},502,origin);
+}
+
 async function guideSearch(sector,option,niveau,body,origin){
  const program=sectors[sector];
  const types=Object.fromEntries(Object.entries(program.types)
@@ -685,6 +725,7 @@ Deno.serve(async req=>{
   if(niveau&&!["seconde","premiere","terminale"].includes(niveau))throw Error("Niveau non valide.");
   const option=sector==="commerce-vente"?clean(body.optionCommerce||"toutes",10):"toutes";
   if(!["A","B","toutes"].includes(option))throw Error("Option commerce non valide.");
+  if(body.action==="chat_pfmp")return await chatPfmp(sector,option,niveau,body,origin);
   if(body.action==="guide_search")return await guideSearch(sector,option,niveau,body,origin);
   const inputTypes=Array.isArray(body.types)?body.types.map(x=>clean(x,50)):[];
   const chosen=categoryIds(sector,[...new Set(inputTypes)],option);

@@ -72,7 +72,88 @@
     return { ...idea, steps: idea.steps.map(([title, detail]) => ({ title, detail })) };
   }
 
+  function mountChat(host, api) {
+    const dialog = host.querySelector('#cs-stage-chat');
+    const form = dialog.querySelector('.cs-stage-chat-form');
+    const field = form.querySelector('textarea');
+    const send = form.querySelector('[type="submit"]');
+    const transcript = dialog.querySelector('[role="log"]');
+    const status = dialog.querySelector('[role="status"]');
+    const reset = dialog.querySelector('[data-chat-reset]');
+    let history = [];
+    let pending = null;
+
+    function message(role, content) {
+      const bubble = api.node('article', 'cs-stage-chat-message is-' + role);
+      bubble.append(api.node('strong', '', role === 'assistant' ? 'Albert' : 'Toi'), api.node('p', '', content));
+      transcript.append(bubble);
+      transcript.scrollTop = transcript.scrollHeight;
+      return bubble;
+    }
+
+    host.querySelector('#cs-stage-chat-open').addEventListener('click', () => {
+      dialog.showModal();
+      transcript.scrollTop = transcript.scrollHeight;
+    });
+    reset.addEventListener('click', () => {
+      history = [];
+      transcript.replaceChildren();
+      field.value = '';
+      status.textContent = 'Nouvelle discussion.';
+      field.focus();
+    });
+    dialog.addEventListener('close', () => pending?.abort());
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const content = field.value.trim();
+      if (pending || !content) return;
+      const controller = new AbortController();
+      pending = controller;
+      const timer = setTimeout(() => controller.abort(), 42000);
+      const user = { role:'user', content };
+      const bubble = message(user.role, user.content);
+      field.value = '';
+      field.readOnly = true;
+      send.disabled = true;
+      reset.disabled = true;
+      status.textContent = 'Albert prépare sa réponse…';
+      try {
+        const result = await api.chat([...history.slice(-4), user], controller.signal);
+        if (controller.signal.aborted) throw new Error('Réponse interrompue.');
+        const reply = { role:'assistant', content:normalizePFMP(result.reply) };
+        history = [...history.slice(-4), user, reply];
+        message(reply.role, reply.content);
+        status.textContent = '';
+      } catch (error) {
+        bubble.remove();
+        field.value = content;
+        const detail = controller.signal.aborted ? 'Réponse interrompue. Tu peux renvoyer ton message.' :
+          error instanceof TypeError ? 'Connexion indisponible. Tu peux renvoyer ton message.' : error.message;
+        status.textContent = detail;
+      } finally {
+        clearTimeout(timer);
+        pending = null;
+        field.readOnly = false;
+        send.disabled = false;
+        reset.disabled = false;
+      }
+    });
+    field.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && matchMedia('(pointer: fine)').matches) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    return () => {
+      pending?.abort();
+      if (dialog.open) dialog.close();
+    };
+  }
+
   function mount(host, api) {
+    const hideChat = mountChat(host, api);
     const { node, button } = api;
     const byId = id => host.querySelector('#cs-stage-' + id);
     const form = byId('advisor-form'), choices = byId('advisor-goals'), target = byId('advisor-target');
@@ -227,7 +308,7 @@
         choices.querySelector('input[value="' + goal + '"]').checked = true;
         refresh();
       },
-      hide: clearPending
+      hide() { clearPending(); hideChat(); }
     };
   }
 

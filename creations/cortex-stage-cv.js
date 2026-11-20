@@ -183,29 +183,39 @@
       const placePicker = element('section','cs-stage-cv-place-picker');
       const placeLabel = element('label','cs-stage-cv-place-label');
       placeLabel.append(
-        element('strong','','Adapter mon document à un lieu suivi'),
-        element('small','','Facultatif : choisis une structure parmi tes lieux de stage potentiels. Albert pourra tenir compte de son nom et du type de lieu.')
+        element('strong','','Sélectionner une entreprise déjà suivie'),
+        element('small','','Choisis un lieu enregistré dans « Mes lieux de stage potentiels » pour qu’Albert adapte ses améliorations à cette entreprise.')
       );
       const placeSelect = element('select','cs-stage-cv-place-input');
-      placeSelect.setAttribute('aria-label','Choisir un lieu de stage suivi pour personnaliser mon document');
+      placeSelect.setAttribute('aria-label','Sélectionner une entreprise déjà suivie');
+      const placeholder = new Option('Sélectionner une entreprise déjà suivie','');
+      placeholder.disabled = true;
+      const goSearch = new Option('🔎 Chercher une entreprise…','__search__');
       placeSelect.replaceChildren(
-        new Option('Sans structure précise — conseils généraux',''),
-        ...entries.map(item => new Option(item.place.name, item.place.id))
+        placeholder,
+        ...entries.map(item => new Option(item.place.name, item.place.id)),
+        goSearch
       );
       placeSelect.value = selected;
       placeSelect.addEventListener('change',()=>{
+        if(placeSelect.value==='__search__'){
+          placeSelect.value = selected;
+          api.openSearch();
+          return;
+        }
         selectPlace(placeSelect.value);
         render();
         scrollToWork();
       });
       placeLabel.append(placeSelect);
       const placeSummary = element('p','cs-stage-cv-place-summary',entry.place.name
-        ? 'Lieu sélectionné : '+entry.place.name+'. Albert utilisera le nom et la catégorie du lieu pour adapter ses propositions.'
-        : 'Aucun lieu sélectionné : Albert donne des conseils adaptés à ta filière.');
-      placePicker.append(placeLabel,placeSummary);
-      if(!entries.length) placePicker.append(button(
-        'Ajouter un lieu à suivre','cs-stage-cv-aside-link',api.openBoard
-      ));
+        ? 'Entreprise sélectionnée : '+entry.place.name+'. Albert adaptera ses propositions à cette structure.'
+        : entries.length
+          ? 'Choisis une entreprise dans la liste pour obtenir des améliorations personnalisées avec Albert.'
+          : 'Aucune entreprise suivie pour le moment. Cherche une entreprise puis ajoute-la à tes lieux de stage potentiels.');
+      const searchLabel = entries.length ? 'Rechercher une autre entreprise' : 'Rechercher une entreprise';
+      const searchButton = button(searchLabel,'cs-stage-cv-search-link',api.openSearch);
+      placePicker.append(placeLabel,placeSummary,searchButton);
 
       const folio = element('div','cs-stage-cv-work');
       if (step===2) folio.classList.add('is-editing');
@@ -365,9 +375,14 @@
       const suggestion=element('div','cs-stage-contact-suggestion');
       suggestion.hidden=true;
       aiSelect.addEventListener('change',()=>{
-        suggestion.hidden=true;feedback.textContent='';request?.abort();ask.disabled=false;
+        suggestion.hidden=true;feedback.textContent='';request?.abort();ask.disabled=!entry.place.name;
       });
       const ask=button('Améliorer cette rubrique','cs-stage-cv-ai-action',async()=>{
+        if(!entry.place.name){
+          feedback.textContent='Choisis d’abord une entreprise déjà suivie pour demander une amélioration à Albert.';
+          placeSelect.focus();
+          return;
+        }
         const id=aiSelect.value, input=inputs.get(id), raw=input.value.trim();
         if(raw.length<12){
           feedback.textContent='Écris d’abord une phrase (au moins 12 caractères) dans cette rubrique.';
@@ -400,15 +415,15 @@
           suggestion.hidden=false;
         }catch(error){
           if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Tes réponses restent accessibles.';
-        }finally{if(request===own)ask.disabled=false;}
+        }finally{if(request===own)ask.disabled=!entry.place.name;}
       });
+      ask.disabled=!entry.place.name;
       const albertContext = element('p','cs-stage-cv-albert-context',entry.place.name
-        ? 'Conseils personnalisés pour : '+entry.place.name
-        : 'Conseils généraux pour ta filière. Choisis un lieu ci-dessus pour préciser la candidature.');
+        ? 'Améliorations personnalisées pour : '+entry.place.name
+        : 'Sélectionne une entreprise suivie ci-dessus pour utiliser Albert.');
       box.append(albertContext,selectLabel,ask,feedback,suggestion);
       sidebar.append(box);
       sidebar.append(button('Renseigner mes dates de PFMP','cs-stage-cv-aside-link',api.openPrep));
-      if(!entries.length)sidebar.append(button('Voir mes lieux de stage potentiels','cs-stage-cv-aside-link',api.openBoard));
       const quick=button('Aide Albert','cs-stage-cv-ai-jump',()=>{
         box.scrollIntoView({block:'start',behavior:'smooth'});
         aiSelect.focus({preventScroll:true});

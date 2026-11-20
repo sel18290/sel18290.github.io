@@ -567,3 +567,21 @@ body.academy-authenticated[data-acad-view="copies"] #cw-assessment-cards{display
  .cw-pin-group-choice>small{font-size:12px}
  .cw-group-roster-heading{font-size:13px;padding:11px}
 }
+
+/* Remise de copie — confirmation visible et retour d'erreur local sur mobile/PC. */
+.cw-answer-form .cw-submit-confirmation[hidden],
+.cw-answer-form .cw-submit-local-status[hidden],
+.cw-answer-form>.cw-student-submit[hidden]{display:none!important}
+.cw-submit-confirmation{display:grid;gap:13px;padding:19px;border:1px solid #94bfca;border-radius:15px;background:linear-gradient(135deg,#1c4054,#203450);box-shadow:0 10px 28px #07192744}
+.cw-submit-confirmation>strong{color:#fff;font-size:17px}
+.cw-submit-confirmation>p{color:#e5f2f8;font-size:14px;line-height:1.6;margin:0}
+.cw-submit-actions{display:flex;flex-wrap:wrap;gap:11px}
+.cw-submit-actions>button{flex:1 1 230px;min-height:56px;cursor:pointer}
+.cw-submit-local-status{padding:14px 17px;margin:0;border:1px solid #67bba5;border-radius:12px;background:#183d42;color:#e0fff4;font-size:14px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+.cw-submit-local-status.error{border-color:#ec879e;background:#4d2634;color:#fff1f5}
+@media(max-width:760px){
+ .cw-submit-confirmation{padding:15px 12px}
+ .cw-submit-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ .cw-submit-actions>button{width:100%;min-width:0}
+ .cw-submit-local-status{font-size:14px}
+}

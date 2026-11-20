@@ -1547,7 +1547,7 @@
     function confirmRemoval(entry) {
       const body = node('div', 'cs-stage-dialog-body');
       body.append(node('p', '', 'Retirer ' + entry.place.name + ' et ses informations de suivi' +
-        (drafts[entry.place.id] ? ', y compris ses brouillons de candidature' : '') + ' ?'),
+        (drafts[entry.place.id] ? ', y compris les documents CV ou lettre associés' : '') + ' ?'),
         button('Retirer ce lieu', 'cs-stage-primary', () => {
           $('dialog').close();
           board.delete(entry.place.id);

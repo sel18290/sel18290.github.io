@@ -23,7 +23,7 @@ async function store(key,method,record){
  })}finally{db.close()}
 }
 async function compressImage(file){
- if(!file||!file.type.startsWith('image/')||file.type==='image/svg+xml'||file.size>12*1024*1024)
+ if(!file||(!String(file.type||'').startsWith('image/')&&!/\.(jpe?g|png|webp|heic|heif|avif)$/i.test(file.name||''))||file.type==='image/svg+xml'||file.size>12*1024*1024)
   throw Error('Choisis une photo JPG, PNG, HEIC ou WebP de moins de 12 Mo.');
  let bitmap=null,url=null,img=null;
  try{
@@ -122,6 +122,7 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
      resume();
      const file=input.files?.[0];input.value='';
      if(!file)return;
+     onStatus?.('Traitement de ta photo manuscrite…');
      try{await addPhoto(q.id,file)}catch(error){onStatus?.(String(error.message||error),true)}
     });
     wrapper.append(input);return wrapper;

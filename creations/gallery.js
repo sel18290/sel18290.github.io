@@ -1,4 +1,4 @@
-import {creations,categories,matching} from './catalogue.js?v=retablissement';
+import {creations,categories,matching} from './catalogue.js?v=retablissement-reacteur';
 const $=id=>document.getElementById(id);let category='all';
 $('total').textContent=creations.length;
 for(const [id,name]of [['all','Tout voir'],...Object.entries(categories)]){

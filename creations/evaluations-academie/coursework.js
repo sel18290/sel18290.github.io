@@ -245,8 +245,9 @@ function renderCopyCard(copy,exam){
   head.append(make('strong','','Correction · élève n°'+copy.student_number),
     make('span','cw-pill '+(copy.released_at?'cw-open':''),copy.released_at?'Correction publiée':copy.graded_at?'Corrigé':'À corriger'));
   card.append(head,make('small','',(copy.auto_submitted?'Remise automatique le ':'Reçu le ')+new Date(copy.submitted_at).toLocaleString('fr-FR')));
+  const handwritingNumbers=[...new Set(((String(copy.file_name||'').match(/^CORTEX_Manuscrit_Q([0-9-]+)_/)||[])[1]||'').split('-').map(Number).filter(n=>Number.isInteger(n)&&n>0))];
   const answers=make('details','cw-copy-answers');
-  answers.append(make('summary','','▤ Consulter les réponses · '+Object.keys(copy.answers||{}).length+' question(s)'));
+  answers.append(make('summary','','▤ Consulter les réponses · '+Object.keys(copy.answers||{}).length+' réponse(s) saisie(s)'+(handwritingNumbers.length?' · '+handwritingNumbers.length+' manuscrite(s)':'')));
   const answerList=make('div','cw-copy-answer-list');answers.append(answerList);
   let answersLoaded=false;
   answers.addEventListener('toggle',()=>{
@@ -260,10 +261,23 @@ function renderCopyCard(copy,exam){
     line.append(make('strong','',prompt),make('p','',readable));
     answerList.append(line);
    }
+   if(handwritingNumbers.length){
+    for(const n of handwritingNumbers){
+     const q=exam?.content?.questions?.[n-1];
+     const line=make('div','cw-answer cw-handwritten-answer');
+     line.append(make('strong','','✎ Question '+n+' · '+(q?.prompt||'Réponse manuscrite')),
+      make('p','','Réponse manuscrite photographiée : ouvrir le PDF joint pour consulter la ou les photos identifiées avec ce numéro de question.'));
+     line.append(createButton('📄 Voir les photos de la copie','cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
+     answerList.append(line);
+    }
+   }
    answersLoaded=true;
   });
   card.append(answers);
-  if(copy.file_name)card.append(createButton('📎 Ouvrir la copie jointe : '+copy.file_name,'cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
+  if(copy.file_name){
+   if(handwritingNumbers.length)card.append(make('p','cw-handwriting-banner','✎ '+handwritingNumbers.length+' question(s) avec photographie manuscrite (Q'+handwritingNumbers.join(', Q')+'). Le PDF est classé par question pour évaluer l’écriture.'));
+   card.append(createButton(handwritingNumbers.length?'✎ Ouvrir les réponses manuscrites (PDF)':'📎 Ouvrir la copie jointe : '+copy.file_name,'cw-secondary',()=>openFile(copy.assessment_id,'submission',copy.student_number)));
+  }
   const form=make('form','cw-grade-form'),grade=make('input');
   grade.type='number';grade.min='0';grade.max='20';grade.step='0.01';grade.required=true;grade.placeholder='Note sur 20';grade.value=copy.grade??'';
   grade.setAttribute('aria-label','Note sur 20');

@@ -148,7 +148,7 @@ async function verifyClassPin(access,n,p,requireActivated=true){
  }
  if(requireActivated&&!cred.activated_at)
   throw Error('Votre espace n’est pas encore activé. Utilisez le bouton « Première connexion » avec le PIN provisoire du professeur.');
- const changes={attempts:0,locked_until:null};
+ const changes:Record<string,unknown>={attempts:0,locked_until:null};
  if(migrated){
   changes.pin_digest=expected;
   changes.pin_origin_class_id=null;

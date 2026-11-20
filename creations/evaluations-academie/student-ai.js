@@ -2,19 +2,28 @@
  * Les traitements ne démarrent jamais automatiquement : clic explicite requis.
  */
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js?v=1';
-import {openStudentAlbertProgress} from './student-albert-progress.js?v=1.1';
 const ENDPOINT=SUPABASE_URL+'/functions/v1/cortex-student-ai';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e};
 const tiny=(s,max=600)=>String(s??'').slice(0,max);
 async function ask(action,session,assessmentId){
- const response=await fetch(ENDPOINT,{
-  method:'POST',cache:'no-store',
-  headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY},
-  body:JSON.stringify({action,session,assessment_id:assessmentId})
- });
- const result=await response.json().catch(()=>null);
- if(!response.ok||!result?.ok)throw Error(result?.error||'Albert IA est temporairement indisponible.');
- return result;
+ // Aucun blocage silencieux si le service Albert ne répond plus sur mobile.
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),180000);
+ try{
+  const response=await fetch(ENDPOINT,{
+   method:'POST',cache:'no-store',signal:controller.signal,
+   headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY},
+   body:JSON.stringify({action,session,assessment_id:assessmentId})
+  });
+  const result=await response.json().catch(()=>null);
+  if(!response.ok||!result?.ok)
+   throw Error(result?.error||'Albert IA a renvoyé une réponse illisible. Réessaie ou préviens ton professeur.');
+  return result;
+ }catch(error){
+  if(error?.name==='AbortError')throw Error('Le service Albert met trop de temps à répondre. Vérifie ta connexion puis réessaie depuis cette page.');
+  if(error instanceof TypeError)throw Error('Connexion au service Albert impossible. Vérifie Internet puis réessaie.');
+  throw error;
+ }finally{clearTimeout(timeout)}
 }
 function zone(title,items,kind){
  const section=el('section','cw-ai-zone cw-ai-zone-'+kind);
@@ -67,28 +76,67 @@ function showInsights(target,result){
  target.append(el('p','cw-ai-minor','Seules les notes et appréciations déjà publiées sont analysées. Les contrôles en attente restent confidentiels.'));
 }
 function attachAction(card,label,action,{session,assessmentId},renderer){
- const button=el('button','cw-ai-action',label);button.type='button';
- const output=el('div','cw-ai-output');output.setAttribute('aria-live','polite');
- button.addEventListener('click',async()=>{
+ const button=el('button','cw-ai-action',label);
+ button.type='button';
+ const confirmBox=el('section','cw-ai-confirmation');
+ confirmBox.hidden=true;
+ confirmBox.setAttribute('role','group');
+ confirmBox.setAttribute('aria-label','Confirmer le lancement de l’analyse Albert');
+ const subject=action==='insights'
+  ?'les notes et les appréciations déjà publiées dans ton carnet'
+  :'tes réponses et les documents associés au contrôle, y compris les captures originales';
+ const title=el('strong','','Autoriser cette analyse avec Albert IA ?');
+ const detail=el('p','',
+  'Albert analysera '+subject+'. Cette fonction est facultative et doit être autorisée par ton établissement. '+
+  (action==='estimate'?'La note estimée ne remplace jamais celle du professeur.':'La correction officielle ne sera pas modifiée.'));
+ const actions=el('div','cw-ai-confirm-actions');
+ const start=el('button','cw-ai-action cw-ai-confirm-start','Oui, lancer l’analyse');
+ start.type='button';
+ const cancel=el('button','cw-ai-confirm-cancel','Annuler');
+ cancel.type='button';
+ actions.append(start,cancel);
+ confirmBox.append(title,detail,actions);
+ const progress=el('div','cw-ai-inline-progress');
+ progress.hidden=true;
+ progress.setAttribute('role','status');
+ progress.setAttribute('aria-live','polite');
+ progress.append(el('span','cw-ai-progress-spinner'),el('span','',
+  'Albert analyse les réponses et les documents… Le résultat apparaîtra ici après traitement.'));
+ const output=el('div','cw-ai-output');
+ output.setAttribute('aria-live','polite');
+ button.addEventListener('click',()=>{
   if(button.disabled)return;
-  const subject=action==='insights'?'les notes et appréciations déjà publiées dans ton carnet':
-   'tes réponses et les documents associés au contrôle, y compris les captures originales';
-  if(!confirm('Albert analysera '+subject+'. Cette fonction est facultative et soumise à l’autorisation de l’établissement. Continuer ?'))return;
+  output.replaceChildren();
+  progress.hidden=true;
+  confirmBox.hidden=false;
+  confirmBox.scrollIntoView({block:'nearest',behavior:'auto'});
+ });
+ cancel.addEventListener('click',()=>{
+  confirmBox.hidden=true;
+  output.replaceChildren(notice('Analyse annulée : aucune donnée envoyée.'));
+ });
+ start.addEventListener('click',async()=>{
+  if(button.disabled)return;
   button.disabled=true;
-  output.replaceChildren(notice('✦ Albert prépare ton analyse…'));
-  const progress=openStudentAlbertProgress({
-   action,onReveal:()=>output.scrollIntoView({block:'start',behavior:'smooth'})
-  });
+  start.disabled=true;
+  confirmBox.hidden=true;
+  progress.hidden=false;
+  output.replaceChildren(notice('Analyse demandée à Albert. Le résultat sera affiché directement sous ce bouton.'));
+  progress.scrollIntoView({block:'nearest',behavior:'auto'});
   try{
    const result=await ask(action,session,assessmentId);
    renderer(output,result);
-   progress.success();
   }catch(error){
-   output.replaceChildren(notice(tiny(error?.message||'Service indisponible.'),true));
-   progress.failure(error);
-  }finally{button.disabled=false}
+   output.replaceChildren(notice('Analyse impossible : '+tiny(error?.message||'Service indisponible.',350)+' Tu peux réessayer.',true));
+  }finally{
+   progress.hidden=true;
+   button.disabled=false;
+   start.disabled=false;
+   output.scrollIntoView({block:'nearest',behavior:'auto'});
+  }
  });
- card.append(button,output);return card;
+ card.append(button,confirmBox,progress,output);
+ return card;
 }
 export function renderReceiptAi(receipt,{session,assessmentId,submission}){
  if(!receipt||!submission)return;

@@ -5,6 +5,7 @@ import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.5';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.0';
+import { createHandwritingManager } from './student-handwriting.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe');
@@ -23,7 +24,7 @@ if(qr||globalPortal){
  let countdownInterval=null;
  let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
- let mobileController=null, draftEditor=null, clearDraftListeners=null;
+ let mobileController=null, draftEditor=null, clearDraftListeners=null, photoManager=null;
  const integrity=window.CORTEX_EXAM_INTEGRITY;
  const guard=integrity.create({storageKey:storageKey+':sortie',onEvent:queueEvent,onNotice:showIntegrityNotice});
  const presence=window.CORTEX_EXAM_LIVE.createReporter(({session,assessmentId},signal)=>
@@ -36,6 +37,7 @@ if(qr||globalPortal){
  }catch{}
  let sendingEvents=false,eventRetry=null,noticeTimeout=null;
  function releaseEditor(){
+  photoManager?.dispose();photoManager=null;
   draftEditor?.dispose();draftEditor=null;
   clearDraftListeners?.();clearDraftListeners=null;
   if(mobileController){mobileController.destroy();mobileController=null;}
@@ -277,9 +279,10 @@ if(qr||globalPortal){
  function showSubmittedAnswers(receipt,exam,submission){
   const questions=Array.isArray(exam.questions)?exam.questions:[];
   const answers=submission?.answers&&typeof submission.answers==='object'?submission.answers:{};
+  const handwritten=new Set((String(submission?.file_name||'').match(/^CORTEX_Manuscrit_Q([0-9-]+)_/)||[])[1]?.split('-').map(Number)||[]);
   const supplied=questions.filter(q=>{
    const val=answers[q.id];
-   return typeof val==='string'&&val.trim().length>0;
+   return (typeof val==='string'&&val.trim().length>0)||handwritten.has(questions.indexOf(q)+1);
   }).length;
   const details=E('details','cw-student-my-answers');
   const summary=E('summary','cw-student-my-answers-toggle',
@@ -297,13 +300,14 @@ if(qr||globalPortal){
    }
    for(const [i,q] of questions.entries()){
     const raw=typeof answers[q.id]==='string'?answers[q.id]:'';
-    const item=E('section','cw-student-my-answer'+(!raw.trim()?' is-empty':''));
+    const hasHandwriting=handwritten.has(i+1);
+    const item=E('section','cw-student-my-answer'+(!raw.trim()&&!hasHandwriting?' is-empty':''));
     item.append(E('strong','',(i+1)+'. '+q.prompt),
      E('small','','Barème de la question : '+Number(q.points||0)+' point(s)'));
     let human=raw;
     try{human=window.CORTEX_QUESTION_TYPES?.summary?.(q,raw)||raw}
     catch{human=raw}
-    item.append(E('p','cw-student-my-answer-value',raw.trim()?human:'Aucune réponse remise.'));
+    item.append(E('p','cw-student-my-answer-value',raw.trim()?human:hasHandwriting?'✎ Réponse manuscrite : voir la photo dans le PDF joint.':'Aucune réponse remise.'));
     list.append(item);
    }
   };
@@ -441,7 +445,8 @@ if(qr||globalPortal){
    stopIntegrity();
    const launch=E('section','cw-student-timer-start');
    launch.append(E('strong','','⏱ Prêt à commencer ?'),
-    E('p','','Le serveur conserve ton brouillon et remet ta copie à la fin du chrono, même si tu quittes la page.'));
+    E('p','','Le serveur conserve ton brouillon et remet ta copie à la fin du chrono, même si tu quittes la page.'),
+    E('p','cw-handwriting-banner','✎ Écriture manuscrite : tu peux photographier ta réponse directement sous chaque question. Les photos seront regroupées dans un PDF joint à ta copie.'));
    launch.append(button('▶ Démarrer le contrôle et le chrono','cw-student-submit',async()=>{
     const id=currentId,launchSession=token;
     const result=await api('student_start',{session:launchSession,assessment_id:id});
@@ -567,6 +572,7 @@ if(qr||globalPortal){
   const draftStatus=E('p','cw-draft-status','Tes réponses sont sauvegardées pendant le contrôle.');
   draftStatus.setAttribute('role','status');
   form.append(upload,attachmentName,removeAttachment,draftStatus);
+  upload.append(E('small','','Les photos manuscrites sont ajoutées sous chaque question et ne peuvent pas être combinées avec une autre pièce jointe.'));
   function updateAttachment(name){
    attachmentName.textContent=name?'Fichier sauvegardé : '+name:'';
    removeAttachment.hidden=!name;
@@ -615,6 +621,7 @@ if(qr||globalPortal){
     const receipt=await api('student_get',{session:currentSession,assessment_id:exam.id});
     if(current!==view||token!==currentSession)return;
     if(receipt.submission){
+     await photoManager?.forget();
      draftEditor?.finish();
      current=receipt;
      renderExam();
@@ -649,6 +656,9 @@ if(qr||globalPortal){
   file.addEventListener('change',()=>{
    const chosen=file.files?.[0];
    if(!chosen)return;
+   if(photoManager?.count()){
+    file.value='';submissionMessage('Des photos manuscrites sont déjà présentes. Retire-les avant de joindre un autre fichier.',true);return;
+   }
    if(chosen.size>8*1024*1024){file.value='';submissionMessage('Le fichier dépasse 8 Mo.',true);return}
    editor.attach(chosen);
   });
@@ -662,9 +672,13 @@ if(qr||globalPortal){
    document.removeEventListener('visibilitychange',onVisibility);
    clearTimeout(receiptRetry);
   };
-  function openConfirmation(){
+  async function openConfirmation(){
    if(busy)return;
    try{
+    await photoManager?.flush();
+    if(photoManager?.count()&&!String(editor.attachment).startsWith('CORTEX_Manuscrit_')){
+     submissionMessage('Le PDF de tes photos est encore en préparation. Vérifie la sauvegarde, puis réessaie.',true);return;
+    }
     const answers=collectAnswers(),attached=editor.attachment;
     const completed=Object.values(answers).filter(v=>String(v??'').trim()).length;
     if(!completed&&!attached){
@@ -700,12 +714,14 @@ if(qr||globalPortal){
    let sent=false;
    const examId=currentId;
    try{
+    await photoManager?.flush();
     const answers=collectAnswers();
     if(!Object.values(answers).some(v=>String(v??'').trim())&&!editor.attachment)
      throw Error('La copie est vide : réponds à une question avant de l’envoyer.');
     // Arrêter la surveillance uniquement lorsque l'envoi commence, pas au clic initial.
     stopIntegrity();
     await editor.submit();
+    await photoManager?.forget();
     sent=true;
     submissionMessage('✓ Copie bien enregistrée. Ouverture du reçu…');
     try{
@@ -732,6 +748,19 @@ if(qr||globalPortal){
    }
   });
   work.append(form);
+  const handwritingNote=E('aside','cw-handwriting-banner');
+  handwritingNote.append(E('strong','','✎ Photographier une réponse écrite à la main'),
+    E('p','','Sous chaque question, prends une photo de ta réponse sur papier (caméra ou fichier image). Les photos sont réunies dans un PDF joint à la copie et consultable par ton professeur. Tu peux aussi saisir du texte.'));
+  form.prepend(handwritingNote);
+  photoManager=createHandwritingManager({
+   form,questions,key:draftKey+':handwriting',
+   onAttach:pdf=>editor.attach(pdf),
+   onRemove:()=>editor.attach(null),
+   onStatus:(text,error=false)=>{draftStatus.textContent=text;draftStatus.classList.toggle('error',error)},
+   canAdd:()=>!editor.attachment||String(editor.attachment).startsWith('CORTEX_Manuscrit_'),
+   onCameraOpen:()=>guard.setActive(),
+   onCameraClose:()=>{if(!expiryNotified&&Date.now()<deadline)startIntegrity()}
+  });
   if(settings.enabled&&settings.watermarkCapture){
    const mark=E('div','cw-student-watermark');mark.setAttribute('aria-hidden','true');
    for(let i=0;i<6;i++)mark.append(E('span','','CORTEX · N°'+current.student_number+' · AIDE IA INTERDITE'));

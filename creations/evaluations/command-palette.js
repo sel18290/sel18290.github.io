@@ -111,6 +111,7 @@
   activeIndex=0;render();input.focus({preventScroll:true});
  }
  launcher?.addEventListener('click',()=>isOpen()?close():open());
+ document.getElementById('ct-command-launch-desktop')?.addEventListener('click',()=>isOpen()?close():open());
  document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&!event.altKey&&event.key.toLowerCase()==='k'){
    event.preventDefault();isOpen()?close():open();return;

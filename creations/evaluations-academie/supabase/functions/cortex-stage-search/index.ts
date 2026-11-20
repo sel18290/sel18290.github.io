@@ -340,7 +340,7 @@ function modelObject(response){
 }
 
 const stageModel=()=>Deno.env.get("ALBERT_STAGE_MODEL")||"mistralai/Mistral-Small-3.2-24B-Instruct-2506";
-const stageOpening="C’est une PFMP non rémunérée par votre entreprise si la durée cumulée reste sous le seuil de gratification.";
+const stageOpening="C’est une PFMP non rémunérée.";
 
 async function publicEstablishment(siret){
  const url=new URL("https://recherche-entreprises.api.gouv.fr/search");

@@ -4,7 +4,7 @@
 
   const { normalizePFMP } = window.CORTEX_STAGE_GUIDE;
   const ALLOCATION = 'L’allocation de ma PFMP est versée par l’État. Mon lycée fournit la convention.';
-  const fundingOpening = 'C’est une PFMP non rémunérée par votre entreprise si la durée cumulée reste sous le seuil de gratification.';
+  const fundingOpening = 'C’est une PFMP non rémunérée.';
   const withoutOpening = text => normalizePFMP(String(text || '').trim().replace(/^c['’]est (?:un stage non rémunéré|une PFMP non rémunérée)[^.!?]*[.!?]\s*/i, ''));
   const HOOK_HINT = '[Mon accroche : ce qui me motive et ce que j’aimerais apprendre.]';
   const MOTIVES = [
@@ -123,8 +123,7 @@
     }
     choices.append(choiceList);
     const opening = node('strong', 'cs-stage-fixed-opening', fundingOpening);
-    root.append(choices, opening, node('small', 'cs-stage-contact-guidance',
-      'L’entreprise peut proposer une gratification volontaire. Si elle le fait, préviens ton lycée.'));
+    root.append(choices, opening);
 
     const hookLabel = node('label', 'cs-stage-contact-hook', 'La suite de mon accroche');
     const hook = node('textarea');

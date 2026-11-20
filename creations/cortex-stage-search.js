@@ -24,7 +24,7 @@
   ];
   const HERO = {
     search: ['Trouve ta', 'prochaine PFMP.', 'Recherche de PFMP', 'Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.'],
-    board: ['Mes', 'démarches', 'Espace PFMP', 'Suis tes candidatures, note les réponses et planifie tes relances.'],
+    board: ['Mes lieux de stage', 'potentiels', 'Espace PFMP', 'Retrouve les lieux que tu suis, note leurs réponses et organise tes relances.'],
     prep: ['Préparer', 'ma PFMP', 'Espace PFMP', 'Prépare ton premier contact et vérifie ce qu’il te reste à faire avant le stage.'],
     cv: ['Mon CV', 'et ma lettre', 'Espace PFMP', 'Rédige tes documents, puis relis-les avant de les envoyer.'],
     assistant: ['Assistant', 'Albert', 'Espace PFMP', 'Pose une question ou demande un conseil pour ta prochaine démarche.']
@@ -201,9 +201,9 @@
     <nav class="cs-stage-nav" aria-label="Parcours de recherche de PFMP">
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
 
-      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">2 · </span>CV et lettre</strong><small>Créer mes documents</small></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">3 · </span>Prendre contact</strong><small>Appel ou message</small></span></button>
-      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">4 · </span>Mes démarches</strong><small>Réponses et relances</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">2 · </span>Mes lieux de stage potentiels</strong><small>Structures enregistrées et suivi</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">3 · </span>CV et lettre</strong><small>Adapter mes documents</small></span></button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">4 · </span>Prendre contact</strong><small>Appel ou message</small></span></button>
       <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert<span class="cs-stage-nav-extra"> · Besoin d’aide ?</span></strong><small>Discuter ou demander un conseil</small></span></button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
@@ -293,7 +293,7 @@
           </div>
         </nav>
         <div class="cs-stage-filters" id="cs-stage-filters" hidden>
-          <label>Filtrer cette sélection<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes démarches</option></select></label>
+          <label>Filtrer cette sélection<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes lieux suivis</option></select></label>
           <label>Trier cette sélection<select id="cs-stage-sort"><option value="default">Pertinence</option><option value="distance">Proximité</option><option value="phone">Téléphone disponible</option><option value="name">Nom A à Z</option></select></label>
           <button type="button" id="cs-stage-export" class="cs-stage-quiet">Exporter en CSV</button>
         </div>
@@ -309,14 +309,14 @@
     <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
       <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
         <div class="cs-stage-pane-head">
-          <div><h2 id="cs-stage-board-title" tabindex="-1">Mon carnet de candidatures</h2><p>Ton carnet est enregistré sur cet appareil.</p></div>
+          <div><h2 id="cs-stage-board-title" tabindex="-1">Mes lieux de stage potentiels</h2><p>Retrouve ici les structures sélectionnées et les réponses obtenues. Les informations restent enregistrées sur cet appareil.</p></div>
           <div class="cs-stage-board-actions">
             <button type="button" class="cs-stage-primary" id="cs-stage-add-place">Ajouter un lieu</button>
             <button type="button" class="cs-stage-pale" data-stage-go="search">Chercher un lieu</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
           </div>
         </div>
-        <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
+        <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes lieux de stage suivis"></div>
         <details class="cs-stage-board-tools cs-stage-board-tools-v2" id="cs-stage-board-tools" hidden>
           <summary>Rechercher ou filtrer mes candidatures</summary>
           <div class="cs-stage-board-tool-fields">
@@ -359,7 +359,7 @@
           <button type="button" class="cs-stage-pale" id="cs-stage-prep-interview">M’entraîner avec Albert</button>
         </section>
       </div>
-      <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><div class="cs-stage-action-row"><button type="button" class="cs-stage-pale" data-stage-go="cv">Relire mes documents</button><button type="button" class="cs-stage-pale" data-stage-go="board">Suivre mes démarches</button></div></div>
+      <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><div class="cs-stage-action-row"><button type="button" class="cs-stage-pale" data-stage-go="cv">Relire mes documents</button><button type="button" class="cs-stage-pale" data-stage-go="board">Voir mes lieux suivis</button></div></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
       <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
@@ -587,7 +587,7 @@
         const {categories} = GUIDE.forPlace(entry.sector,entry.option,entry.place.types);
         return askAlbert({action:'improve_application',document:kind,field,text,
           filiere:entry.sector,optionCommerce:entry.option,type:categories[0]?.[0]||'',
-          company:entry.place.manual ? '' : entry.place.name.slice(0,120)},signal);
+          company:String(entry.place.name||'').trim().slice(0,120)},signal);
       }
     });
 
@@ -1243,13 +1243,13 @@
       missions.append(node('strong', '', 'À demander pendant le contact'), node('p', '', mission));
       card.append(missions, linksFor(place));
       const actions = node('div', 'cs-stage-card-actions');
-      const follow = button(board.has(place.id) ? 'Voir dans mes démarches' : 'Ajouter au suivi', 'cs-stage-track', () => {
+      const follow = button(board.has(place.id) ? 'Voir mes lieux suivis' : 'Ajouter au suivi', 'cs-stage-track', () => {
         if (board.has(place.id)) {
           setPanel('board');
         } else {
           addEntry(context);
-          follow.textContent = 'Voir dans mes démarches';
-          status(place.name + ' ajouté à mes démarches.');
+          follow.textContent = 'Voir mes lieux suivis';
+          status(place.name + ' ajouté à mes lieux suivis.');
         }
       });
       actions.append(follow, button('Préparer le contact', 'cs-stage-quiet', () => openContact(board.get(place.id) || context)));
@@ -1351,7 +1351,7 @@
       });
       if (!matches.length) {
         list.append(emptyCard('Aucune démarche dans cette vue', 'Change le statut ou le nom recherché.',
-          button('Afficher toutes mes démarches', 'cs-stage-pale', () => showBoardEntry())));
+          button('Afficher tous mes lieux', 'cs-stage-pale', () => showBoardEntry())));
       }
       for (const entry of matches) list.append(boardCard(entry, restore));
       list.querySelector('[data-stage-restore]')?.focus({ preventScroll: true });
@@ -1549,7 +1549,7 @@
           const stored = persist();
           renderBoard();
           $('board-title').focus({ preventScroll: true });
-          boardNotice(stored ? 'Lieu retiré de mes démarches.' : 'Le navigateur ne peut pas enregistrer ce changement.');
+          boardNotice(stored ? 'Lieu retiré des lieux suivis.' : 'Le navigateur ne peut pas enregistrer ce changement.');
         }));
       openDialog('Retirer du carnet', body);
     }
@@ -1574,7 +1574,7 @@
       }
       const feedback = node('p', 'cs-stage-date-status');
       feedback.setAttribute('role', 'status');
-      const submit = node('button', 'cs-stage-primary', 'Ajouter à mes démarches');
+      const submit = node('button', 'cs-stage-primary', 'Ajouter à mes lieux suivis');
       submit.type = 'submit';
       form.append(feedback, submit);
       form.addEventListener('submit', event => {

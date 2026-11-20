@@ -1,0 +1,2 @@
+export const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+export function pose(t){t=clamp(t);return {t,first:t<=.55,zoom:1+Math.sin(t*Math.PI)*.2,x:t<=.5?.5+t*.55:.5+(1-t)*.12,transition:Math.max(0,1-Math.abs(t-.55)/.035),label:t<.15?'Chambre · référence N1':t<.45?'Approche de la porte · recadrage N1':t<.56?'Raccord non documenté · liaison cinématographique':t<.88?'Approche du bureau · recadrage N2':'Bureau · référence N2'};}

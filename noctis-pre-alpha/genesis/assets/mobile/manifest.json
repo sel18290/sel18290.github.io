@@ -1,0 +1,590 @@
+[
+  {
+    "file": "n05-alloy-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 31876,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-alloy-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 23569,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-alloy-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 214770,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-paint-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 84897,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-paint-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 130735,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-paint-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 309751,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-graphite-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 65650,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-graphite-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 113003,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-graphite-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 277649,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-seal-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 58867,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-seal-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 112826,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-seal-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 203934,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-ceramic-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 8771,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-ceramic-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 112826,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-ceramic-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 188199,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-deck-colour.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 63444,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-deck-rough.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 113418,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n05-deck-normal.png",
+    "source": [
+      512,
+      512
+    ],
+    "mobile": [
+      512,
+      512
+    ],
+    "bytes": 224733,
+    "sourceRgbaMipBytes": 1398101,
+    "mobileRgbaMipBytes": 1398101
+  },
+  {
+    "file": "n06-deck-colour.png",
+    "source": [
+      2048,
+      2048
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 122604,
+    "sourceRgbaMipBytes": 22369621,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-deck-rough.png",
+    "source": [
+      2048,
+      2048
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 221146,
+    "sourceRgbaMipBytes": 22369621,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-deck-normal.png",
+    "source": [
+      2048,
+      2048
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 280728,
+    "sourceRgbaMipBytes": 22369621,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-panel-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 190915,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-panel-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 224923,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-panel-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 344585,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-composite-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 191653,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-composite-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 231853,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-composite-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 414831,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-textile-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 214094,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-textile-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 249491,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-textile-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 7820,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-soil-v3-colour.png",
+    "source": [
+      1254,
+      1254
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 1319013,
+    "sourceRgbaMipBytes": 8386752,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-soil-v2-rough.png",
+    "source": [
+      2048,
+      2048
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 161974,
+    "sourceRgbaMipBytes": 22369621,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-soil-v2-normal.png",
+    "source": [
+      2048,
+      2048
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 1388901,
+    "sourceRgbaMipBytes": 22369621,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-shell-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 190899,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-shell-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 228830,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-shell-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 387457,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-frame-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 203844,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-frame-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 266810,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-frame-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 386903,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-lining-colour.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 235940,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-lining-rough.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 255726,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  },
+  {
+    "file": "n06-annex-lining-normal.png",
+    "source": [
+      1024,
+      1024
+    ],
+    "mobile": [
+      768,
+      768
+    ],
+    "bytes": 434583,
+    "sourceRgbaMipBytes": 5592405,
+    "mobileRgbaMipBytes": 3145728
+  }
+]

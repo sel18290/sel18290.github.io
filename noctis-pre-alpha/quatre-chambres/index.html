@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111820">
+  <title>CORTEX · Quatre chambres</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><span class="mark" aria-hidden="true">◈</span> BIOSPHÈRE GENESIS <i></i> CORTEX</header>
+  <main id="panel">
+    <div class="bar"></div>
+    <small>MISSION RÉTABLISSEMENT</small>
+    <h1>CORTEX<br><em>Quatre chambres</em></h1>
+    <p>Le siège neuronal a perdu sa liaison. Rétablissez le signal dans la nef, retrouvez la matrice aux Archives, stabilisez le Réacteur et préparez une sonde dans l’atelier des Essaims.</p>
+    <label for="quality">Rendu</label>
+    <select id="quality"><option value="mobile">Léger</option><option value="detail">Haute définition</option></select>
+    <div id="status" role="status">Initialisation du niveau…</div>
+    <button id="enter" disabled>Entrer dans CORTEX <b>→</b></button>
+    <button id="reset" hidden>Revenir à l’entrée</button>
+    <details>
+      <summary>Commandes</summary>
+      <p>ZQSD, WASD ou les flèches pour marcher. Souris pour regarder. E pour utiliser un poste, M pour ouvrir le plan et Échap pour mettre en pause.</p>
+      <p>Sur écran tactile, utilisez le disque pour marcher et glissez sur le décor pour regarder.</p>
+    </details>
+  </main>
+  <div id="hud" hidden>
+    <small id="readout"></small>
+    <button id="map-toggle" type="button" aria-controls="level-map" aria-expanded="false">Plan</button>
+    <button id="pause" aria-label="Mettre en pause">Ⅱ</button>
+  </div>
+  <aside id="level-map" hidden aria-label="Plan de CORTEX">
+    <canvas id="map-canvas" width="240" height="230"></canvas>
+    <ol><li>Nef</li><li>Archives</li><li>Réacteur</li><li>Essaims</li></ol>
+  </aside>
+  <div id="stick" aria-label="Joystick tactile"><span></span></div>
+  <button id="activate" hidden><span id="actionLabel">Étalonner le siège</span> <kbd>E</kbd></button>
+  <div id="feedback" role="status" hidden></div>
+  <div id="aim"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

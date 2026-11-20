@@ -1,0 +1,103 @@
+*{box-sizing:border-box}body{margin:0;background:#101216;color:#eeeef0;font-family:system-ui,sans-serif;overflow:hidden}canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;z-index:0}header{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:12px;font:600 11px/1.2 ui-monospace,monospace;letter-spacing:.16em;padding:20px 5vw;background:linear-gradient(#0c0d10bf,transparent);pointer-events:none}.mark{font-size:26px;color:#ff6958}header i{height:15px;width:1px;background:#888}main{position:fixed;z-index:2;left:5vw;bottom:7vh;width:min(415px,90vw);max-height:75dvh;overflow:auto;padding:24px 26px;border:1px solid #525054;border-radius:4px;background:linear-gradient(125deg,#202124f5,#101014f2);box-shadow:0 12px 60px #0006}.bar{width:38px;height:3px;background:#ff674d;margin-bottom:16px}small,summary,#status{font-family:ui-monospace,monospace}small{letter-spacing:.18em;color:#ff947a;font-size:10px}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:13px 0;font-weight:550;letter-spacing:-.055em}em{font-weight:350;color:#e9c9b8;font-style:normal}p{font-size:14px;line-height:1.55;color:#d1d0d2}#status{font-size:12px;margin:18px 0;color:#dfb5a9}button{cursor:pointer;background:#edf0eb;color:#1b1c20;border:0;padding:12px 18px;border-radius:2px;font-weight:600}button:disabled{opacity:.5}b{padding-left:16px}details{font-size:12px;margin-top:16px}summary{cursor:pointer}a{color:#ffc2ad}#hud{position:fixed;right:18px;top:14px;z-index:3;align-items:center;gap:14px}#hud:not([hidden]){display:flex}#readout{color:white;background:#18191dbd;padding:7px}#pause{background:#26262c;color:white}#aim,#stick{display:none;position:fixed;z-index:1}.playing #aim{display:block;top:50%;left:50%;width:4px;height:4px;border-radius:100%;background:#eee9}.playing.touch #stick{display:grid;place-items:center;bottom:6%;left:5%;width:92px;height:92px;background:#20222980;border:1px solid #fff6;border-radius:50%;touch-action:none}#stick span{width:35px;height:35px;border-radius:50%;background:#ffb19c8a}.playing header{display:none}@media(max-height:500px){main{bottom:4vh;padding:16px;max-height:76dvh}h1{font-size:28px}h1 br{display:none}}
+label,select{font:12px ui-monospace,monospace}select{padding:6px;color:#ede4da;background:#29282b;border:1px solid #6c6665;border-radius:3px}#activate,#feedback{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:12%;white-space:nowrap}#activate{background:#edc7b6;color:#201a18}#feedback{bottom:5%;padding:8px 12px;background:#202026e6;color:white;font:12px ui-monospace,monospace}kbd{margin-left:6px}.touch kbd{display:none}header,#readout{user-select:none}
+
+/* ORBI-7 uses the blue holographic treatment observed in NOCTIS N01. */
+#mission-objective {
+  position: fixed; z-index: 5; inset: auto 18px 18px auto;
+  width: min(330px, calc(100vw - 36px)); padding: 12px 15px;
+  border: 1px solid #54798c; border-left: 3px solid #82dfea;
+  border-radius: 3px; background: #102431; color: #edfaFF;
+  font: 14px/1.4 "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 6px 24px #0007;
+}
+body.playing #mission-objective { top: 62px; bottom: auto }
+.quest-line { display: flex; align-items: center; gap: 10px }
+.quest-copy { flex: 1; min-width: 0 }
+.quest-copy strong { display: block; font-size: 16px }
+.quest-copy p { margin: 3px 0 0; color: #bbd5e1 }
+.quest-copy small, .quest-header small {
+  color: #9fe3f2; font: 600 10px/1.4 ui-monospace, monospace;
+  letter-spacing: .11em; text-transform: uppercase;
+}
+.quest-arrow { flex: 0 0 27px; text-align: center; color: #9defff; font-size: 24px }
+.quest-distance { color: #9defff; font: 700 15px/1.2 ui-monospace, monospace; white-space: nowrap }
+#mission-objective button, #mission-dialog .quest-secondary {
+  width: auto; margin: 8px 0 0; color: #caecfa; background: #162e3c;
+  border: 1px solid #54798c; padding: 8px 12px; font-size: 13px;
+}
+body:has(#mission-dialog[open]) #mission-objective { visibility: hidden }
+#mission-dialog {
+  color: #edfaff; background: #102431; border: 2px solid #54798c;
+  border-radius: 3px; width: min(800px, 94vw); max-height: 88dvh;
+  padding: clamp(16px, 3vw, 30px); overflow: auto;
+  font: 16px/1.5 "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 18px 80px #000b, inset 0 2px #92d8ee;
+}
+#mission-dialog::backdrop { background: #040b13ad }
+.quest-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 0 16px; margin-bottom: 18px; border-bottom: 1px solid #54798c;
+}
+.quest-emblem {
+  display: grid; place-items: center; flex: 0 0 44px; height: 44px;
+  border: 1px solid #54798c; background: #193947; color: #9defff; font-size: 23px;
+}
+#mission-dialog h2 { margin: 3px 0 0; font: 650 clamp(22px, 4vw, 30px)/1.15 "Segoe UI", sans-serif }
+.quest-orbi { border-left: 2px solid #81d8e9; padding: 8px 14px; background: #17303e }
+.quest-terminal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr); gap: 18px }
+.quest-document { align-self: start; padding: 14px; background: #0b1b26; border: 1px solid #395a6b }
+.quest-document h3 { margin: 0 0 9px; font-size: 16px; color: #a8eafa }
+.quest-document p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere }
+#mission-dialog fieldset { border: 0; min-width: 0; margin: 0; padding: 0 }
+#mission-dialog legend { padding: 0 0 10px; font-weight: 650 }
+#mission-dialog label { display: flex; align-items: center; justify-content: space-between; gap: 9px; padding: 8px 0; font: inherit }
+#mission-dialog .quest-choice {
+  justify-content: flex-start; background: #173440; padding: 9px 12px; margin-bottom: 6px;
+  border: 1px solid #426679; border-radius: 3px; cursor: pointer;
+}
+#mission-dialog .quest-choice:has(input:checked) { border-color: #8fdfec; background: #254858 }
+#mission-dialog input[type=radio] { accent-color: #9defff; width: 18px; height: 18px; flex-shrink: 0 }
+#mission-dialog input[type=number], #mission-dialog select {
+  width: min(100%, 220px); max-width: 100%; min-height: 40px; padding: 8px;
+  color: #edfaff; background: #0b1b26; border: 1px solid #54798c; font: inherit;
+}
+#mission-dialog button {
+  width: auto; min-height: 40px; margin: 10px 8px 0 0; padding: 9px 14px;
+  color: #09212d; background: #a2dfed; border: 1px solid #a2dfed;
+  border-radius: 3px; font: 650 14px "Segoe UI", sans-serif; cursor: pointer;
+}
+#mission-dialog button:disabled { opacity: .5; cursor: default }
+#mission-dialog :focus-visible, #mission-objective :focus-visible { outline: 2px solid #c8f7ff; outline-offset: 3px }
+.quest-feedback:empty { display: none }
+.quest-feedback { padding: 10px; background: #1d3947; border-left: 2px solid #ffc58f }
+.quest-feedback[data-result=success] { border-color: #9ff0df }
+.quest-steps { padding-left: 25px }
+.quest-steps li { padding: 7px 10px; margin-bottom: 4px }
+.quest-steps li[aria-current] { background: #1c3949; border-left: 2px solid #9defff }
+.quest-steps span { display: block; font-size: 14px; color: #c1dce7 }
+@media (max-width: 620px) {
+  #mission-dialog .quest-terminal { grid-template-columns: 1fr; gap: 13px }
+  #mission-dialog label:not(.quest-choice) { flex-wrap: wrap }
+  #mission-objective { width: min(295px, calc(100vw - 18px)); right: 9px; bottom: 9px; padding: 9px }
+  body.playing #mission-objective { top: 57px }
+  .quest-copy strong { font-size: 14px }
+}
+@media (max-width: 620px) and (max-height: 700px) {
+  body:not(.playing) #mission-objective .quest-line { display: none }
+  body:not(.playing) #mission-objective { width: auto }
+}
+#map-toggle{background:#263640;color:#e8f4f8;padding:10px 12px}
+#level-map{display:none;position:fixed;z-index:3;top:64px;right:18px;width:min(250px,70vw);background:#101922ed;color:#f1f7fa;border:1px solid #617d8c;border-radius:4px;padding:5px 8px 10px;pointer-events:none}
+.playing #level-map:not([hidden]){display:block}
+#level-map canvas{position:static;display:block;width:100%;height:auto}
+#level-map ol{margin:0;padding-left:24px;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font:12px/1.5 ui-monospace,monospace}
+@media(max-width:640px){#hud{gap:6px;right:10px;top:10px}#readout{max-width:52vw;font-size:9px}#map-toggle{padding:8px}#pause{padding:8px 12px}#level-map{right:10px;top:53px}}
+body{background:#121219}
+header{background:linear-gradient(#101017d9,transparent)}
+main{background:linear-gradient(135deg,#25242bf7,#111118f5);border-color:#64616d}
+.mark,.quest-emblem{color:#f24a55}
+.bar{background:#f24a55}
+small,#status{color:#e8a7ad}
+em{color:#d8d9e1}
+#map-toggle,#level-map{background:#22222deb;border-color:#696775}
+#activate{background:#e9d6d9;color:#22191a}

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "id": "atelier",
+  "name": "Atelier de robotique",
+  "function": "robotique",
+  "style": "forge",
+  "dimensions": {
+    "width": 16,
+    "length": 20,
+    "height": 9
+  },
+  "seed": 1701,
+  "machines": 4,
+  "bridges": 1,
+  "ceiling": "gantry",
+  "equipment": [
+    "robot",
+    "sensor"
+  ],
+  "focal": "robot",
+  "interaction": "calibration",
+  "audio": "servo",
+  "architecture": {
+    "shape": "rectangular",
+    "galleries": 1,
+    "platforms": 1,
+    "doors": [
+      {
+        "wall": "south",
+        "offset": -3,
+        "width": 2.8
+      }
+    ],
+    "walkable": true
+  },
+  "stations": {
+    "bay-1": {
+      "kind": "scanner"
+    },
+    "bay-3": {
+      "kind": "relay",
+      "interaction": "calibration",
+      "attachments": [
+        "service-hatch"
+      ]
+    }
+  },
+  "modules": [
+    {
+      "id": "module-panneau",
+      "kind": "wall-panel",
+      "size": [
+        1.8,
+        1.4,
+        0.12
+      ],
+      "position": [
+        3,
+        1,
+        -9.6
+      ]
+    },
+    {
+      "id": "module-conduite",
+      "kind": "duct",
+      "size": [
+        0.4,
+        6,
+        0.4
+      ],
+      "position": [
+        -5.9,
+        0,
+        -8.8
+      ]
+    }
+  ]
+}

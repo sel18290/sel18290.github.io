@@ -1,0 +1,25 @@
+#laboratory-walk[hidden]{display:none}
+#laboratory-walk{position:fixed;inset:0;pointer-events:none;color:#081e2e;z-index:2}
+.walk-message{position:absolute;left:22px;top:76px;padding:10px 14px;border-left:2px solid #68b8d9;background:#ecf8f3ee;border-radius:0 7px 7px 0}
+.walk-message strong{display:block;letter-spacing:.22em;font-size:11px}
+.walk-message span{display:block;margin-top:4px;font-size:12px}
+.walk-pad{display:none}
+.exploring footer p,.exploring footer nav>*:not(#reactor){display:none}
+.exploring footer{background:none;padding:12px 22px;text-align:right}
+.exploring footer nav{justify-content:flex-end}
+.walk-door[hidden]{display:none}
+.walk-door{pointer-events:auto;position:absolute;left:50%;bottom:74px;transform:translateX(-50%);color:#eefcff;background:#12313e;border-color:#79dbea}
+.walk-door kbd{margin-left:7px;padding:2px 5px;border:1px solid #79dbea;border-radius:3px}
+@media (pointer:coarse){
+ .walk-message span,.walk-door kbd{display:none}
+ .walk-door{bottom:88px}
+ .walk-pad{display:flex;position:absolute;pointer-events:auto;touch-action:none;bottom:76px;left:18px;width:108px;height:108px;align-items:center;justify-content:center;border:1px solid #7fc5dc;border-radius:100%;color:#d7f4ff;background:#102a35c9;font-size:31px}
+}
+@media(max-width:600px){.walk-message{left:12px;top:66px}.exploring footer{padding:10px}}
+
+.story-reveal footer nav,.story-reveal footer #angle,.story-reveal footer .help,.story-reveal header a,.story-reveal header small{display:none}
+.walk-objective{margin:8px 0 0;font-size:12px;font-weight:650;line-height:1.35}
+@media(max-width:650px){.walk-objective{max-width:230px}}
+.launch-sequence{position:fixed;inset:0;z-index:3;display:grid;align-items:end;justify-items:center;pointer-events:auto;background:rgb(2 9 14 / var(--launch-fade,0))}
+.launch-sequence[hidden]{display:none}
+.launch-sequence p{margin:0 16px max(42px,8vh);padding:13px 18px;max-width:460px;text-align:center;border:1px solid #80dce366;background:#051822ef;color:#eafcfe;letter-spacing:.03em}

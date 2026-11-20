@@ -1,0 +1,3 @@
+body.hub-departure::after{content:"";position:fixed;inset:0;z-index:3000;background:#101b23;pointer-events:all;animation:hub-departure .35s ease-in both}
+@keyframes hub-departure{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){body.hub-departure::after{animation:none;opacity:1}}

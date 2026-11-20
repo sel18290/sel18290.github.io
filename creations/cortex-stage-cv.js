@@ -351,18 +351,6 @@
       footer.append(footerText,finalize);
       editor.append(footer);
 
-      const guidance=element('section','cs-stage-cv-help-card');
-      guidance.append(element('h3','',kind==='cv'?'Un CV clair, en quelques lignes.':'Une lettre personnelle, sans phrases copiées.'),
-        element('p','',kind==='cv'
-          ? 'Privilégie ce que tu sais faire, même lors d’un projet scolaire. Sois précis et évite les compétences que tu ne peux pas expliquer.'
-          : 'Montre pourquoi tu souhaites découvrir cette structure. Donne un exemple réel et indique une mission que tu aimerais apprendre.'));
-      const tips=element('ul','cs-stage-cv-tips');
-      for(const item of (kind==='cv'
-        ? ['Parcours et formation à jour','Compétences avec un exemple concret','Informations de contact vérifiées']
-        : ['Nom de la structure vérifié','Motivation personnelle et précise','Dates et missions cohérentes']))tips.append(element('li','',item));
-      guidance.append(tips);
-      sidebar.append(guidance);
-
       const box=element('section','cs-stage-cv-assistance');
       box.append(element('h3','', 'Améliore un passage avec Albert'),
         element('p','cs-stage-cv-ai-note','Albert propose une reformulation : tu restes libre de l’accepter ou non. Évite d’envoyer tes coordonnées personnelles.'));

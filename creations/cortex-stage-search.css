@@ -1844,3 +1844,76 @@ body:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-pers
   .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-actions button {width:100%}
   .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-message textarea {min-height:12rem}
 }
+
+
+/* PFMP : interface preparation cohérente avec la console Noctis */
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-grid {gap:1rem;align-items:start}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact,
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check-area,
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference {
+  border:1px solid #57768b;border-radius:1rem;
+  background:linear-gradient(145deg,#193345,#10283b);
+  color:#e9f8fc;color-scheme:dark;box-shadow:0 .7rem 1.75rem #030b1829;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-surface :is(h2,h3) {color:#f3fffd}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-surface > p {color:#cfdee9}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact > h2 {font-size:clamp(1.4rem,2.7vw,1.85rem)}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-field-lead {
+  margin:.95rem 0 .4rem;color:#d6edf4;line-height:1.45;font-weight:650;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-field-lead > span {
+  background:#2b655f;border:1px solid #94efdb;color:#effffb;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-date-fields {gap:.75rem}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-date-fields label,
+.cs-stage-search #cs-stage-prep-panel .cs-stage-contact-target {
+  display:grid;gap:.4rem;color:#e3f6fb;font-size:.92rem;font-weight:730;
+}
+.cs-stage-search #cs-stage-prep-panel :is(.cs-stage-date-fields input,.cs-stage-contact-target select) {
+  display:block;width:100%;min-width:0;max-width:100%;min-height:3rem;
+  padding:.65rem .8rem;background:#ecf7f9;color:#163140;
+  border:1px solid #a3c2ce;border-radius:.68rem;color-scheme:light;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-action-row {display:grid;gap:.65rem}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-primary {
+  display:flex;justify-content:center;align-items:center;min-height:3.35rem;
+  background:linear-gradient(120deg,#b8f6e0,#84dae4);border:1px solid #a5f0d6;
+  color:#173b42;border-radius:.65rem;font-weight:850;text-align:center;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-pale {
+  justify-content:center;min-height:2.9rem;background:#234657;
+  border:1px solid #8aabb2;color:#f0fdfd;border-radius:.65rem;font-weight:750;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check-area .cs-stage-check-hint {color:#c2d9e3}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-progress {color:#bbf1e1}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-progress progress {accent-color:#83e7ce}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check {
+  background:#213e50;border:1px solid #52778a;color:#e6f4fb;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check:has(input:checked) {
+  background:#28594e;border-color:#7ad3bc;color:#effff8;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check input {accent-color:#8cefd2}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference :is(p,dd,li) {color:#cee1ea}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference-group {border-top:1px solid #48697b}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-competencies dt {color:#dffdf4}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference .cs-stage-pale {
+  background:#285364;color:#f3fffa;border:1px solid #77a4ab;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-coach-callout {
+  padding:1rem 1.2rem;border:1px solid #667ca4;border-radius:1rem;
+  background:radial-gradient(ellipse at top right,#6459a877,transparent 72%),
+    linear-gradient(130deg,#243951,#172d47);box-shadow:0 .8rem 2rem #0610224c;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-coach-callout h2 {color:#f8fcff;font-size:1.25rem}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-coach-callout .cs-stage-kicker {color:#b9aaff}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-coach-callout .cs-stage-quiet {
+  min-height:2.9rem;border:1px solid #b1a6ed;background:#363d69;
+  color:#f3f2ff;border-radius:.65rem;font-weight:780;
+}
+.cs-stage-search #cs-stage-prep-panel :is(button,input,select):focus-visible {
+  outline:3px solid #ffc583;outline-offset:3px;
+}
+@container cortex-stage (max-width:46rem) {
+  .cs-stage-search #cs-stage-prep-panel .cs-stage-prep-grid {grid-template-columns:minmax(0,1fr)}
+}

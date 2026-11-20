@@ -66,7 +66,7 @@
 <script defer src="./mobile-experience.js?v=3.3"></script>
 <script defer src="./mobile-professor.js?v=3.5"></script>
 <script defer src="./guide-tour.js?v=4.1"></script>
-<script defer src="./command-palette.js?v=1.1"></script>
+<script defer src="./command-palette.js?v=1.2-desktop-tools"></script>
 
 <link rel="stylesheet" href="../cortex-live-sky.css?v=2.0">
 <link rel="stylesheet" href="./header-layout-fix.css?v=2.1">
@@ -75,7 +75,7 @@
 <link rel="stylesheet" href="../cortex-home-benefits.css?v=2.0">
 <link rel="stylesheet" href="../cortex-phone-ergonomics.css?v=2.0">
 <link rel="stylesheet" href="../cortex-exam-monitor.css?v=1.1">
-<link rel="stylesheet" href="../cortex-home-focus.css?v=1.2-nav">
+<link rel="stylesheet" href="../cortex-home-focus.css?v=1.4-desktop-tools">
 </head>
 <body class="cortex-noctis">
 <a class="skip-link" href="#app">Aller au contenu</a>
@@ -93,6 +93,10 @@
   </a>
   <button type="button" id="ct-tour-launch-mobile" data-tour-launch aria-label="Lancer la visite guidée IA de CORTEX" title="Visite guidée IA">✦ Visite IA</button>
   <div class="top-status"><span class="pulse" aria-hidden="true"></span><span>Mode démonstration</span></div>
+  <div class="cortex-header-desktop-tools" role="group" aria-label="Raccourcis CORTEX sur ordinateur">
+    <button type="button" class="cortex-header-shortcut cortex-header-search" id="ct-command-launch-desktop" aria-label="Rechercher dans CORTEX" title="Rechercher (Ctrl + K)"><span aria-hidden="true">⌕</span> Rechercher</button>
+    <button type="button" class="cortex-header-shortcut cortex-header-tour" id="ct-tour-launch-desktop" data-tour-launch title="Découvrir CORTEX avec la visite guidée IA"><span aria-hidden="true">✦</span> Visite guidée IA</button>
+  </div>
   <nav class="top-actions" aria-label="Navigation principale">
     <button class="top-link" data-action="home" type="button">Accueil</button>
     <button class="top-link" data-action="teacher" type="button">Professeur</button>

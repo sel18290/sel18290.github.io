@@ -110,7 +110,7 @@
   }
  }
  function attachHero(){
-  const hero=document.querySelector('.home-hero');
+  const hero=document.querySelector('.home-hero, .cortex-focus-home .cortex-focus-hero');
   const local=layers.find(l=>l.local);
   if(local&&local.parent===hero&&local.canvas.isConnected)return;
   if(local){local.canvas.remove();layers=layers.filter(l=>l!==local)}

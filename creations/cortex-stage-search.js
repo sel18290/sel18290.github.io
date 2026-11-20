@@ -577,7 +577,7 @@
     const workshop = window.CORTEX_STAGE_CV.mount($('cv-workshop'), {
       identity, drafts, save: persist, entries: () => [...board.values()],
       general: () => ({ place:{id:'general/' + sector + '/' + route(),name:'',address:'',types:[]}, sector, option:route() }),
-      openBoard: () => setPanel('board'), openPrep: () => setPanel('prep'),
+      openBoard: () => setPanel('board'), openPrep: () => setPanel('prep'), openSearch: () => setPanel('search'),
       program: entry => GUIDE.programs[entry.sector].name + (entry.option==='toutes'?'':' (option '+entry.option+')'),
       getHook: entry => hooks[entry.place.id] || hooks[entry.sector+'-'+entry.option] || '',
       period: stagePeriod,

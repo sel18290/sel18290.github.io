@@ -122,7 +122,7 @@
 #acad-import-workspace .ri-question-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
 #acad-import-workspace .ri-question-tools #ri-redetect{max-width:100%;min-height:37px;font-size:11px}
 #acad-import-workspace .ri-question-tools #ri-detection-hint{margin:0}
-#acad-import-workspace .ri-source-page{touch-action:none}
+#acad-import-workspace .ri-source-page.ri-readonly{touch-action:auto;cursor:auto}
 @media(max-width:700px){
  #acad-import-workspace .ri-asset-row{flex-wrap:wrap}
  #acad-import-workspace .ri-asset-thumb{width:80px;height:76px}

@@ -29,7 +29,12 @@ window.CORTEX_CLOCK=(function clockModule(){
         </div>
         <span class="timer-caption">Le décompte continue même si tu changes de question ou actualises la page.</span>
       </div>
-    </section>`;
+    </section><details class="cortex-demo-chrono">
+      <summary>⏱ Chrono</summary>
+      <div class="cortex-demo-chrono-body"><span>Temps restant</span>
+        <strong id="cortex-demo-chrono-time" role="timer" aria-live="off">${display(d.remainingMs)}</strong>
+      </div>
+    </details>`;
   }
   function update(doc,attempt,exam,now=Date.now()){
     const container=doc.getElementById('exam-timer');
@@ -37,6 +42,8 @@ window.CORTEX_CLOCK=(function clockModule(){
     const d=remaining(attempt,exam,now),percent=100*d.remainingMs/d.totalMs;
     const value=doc.getElementById('exam-timer-value');
     if(value)value.textContent=display(d.remainingMs);
+    const mobileValue=doc.getElementById('cortex-demo-chrono-time');
+    if(mobileValue)mobileValue.textContent=display(d.remainingMs);
     const meter=doc.getElementById('exam-timer-meter');
     if(meter)meter.style.width=percent+'%';
     const role=container.querySelector?.('[role="progressbar"]');

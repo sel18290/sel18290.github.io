@@ -136,6 +136,7 @@ function entries(elements,loc,radius,sector,chosen){
   data.push({id:String(item.type)+"/"+String(item.id),name,address,
    phone:publicPhone(t["contact:phone"])||publicPhone(t.phone),
    website:/^https?:\/\/[^\s]+$/i.test(site)?site:"",
+   activity:clean(t.shop||t.office||t.amenity||t.tourism||t.healthcare||t.railway,50),
    category:clean(t.shop||t.office||t.amenity||t.tourism||t.healthcare||t.railway||"établissement").replace(/_/g," "),
    target_types:matched,target_labels:matched.map(id=>sectors[sector].types[id].label),
    lat:Math.round(lat*1e5)/1e5,lon:Math.round(lon*1e5)/1e5,distance_km:dist,
@@ -229,7 +230,7 @@ async function registry(loc,radius,sector,chosen,page,branches){
    const address=clean(place.adresse,220);
    if(!name||!address)continue;
    const labels=matched.map(type=>sectors[sector].types[type].label);
-   results.set(id,{id,name,address,phone:"",website:"",
+   results.set(id,{id,name,address,phone:"",website:"",activity:clean(place.activite_principale||firm.activite_principale,16),employer:place.caractere_employeur==="O",
     category:labels[0],target_types:matched,target_labels:labels,
     lat,lon,distance_km:dist,source:"Annuaire des entreprises",
     albert_rank:null,albert_why:"",missions:[]});
@@ -265,6 +266,7 @@ function combineDirectories(mapPlaces,registryPlaces){
   }
   const mapPlace=matches[0];
   if(!mapPlace.address)mapPlace.address=official.address;
+  if(official.employer)mapPlace.employer=true;
   mapPlace.source="OpenStreetMap et Annuaire des entreprises";
  }
  return combined.sort((a,b)=>a.distance_km-b.distance_km||a.name.localeCompare(b.name,"fr")||a.id.localeCompare(b.id));
@@ -427,6 +429,55 @@ async function applicationSuggestion(body,origin){
  }
 }
 
+const stageCurricula={
+ "commerce-vente":{
+  A:"Conseiller le client, vendre, préparer des animations, gérer et faire vivre un point de vente.",
+  B:"Préparer des prises de contact, prospecter, suivre des clients, valoriser une offre auprès d'une clientèle."
+ },
+ "accueil":"Accueillir et orienter le public, identifier les demandes, informer par plusieurs canaux, gérer les flux et la relation de service.",
+ "gestion-administration":"Traiter les dossiers des clients, usagers ou adhérents, suivre l’activité et ses documents, contribuer à l’organisation du personnel."
+};
+
+async function stagePriorities(sector,option,chosen,niveau,body,origin){
+ const key=Deno.env.get("ALBERT_API_KEY");
+ if(!key)return respond({ok:true,enabled:false},200,origin);
+ const denied=await stageAlbertAccess(clean(body.session,256),body.demo===true);
+ if(denied)return respond({ok:true,enabled:false},200,origin);
+ const curriculum=stageCurricula[sector];
+ const programme=sector==="commerce-vente"
+  ? Object.fromEntries(Object.entries(curriculum).filter(([id])=>option==="toutes"||id===option))
+  : curriculum;
+ const types=chosen.map(id=>({id,label:sectors[sector].types[id].label,option:sectors[sector].types[id].option}));
+ const system=[
+  "Tu établis une grille indicative pour trouver des stages de bac professionnel à partir de catégories d’annuaire.",
+  "Pour chaque type, estime si une mission du référentiel peut typiquement être pratiquée dans ce contexte.",
+  "90–100 : cœur du référentiel, pratique directe. 76–89 : lien clair avec des tâches possibles. 55–75 : lien indirect ou service à confirmer.",
+  "Si les deux options sont choisies, évalue chaque type dans sa propre option avec la même échelle.",
+  "Si le niveau est renseigné, tiens compte de la possibilité de pratiquer des tâches progressives et encadrées à ce niveau.",
+  "Évalue les missions possibles, sans supposer de tuteur, de disponibilité, de taille ou de qualité d’accueil. N’invente aucun lieu.",
+  'JSON uniquement : {"priorities":[{"id":"identifiant fourni","score":90}]}. Évalue exactement une fois chaque identifiant.'
+ ].join("\n");
+ try{
+  const response=await timed("https://albert.api.etalab.gouv.fr/v1/chat/completions",{
+   method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+key},
+   body:JSON.stringify({model:stageModel(),temperature:0.1,max_tokens:700,stream:false,
+    messages:[{role:"system",content:system},{role:"user",content:JSON.stringify({programme,types,niveau:niveau||undefined})}]})
+  },20000);
+  if(!response.ok)throw Error("HTTP "+response.status);
+  const data=modelObject(await response.json());
+  const priorities=Object.create(null);
+  for(const row of Array.isArray(data.priorities)?data.priorities:[]){
+   if(chosen.includes(row?.id)&&typeof row.score==="number"&&Number.isFinite(row.score)&&row.score>=55&&row.score<=100)
+    priorities[row.id]=Math.round(row.score);
+  }
+  if(chosen.some(id=>!Object.hasOwn(priorities,id)))throw Error("Grille incomplète");
+  return respond({ok:true,enabled:true,priorities},200,origin);
+ }catch(error){
+  console.warn("CORTEX stage · Albert grille",clean(error?.message,85));
+  return respond({ok:true,enabled:false},200,origin);
+ }
+}
+
 // Les coordonnées proviennent des annuaires. Seuls les lieux déjà recensés
 // peuvent être classés par Albert.
 async function ranked(sector,businesses,token,demo=false,niveau="",option=""){
@@ -482,8 +533,9 @@ Deno.serve(async req=>{
   const option=sector==="commerce-vente"?clean(body.optionCommerce||"toutes",10):"toutes";
   if(!["A","B","toutes"].includes(option))throw Error("Option commerce non valide.");
   const inputTypes=Array.isArray(body.types)?body.types.map(x=>clean(x,50)):[];
-  const chosen=categoryIds(sector,inputTypes,option);
+  const chosen=categoryIds(sector,[...new Set(inputTypes)],option);
   if(!chosen.length)throw Error("Sélectionne au moins un type de structure compatible avec ta filière.");
+  if(body.action==="stage_priorities")return await stagePriorities(sector,option,chosen,niveau,body,origin);
   const radius=Math.min(50000,Math.max(800,Math.round(Number(body.radius)||2500)));
   const page=body.continuation?.page??1,branches=body.continuation?.branches??1;
   if(!Number.isSafeInteger(page)||page<1||!Number.isSafeInteger(branches)||branches<1)

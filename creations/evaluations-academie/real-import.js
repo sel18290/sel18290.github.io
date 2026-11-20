@@ -4,6 +4,7 @@ const by=id=>document.getElementById(id);
 const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
 const state={file:null,pdf:null,kind:'',name:'',pages:[],page:1,questions:[],id:null,assets:[],selected:null,
  published:false,busy:false,wordHtml:'',sourceCount:1};
+let resetCrop;
 const scripts={};
 const script=url=>scripts[url]||(scripts[url]=new Promise((resolve,reject)=>{
  const s=document.createElement('script');s.src=url;s.async=true;s.onload=resolve;
@@ -375,8 +376,10 @@ function relativePosition(ev){
 }
 function attachSelection(){
  const wrap=by('ri-source-page');let origin=null;
+ resetCrop=window.CORTEX_PHONE?.bindCrop(by('ri-crop-mode'),wrap);
  wrap.onpointerdown=e=>{
-  if(state.published||state.busy||(e.pointerType==='mouse'&&e.button!==0))return;
+  if(state.published||state.busy||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0)||
+     window.CORTEX_PHONE?.permitsCrop(wrap,e)===false)return;
   origin={point:relativePosition(e),pointerId:e.pointerId};
   state.selected=null;showSelection();wrap.setPointerCapture?.(e.pointerId);e.preventDefault();
  };
@@ -392,12 +395,14 @@ function attachSelection(){
   state.selected={x:Math.min(start.x,end.x),y:Math.min(start.y,end.y),
    w:Math.abs(start.x-end.x),h:Math.abs(start.y-end.y)};
   if(state.selected.w<0.018||state.selected.h<0.018){state.selected=null;showSelection();return;}
+  resetCrop?.();
   operation(()=>captureToBank(false));
  };
  wrap.onpointercancel=()=>{origin=null;state.selected=null;showSelection();};
 }
 async function paint(){
  const canvas=by('ri-canvas'),wrap=by('ri-source-page'),plain=by('ri-text-preview');
+ resetCrop?.();
  const previous=state.page;
  by('ri-current-page').textContent='Page '+state.page+' / '+state.sourceCount;
  by('ri-prev').disabled=state.page===1;by('ri-next').disabled=state.page===state.sourceCount;
@@ -420,9 +425,11 @@ async function paint(){
   const doc=node('div','ri-word-page');doc.innerHTML=state.wordHtml;
   canvas.append(doc);
  }
- wrap.style.touchAction=!state.published?'none':'auto';
+ wrap.classList.toggle('ri-readonly',state.published);
  
  by('ri-full-page').disabled=state.published;
+ const cropMode=by('ri-crop-mode');
+ if(cropMode)cropMode.disabled=state.published;
 }
 async function originalCanvas(){
  if(state.kind==='pdf'){

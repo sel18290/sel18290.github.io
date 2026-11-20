@@ -101,15 +101,4 @@
     if(!onMobile())return;
     requestAnimationFrame(()=>{window.scrollTo(0,0);schedule();});
   });
-  function isWriting(element){
-    return !!element&&element.matches?.('input:not([type="checkbox"]):not([type="radio"]),textarea,select,[contenteditable="true"]');
-  }
-  document.addEventListener('focusin',event=>{
-    if(onMobile()&&isWriting(event.target))document.body.classList.add('mobile-input-focus');
-  });
-  document.addEventListener('focusout',()=>{
-    requestAnimationFrame(()=>{
-      if(!isWriting(document.activeElement))document.body.classList.remove('mobile-input-focus');
-    });
-  });
 })();

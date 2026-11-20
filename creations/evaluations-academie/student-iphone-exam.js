@@ -18,7 +18,7 @@ const hasAnswer=value=>{
  }catch{}
  return true;
 };
-export const mobileExam=()=>window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
+export const mobileExam=()=>window.matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)').matches;
 
 export function installMobileExam({form,questions,exam,current}){
  const key='cortex-student-draft:v1:'+exam.id+':'+current.student_number;
@@ -61,7 +61,9 @@ export function installMobileExam({form,questions,exam,current}){
   const q=questions[i],card=cards[i];
   if(!card||card.dataset.loaded==='true')return;
   card.replaceChildren();
-  card.append(E('strong','',(i+1)+'. '+q.prompt));
+  const question=E('strong','',(i+1)+'. '+q.prompt);
+  question.tabIndex=-1;
+  card.append(question);
   if(q.page&&current.subject)card.append(E('small','cw-doc-ref','Document original · page '+q.page));
   const related=(exam.assets||[]).filter(a=>(q.assetIds||[]).includes(a.id)&&a.url);
   if(related.length){
@@ -131,8 +133,8 @@ export function installMobileExam({form,questions,exam,current}){
   strip.scrollTo({left:Math.max(0,left),behavior:'auto'});
   requestAnimationFrame(()=>{
    if(destroyed)return;
-   const pageTop=form.getBoundingClientRect().top+window.scrollY-64;
-   window.scrollTo({top:Math.max(0,pageTop),behavior:'auto'});
+   cards[i].querySelector('strong')?.focus({preventScroll:true});
+   cards[i].scrollIntoView({block:'start',behavior:'auto'});
   });
  }
  function arrow(text,change){
@@ -161,9 +163,10 @@ export function installMobileExam({form,questions,exam,current}){
   finger=null;
   if(!e.target.closest?.('.cw-answer-question')||
      e.target.closest?.('input,textarea,select,button,a,.cq-table-scroller,.ist-graphic,.cw-student-source-figure'))return;
-  const t=e.touches[0];
+  const t=e.touches.length===1?e.touches[0]:null;
   if(t&&t.clientX>24&&t.clientX<innerWidth-24)finger={x:t.clientX,y:t.clientY};
  },{passive:true});
+ form.addEventListener('touchcancel',()=>{finger=null;},{passive:true});
  form.addEventListener('touchend',e=>{
   if(!finger)return;
   const start=finger;finger=null;

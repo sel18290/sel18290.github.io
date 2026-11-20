@@ -79,7 +79,8 @@ function workspace(exam,page,selectedId){
    <section class="panel visual-origin"><div class="panel-head"><div><span class="review-overline">DOCUMENT SOURCE</span><h2>Original : ${esc(exam.sourceName||'Document')}</h2></div>
     <div class="btn-row">${exam.sourceType==='pdf'?`<button class="btn ghost small" data-action="visual-page-prev" ${page<=1?'disabled':''}>←</button><span class="chip">${page} / ${exam.sourcePageCount||1}</span><button class="btn ghost small" data-action="visual-page-next" ${page>=(exam.sourcePageCount||1)?'disabled':''}>→</button>`:''}
     <button class="btn ghost small" data-action="visual-download-original">Télécharger</button></div></div>
-    <p class="visual-hint">Place ton doigt ou ta souris sur la page, maintiens et encadre le passage à capturer. Relâche pour créer l’image.</p>
+    <p class="visual-hint cortex-desktop-crop-hint">Maintiens le clic sur la page et encadre le passage. Relâche pour créer la capture.</p>
+    <div class="cortex-phone-crop"><button type="button" id="visual-crop-mode" class="btn secondary" aria-controls="visual-original-stage" aria-pressed="false" disabled>Sélectionner un extrait</button><p>Fais défiler la page pour la lire. Active la sélection pour encadrer un passage du doigt.</p></div>
     <div id="visual-original-stage" class="visual-page-stage" aria-label="Original à capturer"><p class="muted">Ouverture du document original…</p></div>
     <div class="visual-source-controls"><button class="btn ghost small" data-action="visual-capture-full">Capturer la page entière</button><button class="btn ghost small" data-action="visual-copy-original">Copier la page en image</button></div>
    </section>
@@ -154,6 +155,8 @@ async function sanitizeWord(blob,stage){
 }
 async function showOriginal(exam,page,onCapture){
  const target=document.getElementById('visual-original-stage');if(!target||!exam?.sourceId)return;
+ const crop=document.getElementById('visual-crop-mode');
+ if(crop)crop.disabled=true;
  const generation=++cropGeneration;
  target.textContent='Chargement de la page originale…';
  try{
@@ -181,7 +184,12 @@ async function showOriginal(exam,page,onCapture){
   const area=document.createElement('div');area.className='visual-crop-area';
   const selection=document.createElement('div');selection.className='visual-crop-selection';selection.hidden=true;
   area.append(canvas,selection);target.replaceChildren(area);
-  bindCrop(area,canvas,selection,async blob=>onCapture(blob,page));
+  const reset=window.CORTEX_PHONE?.bindCrop(crop,area);
+  if(crop)crop.disabled=false;
+  bindCrop(area,canvas,selection,async blob=>{
+   reset?.();
+   await onCapture(blob,page);
+  });
  }catch(err){if(target.isConnected&&generation===cropGeneration)target.textContent='Document non affiché : '+err.message;}
 }
 async function showWordSource(sourceId,targetId){
@@ -220,7 +228,7 @@ function bindCrop(area,canvas,selection,onCapture){
   Object.assign(selection.style,{left:x+'px',top:y+'px',width:Math.abs(a.x-b.x)+'px',height:Math.abs(a.y-b.y)+'px'});
  }
  area.addEventListener('pointerdown',e=>{
-  if(e.button!==0&&e.pointerType==='mouse')return;
+  if(!e.isPrimary||(e.button!==0&&e.pointerType==='mouse')||window.CORTEX_PHONE?.permitsCrop(area,e)===false)return;
   e.preventDefault();const pt=pos(e);pointer={id:e.pointerId,start:pt};
   selection.hidden=false;draw(pt,pt);area.setPointerCapture?.(e.pointerId);
  });

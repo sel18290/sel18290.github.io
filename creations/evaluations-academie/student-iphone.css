@@ -2,7 +2,7 @@
  * Surface de défilement Safari stable et navigation par question.
  * Aucun changement de disposition sur ordinateur.
  */
-@media (pointer:coarse) and (max-width:1100px){
+@media (max-width:760px), (pointer:coarse) and (max-width:1100px){
  html:has(body.cw-student-active){
   max-width:100%;
   height:auto!important;
@@ -316,7 +316,7 @@ body.cw-student-active .cw-source-dialog .cw-source-scroll img {
 /* Partage iPhone : tableaux et onglets de l'espace professeur.
  * Ne pas couper la chaîne native de défilement de Safari.
  */
-@media (pointer:coarse) and (max-width:1100px){
+@media (max-width:760px), (pointer:coarse) and (max-width:1100px){
  html:has(body.cortex-noctis:not(.cortex-preaccess)){
   overflow-y:auto!important;
   -webkit-overflow-scrolling:touch
@@ -352,7 +352,7 @@ body.cw-student-active .cw-source-dialog .cw-source-scroll img {
 
 /* Onglet CHRONO du contrôle : accès en un toucher depuis toutes les questions.
    Décompte partagé avec le chrono initial, sans blocage du scroll iOS. */
-@media (pointer:coarse) and (max-width:1100px){
+@media (max-width:760px), (pointer:coarse) and (max-width:1100px){
  body.cw-student-active .cw-answer-form-paged{
   padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
  }

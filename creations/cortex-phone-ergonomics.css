@@ -221,3 +221,325 @@
   max-height:calc(100dvh - 12px)
  }
 }
+.cortex-acad-dock, .academy-professor-entry, .cw-student-home, .cortex-demo-chrono,
+.cortex-phone-jumps, .cortex-phone-crop { display: none; }
+
+@media (max-width:760px), (max-width:1100px) and (pointer:coarse) {
+  :root {
+    --cortex-phone-left: max(10px, env(safe-area-inset-left, 0px));
+    --cortex-phone-right: max(10px, env(safe-area-inset-right, 0px));
+    --cortex-phone-bottom: env(safe-area-inset-bottom, 0px);
+    --cortex-phone-top: env(safe-area-inset-top, 0px);
+    --cortex-phone-dock-height: calc(70px + var(--cortex-phone-bottom));
+  }
+  html.cortex-compact { scroll-padding-block-end: var(--cortex-phone-dock-height); }
+  body.cortex-noctis { -webkit-text-size-adjust: 100%; }
+  body.cortex-noctis :is(.topbar,.top) {
+    padding-inline-start: var(--cortex-phone-left);
+    padding-inline-end: var(--cortex-phone-right);
+    padding-top: max(8px, var(--cortex-phone-top));
+  }
+  body.cortex-noctis:has(#app) { padding-bottom: var(--cortex-phone-dock-height); }
+  body.cortex-noctis #app { padding-bottom: 12px !important; }
+  body.cortex-noctis :is(.top-actions,.phone-teacher-nav) {
+    padding-inline-start: var(--cortex-phone-left);
+    padding-inline-end: var(--cortex-phone-right);
+  }
+  body.cortex-noctis :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select) {
+    min-width: 0;
+    max-width: 100%;
+    font-size: max(16px,1rem);
+  }
+  body.cortex-noctis :is(
+    .cs-stage-search :is(.cs-stage-link,.cs-stage-primary,.cs-stage-quiet,.cs-stage-pale),
+    .cw-pin-eye,.cw-student-return,.cw-return,.cw-source-open,.cw-student-document,
+    .cw-student-assessment-actions button,.cw-student-dashboard-tools :is(a,button),
+    .ri-pagination button,.cortex-unified-buttons :is(button,label),.real-manual-page-bar button,
+    .tabbar button,.input-wrap .show,.cs-stage-criteria summary,.cw-copy-entry-summary,.cw-group-summary
+  ) { min-height: 44px; }
+  body.cortex-noctis :is(.cs-stage-dialog-head,.review-actions,.cw-copy-actions,.real-manual-qactions,
+    .ri-footer-actions,.visual-source-controls,.cw-source-dialog-tools) { min-width: 0; flex-wrap: wrap; }
+  body.cortex-noctis :is(.cw-receipt,.cw-student-receipt,.cs-stage-search,.prof-sec,
+    .visual-original,.ri-question-list,.real-manual-workshop fieldset) { min-width: 0; overflow-wrap: anywhere; }
+  body.cortex-noctis :is(.cs-stage-dialog-body,.cw-question-response,.ri-transcript,.visual-source-controls,
+    .review-document-pane,.review-response-pane,.ed-document,.ed-configuration) { min-width: 0; max-width: 100%; }
+  body.cortex-noctis :is(.cs-stage-card,.cw-student-dashboard-head,.real-manual-config,
+    .ri-panel,.panel-head,.exam-question) > * { min-width: 0; }
+  body.cortex-noctis :is(.cw-student-subject,.source-document,.cw-question-response,.cw-student-receipt) table {
+    max-width: 100%;
+  }
+  body.cortex-noctis :is(.cs-stage-cv-work,.cs-stage-contact-editor,.portal-login-form,.cw-answer-form-paged,
+    .cw-student-login-form,.auth-confirm-link-form,.ri-editor,.real-manual-workshop) :is(input,textarea,select) {
+    scroll-margin-block: 1rem 5rem;
+  }
+  body.cortex-noctis :is(.cortex-source-heading,.cw-source-dialog-head,.cs-stage-dialog-head,.modal-top) h2 {
+    overflow-wrap: anywhere;
+  }
+  body.cortex-noctis dialog[open]:not(.cortex-acad-tools) {
+    box-sizing: border-box;
+    max-inline-size: min(45rem, calc(100vw - var(--cortex-phone-left) - var(--cortex-phone-right)));
+    max-block-size: calc(100vh - max(14px, var(--cortex-phone-top)) - max(12px, var(--cortex-phone-bottom)));
+    max-block-size: calc(100dvh - max(14px, var(--cortex-phone-top)) - max(12px, var(--cortex-phone-bottom)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  body.cortex-noctis.mobile-input-focus dialog[open]:not(.cortex-acad-tools) {
+    inset-block-start: calc(var(--cortex-visual-top, 0px) + 6px);
+    inset-block-end: auto;
+    margin-block: 0;
+    max-block-size: calc(var(--cortex-visual-height, 90dvh) - 12px);
+  }
+  body.cortex-noctis.mobile-input-focus :is(.top-actions,.phone-teacher-nav,.cw-mobile-chrono-dock,.cortex-demo-chrono,.cortex-acad-dock,#cortex-albert-person) {
+    display: none !important;
+  }
+  body.cortex-noctis .modal-root:has(.modal-dialog) {
+    padding-inline: var(--cortex-phone-left) var(--cortex-phone-right);
+  }
+  body.cortex-noctis.mobile-input-focus .modal-root:has(.modal-dialog) {
+    top: var(--cortex-visual-top, 0px);
+    bottom: auto;
+    height: var(--cortex-visual-height, 100dvh);
+  }
+  body.cortex-noctis.mobile-input-focus .modal-dialog {
+    max-block-size: calc(var(--cortex-visual-height, 100dvh) - 12px);
+  }
+  body.cortex-noctis :is(.cortex-phone-crop,.cortex-phone-jumps) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .45rem;
+    margin-block: .6rem;
+    min-width: 0;
+  }
+  body.cortex-noctis .cortex-phone-crop > p { margin: 0; font-size: .88rem; color: #c9e0e8; }
+  body.cortex-noctis :is(.cortex-phone-jumps,.cortex-phone-crop) button {
+    min-height: 44px;
+    max-width: 100%;
+    font-size: .85rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  body.cortex-noctis .cortex-phone-jumps > button { flex: 1 1 100px; }
+  body.cortex-noctis :is(.cortex-desktop-crop-hint,.visual-steps,.ri-auto-capture-chip) { display: none; }
+  body.cortex-noctis .visual-crop-area:not(.cortex-crop-armed),
+  body.cortex-noctis #acad-import-workspace .ri-source-page:not(.cortex-crop-armed) {
+    touch-action: pan-x pan-y pinch-zoom;
+    cursor: auto;
+  }
+  body.cortex-noctis .cortex-phone-crop button[aria-pressed="true"] {
+    border-color: #ffca84;
+    background: #433122;
+    color: #fff2dd;
+  }
+  body.cortex-noctis :is(.ri-source-page,.visual-crop-area).cortex-crop-armed {
+    outline: 3px solid #f5b66c;
+    outline-offset: -3px;
+  }
+  body.cortex-noctis :is(.real-manual-nav,.real-manual-document,.real-manual-config,.ri-original,.ri-question-panel,.ri-footer) {
+    scroll-margin-block-start: max(14px, var(--cortex-phone-top));
+  }
+  body.cortex-noctis .cw-pin-input-wrap { min-width: 0; }
+  body.cortex-noctis .cw-pin-input-wrap input { flex: 1 1 0; min-width: 0; }
+  body.cortex-noctis .cw-pin-eye { flex-shrink: 0; }
+  body.cortex-noctis .cw-student-home {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block-end: .35rem;
+    color: #b9dbea;
+    font-size: .9rem;
+  }
+  body.cortex-noctis .cw-source-scroll { overscroll-behavior: contain; }
+  body.cortex-noctis .cw-source-scroll img { max-inline-size: none; }
+  body.cortex-noctis .cw-answer-form-paged .cw-answer-question { scroll-margin-block-start: 14px; }
+  body.cortex-noctis .cw-mobile-chrono-dock { right: var(--cortex-phone-right); }
+  body.cortex-noctis .cortex-demo-chrono {
+    display: flex;
+    flex-direction: column-reverse;
+    position: fixed;
+    z-index: 61;
+    inset-inline-end: var(--cortex-phone-right);
+    bottom: calc(var(--cortex-phone-dock-height) + 6px);
+    align-items: end;
+    gap: .45rem;
+  }
+  body.cortex-noctis .cortex-demo-chrono summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 .85rem;
+    border: 1px solid #75b3b0;
+    border-radius: 999px;
+    background: #183b48;
+    color: #e9fff8;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  body.cortex-noctis .cortex-demo-chrono summary::-webkit-details-marker { display: none; }
+  body.cortex-noctis .cortex-demo-chrono-body {
+    display: grid;
+    justify-items: center;
+    gap: .35rem;
+    padding: .75rem 1rem;
+    border: 1px solid #5f8d9a;
+    border-radius: 12px;
+    background: #13283b;
+    color: #e4f8fe;
+  }
+  body.cortex-noctis #cortex-demo-chrono-time { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  body.cortex-noctis .phone-teacher-other-spaces {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: .5rem;
+    margin-block: .75rem;
+  }
+  body.cortex-noctis .phone-teacher-other-spaces a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 6px;
+    border: 1px solid #577d8a;
+    border-radius: 10px;
+    background: #102737;
+    color: #dfedf4;
+    text-decoration: none;
+    text-align: center;
+    font-weight: 700;
+  }
+  body.cortex-noctis .top > .academy-header-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 6px;
+  }
+  body.cortex-noctis.academy-authenticated .top > .academy-header-actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  body.cortex-noctis .academy-header-actions > :is(.academy-student-entry,.demo-primary,.academy-professor-entry) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    min-width: 0;
+    padding: 6px;
+    text-align: center;
+    font-size: .8rem;
+    line-height: 1.25;
+    white-space: normal;
+  }
+  body.cortex-noctis .academy-professor-entry {
+    border: 1px solid #5b8297;
+    border-radius: 10px;
+    color: #dcf1f7;
+    background: #182e40;
+    text-decoration: none;
+  }
+  body.cortex-noctis.academy-authenticated .academy-professor-entry,
+  body.cortex-noctis .academy-header-actions :is(.demo-play,.demo-arrow,.demo-label small) { display: none; }
+  body.cortex-noctis #auth-view { scroll-margin-block-start: max(14px, var(--cortex-phone-top)); }
+  body.cortex-noctis #auth-form .input-wrap input { width: 100%; min-width: 0; }
+  html.cortex-acad-compact body.academy-authenticated #acad-professor-workspace {
+    grid-template-columns: minmax(0,1fr);
+    padding-bottom: var(--cortex-phone-dock-height);
+  }
+  html.cortex-acad-compact body.academy-authenticated #acad-professor-workspace .sidebar { display: none; }
+  html.cortex-acad-compact body.academy-authenticated #prof-content > .prof-sec {
+    scroll-margin-block-start: max(12px, var(--cortex-phone-top));
+  }
+  body.cortex-noctis .cortex-acad-dock:not([hidden]) {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    gap: 3px;
+    padding: 6px var(--cortex-phone-right) calc(8px + var(--cortex-phone-bottom)) var(--cortex-phone-left);
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 70;
+    border-top: 1px solid #527a8b;
+    background: #0b1828;
+    box-shadow: 0 -8px 24px #030913a8;
+  }
+  body.cortex-noctis .cortex-acad-dock :is(a,button) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    min-height: 54px;
+    min-width: 0;
+    margin: 0;
+    padding: 4px 1px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: #b7d5e2;
+    font: 720 .73rem/1.2 system-ui, sans-serif;
+    text-decoration: none;
+    text-align: center;
+    touch-action: manipulation;
+  }
+  body.cortex-noctis .cortex-acad-dock :is(a,button) > span { font-size: 1.15rem; line-height: 1; }
+  body.cortex-noctis .cortex-acad-dock [aria-current="page"] {
+    border-color: #71b8ae;
+    background: #214d50;
+    color: #e4fff6;
+  }
+  body.cortex-noctis .cortex-acad-tools[open] {
+    box-sizing: border-box;
+    position: fixed;
+    inset: auto var(--cortex-phone-right) max(9px,var(--cortex-phone-bottom)) var(--cortex-phone-left);
+    width: min(calc(100vw - var(--cortex-phone-left) - var(--cortex-phone-right)),36rem);
+    max-width: none;
+    max-height: min(80dvh,38rem);
+    margin: 0 auto;
+    padding: 0 .85rem .85rem;
+    border: 1px solid #628f9b;
+    border-radius: 17px;
+    background: #13283b;
+    color: #e5f5fa;
+    overscroll-behavior: contain;
+    overflow-y: auto;
+  }
+  body.cortex-noctis .cortex-acad-tools::backdrop { background: #030a16cc; }
+  body.cortex-noctis .cortex-acad-tools > header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    padding-block: .8rem .55rem;
+    background: #13283b;
+    z-index: 1;
+  }
+  body.cortex-noctis .cortex-acad-tools h2 { font-size: 1.2rem; margin: 0; }
+  body.cortex-noctis .cortex-acad-tools :is(nav,footer) {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: .5rem;
+  }
+  body.cortex-noctis .cortex-acad-tools footer { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #415f70; }
+  body.cortex-noctis .cortex-acad-tools :is(a,button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: 46px;
+    border: 1px solid #4d7787;
+    border-radius: 9px;
+    padding: .5rem;
+    background: #1b3849;
+    color: #e3f4fa;
+    font: 700 .85rem/1.3 system-ui, sans-serif;
+    text-decoration: none;
+    text-align: center;
+  }
+}
+@media (max-width:480px) {
+  body.cortex-noctis :is(.prof-form,.cw-copy-filter-bar,.cw-pin-table) {
+    grid-template-columns: minmax(0,1fr);
+  }
+  body.cortex-noctis :is(.cw-student-dashboard-tools,.ri-footer-actions,.visual-source-controls) > :is(a,button) {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+  body.cortex-noctis .tabbar { gap: 4px; }
+  body.cortex-noctis .tabbar button { padding-inline: 4px; overflow-wrap: anywhere; }
+}

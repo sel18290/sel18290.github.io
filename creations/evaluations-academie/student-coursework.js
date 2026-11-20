@@ -2,7 +2,7 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.11';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.3';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.3';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.4';
 import { sourceFigure } from './student-source-view.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
@@ -28,6 +28,7 @@ if(qr||globalPortal){
   '<p>'+(qr?'Le QR code t’a envoyé vers le contrôle attribué à ta classe.':'Choisis ta classe, indique ton numéro sur la liste et confirme ton PIN pour retrouver tes contrôles et corrections.')+'</p></div>'+
   '<div id="cw-student-status" role="status" aria-live="polite" class="cw-status" hidden></div>'+
   '<section id="cw-student-login" class="cw-pin-entry">'+
+  '<a class="cw-student-home" href="./">Retour à CORTEX Académie</a>'+
   '<div class="cw-pin-paths" role="group" aria-label="Choisir sa connexion">'+
   '<button id="cw-back-to-login" type="button" class="cw-pin-path is-selected" aria-pressed="true">◈ J’ai déjà mon PIN</button>'+
   '<button id="cw-show-activation" type="button" class="cw-pin-path" aria-pressed="false">✦ Je crée mon PIN</button></div>'+

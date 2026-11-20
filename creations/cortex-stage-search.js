@@ -4,6 +4,7 @@
 
   const ENDPOINT = 'https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search';
   const GUIDE = window.CORTEX_STAGE_GUIDE;
+  const RANKING = window.CORTEX_STAGE_RANKING;
   const SECTORS = Object.entries(GUIDE.programs).map(([id, program]) => [id, program.label]);
   const RADII = [1200, 2500, 4000, 6500, 10000, 20000, 50000];
   const PAGE_SIZE = 12;
@@ -103,7 +104,10 @@
       name: clean(raw.name),
       address: clean(raw.address),
       phone: clean(raw.phone),
+      callable: Boolean(phoneUrl(raw.phone)),
       website: webUrl(raw.website),
+      activity: clean(raw.activity || raw.category),
+      employer: raw.employer === true,
       point: coordinates(raw),
       distance: Number.isFinite(distance) && distance >= 0 ? distance : null,
       types: Array.isArray(raw.target_types) ? raw.target_types : [],
@@ -244,21 +248,40 @@
       <section class="cs-stage-results" id="cs-stage-results" aria-labelledby="cs-stage-result-title" hidden>
         <div class="cs-stage-result-header">
           <div><div class="cs-stage-kicker">Résultats de recherche</div><h2 id="cs-stage-result-title" tabindex="-1"></h2><p id="cs-stage-result-context"></p></div>
-          <div>
+          <div class="cs-stage-result-actions">
             <button type="button" id="cs-stage-resume" class="cs-stage-primary" hidden>Reprendre la recherche</button>
             <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
           </div>
         </div>
         <p class="cs-stage-ai-note" id="cs-stage-ai-note"></p>
+        <details class="cs-stage-criteria" id="cs-stage-criteria">
+          <summary>Comment les lieux sont-ils sélectionnés ?</summary>
+          <ul>
+            <li><strong>Missions du bac pro</strong> Le type d’établissement doit correspondre à ta filière et aux activités à pratiquer.</li>
+            <li><strong>Proximité</strong> La distance est calculée à vol d’oiseau depuis la zone recherchée.</li>
+            <li><strong>Coordonnées</strong> Une adresse, un numéro public ou un site renseigné rendent la prise de contact plus facile.</li>
+            <li><strong>Équipe sur place</strong> Le statut d’employeur, quand il est renseigné, est un indice qu’une équipe peut être présente.</li>
+          </ul>
+          <p>Albert peut ajuster la priorité des types de lieux. Confirme les missions et les possibilités d’accueil auprès de chaque structure.</p>
+        </details>
+        <nav class="cs-stage-batch-nav" id="cs-stage-batch-nav" aria-label="Sélections de lieux de stage" hidden>
+          <p id="cs-stage-batch-label" aria-live="polite"></p>
+          <div>
+            <button type="button" id="cs-stage-batch-prev" class="cs-stage-quiet" hidden>Sélection précédente</button>
+            <button type="button" id="cs-stage-batch-next" class="cs-stage-primary" hidden>100 autres pistes</button>
+          </div>
+        </nav>
         <div class="cs-stage-filters" id="cs-stage-filters" hidden>
-          <label>Afficher<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes démarches</option></select></label>
-          <label>Trier par<select id="cs-stage-sort"><option value="default">Tri recommandé</option><option value="distance">Proximité</option><option value="phone">Téléphone disponible</option><option value="name">Nom A à Z</option></select></label>
+          <label>Filtrer cette sélection<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes démarches</option></select></label>
+          <label>Trier cette sélection<select id="cs-stage-sort"><option value="default">Pertinence</option><option value="distance">Proximité</option><option value="phone">Téléphone disponible</option><option value="name">Nom A à Z</option></select></label>
           <button type="button" id="cs-stage-export" class="cs-stage-quiet">Exporter en CSV</button>
         </div>
         <p class="cs-stage-matches" id="cs-stage-matches" aria-live="polite"></p>
         <div class="cs-stage-cards" id="cs-stage-cards"></div>
-        <button type="button" id="cs-stage-more" class="cs-stage-quiet cs-stage-more" hidden></button>
-        <button type="button" id="cs-stage-show-all" class="cs-stage-quiet" hidden>Tout afficher</button>
+        <div class="cs-stage-display-actions">
+          <button type="button" id="cs-stage-more" class="cs-stage-quiet cs-stage-more" hidden></button>
+          <button type="button" id="cs-stage-show-all" class="cs-stage-quiet" hidden>Afficher toute la sélection</button>
+        </div>
       </section>
       <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
     </div>
@@ -318,7 +341,7 @@
     const mode = settings.demo ? 'demo' : 'real';
     const scope = encodeURIComponent(settings.storageScope || 'public');
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
-    const cacheKey = 'cortex-stage-cache:v6:' + mode;
+    const cacheKey = 'cortex-stage-cache:v7:' + mode;
     const saved = read(key, {});
     const identity = saved.identity || {};
     const drafts = Object.assign(Object.create(null), saved.drafts || {});
@@ -334,6 +357,7 @@
     let result = null;
     let pending = null;
     let pageLimit = PAGE_SIZE;
+    let batchIndex = 0;
     let shown = [];
     let contactsDirty = true;
     let destroyed = false;
@@ -606,18 +630,19 @@
     function remember(query, data) {
       const id = signature(query);
       const recent = read(cacheKey, []).filter(item => item.key !== id && Date.now() - item.time < CACHE_AGE);
-      save(cacheKey, [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8));
+      const records = [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8);
+      while (records.length && !save(cacheKey, records)) records.pop();
     }
 
     function showResult(data, query, focusResults, fromCache = false, added = null) {
       const unique = added ? result.unique : new Map();
-      const mapAddresses = added ? result.mapAddresses : new Set();
+      const addresses = added ? result.addresses : new Set();
       for (const item of added || data.businesses) {
         const place = placeFrom(item);
         if (!place || unique.has(place.id)) continue;
-        const addressKey = place.address && normalize(place.name + ' ' + place.address);
-        if (place.id.startsWith('siret/') && addressKey && mapAddresses.has(addressKey)) continue;
-        if (/^(node|way|relation)\//.test(place.id) && addressKey) mapAddresses.add(addressKey);
+        const addressKey = place.address && normalize(place.name + ' ' + place.address).replace(/[^\p{L}\d]+/gu, ' ').trim();
+        if (addressKey && addresses.has(addressKey)) continue;
+        if (addressKey) addresses.add(addressKey);
         unique.set(place.id, place);
         if (legacyIds.has(place.id) && !board.has(place.id)) {
           legacyIds.delete(place.id);
@@ -626,33 +651,26 @@
       }
       if (legacyIds.size !== legacy.length && save('cortex-stage-favoris:v1', [...legacyIds])) persist();
       boardChanged();
-      result = { data, query, unique, mapAddresses, places: [...unique.values()], fromCache };
+      result = { data, query, unique, addresses, ordered: RANKING.order(unique.values(), query, data.priorities) };
       if (!added) {
+        batchIndex = 0;
         pageLimit = PAGE_SIZE;
         $('filter').value = 'all';
         $('sort').value = 'default';
       }
-      const count = unique.size;
-      $('result-title').textContent = count ? count + ' ' + plural(count, 'lieu repéré', 'lieux repérés') : 'Aucun lieu repéré';
       const routeLabel = query.option === 'toutes' ? '' : ' · Option ' + query.option;
       $('result-context').textContent = (clean(data.city) || query.city) + ' · ' + numbers.format(query.radius / 1000) +
         ' km · ' + GUIDE.programs[query.sector].label + routeLabel;
-      const ranked = result.places.some(place => place.rank);
-      const aiCopy = ranked ? 'Albert met en avant des lieux adaptés. Toutes les autres pistes restent dans la liste.'
-        : query.albert && count > 0 ? 'Tri par distance : Albert n’a pas proposé de classement pour cette recherche.'
-        : 'Tri par distance depuis le centre de la zone recherchée.';
-      const checked = data.checked_at && !Number.isNaN(Date.parse(data.checked_at))
-        ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(data.checked_at)) : '';
-      const registry = result.places.some(place => place.id.startsWith('siret/'));
-      $('ai-note').textContent = aiCopy + (registry ? ' · Adresses issues de l’Annuaire des entreprises' : '') +
-        (checked ? ' · Annuaire consulté le ' + checked : '') +
+      const aiCopy = data.priorities ? 'Priorités par type de lieu ajustées par Albert.'
+        : data.calibrating ? 'Albert prépare les priorités par type de lieu…'
+        : 'Sélection selon les missions, la distance et les informations des annuaires.';
+      $('ai-note').textContent = aiCopy +
         (fromCache ? ' · Résultats enregistrés' : '') +
         (data.continuation && !data.incomplete ? ' · Chargement des pages suivantes…' : '') +
         (data.incomplete ? ' · Une partie des résultats est disponible' : '');
       $('resume').hidden = !data.incomplete || !data.continuation;
       $('results').hidden = false;
-      $('filters').hidden = !count;
-      renderCards();
+      renderBatch();
       if (focusResults && panel === 'search') $('result-title').focus();
     }
 
@@ -668,10 +686,9 @@
     }
 
     async function loadStagePage(query, continuation, signal) {
-      const payload = JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
+      const payload = JSON.stringify({ city: query.city, filiere: query.sector,
         optionCommerce: query.option, types: query.types, radius: query.radius,
-        albert: !continuation && query.albert, continuation,
-        demo: settings.demo === true, session: !continuation && query.albert ? settings.session || '' : '' });
+        continuation });
       const attempts = continuation ? 3 : 1;
       for (let attempt = 0; attempt < attempts; attempt++) {
         if (signal.aborted) throw signal.reason;
@@ -699,6 +716,27 @@
       }
     }
 
+    async function calibrate(query, signal) {
+      const calibrationRequest = new AbortController();
+      const abort = () => calibrationRequest.abort();
+      signal.addEventListener('abort', abort, { once: true });
+      const timer = setTimeout(abort, 24000);
+      try {
+        const response = await askAlbert({ action: 'stage_priorities', filiere: query.sector,
+          optionCommerce: query.option, types: query.types, niveau: query.level }, calibrationRequest.signal);
+        const scores = response.priorities;
+        if (response.enabled && query.types.every(id => typeof scores?.[id] === 'number' && scores[id] >= 55 && scores[id] <= 100)) {
+          return scores;
+        }
+      } catch {
+        // Les priorités de référence donnent un classement complet si Albert est indisponible.
+      } finally {
+        clearTimeout(timer);
+        signal.removeEventListener('abort', abort);
+      }
+      return null;
+    }
+
     async function search(query = queryFromForm(), { force = false, focus = true, resume = false } = {}) {
       if (destroyed || pending) return;
       if (query.city.length < 2 || !/^[\p{L}0-9 .,'’\-]+$/u.test(query.city)) {
@@ -724,8 +762,20 @@
       status('');
       setBusy(query);
       let data = resume ? result.data : null;
+      let priorities = data?.priorities ?? null;
+      let calibrating = query.albert && !priorities;
+      const calibration = calibrating ? calibrate(query, request.signal).then(scores => {
+        priorities = scores;
+        calibrating = false;
+        if (data && !browserRequestChanged(request)) {
+          data.priorities = scores;
+          data.calibrating = false;
+          showResult(data, query, false, false, []);
+        }
+      }) : null;
       if (data) {
         data.incomplete = false;
+        data.calibrating = calibrating;
         showResult(data, query, false, false, []);
       }
       try {
@@ -742,9 +792,13 @@
             showResult(data, query, false, false, batch.businesses);
           } else {
             data = batch;
+            data.priorities = priorities;
+            data.calibrating = calibrating;
             showResult(data, query, focus);
           }
         } while (data.continuation);
+        await calibration;
+        if (browserRequestChanged(request)) return;
         if (!data.incomplete) remember(query, data);
       } catch (error) {
         if (destroyed || browserRequestChanged(request)) return;
@@ -764,10 +818,11 @@
         } else if (/^Ville (introuvable|ou quartier non valide)/i.test(error.message)) {
           status(error.message, true);
         } else {
-          status('L’annuaire ne répond pas. Réessaie, réduis le rayon ou désactive le classement Albert.', true);
+          status('L’annuaire ne répond pas. Réessaie ou réduis le rayon de recherche.', true);
         }
       } finally {
         if (pending === request) {
+          request.abort();
           pending = null;
           if (!destroyed) setBusy(null);
         }
@@ -775,8 +830,9 @@
     }
 
     function markPartial() {
-      if (!result?.data.continuation) return;
-      result.data.incomplete = true;
+      if (!result || (!result.data.continuation && !result.data.calibrating)) return;
+      result.data.calibrating = false;
+      if (result.data.continuation) result.data.incomplete = true;
       showResult(result.data, result.query, false, false, []);
     }
 
@@ -806,24 +862,46 @@
     });
 
     /* Résultats, carnet et préparation de la prise de contact. */
+    function currentBatch() {
+      const offset = batchIndex * RANKING.SIZE;
+      return result.ordered.slice(offset, offset + RANKING.SIZE);
+    }
+
+    function renderBatch() {
+      const count = currentBatch().length;
+      const all = result.ordered.length;
+      const nextCount = Math.min(RANKING.SIZE, all - (batchIndex + 1) * RANKING.SIZE);
+      const collecting = Boolean(result.data.continuation || result.data.calibrating);
+      $('result-title').textContent = count ? count + ' ' + plural(count, 'piste pour ton stage', 'pistes pour ton stage') : 'Aucun lieu repéré';
+      $('batch-nav').hidden = !count;
+      $('batch-label').textContent = count
+        ? (collecting ? 'Sélection provisoire' : 'Sélection ' + (batchIndex + 1)) + ' · ' +
+          numbers.format(all) + ' ' + plural(all, 'lieu examiné', 'lieux examinés') : '';
+      $('batch-prev').hidden = batchIndex === 0;
+      $('batch-next').hidden = nextCount <= 0 || collecting;
+      $('batch-next').textContent = nextCount === 1 ? '1 autre piste' : nextCount + ' autres pistes';
+      $('filters').hidden = !count;
+      renderCards();
+    }
+
     function filteredPlaces() {
       const filters = {
         all: () => true,
-        phone: place => Boolean(phoneUrl(place.phone)),
+        phone: place => place.callable,
         full: place => Boolean(place.address),
         site: place => Boolean(place.website),
         saved: place => board.has(place.id)
       };
-      const list = result.places.filter(filters[$('filter').value]);
+      const list = currentBatch().filter(filters[$('filter').value]);
       const byName = (a, b) => a.name.localeCompare(b.name, 'fr') || a.id.localeCompare(b.id);
       const byDistance = (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity) || byName(a, b);
       const sort = $('sort').value;
       if (sort === 'name') return list.sort(byName);
       if (sort === 'distance') return list.sort(byDistance);
       if (sort === 'phone') {
-        return list.sort((a, b) => Number(Boolean(phoneUrl(b.phone))) - Number(Boolean(phoneUrl(a.phone))) || byDistance(a, b));
+        return list.sort((a, b) => Number(b.callable) - Number(a.callable) || byDistance(a, b));
       }
-      return list.sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity) || byDistance(a, b));
+      return list;
     }
 
     function emptyCard(title, copy, extra) {
@@ -838,7 +916,7 @@
       shown = filteredPlaces();
       const cards = $('cards');
       cards.replaceChildren();
-      const count = result.places.length;
+      const count = currentBatch().length;
       $('matches').textContent = count ? Math.min(pageLimit, shown.length) + ' / ' + shown.length + ' affichés' : '';
       $('export').disabled = !shown.length;
       $('more').hidden = shown.length <= pageLimit;
@@ -846,6 +924,10 @@
       $('more').textContent = 'Afficher ' + Math.min(PAGE_SIZE, Math.max(0, shown.length - pageLimit)) + ' lieux de plus';
 
       if (!shown.length) {
+        if (!count && result.data.continuation && !result.data.incomplete) {
+          cards.append(emptyCard('Recherche en cours', 'CORTEX examine les établissements de cette zone.'));
+          return;
+        }
         const bigger = RADII.find(value => value > result.query.radius);
         let action;
         if (count) {
@@ -899,7 +981,6 @@
       contact.append(node('p', '', place.address || 'Adresse à vérifier sur la carte'),
         node('p', 'cs-stage-contact-number', place.phone || 'Téléphone non renseigné'));
       card.append(contact);
-      if (place.rank) card.append(node('p', 'cs-stage-ai-badge', 'Sélection Albert'));
       const mission = categories[0]?.[2] || profile?.lead
         || 'Vérifie si l’équipe peut te confier des missions en espace de vente ou en prospection.';
       const missions = node('div', 'cs-stage-mission-preview');
@@ -922,6 +1003,16 @@
 
     $('filter').addEventListener('change', resetResultsPage);
     $('sort').addEventListener('change', resetResultsPage);
+    function moveBatch(step) {
+      batchIndex += step;
+      pageLimit = PAGE_SIZE;
+      $('filter').value = 'all';
+      $('sort').value = 'default';
+      renderBatch();
+      $('result-title').focus();
+    }
+    $('batch-prev').addEventListener('click', () => moveBatch(-1));
+    $('batch-next').addEventListener('click', () => moveBatch(1));
     $('more').addEventListener('click', () => {
       const firstNew = pageLimit;
       pageLimit += PAGE_SIZE;

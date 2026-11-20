@@ -112,6 +112,8 @@
       '<p>Accède aux fonctions de ton espace professeur.</p></div>'+
       '<button class="phone-teacher-close" type="button" aria-label="Fermer le panneau Outils">✕</button></div>'+
       '<div class="phone-teacher-more-grid"></div>'+
+      '<nav class="phone-teacher-other-spaces" aria-label="Changer d’espace">'+
+      '<a href="#eleve/accueil">Espace élève</a><a href="../evaluations-academie/">Espace réel</a></nav>'+
       '<button class="phone-teacher-dismiss" type="button">Fermer les outils</button>';
     const grid=drawer.querySelector('.phone-teacher-more-grid');
     more.forEach(item=>grid.appendChild(makeTab(item,true)));
@@ -258,7 +260,7 @@
     if(!drawer||drawer.hidden)return;
     if(event.key==='Escape'){event.preventDefault();setOpen(false);return;}
     if(event.key!=='Tab')return;
-    const focusable=Array.from(drawer.querySelectorAll('button:not([disabled])'));
+    const focusable=Array.from(drawer.querySelectorAll('button:not([disabled]),a[href]'));
     if(!focusable.length)return;
     const first=focusable[0],last=focusable[focusable.length-1];
     if(event.shiftKey&&(document.activeElement===first||!drawer.contains(document.activeElement))){

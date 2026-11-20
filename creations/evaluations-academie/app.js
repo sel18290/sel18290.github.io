@@ -47,10 +47,22 @@ document.addEventListener('click',event=>{
   drawAcademyTools();
  }
  showAcadSection(view);
+ if(view==='copies'){
+  // La liste est plus bas dans la section : toujours actualiser avant de l'ouvrir.
+  // Le serveur reste l'unique source de vérité des copies remises.
+  window.dispatchEvent(new Event('cortex:academy-data-ready'));
+ }
  if(location.hash!==('#'+acadRoutes[view]))location.hash='#'+acadRoutes[view];
  requestAnimationFrame(()=>{
-  const id=view==='overview'?'prof-overview':(['pins','qr','copies'].includes(view)?'acad-live-workflow':acadRoutes[view]);
+  const id=view==='overview'?'prof-overview':
+   view==='copies'?'cw-copies-head':
+   (['pins','qr'].includes(view)?'acad-live-workflow':acadRoutes[view]);
   document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  if(view==='copies'){
+   // Afficher les classes et les contrôles, sans ouvrir toutes les réponses.
+   document.querySelectorAll('#cw-copy-list details.cw-copy-class, #cw-copy-list details.cw-copy-control')
+    .forEach(panel=>{panel.open=true});
+  }
  });
 });
 window.addEventListener('hashchange',()=>{if(document.body.classList.contains('academy-authenticated'))showAcadSection(currentAcadView())});

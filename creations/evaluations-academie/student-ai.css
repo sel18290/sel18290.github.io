@@ -46,3 +46,22 @@
  .cw-student-my-answer{padding:12px 11px}
  .cw-student-my-answer-value{font-size:15px}
 }
+
+/* Estimation Albert : validation et analyse visibles sur iPhone sans boîte native. */
+.cw-ai-confirmation[hidden],.cw-ai-inline-progress[hidden]{display:none!important}
+.cw-ai-confirmation{display:grid;gap:12px;margin-top:13px;padding:16px;border:1px solid #8bbdeb;border-radius:14px;background:linear-gradient(140deg,#223b61,#1b2b4b);color:#fff}
+.cw-ai-confirmation>strong{font-size:16px;line-height:1.45}
+.cw-ai-confirmation>p{font-size:13px;line-height:1.6;color:#e3efff;margin:0}
+.cw-ai-confirm-actions{display:flex;flex-wrap:wrap;gap:11px}
+.cw-ai-confirm-actions>button{flex:1 1 160px;min-height:51px;cursor:pointer}
+.cw-ai-confirm-cancel{border:1px solid #9bc0dd;border-radius:12px;background:#152c48;color:#ecf7ff;font:inherit;font-weight:750;padding:12px 16px}
+.cw-ai-inline-progress{display:flex;align-items:center;gap:12px;margin-top:14px;border:1px solid #719bd6;background:#20385b;color:#e6f4ff;border-radius:12px;padding:15px;font-size:14px;line-height:1.5}
+.cw-ai-progress-spinner{flex:none;width:22px;height:22px;border:3px solid #6596c7;border-top-color:#fff;border-radius:50%;animation:cortex-ai-estimation-spin 1s linear infinite}
+@keyframes cortex-ai-estimation-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.cw-ai-progress-spinner{animation:none;border-top-color:#b0e4ff}}
+@media(max-width:650px){
+ .cw-ai-confirmation{padding:13px 11px}
+ .cw-ai-confirm-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ .cw-ai-confirm-actions>button{width:100%;min-width:0}
+ .cw-ai-inline-progress{font-size:13px}
+}

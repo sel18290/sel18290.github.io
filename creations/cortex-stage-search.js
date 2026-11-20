@@ -422,6 +422,8 @@
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
     const cacheKey = 'cortex-stage-cache:v7:' + mode;
     const saved = read(key, {});
+    const customSectors = (Array.isArray(saved.customSectors) ? saved.customSectors : []).slice(0,20)
+      .filter(config => GUIDE.registerCustom(config));
     const identity = saved.identity || {};
     const drafts = Object.assign(Object.create(null), saved.drafts || {});
     const hooks = Object.assign(Object.create(null), saved.hooks || {});
@@ -488,7 +490,7 @@
         preferences: { sector, option, city: $('city').value, radius: Number($('radius').value),
           albert: $('albert').checked, confirmed: $('confirmed').checked, types: selections },
         prep: { start: prep.start || '', end: prep.end || '', done: [...checks] },
-        board: [...board.values()], identity, drafts, hooks
+        board: [...board.values()], identity, drafts, hooks, customSectors
       });
     }
 
@@ -566,7 +568,8 @@
     async function askAlbert(input, signal) {
       const response = await fetch(ENDPOINT, {
         method: 'POST', headers: { 'content-type': 'application/json' }, signal,
-        body: JSON.stringify({ ...input, demo: settings.demo === true, session: settings.session || '' })
+        body: JSON.stringify({ ...input, customFiliere: GUIDE.getCustom(input.filiere || sector),
+          demo: settings.demo === true, session: settings.session || '' })
       });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data?.ok) throw Error(data?.error || 'Albert est momentanément indisponible.');
@@ -715,23 +718,117 @@
 
     $('all-types').addEventListener('click', () => setAllTypes(true));
     $('no-types').addEventListener('click', () => setAllTypes(false));
-    for (const [id, program] of Object.entries(GUIDE.programs)) {
-      const label = node('label', 'cs-stage-program');
-      const radio = node('input');
-      radio.type = 'radio';
-      radio.name = 'stage-program';
-      radio.value = id;
-      radio.checked = sector === id;
-      radio.addEventListener('change', () => {
-        sector = id;
-        changeCriteria();
-      });
-      const card = node('span', 'cs-stage-program-card');
-      card.append(node('span', 'cs-stage-program-code', program.short),
-        node('strong', '', program.label), node('small', '', program.detail));
-      label.append(radio, card);
-      $('programs').append(label);
+    const createProgramDialog = node('dialog','cs-stage-custom-dialog');
+    const createProgramForm = node('form','cs-stage-custom-form');
+    createProgramForm.setAttribute('aria-label','Ajouter une filière avec Albert');
+    const customHeading = node('h2','','Ajouter une filière avec Albert');
+    const customInfo = node('p','cs-stage-custom-info',
+      'Indique une filière de bac professionnel. Albert proposera des lieux de PFMP, des missions et des critères de recherche à vérifier avec le lycée.');
+    const titleLabel = node('label','cs-stage-custom-input-label','Nom de la filière');
+    const customInput = node('input');
+    customInput.type='text';
+    customInput.name='custom-sector-title';
+    customInput.maxLength=65;
+    customInput.required=true;
+    customInput.placeholder='Ex. Accompagnement, soins et services à la personne';
+    titleLabel.append(customInput);
+    const customNotice = node('p','cs-stage-custom-notice');
+    customNotice.setAttribute('role','status');
+    const customPreview = node('div','cs-stage-custom-preview');
+    customPreview.hidden = true;
+    const customActions = node('div','cs-stage-custom-actions');
+    const cancelCustom = button('Fermer','cs-stage-pale',()=>createProgramDialog.close());
+    const generateCustom = button('✦ Générer avec Albert','cs-stage-primary',()=>createProgramForm.requestSubmit());
+    const acceptCustom = button('Utiliser cette filière','cs-stage-primary',()=>{
+      if(!customProposed)return;
+      if(customSectors.length>=20){
+        customNotice.textContent='Tu as déjà 20 filières enregistrées dans cet espace.';
+        return;
+      }
+      if(!GUIDE.registerCustom(customProposed)){
+        customNotice.textContent='La proposition doit être vérifiée. Relance la génération.';
+        return;
+      }
+      customSectors.push(customProposed);
+      sector=customProposed.id;
+      persist();
+      renderPrograms();
+      changeCriteria();
+      createProgramDialog.close();
+      status('Filière ajoutée. Vérifie les types de lieux puis lance la recherche.');
+      $('kinds').open=true;
+    });
+    acceptCustom.hidden=true;
+    customActions.append(cancelCustom,generateCustom,acceptCustom);
+    createProgramForm.append(customHeading,customInfo,titleLabel,customNotice,customPreview,customActions);
+    createProgramDialog.append(createProgramForm);
+    section.append(createProgramDialog);
+    let customProposed = null;
+    let customRequest = null;
+    createProgramDialog.addEventListener('close',()=>{customRequest?.abort();customRequest=null;});
+    createProgramForm.addEventListener('submit',async event=>{
+      event.preventDefault();
+      const title = customInput.value.trim();
+      if(title.length<3){customNotice.textContent='Indique une filière plus précise.';return;}
+      if(customRequest)return;
+      const controller=new AbortController();
+      customRequest=controller;
+      generateCustom.disabled=true;
+      acceptCustom.hidden=true;
+      customProposed=null;
+      customPreview.hidden=true;
+      customNotice.textContent='Albert recherche les catégories de lieux et prépare les missions…';
+      try{
+        const response=await askAlbert({action:'create_sector',title},controller.signal);
+        if(controller.signal.aborted)return;
+        const program=response.program;
+        if(!program || !Array.isArray(program.types) || program.types.length<4)
+          throw Error("Albert n’a pas fourni assez de lieux pour cette filière.");
+        customProposed=program;
+        const heading=node('h3','',program.label||title);
+        const notice=node('p','',response.notice||'Vérifie ces propositions avec ton lycée.');
+        const list=node('ul','cs-stage-custom-type-list');
+        for(const item of program.types){
+          const li=node('li');
+          li.append(node('strong','',item.label),node('span','',item.mission));
+          list.append(li);
+        }
+        customPreview.replaceChildren(heading,notice,list);
+        customPreview.hidden=false;
+        acceptCustom.hidden=false;
+        customNotice.textContent=program.types.length+' types de lieux proposés par Albert.';
+      }catch(error){
+        if(!controller.signal.aborted) customNotice.textContent=error.message||'Albert ne répond pas. Réessaie.';
+      }finally{
+        if(customRequest===controller)customRequest=null;
+        generateCustom.disabled=false;
+      }
+    });
+    function renderPrograms(){
+      $('programs').replaceChildren();
+      for(const [id,program] of Object.entries(GUIDE.programs)){
+        const label=node('label','cs-stage-program');
+        const radio=node('input');
+        radio.type='radio';radio.name='stage-program';radio.value=id;
+        radio.checked=sector===id;
+        radio.addEventListener('change',()=>{sector=id;changeCriteria();});
+        const card=node('span','cs-stage-program-card');
+        card.append(node('span','cs-stage-program-code',program.short),
+          node('strong','',program.label),node('small','',program.detail));
+        label.append(radio,card);
+        $('programs').append(label);
+      }
+      $('programs').append(button('+ Ajouter une filière','cs-stage-add-program',()=>{
+        customInput.value='';
+        customNotice.textContent='';
+        customPreview.hidden=true;
+        acceptCustom.hidden=true;
+        customProposed=null;
+        createProgramDialog.showModal();
+        customInput.focus();
+      }));
     }
+    renderPrograms();
     $('options').addEventListener('change', event => {
       option = event.target.value;
       changeCriteria();
@@ -832,7 +929,10 @@
         group.append(list);
         reference.append(group);
       }
-      reference.append(outbound('Lire le référentiel officiel', programProfiles()[0][1].source, 'cs-stage-pale'));
+      const refSource = programProfiles()[0][1]?.source;
+      if(refSource) reference.append(outbound('Lire le référentiel officiel', refSource, 'cs-stage-pale'));
+      else reference.append(node('p','cs-stage-reference-note',
+        'Parcours proposé par Albert. Vérifie le référentiel officiel et la possibilité d’effectuer ces missions avec ton lycée.'));
     }
 
     function queryFromForm() {
@@ -919,7 +1019,7 @@
     async function loadStagePage(query, continuation, signal) {
       const payload = JSON.stringify({ ...(query.position ? { position: query.position } : { city: query.city }), filiere: query.sector,
         optionCommerce: query.option, types: query.types, radius: query.radius,
-        continuation, ...(query.confirmed ? {confirmed_only:true, demo:settings.demo === true, session:settings.session || ''} : {}) });
+        customFiliere: GUIDE.getCustom(query.sector), continuation, ...(query.confirmed ? {confirmed_only:true, demo:settings.demo === true, session:settings.session || ''} : {}) });
       const attempts = continuation ? 3 : 1;
       for (let attempt = 0; attempt < attempts; attempt++) {
         if (signal.aborted) throw signal.reason;

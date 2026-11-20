@@ -704,7 +704,11 @@ const customExtraCatalog={
   "fleuristes":{label:"Fleuristes",rules:[["shop","^florist$"]],codes:["47.76Z"]},
   "veterinaires":{label:"Cliniques vétérinaires",rules:[["amenity","^veterinary$"]],codes:["75.00Z"]},
   "construction":{label:"Artisans et entreprises du bâtiment",rules:[["craft","^(builder|plumber|electrician|painter|roofer)$"]],codes:["43.21A","43.22A","43.34Z"]},
-  "informatique":{label:"Services et réparation informatiques",rules:[["shop","^computer$"],["office","^it$"]],codes:["62.01Z","95.11Z"]}
+  "informatique":{label:"Services et réparation informatiques",rules:[["shop","^computer$"],["office","^it$"]],codes:["62.01Z","95.11Z"]},
+  "entrepots":{label:"Entrepôts et logistique",rules:[["building","^warehouse$"],["industrial","^warehouse$"]],codes:["52.10A","52.10B"]},
+  "transport-marchandises":{label:"Transport de marchandises et livraison",rules:[["office","^(logistics|transport)$"],["industrial","^depot$"]],codes:["49.41A","49.41B","52.29A","52.29B"]},
+  "entretien-textile":{label:"Blanchisseries et entretien du linge",rules:[["shop","^(laundry|dry_cleaning)$"]],codes:["96.01A","96.01B"]},
+  "cinema":{label:"Cinémas et projection",rules:[["amenity","^cinema$"]],codes:["59.14Z"]}
 };
 function customCatalog(){
  const all=Object.create(null);

@@ -254,3 +254,204 @@
 @media(prefers-reduced-motion:reduce) {
   .cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] { transition:none; }
 }
+
+
+/* CORTEX : motifs de candidature simplifiés et Albert en action directe (v4) */
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 legend {
+  padding: 0;
+  margin: 0 0 12px;
+  color: #173a58;
+  font-size: 16px;
+  font-weight: 780;
+  letter-spacing: -.015em;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 > .cs-stage-contact-locked {
+  display: block;
+  margin: 0 0 11px;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-locked-label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 64px;
+  margin: 0;
+  padding: 13px 15px;
+  color: #184b56;
+  background: #eaf6f5;
+  border: 1px solid #9ed7ce;
+  border-left: 4px solid #269c88;
+  border-radius: 10px;
+  box-shadow: none;
+  cursor: default;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 .cs-stage-contact-locked-label input {
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  margin: 0;
+  opacity: 1;
+  accent-color: #248a78;
+  pointer-events: none;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-locked-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-locked-text strong {
+  color: #194d54;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 780;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-locked-text small {
+  color: #4c7779;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-lock-icon {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  color: #207b6d;
+  border: 1px solid #aedbd2;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 800;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 > .cs-stage-contact-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+  margin: 0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-choice-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 67px;
+  padding: 13px;
+  color: #35536e;
+  background: #fff;
+  border: 1px solid #c9dce9;
+  border-radius: 10px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color .14s ease,border-color .14s ease;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-choice-card:has(input:checked) {
+  color: #15517f;
+  background: #e9f4fc;
+  border: 1.5px solid #3883b9;
+  box-shadow: 0 0 0 1px #3883b91a;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-choice-card:hover {
+  border-color: #7badd0;
+  background: #f3f9fe;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 .cs-stage-contact-choice-card input {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  accent-color: #236c9e;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 .cs-stage-contact-choice-text {
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 690;
+  overflow-wrap: anywhere;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  margin: 2px 0 0;
+  border: 0;
+  background: transparent;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-albert-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-height: 47px;
+  padding: 11px 18px;
+  border-radius: 9px;
+  border: 1px solid #155887;
+  background: #1c679b;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 780;
+  text-align: center;
+  box-shadow: 0 3px 10px #1b669a25;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-albert-primary:hover {
+  background: #125382;
+  color: #fff;
+  border-color: #0e486e;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-albert-primary:disabled {
+  opacity: .67;
+  cursor: wait;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-suggestion {
+  min-width: 0;
+  padding: 15px 16px;
+  background: #f4f9fd;
+  color: #183e5b;
+  border: 1px solid #bdd8e9;
+  border-left: 3px solid #2d78ac;
+  border-radius: 9px;
+  box-shadow: none;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-suggestion[hidden] {
+  display: none !important;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-suggestion :is(strong,p) {
+  color: #214962;
+  line-height: 1.5;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-suggestion .cs-stage-pale {
+  color: #1a5b8e;
+  background: #e5f2fb;
+  border: 1px solid #bed8e9;
+  border-radius: 7px;
+  min-height: 41px;
+  padding: 9px 12px;
+  font-weight: 710;
+}
+@media (max-width: 720px) {
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 > .cs-stage-contact-choice-grid {
+    grid-template-columns: minmax(0,1fr);
+    gap: 8px;
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-choice-card {
+    min-height: 52px;
+    padding: 10px 12px;
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-ai-v4 .cs-stage-contact-albert-primary {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives-v4 label.cs-stage-contact-choice-card {
+    transition: none;
+  }
+}

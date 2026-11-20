@@ -206,7 +206,7 @@
       if (step===3) {
         const review = element('section','cs-stage-cv-review');
         const reviewHead = element('div','cs-stage-cv-review-head');
-        const title = element('h3','cs-stage-cv-step','03 — Relis et finalise ton '+(kind==='cv'?'CV':'courrier'));
+        const title = element('h3','cs-stage-cv-step','Relis et finalise ton '+(kind==='cv'?'CV':'courrier'));
         title.tabIndex = -1;
         reviewHead.append(badge('cs-stage-cv-eyebrow','DOCUMENT / VERSION FINALE'),title,
           element('p','', 'Vérifie le nom, les coordonnées, les dates et le contenu. Tu peux modifier directement ce document avant de le copier ou de l’exporter.'));
@@ -246,7 +246,7 @@
 
       const editor=element('section','cs-stage-cv-editor');
       const sidebar=element('aside','cs-stage-cv-sidebar');
-      const heading=element('h3','cs-stage-cv-step','03 — Rédige '+(kind==='cv'?'ton CV':'ta lettre de motivation'));
+      const heading=element('h3','cs-stage-cv-step','Rédige '+(kind==='cv'?'ton CV':'ta lettre de motivation'));
       heading.tabIndex=-1;
       const intro=element('p','cs-stage-cv-editor-intro',descriptions[kind]+' Réponds simplement avec tes propres mots : Albert peut ensuite t’aider à améliorer une partie.');
       const editorHead=element('div','cs-stage-cv-editor-head');
@@ -277,12 +277,6 @@
         input.autocomplete=autocomplete;
         input.addEventListener('input',()=>{
           api.identity[key]=input.value.trim();
-          for(const data of Object.values(api.drafts)) {
-            if(data && typeof data==='object'){
-              if(data.cv)delete data.cv.final;
-              if(data.lettre)delete data.lettre.final;
-            }
-          }
           api.save();
         });
         wrap.append(input);

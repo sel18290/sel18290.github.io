@@ -630,3 +630,43 @@
     font-size: 12px;
   }
 }
+
+
+/* CV/LM : choix guidé d'une entreprise suivie, avec accès direct à la recherche. */
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-picker {
+  gap: 9px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-input:invalid {
+  border-color: #b9d1e3;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-search-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-height: 42px;
+  margin-top: 3px;
+  padding: 9px 15px;
+  border: 1px solid #a7c9e2;
+  border-radius: 8px;
+  background: #fff;
+  color: #1d5e92;
+  font-size: 13px;
+  font-weight: 740;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-search-link:hover {
+  background: #e8f3fb;
+  border-color: #74add5;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-search-link:focus-visible {
+  outline: 2px solid #2776af;
+  outline-offset: 2px;
+}
+@container cortex-stage (max-width: 590px) {
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-search-link {
+    width: 100%;
+    justify-self: stretch;
+  }
+}

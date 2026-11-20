@@ -87,7 +87,7 @@ async function createPdf(items,questions){
  return new Blob(chunks,{type:'application/pdf'});
 }
 export function createHandwritingManager({form,questions,key,onAttach,onRemove,onStatus,canAdd,onCameraOpen,onCameraClose}){
- let photos=[],closed=false,changing=Promise.resolve(),version=0;
+ let photos=[],closed=false,changing=Promise.resolve(),version=0,preparedVersion=0;
  let observer=null;const urls=new Set();let cameraOpen=false;
  const count=()=>photos.length;
  const cleanUrls=()=>{for(const url of urls)URL.revokeObjectURL(url);urls.clear()};
@@ -149,13 +149,14 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
   const requested=++version, snapshot=photos.slice();
   changing=changing.catch(()=>{}).then(async()=>{
    if(closed||requested!==version)return;
-   if(!snapshot.length){onRemove?.();return}
+   if(!snapshot.length){onRemove?.();preparedVersion=requested;return}
    const pdf=await createPdf(snapshot,questions);
    if(pdf.size>MAX_PDF)throw Error('Les photos dépassent 8 Mo après compression. Retire certaines images.');
    if(closed||requested!==version)return;
    const qs=[...new Set(snapshot.map(p=>questions.findIndex(q=>q.id===p.questionId)+1))].sort((a,b)=>a-b);
    const name='CORTEX_Manuscrit_Q'+qs.join('-')+'_'+snapshot.length+'photos.pdf';
    onAttach?.(new File([pdf],name,{type:'application/pdf'}));
+   preparedVersion=requested;
    onStatus?.(snapshot.length+' photo(s) manuscrite(s) préparée(s) pour la sauvegarde sur le serveur.');
   }).catch(error=>onStatus?.('PDF manuscrit non préparé : '+String(error.message||error),true));
   return changing;
@@ -192,7 +193,7 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
   ready,
   count,
   get busy(){return cameraOpen},
-  async flush(){await ready;await changing},
+  async flush(){await ready;await changing;if(version!==preparedVersion)throw Error('Le PDF des photos n’est pas prêt. Retire une image ou réessaie avant la remise.')},
   async forget(){try{await store(key,'delete')}catch{}},
   dispose(){closed=true;observer?.disconnect();window.removeEventListener('focus',onFocus);cleanUrls();resume()}
  };

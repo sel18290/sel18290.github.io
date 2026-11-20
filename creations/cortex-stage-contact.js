@@ -8,9 +8,20 @@
   const withoutOpening = text => normalizePFMP(String(text || '').trim().replace(/^c['’]est (?:un stage non rémunéré|une PFMP non rémunérée)[^.!?]*[.!?]\s*/i, ''));
   const HOOK_HINT = '[Mon accroche : ce qui me motive et ce que j’aimerais apprendre.]';
   const MOTIVES = [
-    ['public', 'Le contact avec le public'],
-    ['metier', 'Les missions du métier'],
-    ['structure', 'Un détail remarqué chez vous']
+    ['aider', 'Aider les gens', 'J’aimerais apprendre à aider les personnes qui viennent chez vous.'],
+    ['clients', 'Parler avec des clients', 'J’aimerais apprendre à parler avec vos clients.'],
+    ['accueil', 'Accueillir des visiteurs', 'J’aimerais apprendre à accueillir et renseigner vos visiteurs.'],
+    ['decouvrir', 'Découvrir un métier', 'J’aimerais découvrir votre métier et ce que vous faites chaque jour.'],
+    ['equipe', 'Travailler en équipe', 'J’aimerais apprendre à travailler avec votre équipe.'],
+    ['outils', 'Utiliser les outils du métier', 'J’aimerais découvrir les outils que vous utilisez au travail.'],
+    ['organiser', 'Mieux m’organiser', 'J’aimerais apprendre à organiser mon travail.'],
+    ['conseiller', 'Conseiller des clients', 'J’aimerais apprendre à aider et conseiller vos clients.'],
+    ['documents', 'Gérer des documents', 'J’aimerais apprendre à préparer et classer des documents.'],
+    ['journee', 'Découvrir une journée de travail', 'J’aimerais voir comment se passe une journée de travail chez vous.'],
+    ['confiance', 'Être plus à l’aise à l’oral', 'J’aimerais apprendre à parler plus facilement avec les gens.'],
+    ['entreprise', 'Découvrir votre entreprise', 'J’aimerais comprendre comment fonctionne votre entreprise.'],
+    ['vendre', 'Apprendre à vendre', 'J’aimerais apprendre à présenter des produits aux clients.'],
+    ['apprendre', 'Apprendre de nouvelles choses', 'J’aimerais découvrir de nouvelles tâches et apprendre avec votre équipe.']
   ];
 
   function node(tag, name, text) {
@@ -124,7 +135,8 @@
       node('p','cs-stage-contact-guidance','Explique pourquoi cette structure t’intéresse ou ce que tu souhaites apprendre.'));
 
     const choices = node('fieldset', 'cs-stage-contact-motives cs-stage-contact-motives-v4');
-    choices.append(node('legend', '', 'Je veux parler de…'));
+    choices.append(node('legend', '', 'Qu’est-ce qui t’intéresse ?'),
+      node('p','cs-stage-contact-choices-hint','Choisis une seule idée. Albert pourra écrire une phrase qui te correspond.'));
     const locked = node('div','cs-stage-contact-locked');
     const fixed = node('label','cs-stage-fixed-motive cs-stage-contact-locked-label');
     const unpaid = node('input');
@@ -144,7 +156,7 @@
       input.type = 'radio';
       input.name = 'stage-contact-motive';
       input.value = value;
-      input.checked = value === 'metier';
+      input.checked = value === 'decouvrir';
       label.append(input, node('span', 'cs-stage-contact-choice-text', text));
       choiceList.append(label);
     }
@@ -157,7 +169,7 @@
     const hook = node('textarea');
     hook.rows = 2;
     hook.maxLength = 250;
-    hook.placeholder = 'Ex. J’ai remarqué… et j’aimerais apprendre à…';
+    hook.placeholder = 'Ex. J’aimerais découvrir votre métier et ce que vous faites chaque jour.';
     hookLabel.append(hook);
     personal.append(hookLabel);
     const feedback = node('p', 'cs-stage-date-status');
@@ -209,6 +221,9 @@
     choiceList.addEventListener('change', () => {
       suggestion.hidden = true;
       feedback.textContent = '';
+      const selected = choiceList.querySelector('input[type="radio"]:checked')?.value;
+      const example = MOTIVES.find(item => item[0] === selected)?.[2];
+      if (example) hook.placeholder = 'Ex. ' + example;
     });
 
     const methodControls = node('div', 'cs-stage-contact-method');

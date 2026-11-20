@@ -217,7 +217,8 @@ if(qr||globalPortal){
   stageCta.append(copy);
   stageCta.addEventListener('click',renderStageView);
   stageHero.append(stageCta);
-  work.append(stageHero);
+  // L'évaluation est la première action du tableau de bord.
+  // Ne pas cacher « Démarrer ce contrôle » sous la grande bannière de stages.
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];
   if(!assessments.length){
    cards.append(E('div','cw-student-empty','Aucun contrôle n’est encore ouvert pour ta classe. Les prochaines évaluations apparaîtront ici.'));
@@ -244,7 +245,11 @@ if(qr||globalPortal){
   const stats=E('div','cw-student-stats');
   stats.append(E('span','','Contrôles : '+assessments.length),E('span','','Copies remises : '+submitted),E('span','','Corrigés : '+graded));
   if(graded)stats.append(E('span','','Moyenne des notes publiées : '+(total/graded).toFixed(1).replace('.',',')+' / 20'));
-  work.append(stats,cards);
+  if(assessments.some(a=>a.available&&!a.submitted_at)){
+   const accessGuide=E('p','cw-student-help','Ton contrôle est disponible ci-dessous. Appuie sur « Démarrer ce contrôle » pour commencer.');
+   work.append(accessGuide);
+  }
+  work.append(stats,cards,stageHero);
   renderDashboardAi(work,{session:token,assessments});
  }
  // Relire sa véritable copie après remise, sans divulguer de corrigé avant

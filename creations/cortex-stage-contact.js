@@ -236,6 +236,7 @@
     const copy = button('Copier mon message →', 'cs-stage-primary cs-stage-contact-v2-copy', async () => {
       const missing = nameInputs.find(input => !input.value.trim());
       if (missing) {
+        identityPanel.open = true;
         nameFeedback.textContent = 'Renseigne ton prénom et ton nom pour personnaliser et copier ton message.';
         missing.focus();
         return;

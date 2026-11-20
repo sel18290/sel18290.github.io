@@ -4,6 +4,8 @@ const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=String(txt);return n};
 const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
 const state={access:[],copies:[],classAccess:[],gotSnapshot:false};
+const journal=window.CORTEX_EXAM_MONITOR.mount($('acad-live-journal'),{perExam:true,onExamChange:changeJournalExam});
+let journalScope={examId:'',rows:new Map(),checkpoint:null,request:null};
 const viewLink=(view,label,cls='btn ghost small')=>{
  const a=el('a',cls,label);a.href='#'+({overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',assessments:'prof-assessments',creer:'exam-form',import:'acad-import-workspace',copies:'cw-copies-head',suivi:'acad-live-monitoring',analyses:'acad-live-analytics',integrity:'acad-integrity'}[view]||'prof-overview');a.dataset.acadView=view;return a;
 };
@@ -11,6 +13,59 @@ function updateText(id,value){if($(id))$(id).textContent=String(value)}
 function getClassName(id){return bridge()?.classes?.()?.find(c=>c.id===id)?.code||'Classe non renseignée'}
 function formatScore(value){return Number(value).toFixed(1).replace('.',',')}
 function teacherExamList(){return bridge()?.exams?.()||[]}
+function changeJournalExam(examId){
+ $('acad-monitor-settings').dataset.integrityExam=examId;
+ journalScope={examId,rows:new Map(),checkpoint:null,request:null};
+ refreshJournal();
+}
+function syncJournalExams(){
+ const exams=teacherExamList().filter(exam=>exam.published);
+ const open=new Set(state.access.filter(access=>access.active).map(access=>access.assessment_id));
+ const preferred=journal.examId()||exams.find(exam=>open.has(exam.id))?.id;
+ journal.setExams(exams.map(exam=>({
+  id:exam.id,title:exam.title,classId:exam.class_id,className:getClassName(exam.class_id),
+  tracksExits:exam.content?.antiCheat?.enabled===true&&exam.content.antiCheat.trackVisibility===true
+ })),preferred);
+}
+function refreshJournal(){
+ const scope=journalScope,teacher=bridge()?.teacher?.(),client=bridge()?.client?.();
+ if(!teacher||!client||!scope.examId||document.hidden||document.body.dataset.acadView!=='suivi')return;
+ if(scope.request)return scope.request;
+ const stillCurrent=()=>scope===journalScope&&teacher===bridge()?.teacher?.();
+ scope.request=(async()=>{
+  const combined=new Map(scope.rows);
+  let checkpoint=scope.checkpoint;
+  const pageSize=250;
+  // Reprendre aussi les insertions proches du dernier relevé qui ont pu être validées en décalé.
+  const since=checkpoint?new Date(Date.parse(checkpoint)-30000).toISOString():null;
+  try{
+   for(let offset=0;;offset+=pageSize){
+    let query=client.from('cortex_integrity_events')
+     .select('id,class_id,roster_number,kind,occurred_at,inserted_at,duration_ms')
+     .eq('teacher_id',teacher).eq('assessment_id',scope.examId)
+     .order('inserted_at').order('id').range(offset,offset+pageSize-1);
+    if(since)query=query.gte('inserted_at',since);
+    const {data,error}=await query;
+    if(!stillCurrent())return;
+    if(error)throw error;
+    for(const row of data||[]){
+     combined.set(row.id,row);
+     if(!checkpoint||Date.parse(row.inserted_at)>Date.parse(checkpoint))checkpoint=row.inserted_at;
+    }
+    if(!data||data.length<pageSize)break;
+   }
+   scope.rows=combined;scope.checkpoint=checkpoint;
+   const exam=teacherExamList().find(item=>item.id===scope.examId);
+   journal.setEvents([...combined.values()].map(row=>({
+    examId:scope.examId,classId:exam?.class_id,className:getClassName(row.class_id||exam?.class_id),
+    studentNumber:row.roster_number,kind:row.kind,at:Date.parse(row.occurred_at),durationMs:row.duration_ms
+   })),Date.now());
+  }catch{
+   if(stillCurrent())journal.setError();
+  }finally{scope.request=null;}
+ })();
+ return scope.request;
+}
 function renderTeacherDashboard(){
  if(!bridge()?.teacher?.())return;
  const exams=teacherExamList(),classes=bridge()?.classes?.()||[];
@@ -47,6 +102,7 @@ function renderLiveMetrics(){
  const corrected=copies.filter(c=>c.grade!==null&&c.grade!==undefined&&Number.isFinite(Number(c.grade))&&Number(c.grade)>=0&&Number(c.grade)<=20);
  const pending=copies.filter(c=>c.grade===null||c.grade===undefined);
  const opened=state.access.filter(a=>a.active&&exams.some(e=>e.id===a.assessment_id&&e.published));
+ syncJournalExams();
  updateText('acad-overview-copies',state.gotSnapshot?copies.length:'—');
  updateText('acad-overview-graded',state.gotSnapshot?corrected.length:'—');
  updateText('acad-overview-pins',state.gotSnapshot?state.classAccess.length:'—');
@@ -60,12 +116,14 @@ function renderLiveMetrics(){
  if(mon){
   mon.replaceChildren();
   if(!state.gotSnapshot)mon.append(el('div','empty','Chargement des données réelles…'));
-  else if(!exams.length)mon.append(el('div','empty','Aucun contrôle publié pour le moment.'));
-  for(const exam of state.gotSnapshot?exams:[]){
+  else if(!exams.some(exam=>exam.published))mon.append(el('div','empty','Aucun contrôle publié pour le moment.'));
+  for(const exam of state.gotSnapshot?exams.filter(item=>item.published):[]){
    const a=state.access.find(x=>x.assessment_id===exam.id),sub=copies.filter(c=>c.assessment_id===exam.id);
    const card=el('div','list-row'),ico=el('span','item-icon','◷'),content=el('div','grow');
    content.append(el('div','item-title',exam.title),el('div','item-meta',getClassName(exam.class_id)+' · '+sub.length+' copie(s) · '+sub.filter(c=>c.grade!=null).length+' corrigée(s)'));
-   card.append(ico,content,el('span','live-status'+(a?.active&&exam.published?'':' draft'),a?.active&&exam.published?'Ouvert':'Fermé'));
+   const link=viewLink('suivi','Voir le journal');
+   link.dataset.journalExam=exam.id;
+   card.append(ico,content,el('span','live-status'+(a?.active?'':' draft'),a?.active?'Ouvert':'Fermé'),link);
    mon.append(card);
   }
  }
@@ -95,11 +153,25 @@ window.addEventListener('cortex:academy-live-snapshot',event=>{
 });
 window.addEventListener('cortex:academy-logout',()=>{
  state.access=[];state.copies=[];state.classAccess=[];state.gotSnapshot=false;
+ journal.reset();
+ journalScope={examId:'',rows:new Map(),checkpoint:null,request:null};
  $('acad-live-recent-exams')?.replaceChildren();
  $('acad-live-class-strip')?.replaceChildren();
 });
 $('acad-live-monitor-refresh')?.addEventListener('click',()=>{
  $('cw-refresh')?.click();
- bridge()?.refresh?.();
+ refreshJournal();
 });
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a[data-journal-exam]');
+ if(link&&bridge()?.teacher?.())journal.selectExam(link.dataset.journalExam);
+},true);
+window.addEventListener('cortex:academy-view',event=>{
+ if(event.detail!=='suivi')return;
+ syncJournalExams();
+ refreshJournal();
+});
+document.addEventListener('visibilitychange',()=>refreshJournal());
+window.addEventListener('online',()=>refreshJournal());
+setInterval(refreshJournal,15000);
 queueMicrotask(()=>{if(bridge()?.teacher?.())renderTeacherDashboard()});

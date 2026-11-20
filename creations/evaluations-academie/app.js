@@ -25,6 +25,7 @@ function currentAcadView(){
 }
 function showAcadSection(view){
  const key=Object.prototype.hasOwnProperty.call(acadRoutes,view)?view:'overview';
+ const changed=document.body.dataset.acadView!==key;
  document.body.dataset.acadView=key;
  for(const link of document.querySelectorAll('.academie-prof-nav [data-acad-view]')){
   const active=link.dataset.acadView===key;
@@ -33,6 +34,7 @@ function showAcadSection(view){
   if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
  }
  const overview=$('prof-overview');if(overview)overview.hidden=key!=='overview';
+ if(changed)window.dispatchEvent(new CustomEvent('cortex:academy-view',{detail:key}));
 }
 document.addEventListener('click',event=>{
  const link=event.target.closest('a[data-acad-view]');
@@ -40,6 +42,10 @@ document.addEventListener('click',event=>{
  const view=link.dataset.acadView;
  if(!Object.prototype.hasOwnProperty.call(acadRoutes,view))return;
  event.preventDefault();
+ if(view==='integrity'&&link.dataset.integrityExam){
+  selectedIntegrityExamId=link.dataset.integrityExam;
+  drawAcademyTools();
+ }
  showAcadSection(view);
  if(location.hash!==('#'+acadRoutes[view]))location.hash='#'+acadRoutes[view];
  requestAnimationFrame(()=>{
@@ -144,7 +150,6 @@ function safeAuthMessage(error){
 let teacherId=null;
 let myClasses=[];
 let myExams=[];
-let myIncidents=[];
 let rosterSummaries=new Map();
 const summaryText=id=>{const d=rosterSummaries.get(id);return d?`${d.activated} élève(s) inscrits · G1 : ${d.group1} · G2 : ${d.group2}${d.whole?' · Classe entière : '+d.whole:''}`:'Élèves inscrits : consultez « PIN élèves »';};
 window.addEventListener('cortex:academy-roster-ready',event=>{
@@ -153,6 +158,7 @@ window.addEventListener('cortex:academy-roster-ready',event=>{
 });
 window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,classes:()=>myClasses,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
 let selectedIntegrityExamId='';
+let integritySaving=false;
 const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
 function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked,watermarkCapture:$('exam-integrity-watermark').checked};}
@@ -168,20 +174,22 @@ function safeError(err){
 async function loadTeacherData(id){
  teacherId=id;
  try{
-  const [cls,ex,incident]=await Promise.all([
+  const [cls,ex]=await Promise.all([
    supabase.from('cortex_teacher_classes').select('id,code,display_name,archived,created_at').eq('teacher_id',id).order('created_at',{ascending:false}),
-   supabase.from('cortex_teacher_assessments').select('id,title,class_id,published,created_at,content').eq('teacher_id',id).order('created_at',{ascending:false}),
-   supabase.from('cortex_integrity_events').select('id,assessment_id,roster_number,kind,occurred_at,duration_ms').eq('teacher_id',id).order('occurred_at',{ascending:false}).limit(100)
+   supabase.from('cortex_teacher_assessments').select('id,title,class_id,published,created_at,content').eq('teacher_id',id).order('created_at',{ascending:false})
   ]);
-  if(cls.error)throw cls.error;if(ex.error)throw ex.error;if(incident.error)throw incident.error;
-  myClasses=cls.data||[];myExams=ex.data||[];myIncidents=incident.data||[];
+  if(teacherId!==id)return;
+  if(cls.error)throw cls.error;if(ex.error)throw ex.error;
+  myClasses=cls.data||[];myExams=ex.data||[];
   drawTeacherData();
  }catch(err){status('Impossible de charger les données du professeur : '+safeError(err),true);}
 }
-async function saveAntiCheat(exam,key,checked,checkbox){
+async function saveAntiCheat(exam,key,checked){
+ if(integritySaving)return;
  const id=requireTeacher(),previous=exam.content||{},current=antiConfig(exam);
  const next={...current,[key]:checked};
- checkbox.disabled=true;
+ integritySaving=true;
+ $('acad-tools-panel').querySelectorAll('button').forEach(button=>{button.disabled=true;});
  try{
   const {error}=await supabase.from('cortex_teacher_assessments')
     .update({content:{...previous,antiCheat:next}})
@@ -190,23 +198,29 @@ async function saveAntiCheat(exam,key,checked,checkbox){
   exam.content={...previous,antiCheat:next};
   const chip=document.getElementById('anti-status-'+exam.id);
   if(chip)chip.textContent=next.enabled?'Mode intégrité activé':'Mode désactivé';
-  drawAcademyTools();
   status('Paramètre enregistré pour « '+exam.title+' ». Il s’appliquera aux contrôles accessibles aux élèves.');
  }catch(err){
-  checkbox.checked=!checked;status(safeError(err),true);
- }finally{checkbox.disabled=false;}
+  status(safeError(err),true);
+ }finally{
+  const restoreFocus=$('acad-tools-panel').contains(document.activeElement)||document.activeElement===document.body;
+  integritySaving=false;
+  drawAcademyTools();
+  if(restoreFocus&&selectedIntegrityExamId===exam.id)$('acad-tools-panel').querySelector('[data-integrity-key="'+key+'"]')?.focus();
+ }
 }
 
 const directTools=[
  {key:'blockPaste',icon:'⇩',name:'Blocage du collage',detail:'Empêche les collages dans les champs de réponse.',limit:'Un texte saisi à la main reste possible.'},
- {key:'blockCopy',icon:'▤',name:'Copie du sujet',detail:'Limite copier / couper dans la page du contrôle.',limit:'N’empêche ni photos ni captures.'},
- {key:'trackVisibility',icon:'◷',name:'Sorties de page',detail:'Signale une page masquée plus de deux secondes.',limit:'Appels et notifications peuvent produire de faux positifs.'},
- {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message lorsqu’une action est refusée.',limit:'Aucune sanction automatique.'},
+ {key:'blockCopy',icon:'▤',name:'Copie du sujet',detail:'Bloque la commande de copie ou de découpe sur le texte du sujet.',limit:'L’élève peut toujours modifier ses propres réponses.'},
+ {key:'trackVisibility',icon:'◷',name:'Sorties d’écran',detail:'Au retour après au moins deux secondes, inscrit le départ, le retour et la durée dans Suivi des épreuves.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page.'},
+ {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message après une sortie signalée ou une action bloquée.',limit:'Le chronomètre continue.'},
  {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Affiche classe, numéro et message « aide IA interdite ».',limit:'N’empêche pas les captures ; une IA peut ignorer le texte.'}
 ];
 function drawAcademyTools(){
  const selector=$('acad-tools-exam'),panel=$('acad-tools-panel');
  if(!selector||!panel)return;
+ const journalLink=$('acad-tools-journal');
+ journalLink.hidden=true;
  selector.replaceChildren();panel.replaceChildren();
  if(!myExams.length){
   selector.disabled=true;const blank=el('option','','Aucun contrôle');blank.value='';selector.append(blank);
@@ -218,10 +232,12 @@ function drawAcademyTools(){
  for(const e of myExams){const opt=el('option','',e.title);opt.value=e.id;selector.append(opt);}
  selector.value=selectedIntegrityExamId;
  const exam=myExams.find(e=>e.id===selectedIntegrityExamId),cfg=antiConfig(exam);
+ journalLink.hidden=!exam.published;
+ journalLink.dataset.journalExam=exam.id;
  function makeButton(key,value){
   const on=!!value,button=el('button','acad-action-toggle'+(on?' is-on':''),on?'Désactiver':'Activer');
-  button.type='button';button.setAttribute('aria-pressed',String(on));
-  button.addEventListener('click',()=>saveAntiCheat(exam,key,!antiConfig(exam)[key],button));
+  button.type='button';button.disabled=integritySaving;button.dataset.integrityKey=key;button.setAttribute('aria-pressed',String(on));
+  button.addEventListener('click',()=>saveAntiCheat(exam,key,!antiConfig(exam)[key]));
   return button;
  }
  const master=el('div','acad-tool-master');
@@ -268,19 +284,8 @@ function drawTeacherData(){
   const option=el('option','',c.display_name+' · '+c.code);option.value=c.id;$('exam-class').append(option);
  }
  drawRealExamTiles();
-  const list=$('integrity-server-events');list.replaceChildren();
-  $('integrity-count').textContent=myIncidents.length+' événement(s)';
-  if(!myIncidents.length)list.append(el('p','empty','Aucun événement signalé par les élèves pour le moment.'));
-  for(const event of myIncidents){
-    const card=el('div','prof-item'),desc=el('div','prof-item-main');
-    const names={paste_blocked:'Collage bloqué',copy_blocked:'Copie limitée',tab_hidden:'Page masquée'};
-    const exam=myExams.find(x=>x.id===event.assessment_id),date=new Date(event.occurred_at);
-    desc.append(el('strong','',names[event.kind]||'Événement'),el('small','',(exam?.title||'Contrôle')+' · N° '+event.roster_number+' · '+(Number.isNaN(date.getTime())?'Date indisponible':date.toLocaleString('fr-FR'))));
-    if(event.kind==='tab_hidden'&&event.duration_ms)desc.append(el('small','','Durée : '+Math.round(event.duration_ms/1000)+' s'));
-    card.append(desc);list.append(card);
-  }
-  drawAcademyTools();
-  window.dispatchEvent(new CustomEvent('cortex:academy-data-ready'));
+ drawAcademyTools();
+ window.dispatchEvent(new CustomEvent('cortex:academy-data-ready'));
 }
 
 let examTileClass='',examTileGroup='',examTileSearch='';
@@ -644,7 +649,7 @@ for(const button of document.querySelectorAll('[data-show]'))button.addEventList
  button.textContent=input.type==='password'?'Afficher':'Masquer';
 });
 $('logout').addEventListener('click',async()=>{
- if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];myIncidents=[];rosterSummaries.clear();selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
+ if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];rosterSummaries.clear();selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
 await init();

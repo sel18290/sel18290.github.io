@@ -5,6 +5,7 @@ const URL=Deno.env.get('SUPABASE_URL')||'';
 const SECRET=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const BUCKET='cortex-academy-private';
 const ORIGIN='https://sel18290.github.io';
+const EVENT_MAX_AGE_MS=8*60*60*1000;
 const enc=new TextEncoder();
 const admin=createClient(URL,SECRET,{auth:{autoRefreshToken:false,persistSession:false}});
 const headerBase={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin'};
@@ -803,14 +804,40 @@ async function studentAction(action,body,form){
   return ret({ok:true,submitted:true});
  }
  if(action==='student_event'){
+  const options={paste_blocked:'blockPaste',copy_blocked:'blockCopy',tab_hidden:'trackVisibility'};
   const kind=String(body.kind||'');
-  if(!['paste_blocked','copy_blocked','tab_hidden'].includes(kind))throw Error('Événement inconnu.');
-  if(!assessment.content?.antiCheat?.enabled)return ret({ok:true,recorded:false});
-  const {data:recent}=await admin.from('cortex_integrity_events').select('id')
-    .eq('assessment_id',assessment.id).eq('roster_number',session.student_number).eq('kind',kind).gt('occurred_at',new Date(Date.now()-30000).toISOString()).limit(1);
-  if(recent?.length)return ret({ok:true,recorded:false});
-  const duration=kind==='tab_hidden'?Math.min(3600000,Math.max(0,Number(body.duration_ms)||0)):null;
-  const {error}=await admin.from('cortex_integrity_events').insert({teacher_id:access.teacher_id,assessment_id:assessment.id,class_id:assessment.class_id,roster_number:session.student_number,kind,duration_ms:duration});
+  if(!Object.hasOwn(options,kind))throw Error('Événement inconnu.');
+  const config=assessment.content?.antiCheat;
+  if(config?.enabled!==true||config[options[kind]]!==true)return ret({ok:true,recorded:false});
+  const hasEventId=body.event_id!==undefined;
+  const age=hasEventId?Number(body.age_ms):0;
+  if(hasEventId&&!validUuid(body.event_id))throw Error('Événement invalide.');
+  if(!Number.isSafeInteger(age)||age<0||age>EVENT_MAX_AGE_MS)return ret({ok:true,recorded:false});
+  const now=Date.now(),occurredAt=now-age;
+  if(occurredAt<Date.parse(session.created_at)-2000)return ret({ok:true,recorded:false});
+  if(submission&&(!hasEventId||occurredAt>Date.parse(submission.submitted_at)))return ret({ok:true,recorded:false});
+  const duration=kind==='tab_hidden'?Number(body.duration_ms):null;
+  if(duration!==null&&(!Number.isSafeInteger(duration)||duration<2000||duration>EVENT_MAX_AGE_MS))
+   return ret({ok:true,recorded:false});
+  const table=admin.from('cortex_integrity_events');
+  const {count,error:readError}=await table.select('id',{count:'exact',head:true})
+   .eq('assessment_id',assessment.id).eq('roster_number',session.student_number).eq('kind',kind)
+   .gt('inserted_at',new Date(now-60000).toISOString());
+  if(readError)throw Error('Journal temporairement inaccessible.');
+  if((count||0)>=90)return fail('Journal temporairement saturé. Réessayez dans un instant.',429);
+
+  const event={teacher_id:access.teacher_id,assessment_id:assessment.id,class_id:assessment.class_id,
+   roster_number:session.student_number,kind,duration_ms:duration,occurred_at:new Date(occurredAt).toISOString()};
+  let result;
+  if(hasEventId){
+   // Une reprise réseau conserve le même ID, propre au contrôle et au numéro authentifié.
+   const hash=await digest(['integrity',assessment.id,session.student_number,body.event_id.toLowerCase()].join('|'));
+   const id=[hash.slice(0,8),hash.slice(8,12),hash.slice(12,16),hash.slice(16,20),hash.slice(20,32)].join('-');
+   result=await table.upsert({...event,id},{onConflict:'id',ignoreDuplicates:true});
+  }else{
+   result=await table.insert(event);
+  }
+  const {error}=result;
   if(error)throw Error('Journal temporairement inaccessible.');
   return ret({ok:true,recorded:true});
  }

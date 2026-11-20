@@ -14,11 +14,20 @@ if(qr||globalPortal){
  const one=(sel,root=document)=>root.querySelector(sel);
  const mode=qr?'qr':'class';
  const storageKey='cortex-academie-eleve:'+mode+':'+(qr||classPrefill||'general');
- let token=null,current=null,currentId=null,classData=null,classList=[],busy=false,hiddenSince=0;
+ let token=null,current=null,currentId=null,classData=null,classList=[],busy=false;
  let countdownInterval=null;
  let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
  let mobileController=null;
+ const integrity=window.CORTEX_EXAM_INTEGRITY;
+ const guard=integrity.create({storageKey:storageKey+':sortie',onEvent:queueEvent,onNotice:showIntegrityNotice});
+ const eventQueueKey=storageKey+':journal';
+ let pendingEvents=[];
+ try{
+  const saved=JSON.parse(sessionStorage.getItem(eventQueueKey)||'[]');
+  if(Array.isArray(saved))pendingEvents=saved;
+ }catch{}
+ let sendingEvents=false,eventRetry=null,noticeTimeout=null;
  function releaseMobileEditor(){if(mobileController){mobileController.destroy();mobileController=null;}}
  document.body.classList.add('cw-student-active');
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
@@ -51,6 +60,16 @@ if(qr||globalPortal){
   '<section id="cw-student-work" hidden></section>'+
   '<footer>Accès personnel sécurisé · Ne communique jamais ton PIN · Les notes apparaissent seulement après publication par ton professeur.</footer></div>';
  document.body.insertBefore(main,document.querySelector('.layout'));
+ const integrityNotice=E('div','ce-student-notice');
+ integrityNotice.setAttribute('role','status');
+ integrityNotice.hidden=true;
+ main.append(integrityNotice);
+ function showIntegrityNotice(text){
+  integrityNotice.textContent=text;
+  integrityNotice.hidden=false;
+  clearTimeout(noticeTimeout);
+  noticeTimeout=setTimeout(()=>{integrityNotice.hidden=true;},4500);
+ }
  function message(text,error=false){const el=$('cw-student-status');el.textContent=text||'';el.hidden=!text;el.classList.toggle('error',!!error)}
  function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false }
  function closeStageView(){
@@ -58,7 +77,19 @@ if(qr||globalPortal){
   stageWorkspace=null;
   main.classList.remove('cs-stage-academy-active');
  }
- function reset(){closeStageView();releaseMobileEditor();if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);$('cw-student-work').hidden=true;$('cw-student-login').hidden=false}
+ function reset(){
+  closeStageView();releaseMobileEditor();stopIntegrity();
+  clearTimeout(eventRetry);
+  pendingEvents=[];
+  saveEventQueue();
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+  token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);
+  $('cw-student-work').hidden=true;$('cw-student-login').hidden=false;
+ }
+ function stopIntegrity(){
+  guard.setActive();
+  integrityNotice.hidden=true;
+ }
  function button(text,cls,handler){
   const b=E('button',cls,text);b.type='button';
   b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await handler()}catch(err){message(err.message||String(err),true)}finally{b.disabled=false}});
@@ -91,6 +122,7 @@ if(qr||globalPortal){
  async function loadClass(){
   releaseMobileEditor();
   classData=await api('student_class_list',{session:token});
+  stopIntegrity();
   current=null;currentId=null;
   showWork();message('');
   if(openStagesAfterLogin){
@@ -103,6 +135,7 @@ if(qr||globalPortal){
   current=await api('student_get',{session:token,assessment_id:id||undefined});
   currentId=current.assessment.id;showWork();message('');
   renderExam();
+  flushEvents();
  }
  function studentTabs(active){
   const nav=E('nav','cs-stage-student-tabs');
@@ -116,6 +149,7 @@ if(qr||globalPortal){
  }
  function renderStageView(){
   if(stageWorkspace)return;
+  stopIntegrity();
   releaseMobileEditor();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   showWork();message('');
@@ -137,6 +171,7 @@ if(qr||globalPortal){
  }
  function renderClass(){
   closeStageView();
+  stopIntegrity();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const work=$('cw-student-work');work.replaceChildren();
   if(!classData)return;
@@ -272,6 +307,7 @@ if(qr||globalPortal){
   }
   work.append(subject);
   if(submitted){
+   stopIntegrity();
    const receipt=E('section','cw-student-receipt');
    receipt.append(E('h3','','✓ Copie reçue par le professeur'),E('p','','Remise le '+new Date(submitted.submitted_at).toLocaleString('fr-FR')));
    showSubmittedAnswers(receipt,exam,submitted);
@@ -289,7 +325,10 @@ if(qr||globalPortal){
   const timerKey='cortex-student-timer:'+mode+':'+(qr||classPrefill||'general')+':'+currentId+':'+current.student_number;
   const durationMs=Math.max(5,Math.min(240,Number(exam.duration)||60))*60000;
   const localStarted=Number(sessionStorage.getItem(timerKey)||0);
+  const integrityRules=integrity.describe(settings);
+  if(integrityRules)work.append(E('p','cw-student-rules',integrityRules));
   if(!localStarted){
+   stopIntegrity();
    const launch=E('section','cw-student-timer-start');
    launch.append(E('strong','','⏱ Prêt à commencer ?'),E('p','','Le chronomètre de '+(Number(exam.duration)||60)+' minutes démarre quand tu cliques sur « Démarrer le contrôle ».'));
    launch.append(button('▶ Démarrer le contrôle et le chrono','cw-student-submit',()=>{
@@ -360,11 +399,10 @@ if(qr||globalPortal){
   refreshTimer();
   if(Date.now()-localStarted<durationMs)countdownInterval=setInterval(refreshTimer,1000);
   work.append(timerBox);
-  if(settings.enabled){
-   const rules=[settings.blockPaste?'Collage limité':null,settings.blockCopy?'Copie du sujet limitée':null,settings.trackVisibility?'Sorties de page signalées':null,settings.watermarkCapture?'Filigrane de dissuasion':null].filter(Boolean);
-   work.append(E('p','cw-student-rules','Mode intégrité du contrôle : '+rules.join(' · ')+'. Un signalement n’est pas une preuve automatique de fraude.'));
-  }
   const form=E('form','cw-answer-form');
+  const examGuard={key:timerKey,startedAt:localStarted,root:work,settings,
+    subjectSelector:'.cw-student-subject, .cw-answer-question',
+    assessmentId:currentId,studentNumber:current.student_number};
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
   if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current});
   else{
@@ -399,16 +437,22 @@ if(qr||globalPortal){
     'Tu as répondu à '+mobileController.answeredCount()+' question(s) sur '+questions.length+'. Confirmer la remise définitive de ta copie ? Tu ne pourras plus la modifier.':
     'Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.';
    if(!confirm(confirmation))return;
+   stopIntegrity();
    busy=true;submit.disabled=true;message('Envoi de ta copie en cours…');
+   let sent=false;
    try{
     const answers=mobileController?mobileController.getAnswers():(()=>{
      const wrappers=new Map([...form.querySelectorAll('[data-cortex-q]')].map(w=>[w.dataset.cortexQ,w]));
      return Object.fromEntries(questions.map(q=>[q.id,wrappers.has(q.id)?window.CORTEX_QUESTION_TYPES.readAnswer(wrappers.get(q.id),q):'']));
     })();
     await api('student_submit',{session:token,assessment_id:currentId,answers:JSON.stringify(answers)},file.files?.[0]||null);
+    sent=true;
     mobileController?.clearDraft();
     await loadExam(currentId);message('Copie bien reçue par le professeur.');
-   }catch(err){message(err.message||'Impossible de remettre la copie.',true)}
+   }catch(err){
+    if(!sent)guard.setActive(examGuard);
+    message(err.message||'Impossible de remettre la copie.',true);
+   }
    finally{busy=false;submit.disabled=false}
   });
   work.append(form);
@@ -417,6 +461,7 @@ if(qr||globalPortal){
    for(let i=0;i<6;i++)mark.append(E('span','','CORTEX · N°'+current.student_number+' · AIDE IA INTERDITE'));
    work.append(mark);
   }
+  guard.setActive(examGuard);
  }
  const loginForm=$('cw-student-login-form'),activationForm=$('cw-student-activation-form');
  const loginTab=$('cw-back-to-login'),createTab=$('cw-show-activation');
@@ -499,24 +544,44 @@ if(qr||globalPortal){
   token=restored;
   (mode==='qr'?loadExam():loadClass()).catch(err=>{reset();message('Merci de confirmer de nouveau ton PIN. '+String(err.message||''),true)});
  }
- function track(kind,duration_ms=0){
-  if(!token||!currentId)return;
-  api('student_event',{session:token,assessment_id:currentId,kind,duration_ms}).catch(()=>{});
+ function saveEventQueue(){
+  try{
+   if(pendingEvents.length)sessionStorage.setItem(eventQueueKey,JSON.stringify(pendingEvents));
+   else sessionStorage.removeItem(eventQueueKey);
+  }catch{}
  }
- document.addEventListener('paste',event=>{
-  const cfg=current?.assessment?.antiCheat;
-  if(!current||current.submission||!cfg?.enabled||!cfg.blockPaste||!event.target.closest?.('#cw-student-work textarea'))return;
-  event.preventDefault();track('paste_blocked');if(cfg.warnStudent)message('Le collage est désactivé pour ce contrôle.',true);
- });
- document.addEventListener('copy',event=>{
-  const cfg=current?.assessment?.antiCheat;
-  if(!current||current.submission||!cfg?.enabled||!cfg.blockCopy||!event.target.closest?.('#cw-student-work'))return;
-  event.preventDefault();track('copy_blocked');if(cfg.warnStudent)message('La copie du sujet est limitée.',true);
- });
- document.addEventListener('visibilitychange',()=>{
-  const cfg=current?.assessment?.antiCheat;
-  if(!current||current.submission||!cfg?.enabled||!cfg.trackVisibility)return;
-  if(document.hidden)hiddenSince=Date.now();
-  else if(hiddenSince){const ms=Date.now()-hiddenSince;hiddenSince=0;if(ms>=2000)track('tab_hidden',ms)}
- });
+ function queueEvent(event,{assessmentId,studentNumber}){
+  const report={...event,assessmentId,studentNumber,id:integrity.eventId()};
+  pendingEvents=[...pendingEvents,report].slice(-60);
+  saveEventQueue();
+  flushEvents();
+ }
+ async function flushEvents(){
+  if(sendingEvents||!token||!currentId||navigator.onLine===false||document.hidden)return;
+  clearTimeout(eventRetry);
+  const session=token,assessment=currentId,number=current?.student_number;
+  const now=Date.now();
+  pendingEvents=pendingEvents.filter(event=>event?.at<=now&&now-event.at<=integrity.MAX_EVENT_AGE_MS);
+  saveEventQueue();
+  sendingEvents=true;
+  try{
+   while(token===session&&currentId===assessment&&!document.hidden){
+    const event=pendingEvents.find(item=>item.assessmentId===assessment&&item.studentNumber===number);
+    if(!event)break;
+    await api('student_event',{session,assessment_id:assessment,event_id:event.id,kind:event.kind,
+     duration_ms:event.durationMs,age_ms:Math.max(0,Date.now()-event.at)});
+    pendingEvents=pendingEvents.filter(item=>item.id!==event.id);
+    saveEventQueue();
+   }
+  }catch{
+   // Les réponses restent utilisables pendant une coupure et les événements sont renvoyés au retour.
+   eventRetry=setTimeout(flushEvents,10000);
+  }finally{
+   sendingEvents=false;
+   if(currentId!==assessment||token!==session)flushEvents();
+  }
+ }
+ window.addEventListener('online',flushEvents);
+ window.addEventListener('pageshow',flushEvents);
+ document.addEventListener('visibilitychange',flushEvents);
 }

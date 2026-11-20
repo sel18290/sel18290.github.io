@@ -12,13 +12,6 @@
     ['metier', 'Les missions du métier'],
     ['structure', 'Un détail remarqué chez vous']
   ];
-  const EXAMPLES = {
-    A: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Votre magasin m’intéresse et j’aimerais apprendre à travailler avec votre équipe.'],
-    B: ['J’aimerais travailler avec vous et apprendre à présenter vos services aux clients.', 'Cette PFMP me motive et j’aimerais apprendre à prendre contact avec vos clients.'],
-    accueil: ['J’aime aider les gens et j’aimerais apprendre à accueillir vos visiteurs.', 'J’aimerais rejoindre votre équipe et apprendre à renseigner les personnes qui viennent chez vous.'],
-    'gestion-administration': ['Je suis motivé(e) et j’aimerais travailler avec vous pour apprendre à gérer des dossiers.', 'J’aimerais apprendre à organiser les dossiers et à aider votre équipe au quotidien.'],
-    toutes: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Je suis motivé(e) et j’aimerais découvrir le travail de votre équipe.']
-  };
 
   function node(tag, name, text) {
     const element = document.createElement(tag);
@@ -130,30 +123,34 @@
       personalTitle,
       node('p','cs-stage-contact-guidance','Explique pourquoi cette structure t’intéresse ou ce que tu souhaites apprendre.'));
 
-    const choices = node('fieldset', 'cs-stage-contact-motives');
+    const choices = node('fieldset', 'cs-stage-contact-motives cs-stage-contact-motives-v4');
     choices.append(node('legend', '', 'Je veux parler de…'));
-    const choiceList = node('div');
-    const fixed = node('label', 'cs-stage-fixed-motive');
+    const locked = node('div','cs-stage-contact-locked');
+    const fixed = node('label','cs-stage-fixed-motive cs-stage-contact-locked-label');
     const unpaid = node('input');
     unpaid.type = 'checkbox';
     unpaid.checked = true;
     unpaid.disabled = true;
-    fixed.append(unpaid, node('span', '', 'Conditions d’accueil en PFMP'));
-    choiceList.append(fixed);
+    unpaid.setAttribute('aria-label','Stage non rémunéré : toujours inclus');
+    const fixedText = node('span','cs-stage-contact-locked-text');
+    fixedText.append(node('strong','','Stage non rémunéré'),
+      node('small','','Toujours inclus dans le message'));
+    fixed.append(unpaid,fixedText,node('span','cs-stage-contact-lock-icon','✓'));
+    locked.append(fixed);
+    const choiceList = node('div','cs-stage-contact-choice-grid');
     for (const [value, text] of MOTIVES) {
-      const label = node('label');
+      const label = node('label','cs-stage-contact-choice-card');
       const input = node('input');
       input.type = 'radio';
       input.name = 'stage-contact-motive';
       input.value = value;
       input.checked = value === 'metier';
-      label.append(input, node('span', '', text));
+      label.append(input, node('span', 'cs-stage-contact-choice-text', text));
       choiceList.append(label);
     }
-    choices.append(choiceList);
-    const opening = node('strong', 'cs-stage-fixed-opening', fundingOpening);
+    choices.append(locked,choiceList);
     const condition = node('div','cs-stage-contact-v2-condition');
-    condition.append(choices,opening);
+    condition.append(choices);
     personal.append(condition);
 
     const hookLabel = node('label', 'cs-stage-contact-hook', 'La suite de mon accroche');
@@ -163,13 +160,11 @@
     hook.placeholder = 'Ex. J’ai remarqué… et j’aimerais apprendre à…';
     hookLabel.append(hook);
     personal.append(hookLabel);
-    const tools = node('div', 'cs-stage-contact-actions');
     const feedback = node('p', 'cs-stage-date-status');
     feedback.setAttribute('role', 'status');
     const suggestion = node('div', 'cs-stage-contact-suggestion');
     suggestion.hidden = true;
     const motivation = () => choiceList.querySelector('input[type="radio"]:checked').value;
-    const examples = EXAMPLES[context.profile] || EXAMPLES.toutes;
 
     function showSuggestion(title, idea, advice) {
       suggestion.hidden = false;
@@ -184,15 +179,7 @@
       }));
     }
 
-    const example = button('Voir un exemple', 'cs-stage-pale', () => {
-      const reason = motivation();
-      const idea = reason === 'structure'
-        ? 'J’ai remarqué [un détail sur votre structure] et j’aimerais beaucoup apprendre avec votre équipe.'
-        : examples[reason === 'public' ? 0 : 1];
-      showSuggestion('À adapter avec tes mots', idea, 'Tu peux remplacer le détail entre crochets par ce que tu as vérifié.');
-      feedback.textContent = '';
-    });
-    const albert = button('Demander une accroche à Albert', 'cs-stage-primary', async () => {
+    const albert = button('Demander une accroche à Albert', 'cs-stage-primary cs-stage-contact-albert-primary', async () => {
       albert.disabled = true;
       feedback.textContent = 'Albert prépare une proposition…';
       const choice = motivation();
@@ -203,17 +190,14 @@
         feedback.textContent = 'Proposition disponible. Adapte-la à la structure avant de l’utiliser.';
       } catch (error) {
         if (!pending.signal.aborted) feedback.textContent = (error.message || 'Albert est momentanément indisponible.') +
-          ' Tu peux utiliser l’exemple et compléter ton message.';
+          ' Tu peux aussi écrire ton texte directement.';
       } finally {
         albert.disabled = false;
       }
     });
-    tools.append(example, albert);
-    const assistance = node('details','cs-stage-contact-v2-assistance');
-    assistance.append(node('summary','','✦ Besoin d’une idée ? Exemple et Albert'),
-      node('p','cs-stage-contact-guidance','Tu peux écrire seul(e). L’aide est facultative.'));
-    assistance.append(tools, node('small', 'cs-stage-contact-guidance',
-      'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton message reste dans cette fenêtre.'),feedback,suggestion);
+    // Albert est une action directe : aucun volet à dérouler.
+    const assistance = node('section','cs-stage-contact-ai-v4');
+    assistance.append(albert,feedback,suggestion);
     personal.append(assistance);
     const hookFeedback = node('p','cs-stage-date-status cs-stage-contact-v3-error');
     hookFeedback.setAttribute('role','status');

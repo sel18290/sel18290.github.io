@@ -1,0 +1,539 @@
+/*
+ * CORTEX PFMP — Atelier CV / LM, édition premium claire
+ * Feuille de style volontairement isolée de la recherche PFMP.
+ * Chargée en dernier, après le thème général Noctis.
+ */
+.cs-stage-search[data-stage-view="cv"] {
+  --cv-ink: #17324d;
+  --cv-ink-2: #294967;
+  --cv-muted: #667c91;
+  --cv-line: #d9e3ec;
+  --cv-blue: #2d6ea8;
+  --cv-blue-deep: #205987;
+  --cv-light: #f6f9fc;
+  --cv-soft: #eaf2f9;
+  --cv-paper: #fff;
+  --cs-paper-line: #d9e3ec;
+  --cs-ink: #17324d;
+  --cs-ink-muted: #667c91;
+  color: var(--cv-ink);
+  color-scheme: light;
+  background: var(--cv-light);
+  border: 1px solid #e3ebf2;
+  border-radius: 18px;
+  padding: clamp(10px, 1.9vw, 20px);
+  box-shadow: 0 8px 25px #0b33540a;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero {
+  min-height: 0;
+  background: #fff;
+  border: 1px solid var(--cv-line);
+  border-radius: 12px;
+  box-shadow: none;
+  overflow: hidden;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero-visual,
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero::after { display: none; }
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero-content {
+  min-height: 0; gap: 10px;
+  padding: 15px 19px;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-signature {
+  color: #5f7890; font: 650 10px/1.3 Inter, "Segoe UI", sans-serif;
+  letter-spacing: .12em;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-signature > span {
+  border-color: var(--cv-blue); box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-return {
+  min-height: 34px;
+  background: var(--cv-light); color: var(--cv-blue-deep);
+  border: 1px solid var(--cv-line); border-radius: 7px;
+  box-shadow: none; padding: 6px 12px;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero-copy { max-width: 100%; }
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero-copy .cs-stage-kicker {
+  color: #5380a7; font-size: 11px; letter-spacing: .07em;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero h1 {
+  margin: 3px 0 4px;
+  font-size: clamp(23px, 3vw, 31px);
+  line-height: 1.12; font-weight: 750; letter-spacing: -.035em;
+  color: var(--cv-ink); text-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero h1 em {
+  font: inherit; color: var(--cv-blue); letter-spacing: inherit;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-hero-copy p {
+  color: var(--cv-muted); max-width: 75ch;
+  font-size: 13px; line-height: 1.48;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav {
+  background: #fff;
+  border: 1px solid var(--cv-line);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button {
+  min-height: 54px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--cv-ink-2);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[aria-pressed="true"] {
+  background: var(--cv-soft);
+  border-color: #b5d2e7;
+  color: var(--cv-blue-deep);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav-copy strong { font-size: 12px; color: inherit; }
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav-copy small { font-size: 10px; color: #6d879a; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel {
+  color: var(--cv-ink); color-scheme: light;
+  min-width: 0;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel > .cs-stage-surface {
+  background: #fff; color: var(--cv-ink);
+  border: 1px solid var(--cv-line); border-radius: 14px;
+  padding: clamp(16px, 2.1vw, 27px);
+  box-shadow: 0 3px 16px #0c3a5e08;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel > .cs-stage-surface > h2 {
+  color: var(--cv-ink); font-size: clamp(20px, 2.4vw, 27px);
+  font-weight: 760; letter-spacing: -.035em; line-height: 1.2;
+  margin: 0 0 18px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell {
+  --cv-text: #17324d; --cv-muted: #667c91; --cv-border: #d9e3ec;
+  color: var(--cv-ink); display: grid; gap: 23px;
+  background: transparent; color-scheme: light;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell :is(h3,h4,strong) {
+  color: var(--cv-ink);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell p,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell small {
+  color: var(--cv-muted);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-masthead {
+  display: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-minititle {
+  color: var(--cv-ink);
+  font-size: 14px; font-weight: 730;
+  line-height: 1.35;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-chooser {
+  display: grid; gap: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choices {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice {
+  min-height: 90px;
+  display: grid; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  padding: 16px 18px;
+  text-align: left;
+  background: #fff; color: var(--cv-ink-2);
+  border: 1px solid var(--cv-line);
+  border-radius: 11px; box-shadow: none;
+  transform: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice:before { content: none; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice:hover {
+  background: #f8fbfe; border-color: #a7c7e0; transform: none; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice[aria-pressed="true"] {
+  background: #eef5fb; border: 1.5px solid var(--cv-blue);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-index { display: none; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-text {
+  grid-column: 1; grid-row: 1;
+  display: grid; gap: 2px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-text strong {
+  color: var(--cv-ink); font-size: 16px; font-weight: 740; line-height: 1.28;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-text small {
+  color: var(--cv-muted); font-size: 12px; line-height: 1.4;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-progress {
+  grid-column: 1; grid-row: 2; color: #527ca0;
+  font-size: 11px; font-weight: 650;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-arrow {
+  grid-column: 2; grid-row: 1; font-size: 17px; color: var(--cv-blue);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr);
+  gap: 16px; align-items: center;
+  background: var(--cv-light); border: 1px solid var(--cv-line);
+  border-radius: 11px; padding: 16px 18px; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target-label {
+  display: grid; gap: 7px; color: var(--cv-ink);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target-label strong {
+  font-size: 13px; font-weight: 720;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target-label small {
+  color: var(--cv-muted); font-size: 12px; font-weight: 480;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-company-select {
+  min-height: 43px; border: 1px solid #cbdbe7; border-radius: 7px;
+  background: #fff; color: var(--cv-ink); box-shadow: none;
+  padding: 9px 12px; font-size: 13px; font-weight: 530;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target-note {
+  display: flex; align-items: center; color: var(--cv-muted);
+  font-size: 12px; line-height: 1.45;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target-icon { display: none; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phases {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0; gap: 0; margin: 0;
+  background: transparent; border: 0; border-bottom: 1px solid var(--cv-line);
+  border-radius: 0;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phase {
+  display: flex; gap: 8px; align-items: center; justify-content: center;
+  padding: 9px 4px 12px; background: none; border: 0;
+  border-bottom: 2px solid transparent; border-radius: 0;
+  color: #8195a8; font-size: 12px; font-weight: 650;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phase.is-done { color: #3e79a8; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phase.is-current {
+  background: none; color: var(--cv-blue-deep);
+  border-bottom-color: var(--cv-blue);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phase-number {
+  display: grid; place-items: center;
+  width: 22px; height: 22px; flex: 0 0 22px;
+  border-radius: 50%; background: #fff;
+  border: 1px solid #c4d7e6;
+  color: inherit; font-size: 11px; font-weight: 750;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-work,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-work.is-editing {
+  display: grid; min-width: 0; gap: 24px;
+  border: 0; margin: 0; padding: 0;
+  grid-template-columns: minmax(0, 1.75fr) minmax(230px, .72fr);
+  align-items: start;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-work:not(.is-editing) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor {
+  display: grid; gap: 13px; min-width: 0; align-content: start;
+  padding: 0; border: 0; border-radius: 0; background: transparent;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-head {
+  display: grid; gap: 6px; padding: 1px 0 14px;
+  border-bottom: 1px solid var(--cv-line);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-step {
+  color: var(--cv-ink);
+  font-size: clamp(20px, 2.35vw, 27px);
+  font-weight: 760; letter-spacing: -.03em; line-height: 1.2;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-intro {
+  color: var(--cv-muted); font-size: 12px; line-height: 1.5;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tracker {
+  display: grid; gap: 7px; margin-top: 9px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tracker-text {
+  font: 650 11px/1.3 Inter, "Segoe UI", sans-serif; color: #67849d;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tracker-bar {
+  display: block; width: 100%; height: 4px;
+  border: 0; border-radius: 99px; overflow: hidden; accent-color: var(--cv-blue);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tracker-bar::-webkit-progress-bar {
+  background: #e9f0f6;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tracker-bar::-webkit-progress-value {
+  background: var(--cv-blue);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-identity {
+  background: #f7fafc; border: 1px solid var(--cv-line);
+  border-radius: 9px; padding: 0 12px 9px; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-identity summary {
+  padding: 12px 0; color: var(--cv-ink-2);
+  font-size: 13px; font-weight: 720;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-identity-hint {
+  color: var(--cv-muted); font-size: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-fields {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-fields label {
+  display: grid; gap: 5px; color: var(--cv-ink-2);
+  font-size: 12px; font-weight: 690;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-list {
+  display: grid; gap: 0;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field {
+  display: grid; gap: 7px; min-width: 0;
+  margin: 0; padding: 17px 2px 18px;
+  border: 0; border-bottom: 1px solid #e5edf3; border-radius: 0;
+  background: transparent; box-shadow: none; color: var(--cv-ink);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field:first-child { padding-top: 8px; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field:last-child { border-bottom: 0; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field:focus-within {
+  border-color: #b4cfe2; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-top {
+  display: flex; align-items: center; gap: 9px; min-width: 0;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-index {
+  font: 700 11px/1.2 Inter, "Segoe UI", sans-serif;
+  color: #6b8ba3;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-name {
+  color: var(--cv-ink); flex: 1 1 auto;
+  font-size: 14px; font-weight: 740; line-height: 1.3;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-state {
+  flex: 0 0 auto;
+  padding: 2px 5px; border: 0; border-radius: 4px;
+  background: #f0f4f7; color: #7c8fa0;
+  font-size: 10px; font-weight: 600;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field.is-filled .cs-stage-cv-field-state {
+  background: #e9f3fa; color: #286b9c; border: 0;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-hint {
+  color: var(--cv-muted); font-size: 12px; font-weight: 440; line-height: 1.45;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(
+  .cs-stage-cv-fields input, .cs-stage-cv-field-input, .cs-stage-cv-ai-select select,
+  .cs-stage-cv-company-select, .cs-stage-cv-preview
+) {
+  color: var(--cv-ink); background: #fff; border: 1px solid #cbdbe7;
+  border-radius: 7px; box-shadow: none;
+  padding: 11px 13px; min-width: 0;
+  font: 500 13px/1.55 Inter, "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-input {
+  min-height: 82px; height: auto; resize: vertical;
+  background: #fbfdfe;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(
+  .cs-stage-cv-fields input, .cs-stage-cv-field-input, .cs-stage-cv-preview
+)::placeholder {
+  color: #91a1ad; opacity: 1;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-footer {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 14px; padding: 16px;
+  background: #f3f8fc; border: 1px solid #d3e3ef; border-radius: 10px; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-footer strong {
+  color: var(--cv-ink-2); font-size: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-footer small {
+  color: var(--cv-muted); font-size: 11px; line-height: 1.45;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-export-main,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 42px; border-radius: 7px; padding: 10px 14px;
+  background: var(--cv-blue-deep); color: #fff; border: 1px solid var(--cv-blue-deep);
+  font-size: 12px; font-weight: 720; line-height: 1.35;
+  box-shadow: none; transform: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(
+  .cs-stage-cv-export-main, .cs-stage-cv-ai-action
+):not(:disabled):hover {
+  color: #fff; background: #174b75; box-shadow: none; transform: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-secondary {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 9px 12px;
+  border: 1px solid #bed4e4; border-radius: 7px;
+  color: var(--cv-blue-deep); background: #f6fafc;
+  font-size: 12px; font-weight: 650; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-secondary:hover {
+  background: #eaf3fa; border-color: #94c0dd;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-sidebar {
+  display: grid; align-content: start; gap: 12px;
+  position: static; top: auto; min-width: 0; grid-row: auto;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-help-card,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-assistance {
+  display: grid; align-content: start; gap: 10px;
+  padding: 16px;
+  background: #fff; border: 1px solid var(--cv-line);
+  border-radius: 10px; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-help-card h3,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-assistance h3 {
+  color: var(--cv-ink-2); font-size: 14px; font-weight: 740; line-height: 1.35;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-help-card p,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-assistance p {
+  color: var(--cv-muted); font-size: 12px; line-height: 1.5;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-eyebrow {
+  color: #6686a0; font: 650 10px/1.3 Inter, "Segoe UI", sans-serif;
+  letter-spacing: .06em;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tips {
+  display: grid; gap: 5px; margin: 0; padding: 0;
+  list-style: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tips li {
+  color: #49677e; font-size: 11px; line-height: 1.4;
+  display: flex; align-items: start; gap: 7px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-tips li::before {
+  content: "✓"; color: var(--cv-blue); font-weight: 750;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-select {
+  display: grid; gap: 7px;
+  color: var(--cv-ink-2); font-size: 12px; font-weight: 680;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-action { width: 100%; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-notice {
+  color: #426d8b; font-size: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-contact-suggestion {
+  padding: 12px; border: 1px solid #d0e4f0; border-radius: 7px;
+  background: #f6fafc; color: var(--cv-ink-2);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-contact-suggestion p {
+  color: #456c84; font-size: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-aside-link {
+  display: inline-flex; align-items: center; padding: 9px 12px;
+  min-height: 38px; background: transparent;
+  color: var(--cv-blue-deep); border: 1px solid #d7e5ef;
+  border-radius: 7px; font-size: 12px; font-weight: 600;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-review {
+  display: grid; gap: 16px;
+  padding: clamp(16px, 2.5vw, 22px);
+  background: #f6f9fc; border: 1px solid #d8e4ee;
+  border-radius: 11px; box-shadow: none;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-review-head {
+  display: grid; gap: 7px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-review-head p {
+  color: var(--cv-muted); font-size: 12px; line-height: 1.5;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-paper {
+  display: grid; gap: 10px;
+  width: min(100%, 720px); margin: 0 auto; padding: clamp(14px, 3vw, 30px);
+  background: #fff; border: 1px solid #dde6ee; border-radius: 4px;
+  box-shadow: 0 4px 16px #18416b0f; color-scheme: light;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-paper-head {
+  color: #778b9e; font-size: 10px; font-weight: 700; letter-spacing: .03em;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-preview {
+  min-height: 340px; background: #fff; border: 1px solid #d6e2eb;
+  color: var(--cv-ink); font-size: 13px; line-height: 1.7;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-export {
+  display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-end;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-export .cs-stage-cv-export-main {
+  flex: 1 1 180px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-next-cta {
+  padding: 16px 18px; background: #fff; border: 1px solid var(--cv-line);
+  border-radius: 11px; color: var(--cv-ink);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-next-cta strong {
+  color: var(--cv-ink); font-size: 13px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-next-cta p {
+  color: var(--cv-muted); font-size: 12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-next-cta button {
+  min-height: 39px; padding: 8px 13px; border-radius: 7px;
+  background: #eaf3fa; color: var(--cv-blue-deep);
+  border: 1px solid #c2daeb;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(
+  button,input,textarea,select,summary
+):focus-visible { outline: 2px solid #2d6ea8; outline-offset: 2px; }
+@container cortex-stage (max-width: 850px) {
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-work.is-editing {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); grid-row: auto;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-jump {
+    display: inline-flex;
+    width: fit-content;
+    background: #edf6fc; border: 1px solid #cbdfee;
+    color: #215c8d; border-radius: 7px; padding: 8px 12px;
+  }
+}
+@container cortex-stage (max-width: 590px) {
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel > .cs-stage-surface {
+    padding: 15px 13px;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choices,
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-target,
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-sidebar,
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phases {
+    gap: 0;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-phase {
+    flex-direction: column; gap: 3px;
+    padding: 8px 2px; font-size: 11px;
+    text-align: center;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice {
+    min-height: 76px; padding: 13px;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field {
+    padding: 15px 0;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-footer {
+    padding: 12px; gap: 10px;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-editor-footer .cs-stage-cv-export-main,
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-export > button {
+    width: 100%; flex: 1 1 100%;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-jump {
+    width: 100%; justify-content: center;
+  }
+}
+@media (max-width: 650px) {
+  .cs-stage-search[data-stage-view="cv"] {
+    padding: 8px; border-radius: 12px;
+  }
+  .cs-stage-search[data-stage-view="cv"] .cs-stage-hero-content {
+    padding: 12px 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell button {
+    transition: none;
+  }
+}

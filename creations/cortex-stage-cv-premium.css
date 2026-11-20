@@ -537,3 +537,16 @@
     transition: none;
   }
 }
+
+
+/* Atelier direct : aucune sélection de brouillon ou version intermédiaire. */
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-recipient {
+  margin: -8px 0 0;
+  padding: 10px 13px;
+  color: #315d7f;
+  background: #f4f8fc;
+  border-left: 3px solid #3979b0;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+}

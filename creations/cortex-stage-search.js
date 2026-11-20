@@ -24,10 +24,10 @@
   ];
   const HERO = {
     search: ['Trouve ta', 'prochaine PFMP.', 'Recherche de PFMP', 'Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.'],
-    board: ['Suivre mes', 'candidatures', 'Étape 4 · Mon suivi', 'Retrouve tes entreprises, note leurs réponses et organise tes relances.'],
-    prep: ['Contacter', 'une structure', 'Étape 3 · Prendre contact', 'Prépare un appel ou un message clair et vérifie les informations importantes.'],
-    cv: ['Préparer ma', 'candidature', 'Étape 2 · Mes documents', 'Crée ton CV ou ta lettre, puis relis le document avant de l’envoyer.'],
-    assistant: ['Besoin', 'd’aide ?', 'Albert · À chaque étape', 'Discute directement avec Albert ou choisis un conseil guidé.']
+    board: ['Mes', 'démarches', 'Espace PFMP', 'Suis tes candidatures, note les réponses et planifie tes relances.'],
+    prep: ['Préparer', 'ma PFMP', 'Espace PFMP', 'Prépare ton premier contact et vérifie ce qu’il te reste à faire avant le stage.'],
+    cv: ['Mon CV', 'et ma lettre', 'Espace PFMP', 'Rédige tes documents, puis relis-les avant de les envoyer.'],
+    assistant: ['Assistant', 'Albert', 'Espace PFMP', 'Pose une question ou demande un conseil pour ta prochaine démarche.']
   };
 
   const clean = value => String(value ?? '').trim();
@@ -201,10 +201,10 @@
     <nav class="cs-stage-nav" aria-label="Parcours de recherche de PFMP">
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
 
-      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>2 · CV et lettre</strong><small>Créer mes documents</small></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>3 · Prendre contact</strong><small>Appel ou message</small></span></button>
-      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>4 · Mes démarches</strong><small>Réponses et relances</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
-      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert · Besoin d’aide ?</strong><small>Discuter ou demander un conseil</small></span></button>
+      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">2 · </span>CV et lettre</strong><small>Créer mes documents</small></span></button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">3 · </span>Prendre contact</strong><small>Appel ou message</small></span></button>
+      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">4 · </span>Mes démarches</strong><small>Réponses et relances</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert<span class="cs-stage-nav-extra"> · Besoin d’aide ?</span></strong><small>Discuter ou demander un conseil</small></span></button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
       <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span></button>
@@ -307,19 +307,18 @@
       <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle peut t’accueillir en PFMP.</p>
     </div>
     <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
-      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 04 / SUIVRE</span><div><h2>Où en sont tes candidatures ?</h2><p>Retrouve chaque lieu et indique ce qu’il t’a répondu. Tu sauras qui rappeler et quand.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="search">+ Rechercher un autre lieu</button></div>
       <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
         <div class="cs-stage-pane-head">
-          <div><h2 id="cs-stage-board-title" tabindex="-1">Mes lieux et mes réponses</h2><p>Pour chaque entreprise, choisis un statut et une date de relance. Ton carnet reste enregistré sur cet appareil.</p></div>
+          <div><h2 id="cs-stage-board-title" tabindex="-1">Mon carnet de candidatures</h2><p>Ton carnet est enregistré sur cet appareil.</p></div>
           <div class="cs-stage-board-actions">
-            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">+ Ajouter un lieu</button>
-            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter mon carnet</button>
+            <button type="button" class="cs-stage-primary" id="cs-stage-add-place">Ajouter un lieu</button>
+            <button type="button" class="cs-stage-pale" data-stage-go="search">Chercher un lieu</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
           </div>
         </div>
-        <p class="cs-stage-board-filter-help">Un aperçu de tes candidatures. Pour agir sur un lieu, utilise son bouton principal.</p>
         <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
         <details class="cs-stage-board-tools cs-stage-board-tools-v2" id="cs-stage-board-tools" hidden>
-          <summary>⌕ Rechercher ou filtrer mes candidatures</summary>
+          <summary>Rechercher ou filtrer mes candidatures</summary>
           <div class="cs-stage-board-tool-fields">
             <label>Nom de la structure<input type="search" id="cs-stage-board-query" placeholder="Rechercher une entreprise"></label>
             <label>État des candidatures<select id="cs-stage-board-filter"><option value="all">Toutes les candidatures</option><option value="todo">À contacter</option><option value="due">À relancer</option><option value="progress">En cours</option><option value="waiting">En attente</option><option value="meeting">Entretien prévu</option><option value="accepted">Accord reçu</option><option value="declined">Refus</option></select></label>
@@ -330,57 +329,50 @@
       </section>
     </div>
     <div class="cs-stage-panel" data-stage-panel="prep" id="cs-stage-prep-panel" hidden>
-      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 03 / CONTACTER</span><div><h2>Prêt à contacter une structure ?</h2><p>Indique tes dates, choisis un lieu si tu en as un, puis prépare ce que tu vas dire.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="cv">Relire mon CV et ma lettre</button></div>
       <div class="cs-stage-prep-grid">
         <section class="cs-stage-surface cs-stage-prep-contact" aria-labelledby="cs-stage-prep-title">
-          <h2 id="cs-stage-prep-title" tabindex="-1">Mon appel ou mon message</h2>
-          <p class="cs-stage-field-lead"><span>1</span> Renseigne les dates indiquées par ton lycée, si tu les connais.</p>
+          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer un appel ou un message</h2>
+          <p>Ajoute les dates données par ton lycée. Elles seront reprises dans tes modèles.</p>
           <div class="cs-stage-date-fields">
             <label>Date de début <input type="date" id="cs-stage-start"></label>
             <label>Date de fin <input type="date" id="cs-stage-end"></label>
           </div>
           <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
-          <p class="cs-stage-field-lead"><span>2</span> Choisis le lieu à contacter (facultatif).</p>
-          <label class="cs-stage-contact-target">Entreprise ou structure
+          <label class="cs-stage-contact-target">Lieu à contacter (facultatif)
             <select id="cs-stage-contact-target"><option value="">Sans structure précise</option></select>
           </label>
-          <p class="cs-stage-field-lead"><span>3</span> Prépare ton premier échange.</p>
           <div class="cs-stage-action-row">
-            <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon appel ou mon message</button>
+            <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon contact</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-prep-cv">Préparer mon CV</button>
           </div>
         </section>
-        <div class="cs-stage-prep-side">
-          <section class="cs-stage-brief cs-stage-coach-callout" aria-labelledby="cs-stage-interview-heading">
-            <div class="cs-stage-kicker">Assistant Albert</div>
-            <h2 id="cs-stage-interview-heading">Un entretien à préparer ?</h2>
-            <p>Entraîne-toi à présenter ce que tu sais faire et à poser des questions sur tes missions.</p>
-            <button type="button" class="cs-stage-quiet" id="cs-stage-prep-interview">M’entraîner avec Albert</button>
-          </section>
-          <section class="cs-stage-surface cs-stage-check-area" aria-labelledby="cs-stage-check-title">
-            <h2 id="cs-stage-check-title">Avant mon premier jour de PFMP</h2>
-            <p class="cs-stage-check-hint">Coche uniquement les actions réellement terminées : la validation reste à faire auprès du lycée.</p>
-            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
-            <div id="cs-stage-checklist"></div>
-          </section>
-        </div>
+        <section class="cs-stage-surface cs-stage-check-area" aria-labelledby="cs-stage-check-title">
+          <h2 id="cs-stage-check-title">Avant le premier jour</h2>
+          <p class="cs-stage-check-hint">Coche les actions terminées. Fais valider ton stage par le lycée.</p>
+          <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
+          <div id="cs-stage-checklist"></div>
+        </section>
         <section class="cs-stage-surface cs-stage-reference" id="cs-stage-reference"></section>
+        <section class="cs-stage-surface cs-stage-coach-callout" aria-labelledby="cs-stage-interview-heading">
+          <h2 id="cs-stage-interview-heading">Préparer un entretien</h2>
+          <p>Entraîne-toi à te présenter et à poser des questions sur tes missions.</p>
+          <button type="button" class="cs-stage-pale" id="cs-stage-prep-interview">M’entraîner avec Albert</button>
+        </section>
       </div>
-      <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><button type="button" class="cs-stage-pale" data-stage-go="board">Suivre mes démarches</button></div>
+      <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><div class="cs-stage-action-row"><button type="button" class="cs-stage-pale" data-stage-go="cv">Relire mes documents</button><button type="button" class="cs-stage-pale" data-stage-go="board">Suivre mes démarches</button></div></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
       <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
-        <h2 id="cs-stage-cv-title" tabindex="-1">CV et lettre de motivation</h2>
+        <h2 id="cs-stage-cv-title" tabindex="-1">Choisis ton document</h2>
         <div id="cs-stage-cv-workshop"></div>
       </section>
       <div class="cs-stage-next-cta"><div><strong>Ton document est prêt ?</strong><p>Prépare maintenant ton appel ou ton premier message.</p></div><button type="button" class="cs-stage-pale" data-stage-go="prep">Préparer mon contact</button></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="assistant" id="cs-stage-assistant-panel" hidden>
-      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ASSISTANCE / ALBERT</span><div><h2>Albert t’accompagne.</h2><p>Tu peux lui parler directement, ou choisir une aide précise juste en dessous.</p></div></div>
-      <div class="cs-stage-brief cs-stage-chat-launch">
-        <div><h2>Discuter librement avec Albert</h2><p>Par exemple : « Comment demander une PFMP par téléphone ? »</p></div>
-        <button type="button" id="cs-stage-chat-open" class="cs-stage-primary" aria-haspopup="dialog">Ouvrir la discussion</button>
-      </div>
+      <section class="cs-stage-surface cs-stage-chat-launch" aria-labelledby="cs-stage-chat-launch-title">
+        <div><h2 id="cs-stage-chat-launch-title">Discuter avec Albert</h2><p>Pose ta propre question, par exemple comment demander un stage par téléphone.</p></div>
+        <button type="button" id="cs-stage-chat-open" class="cs-stage-pale" aria-haspopup="dialog">Ouvrir le chat</button>
+      </section>
       <dialog id="cs-stage-chat" class="cs-stage-dialog" aria-labelledby="cs-stage-chat-title">
         <div class="cs-stage-chat-head">
           <h2 id="cs-stage-chat-title">Chat avec Albert</h2>
@@ -402,8 +394,8 @@
       </dialog>
       <div class="cs-stage-advisor-grid">
         <form class="cs-stage-surface cs-stage-advisor-form" id="cs-stage-advisor-form">
-          <h2 id="cs-stage-assistant-title" tabindex="-1">Ou choisis un accompagnement guidé</h2>
-          <p class="cs-stage-workflow-hint">Choisis un objectif, précise ta situation, puis demande un conseil adapté.</p>
+          <h2 id="cs-stage-assistant-title" tabindex="-1">Obtenir un conseil guidé</h2>
+          <p class="cs-stage-workflow-hint">Choisis ce que tu veux faire, puis indique ta situation.</p>
           <p id="cs-stage-advisor-context" class="cs-stage-advisor-context"></p>
           <fieldset class="cs-stage-advisor-goals"><legend class="cs-stage-sr-only">Choisis une action</legend><div id="cs-stage-advisor-goals"></div></fieldset>
           <label id="cs-stage-advisor-situation-wrap">Ta situation<select id="cs-stage-advisor-situation"></select></label>
@@ -1339,6 +1331,7 @@
         metric.append(node('strong', '', String(number)), node('span', '', label));
         stats.append(metric);
       }
+      stats.hidden = !entries.length;
       $('export-board').hidden = !entries.length;
       $('board-tools').hidden = !entries.length;
       const list = $('board-list');
@@ -1385,10 +1378,9 @@
 
       const top = node('div', 'cs-stage-board-card-top');
       const title = node('div', 'cs-stage-board-main');
-      const eyebrow = node('span','cs-stage-board-eyebrow','CORTEX / DOSSIER PFMP');
       const heading = node('h3', '', place.name);
       heading.tabIndex = -1;
-      title.append(eyebrow,heading,node('p','',place.address || 'Adresse à vérifier'));
+      title.append(heading,node('p','',place.address || 'Adresse à vérifier'));
       const stage = node('span', 'cs-stage-board-state', due ? 'À relancer' : STATES[entry.status]);
       stage.dataset.stageState = due ? 'due' : entry.status;
       top.append(title,stage);
@@ -1429,17 +1421,17 @@
         boardNotice('Contact enregistré. Prochaine relance prévue le ' + formatDate(entry.followUp) + '.');
       };
       if (due) {
-        primary = button('Préparer une relance →','cs-stage-primary',()=>setPanel('assistant',true,place.id,'followup'));
+        primary = button('Préparer une relance','cs-stage-primary',()=>setPanel('assistant',true,place.id,'followup'));
       } else if (entry.status==='todo') {
-        primary = button('J’ai contacté cette structure →','cs-stage-primary',markContacted);
+        primary = button('J’ai contacté cette structure','cs-stage-primary',markContacted);
       } else if (entry.status==='meeting') {
-        primary = button('Préparer mon entretien →','cs-stage-primary',()=>setPanel('assistant',true,place.id,'interview'));
+        primary = button('Préparer mon entretien','cs-stage-primary',()=>setPanel('assistant',true,place.id,'interview'));
       } else if (entry.status==='accepted') {
-        primary = button('Préparer ma PFMP →','cs-stage-primary',()=>setPanel('prep',true,place.id));
+        primary = button('Préparer ma PFMP','cs-stage-primary',()=>setPanel('prep',true,place.id));
       } else if (entry.status==='declined') {
-        primary = button('Chercher un autre lieu →','cs-stage-primary',()=>setPanel('search'));
+        primary = button('Chercher un autre lieu','cs-stage-primary',()=>setPanel('search'));
       } else {
-        primary = button('Mettre à jour ma réponse →','cs-stage-primary',()=>{
+        primary = button('Mettre à jour ma réponse','cs-stage-primary',()=>{
           details.open=true;
           expandedBoard.add(place.id);
           select.focus();
@@ -1454,7 +1446,7 @@
         if(details.open)expandedBoard.add(place.id);
         else expandedBoard.delete(place.id);
       });
-      details.append(node('summary','','Gérer le suivi · Options et informations'));
+      details.append(node('summary','','Modifier le statut, la relance ou les notes'));
       const content = node('div','cs-stage-board-detail-content');
       const data = node('div','cs-stage-board-detail-information');
       data.append(node('strong','','Informations du lieu'),

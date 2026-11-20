@@ -130,11 +130,10 @@
       shell.dataset.phase = String(step);
 
       const chooser = element('section','cs-stage-cv-chooser');
-      chooser.append(element('h4','cs-stage-cv-minititle','Choisis ton document'));
       const choices = element('div','cs-stage-cv-choices');
-      for (const [type,number,title,subtitle] of [
-        ['cv','01','Mon CV','Parcours, compétences, expériences'],
-        ['lettre','02','Ma lettre de motivation','Motivations, qualités, objectifs']
+      for (const [type,title,subtitle] of [
+        ['cv','Mon CV','Parcours, compétences, expériences'],
+        ['lettre','Ma lettre de motivation','Motivations, qualités, objectifs']
       ]) {
         const control = button('','cs-stage-cv-choice',()=>{
           if (kind === type && step === 2) return;
@@ -150,7 +149,7 @@
         texts.append(element('strong','',title),element('small','',subtitle));
         const done = progress(allDrafts[type],type);
         const meter = element('span','cs-stage-cv-choice-progress',done.count+'/'+done.total+' rubriques');
-        control.append(badge('cs-stage-cv-choice-index',number),texts,meter,badge('cs-stage-cv-choice-arrow','↗'));
+        control.append(texts,meter);
         choices.append(control);
       }
       chooser.append(choices);
@@ -172,7 +171,7 @@
         const reviewHead = element('div','cs-stage-cv-review-head');
         const title = element('h3','cs-stage-cv-step','Relis et finalise ton '+(kind==='cv'?'CV':'courrier'));
         title.tabIndex = -1;
-        reviewHead.append(badge('cs-stage-cv-eyebrow','DOCUMENT / VERSION FINALE'),title,
+        reviewHead.append(title,
           element('p','', 'Vérifie le nom, les coordonnées, les dates et le contenu. Tu peux modifier directement ce document avant de le copier ou de l’exporter.'));
         const paper = element('div','cs-stage-cv-paper');
         paper.append(badge('cs-stage-cv-paper-head','APERÇU ÉDITABLE · FORMAT A4'));
@@ -188,7 +187,7 @@
         const notice=element('p','cs-stage-cv-notice');
         notice.setAttribute('role','status');
         actions.append(
-          button('← Modifier mes réponses','cs-stage-cv-secondary',()=>{step=2;render();scrollToWork();}),
+          button('Modifier mes réponses','cs-stage-cv-secondary',()=>{step=2;render();scrollToWork();}),
           button('Copier le texte','cs-stage-cv-secondary',async()=>{
             try{await navigator.clipboard.writeText(area.value);notice.textContent='Document copié.';}
             catch{area.focus();area.select();notice.textContent='Texte sélectionné : utilise la commande Copier.';}
@@ -221,7 +220,7 @@
 
       const identityPanel=element('details','cs-stage-cv-identity');
       if (!api.identity.first || !api.identity.last) identityPanel.open=true;
-      identityPanel.append(element('summary','','✦ Mes coordonnées (à vérifier avant l’envoi)'));
+      identityPanel.append(element('summary','','Mes coordonnées'));
       identityPanel.append(element('p','cs-stage-cv-identity-hint','Elles figurent sur ton document, mais ne sont pas envoyées à Albert.'));
       const identity=element('div','cs-stage-cv-fields');
       for(const [key,label,type,autocomplete] of [
@@ -263,12 +262,11 @@
           if(state)state.textContent=ok?'✓ Renseigné':'À compléter';
         });
       }
-      for(const [index,[key,title,hint]] of fields[kind].entries()){
+      for(const [key,title,hint] of fields[kind]){
         const wrap=element('label','cs-stage-cv-field');
         if(filled(draft[key]))wrap.classList.add('is-filled');
         const top=element('span','cs-stage-cv-field-top');
-        top.append(badge('cs-stage-cv-field-index',String(index+1).padStart(2,'0')),
-          element('strong','cs-stage-cv-field-name',title),
+        top.append(element('strong','cs-stage-cv-field-name',title),
           badge('cs-stage-cv-field-state',filled(draft[key])?'✓ Renseigné':'À compléter'));
         const instruction=element('span','cs-stage-cv-field-hint',hint);
         const input=element('textarea','cs-stage-cv-field-input');
@@ -285,7 +283,7 @@
 
       const hook=api.getHook(entry).trim();
       if(kind==='lettre' && hook) {
-        editor.append(button('✦ Insérer mon accroche déjà préparée','cs-stage-cv-secondary',()=>{
+        editor.append(button('Insérer mon accroche déjà préparée','cs-stage-cv-secondary',()=>{
           const input=inputs.get('motivation');
           if(!input.value.includes(hook)){
             input.value=[hook,input.value].filter(Boolean).join('\n').slice(0,input.maxLength);
@@ -300,7 +298,7 @@
       const footerText=element('div','');
       footerText.append(element('strong','','Tes réponses sont conservées sur cet appareil.'),
         element('small','','Complète les rubriques, puis relis ton document avant de le partager.'));
-      finalize=button('Relire et finaliser mon '+(kind==='cv'?'CV':'courrier')+' →','cs-stage-cv-export-main',()=>{
+      finalize=button('Relire et finaliser mon '+(kind==='cv'?'CV':'courrier'),'cs-stage-cv-export-main',()=>{
         step=3;render();scrollToWork();
       });
       finalize.disabled=count.count===0;
@@ -308,8 +306,7 @@
       editor.append(footer);
 
       const guidance=element('section','cs-stage-cv-help-card');
-      guidance.append(badge('cs-stage-cv-eyebrow','CONSEILS / MISSION'),
-        element('h3','',kind==='cv'?'Un CV clair, en quelques lignes.':'Une lettre personnelle, sans phrases copiées.'),
+      guidance.append(element('h3','',kind==='cv'?'Un CV clair, en quelques lignes.':'Une lettre personnelle, sans phrases copiées.'),
         element('p','',kind==='cv'
           ? 'Privilégie ce que tu sais faire, même lors d’un projet scolaire. Sois précis et évite les compétences que tu ne peux pas expliquer.'
           : 'Montre pourquoi tu souhaites découvrir cette structure. Donne un exemple réel et indique une mission que tu aimerais apprendre.'));
@@ -321,8 +318,7 @@
       sidebar.append(guidance);
 
       const box=element('section','cs-stage-cv-assistance');
-      box.append(badge('cs-stage-cv-eyebrow','ALBERT IA / CO-RÉDACTION'),
-        element('h3','', 'Améliore un passage avec Albert'),
+      box.append(element('h3','', 'Améliore un passage avec Albert'),
         element('p','cs-stage-cv-ai-note','Albert propose une reformulation : tu restes libre de l’accepter ou non. Évite d’envoyer tes coordonnées personnelles.'));
       const selectLabel=element('label','cs-stage-cv-ai-select','Rubrique à améliorer');
       const aiSelect=element('select');
@@ -337,7 +333,7 @@
       aiSelect.addEventListener('change',()=>{
         suggestion.hidden=true;feedback.textContent='';request?.abort();ask.disabled=false;
       });
-      const ask=button('✦ Améliorer cette rubrique','cs-stage-cv-ai-action',async()=>{
+      const ask=button('Améliorer cette rubrique','cs-stage-cv-ai-action',async()=>{
         const id=aiSelect.value, input=inputs.get(id), raw=input.value.trim();
         if(raw.length<12){
           feedback.textContent='Écris d’abord une phrase (au moins 12 caractères) dans cette rubrique.';
@@ -374,9 +370,9 @@
       });
       box.append(selectLabel,ask,feedback,suggestion);
       sidebar.append(box);
-      sidebar.append(button('↗ Renseigner mes dates de PFMP','cs-stage-cv-aside-link',api.openPrep));
-      if(!entries.length)sidebar.append(button('↗ Retrouver mes démarches','cs-stage-cv-aside-link',api.openBoard));
-      const quick=button('✦ Aide Albert','cs-stage-cv-ai-jump',()=>{
+      sidebar.append(button('Renseigner mes dates de PFMP','cs-stage-cv-aside-link',api.openPrep));
+      if(!entries.length)sidebar.append(button('Retrouver mes démarches','cs-stage-cv-aside-link',api.openBoard));
+      const quick=button('Aide Albert','cs-stage-cv-ai-jump',()=>{
         box.scrollIntoView({block:'start',behavior:'smooth'});
         aiSelect.focus({preventScroll:true});
       });

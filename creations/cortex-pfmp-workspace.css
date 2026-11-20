@@ -1,0 +1,435 @@
+/* Espace PFMP élève, hors recherche. Les composants partagés gardent leur thème dans Rechercher. */
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) {
+  --cs-ink: #172e38;
+  --cs-ink-muted: #48606b;
+  --cs-paper-line: #c9d8dc;
+  --cs-paper: #f2f6f6;
+  --pfmp-accent: #11665c;
+  --pfmp-accent-hover: #0b4d46;
+  --pfmp-tint: #e6f3ee;
+  --pfmp-white: #fff;
+  --pfmp-radius: .9rem;
+  padding: clamp(.55rem, 1.8vw, 1rem);
+  border: 1px solid var(--cs-paper-line);
+  border-radius: 1.2rem;
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  box-shadow: none;
+}
+
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero {
+  min-height: auto;
+  border: 0;
+  border-radius: var(--pfmp-radius);
+  background: #14333d;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-visual {
+  display: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero::after { content: none; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .8rem 1.25rem;
+  align-items: start;
+  padding: clamp(1rem, 3vw, 1.6rem);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-top {
+  grid-column: 2;
+  grid-row: 1;
+  justify-content: flex-end;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-copy { grid-column: 1; grid-row: 1; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-signature { display: none; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-return {
+  min-height: 2.75rem;
+  border: 1px solid #749198;
+  border-radius: .55rem;
+  background: transparent;
+  color: #f2faf9;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-return:hover { background: #2a4b54; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-copy .cs-stage-kicker {
+  color: #a9e6d5;
+  font: 650 .875rem/1.4 system-ui, sans-serif;
+  letter-spacing: .06em;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero h1 {
+  margin: .25rem 0 .45rem;
+  color: #fff;
+  font: 760 clamp(1.75rem, 4vw, 2.85rem)/1.12 system-ui, sans-serif;
+  letter-spacing: -.04em;
+  text-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero h1 em {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-copy p {
+  max-width: 62ch;
+  color: #dceae9;
+  font-size: 1rem;
+}
+
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .25rem;
+  padding: .3rem;
+  margin: .65rem 0 1rem;
+  border: 1px solid var(--cs-paper-line);
+  border-radius: var(--pfmp-radius);
+  background: var(--pfmp-white);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button:is([data-stage-nav]) {
+  grid-column: auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 2.85rem;
+  padding: .5rem .35rem;
+  border: 1px solid transparent;
+  border-radius: .6rem;
+  background: transparent;
+  color: var(--cs-ink);
+  font-size: .9rem;
+  text-align: center;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button:hover {
+  background: var(--cs-paper);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button[data-stage-nav][aria-pressed="true"] {
+  border-color: #83b5aa;
+  background: var(--pfmp-tint);
+  color: var(--pfmp-accent-hover);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav :is(small, .cs-stage-nav-step, .cs-stage-nav-extra) { display: none; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav-copy strong { font: inherit; }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav-count {
+  background: var(--pfmp-tint);
+  color: var(--pfmp-accent-hover);
+}
+
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) .cs-stage-surface {
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+  border: 1px solid var(--cs-paper-line);
+  border-radius: var(--pfmp-radius);
+  background: var(--pfmp-white);
+  color: var(--cs-ink);
+  color-scheme: light;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) .cs-stage-surface h2 {
+  margin: 0;
+  color: var(--cs-ink);
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) :is(.cs-stage-surface > p, .cs-stage-pane-head p) {
+  color: var(--cs-ink-muted);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) button.cs-stage-primary {
+  min-height: 2.75rem;
+  border: 1px solid var(--pfmp-accent);
+  border-radius: .55rem;
+  background: var(--pfmp-accent);
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) button.cs-stage-primary:hover:not(:disabled) {
+  background: var(--pfmp-accent-hover);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) .cs-stage-pale {
+  min-height: 2.75rem;
+  border: 1px solid var(--cs-paper-line);
+  border-radius: .55rem;
+  background: var(--pfmp-white);
+  color: var(--pfmp-accent-hover);
+  font-size: .9rem;
+  font-weight: 650;
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-board-panel, #cs-stage-prep-panel, #cs-stage-cv-panel, #cs-stage-assistant-panel) .cs-stage-pale:hover {
+  background: var(--pfmp-tint);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-prep-panel, #cs-stage-cv-panel) .cs-stage-next-cta {
+  padding: .85rem 1rem;
+  border: 1px solid var(--cs-paper-line);
+  border-radius: var(--pfmp-radius);
+  background: var(--pfmp-tint);
+  color: var(--cs-ink);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"])
+:is(#cs-stage-prep-panel, #cs-stage-cv-panel) .cs-stage-next-cta p { color: var(--cs-ink-muted); }
+
+.cs-stage-search #cs-stage-board-panel .cs-stage-pane-head { align-items: center; padding-bottom: 0; }
+.cs-stage-search #cs-stage-board-panel .cs-stage-pane-head p { margin-top: .3rem; }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-stats { margin: 1rem 0 .75rem; }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 {
+  min-height: 0;
+  gap: .1rem;
+  padding: .65rem .85rem;
+  border-color: var(--cs-paper-line);
+  background: var(--cs-paper);
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 strong {
+  color: var(--pfmp-accent);
+  font-family: inherit;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 span { color: var(--cs-ink-muted); }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2[data-metric="due"] strong { color: #914c17; }
+.cs-stage-search #cs-stage-board-panel :is(.cs-stage-board-tools-v2, .cs-stage-board-card-v2, .cs-stage-board-card-v2 .cs-stage-board-details) {
+  border-color: var(--cs-paper-line);
+  background: var(--pfmp-white);
+  color: var(--cs-ink);
+  box-shadow: none;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2.is-due {
+  border-color: #c1854d;
+  box-shadow: inset .2rem 0 #c1854d;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state {
+  border-color: var(--cs-paper-line);
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state[data-stage-state="due"] {
+  border-color: #deb487; background: #fff2e2; color: #803d11;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state[data-stage-state="accepted"] {
+  border-color: #9cc7af; background: var(--pfmp-tint); color: var(--pfmp-accent-hover);
+}
+.cs-stage-search #cs-stage-board-panel :is(
+  .cs-stage-board-card-v2 .cs-stage-board-card-top h3,
+  .cs-stage-board-tools-v2 summary, .cs-stage-board-tool-fields label,
+  .cs-stage-board-details summary, .cs-stage-board-details[open] summary,
+  .cs-stage-board-card-v2 .cs-stage-board-fields label,
+  .cs-stage-board-card-v2 .cs-stage-board-notes label
+) { color: var(--cs-ink); }
+.cs-stage-search #cs-stage-board-panel :is(
+  .cs-stage-board-card-v2 .cs-stage-board-card-top p,
+  .cs-stage-board-detail-information, .cs-stage-board-detail-information > p,
+  .cs-stage-board-next p
+) { color: var(--cs-ink-muted); }
+.cs-stage-search #cs-stage-board-panel :is(
+  .cs-stage-board-tools-v2[open] summary, .cs-stage-board-details[open] summary,
+  .cs-stage-board-card-v2 .cs-stage-board-fields
+) {
+  border-color: var(--cs-paper-line);
+  background: var(--cs-paper);
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next {
+  padding: .65rem .85rem;
+  border: 0;
+  border-inline-start: 3px solid #86bcae;
+  background: var(--pfmp-tint);
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next span,
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-information > strong,
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-notice { color: var(--pfmp-accent-hover); }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next small { color: #803d11; font-size: .875rem; }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions { border-color: var(--cs-paper-line); }
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions .cs-stage-text-button { color: #942e32; }
+.cs-stage-search #cs-stage-board-panel .cs-stage-empty { margin-top: 1rem; background: var(--cs-paper); }
+
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "contact checklist" "reference coach";
+  grid-template-rows: auto auto;
+  align-items: stretch;
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check-area { grid-area: checklist; }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-coach-callout { grid-area: coach; }
+.cs-stage-search #cs-stage-prep-panel :is(.cs-stage-prep-contact, .cs-stage-check-area, .cs-stage-coach-callout) { display: grid; align-content: start; gap: .75rem; }
+.cs-stage-search #cs-stage-prep-panel :is(.cs-stage-date-fields label, .cs-stage-contact-target) { color: var(--cs-ink); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-action-row { display: flex; flex-wrap: wrap; }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-action-row > * { width: auto; }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-date-status { margin: 0; color: var(--pfmp-accent-hover); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact:has(#cs-stage-end[aria-invalid="true"]) .cs-stage-date-status { color: #942e32; }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check-area .cs-stage-check-hint { margin: 0; color: var(--cs-ink-muted); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-progress { margin: 0; color: var(--pfmp-accent-hover); }
+.cs-stage-search #cs-stage-prep-panel :is(.cs-stage-progress progress, .cs-stage-check input) { accent-color: var(--pfmp-accent); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check {
+  min-height: 2.75rem;
+  border: 1px solid var(--cs-paper-line);
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-check:has(input:checked) {
+  border-color: #8ab7aa; background: var(--pfmp-tint); color: var(--pfmp-accent-hover);
+}
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference h2 { margin: .35rem 0 .8rem; }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference-group { border-color: var(--cs-paper-line); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-reference :is(dd, li) { color: var(--cs-ink-muted); }
+.cs-stage-search #cs-stage-prep-panel .cs-stage-competencies dt { color: var(--cs-ink); }
+.cs-stage-search #cs-stage-prep-panel #cs-stage-prep-interview { justify-self: start; }
+
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-shell {
+  --cv-ink: var(--cs-ink);
+  --cv-ink-2: var(--cs-ink);
+  --cv-muted: var(--cs-ink-muted);
+  --cv-line: var(--cs-paper-line);
+  --cv-blue: var(--pfmp-accent);
+  --cv-blue-deep: var(--pfmp-accent-hover);
+  --cv-light: var(--cs-paper);
+  --cv-soft: var(--pfmp-tint);
+  gap: 1.2rem;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel #cs-stage-cv-workshop { margin-top: .85rem; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 4.75rem;
+  padding: .75rem 1rem;
+  border-radius: .65rem;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice[aria-pressed="true"] { background: var(--pfmp-tint); }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(.cs-stage-cv-choice-progress, .cs-stage-cv-tracker-text) {
+  color: var(--pfmp-accent-hover);
+  font-size: .875rem;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(
+  .cs-stage-cv-choice-text small, .cs-stage-cv-editor-intro, .cs-stage-cv-field-hint,
+  .cs-stage-cv-identity-hint, .cs-stage-cv-ai-note, .cs-stage-cv-tips li,
+  .cs-stage-cv-help-card p, .cs-stage-cv-editor-footer small, .cs-stage-cv-review-head p
+) { font-size: .875rem; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-identity summary,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-fields label,
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-ai-select { font-size: .9rem; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(.cs-stage-cv-fields input, .cs-stage-cv-field-input, .cs-stage-cv-ai-select select, .cs-stage-cv-preview) {
+  border-color: var(--cs-paper-line);
+  background: var(--pfmp-white);
+  font: 500 1rem/1.5 system-ui, sans-serif;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(.cs-stage-cv-export-main, .cs-stage-cv-ai-action, .cs-stage-cv-secondary, .cs-stage-cv-aside-link) {
+  min-height: 2.75rem;
+  font-size: .9rem;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel :is(.cs-stage-cv-help-card, .cs-stage-cv-assistance, .cs-stage-cv-editor-footer, .cs-stage-cv-identity) {
+  border-color: var(--cs-paper-line);
+  background: var(--cs-paper);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-state { color: var(--cs-ink-muted); font-size: .75rem; }
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field.is-filled .cs-stage-cv-field-state { color: var(--pfmp-accent-hover); background: var(--pfmp-tint); }
+
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) #cs-stage-assistant-panel .cs-stage-chat-launch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: 1rem;
+  background: var(--pfmp-tint);
+}
+.cs-stage-search[data-stage-view="assistant"] #cs-stage-assistant-panel .cs-stage-chat-launch :is(h2, p) { color: var(--cs-ink); }
+.cs-stage-search[data-stage-view="assistant"] #cs-stage-assistant-panel .cs-stage-chat-launch p { margin-top: .3rem; }
+.cs-stage-search #cs-stage-assistant-panel .cs-stage-workflow-hint {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.cs-stage-search #cs-stage-assistant-panel .cs-stage-advisor-context { font-size: .9rem; }
+.cs-stage-search #cs-stage-assistant-panel .cs-stage-advisor-goal { min-height: 2.75rem; }
+.cs-stage-search #cs-stage-assistant-panel .cs-stage-advisor-goal:has(input:checked) {
+  border-color: #83b5aa;
+  background: var(--pfmp-tint);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) [data-stage-panel] :is(h2, h3, .cs-stage-advisor-response)[tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--pfmp-accent);
+  outline-offset: 4px;
+  border-radius: .15rem;
+}
+.cs-stage-search[data-stage-view="assistant"] #cs-stage-assistant-panel .cs-stage-advisor-response {
+  min-height: 0;
+}
+.cs-stage-search #cs-stage-assistant-panel .cs-stage-advisor-response {
+  overflow-wrap: anywhere;
+}
+
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact {
+  border-color: var(--cs-paper-line);
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+  color-scheme: light;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  .cs-stage-dialog-head, .cs-stage-apply-body, .cs-stage-apply-intro,
+  .cs-stage-contact-v2-head, .cs-stage-contact-v2-step, .cs-stage-contact-v2-identity,
+  .cs-stage-contact-v2-assistance, .cs-stage-apply-extras, .cs-stage-dialog-subsection,
+  .cs-stage-contact-motives label, .cs-stage-contact-method button
+) {
+  border-color: var(--cs-paper-line);
+  background: var(--pfmp-white);
+  color: var(--cs-ink);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  h2, h3, h4, p, li, label, legend, summary, .cs-stage-contact-v2 .cs-stage-contact-guidance,
+  .cs-stage-contact-v2-step .cs-stage-fixed-opening, .cs-stage-apply-extras-body
+) { color: var(--cs-ink); }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  .cs-stage-apply-eyebrow, .cs-stage-contact-overline
+) { color: var(--pfmp-accent-hover); }
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  .cs-stage-contact-motives label:has(input:checked), .cs-stage-contact-method button[aria-pressed="true"]
+) {
+  border-color: #83b5aa;
+  background: var(--pfmp-tint);
+  color: var(--pfmp-accent-hover);
+  box-shadow: none;
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  .cs-stage-dialog-head button, .cs-stage-contact-v2-assistance .cs-stage-pale,
+  .cs-stage-contact-v2-actions .cs-stage-pale, .cs-stage-apply-extras .cs-stage-pale
+) {
+  border-color: var(--cs-paper-line);
+  background: var(--pfmp-white);
+  color: var(--pfmp-accent-hover);
+}
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-dialog--contact :is(
+  .cs-stage-contact-v2-copy, .cs-stage-contact-v2-assistance .cs-stage-primary
+) {
+  border-color: var(--pfmp-accent);
+  background: var(--pfmp-accent);
+  color: #fff;
+}
+
+@container cortex-stage (max-width: 47rem) {
+  .cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button[data-stage-nav="search"] {
+    grid-column: 1 / -1;
+  }
+  .cs-stage-search #cs-stage-prep-panel .cs-stage-prep-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "contact" "checklist" "reference" "coach";
+  }
+}
+@container cortex-stage (max-width: 30rem) {
+  .cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-content { grid-template-columns: minmax(0, 1fr); }
+  .cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-top { grid-column: 1; }
+  .cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-hero-copy { grid-row: 2; }
+  .cs-stage-search #cs-stage-prep-panel .cs-stage-date-fields { grid-template-columns: minmax(0, 1fr); }
+  .cs-stage-search #cs-stage-prep-panel .cs-stage-prep-contact .cs-stage-action-row > *,
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-actions,
+  .cs-stage-search #cs-stage-assistant-panel .cs-stage-chat-launch > button { width: 100%; }
+}

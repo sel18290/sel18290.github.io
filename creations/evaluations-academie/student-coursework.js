@@ -686,8 +686,8 @@ if(qr||globalPortal){
      return;
     }
     submissionMessage('');
-    confirmDetails.textContent='Tu as répondu à '+completed+' question(s) sur '+questions.length+
-     (attached?' et joint un fichier.':'.')+
+    confirmDetails.textContent='Tu as saisi '+completed+' réponse(s) sur '+questions.length+' questions'+
+     (photoManager?.count()?' et joint '+photoManager.count()+' photo(s) manuscrite(s) par question.':attached?' et joint un fichier.':'.')+
      ' Après envoi, tu ne pourras plus modifier ta copie. Confirmer ?';
     submit.hidden=true;
     confirmBox.hidden=false;
@@ -757,8 +757,8 @@ if(qr||globalPortal){
    onAttach:pdf=>editor.attach(pdf),
    onRemove:()=>editor.attach(null),
    onStatus:(text,error=false)=>{draftStatus.textContent=text;draftStatus.classList.toggle('error',error)},
-   canAdd:()=>!editor.attachment||String(editor.attachment).startsWith('CORTEX_Manuscrit_'),
-   onCameraOpen:()=>guard.setActive(),
+   canAdd:()=>!editor.attachment||(String(editor.attachment).startsWith('CORTEX_Manuscrit_')&&photoManager?.count()>0),
+   onCameraOpen:()=>{guard.setActive();presence.setActive()},
    onCameraClose:()=>{if(!expiryNotified&&Date.now()<deadline)startIntegrity()}
   });
   if(settings.enabled&&settings.watermarkCapture){

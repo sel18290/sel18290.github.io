@@ -549,6 +549,41 @@ async function teacherAction(action,body,form,req){
  throw Error('Action professeur inconnue.');
 }
 async function studentAction(action,body,form){
+ if(action==='student_link_info'){
+  // Le lien reçu de l'enseignant détermine la classe, jamais le numéro seul.
+  // Ne renvoyer ici aucun état de PIN, copie ou identité d'élève.
+  const invitation=String(body.registration_token||'').toLowerCase();
+  const join=String(body.join_code||'').toLowerCase();
+  let access=null;
+  if(invitation&&/^[a-f0-9]{40}$/.test(invitation)){
+   const result=await admin.from('cortex_academy_class_access').select('class_id,portal_code,teacher_id,active,registration_open_until')
+    .eq('registration_token_hash',await digest(invitation)).eq('active',true).maybeSingle();
+   if(result.error)throw Error('Vérification du lien impossible.');
+   access=result.data;
+  }else if(join&&/^[a-f0-9]{40}$/.test(join)){
+   const exam=await admin.from('cortex_academy_access').select('assessment_id,active')
+    .eq('join_code',join).eq('active',true).maybeSingle();
+   if(exam.error)throw Error('Vérification du QR impossible.');
+   if(exam.data){
+    const assessment=await admin.from('cortex_teacher_assessments').select('class_id,published')
+     .eq('id',exam.data.assessment_id).eq('published',true).maybeSingle();
+    if(assessment.error)throw Error('Vérification de la classe impossible.');
+    if(assessment.data?.class_id){
+     const ca=await admin.from('cortex_academy_class_access').select('class_id,portal_code,teacher_id,active,registration_open_until')
+      .eq('class_id',assessment.data.class_id).eq('active',true).maybeSingle();
+     if(ca.error)throw Error('Vérification de la classe impossible.');
+     access=ca.data;
+    }
+   }
+  }else throw Error('Lien de classe ou QR code invalide.');
+  if(!access)throw Error('Lien invalide ou contrôle fermé. Demande un nouveau lien à ton professeur.');
+  const info=await admin.from('cortex_teacher_classes').select('code,display_name')
+   .eq('id',access.class_id).eq('teacher_id',access.teacher_id).eq('archived',false).maybeSingle();
+  if(info.error||!info.data)throw Error('Classe indisponible.');
+  return ret({ok:true,class_code:info.data.code,class_name:info.data.display_name,
+   portal_code:access.portal_code,registration_open:!!access.registration_open_until&&
+    Date.parse(access.registration_open_until)>Date.now(),source:invitation?'invitation':'qr'});
+ }
  if(action==='student_classes'){
   // Le catalogue affiche aussi les classes préparées dans l'espace professeur,
   // sans divulguer de PIN, d'identité d'élève ni de notes.
@@ -622,7 +657,10 @@ async function studentAction(action,body,form){
    .eq('class_id',access.class_id).eq('student_number',number).maybeSingle();
   if(readErr)throw Error('Vérification temporairement indisponible.');
   if(!cred)throw Error('Numéro non préparé par le professeur.');
-  if(cred.activated_at)throw Error('Ce numéro possède déjà un PIN. Connecte-toi ou demande une réinitialisation au professeur.');
+  if(cred.activated_at){
+   const {data:cl}=await admin.from('cortex_teacher_classes').select('code').eq('id',access.class_id).maybeSingle();
+   throw Error('Le n°'+number+' possède déjà un compte dans '+(cl?.code||'cette classe')+'. Vérifie la classe du lien ou demande une réinitialisation du PIN à ton professeur.');
+  }
   if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Réessaye plus tard ou contacte le professeur.');
   const {data:result,error:changeErr}=await admin.from('cortex_academy_class_roster')
    .update({pin_digest:await pinHash(access.class_id,number,chosen),

@@ -60,13 +60,6 @@
 
   function mount(context) {
     const root = node('section', 'cs-stage-contact-editor cs-stage-contact-v2');
-    const header = node('div', 'cs-stage-contact-v2-head');
-    header.append(
-      node('span','cs-stage-contact-overline','CORTEX / CONSOLE DE CANDIDATURE'),
-      node('h3','','Ton premier contact, en 3 étapes'),
-      node('p','','Prépare ce que tu vas dire, personnalise ton message et copie-le quand il te convient.')
-    );
-    root.append(header);
     const stepbar = node('nav','cs-stage-contact-v3-progress');
     stepbar.setAttribute('aria-label','Progression de la préparation de candidature');
     const stepIndicators = [];

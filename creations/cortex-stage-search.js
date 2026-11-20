@@ -311,9 +311,8 @@
         <div class="cs-stage-pane-head">
           <div><h2 id="cs-stage-board-title" tabindex="-1">Mes lieux de stage potentiels</h2><p>Retrouve ici les structures sélectionnées et les réponses obtenues. Les informations restent enregistrées sur cet appareil.</p></div>
           <div class="cs-stage-board-actions">
-            <button type="button" class="cs-stage-primary" id="cs-stage-add-place">Ajouter un lieu</button>
-            <button type="button" class="cs-stage-pale" data-stage-go="search">Chercher un lieu</button>
-            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
+            <button type="button" class="cs-stage-primary" data-stage-go="search">Chercher un lieu</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" aria-label="Télécharger mes lieux de stage avec leurs adresses en PDF" hidden>Télécharger mes lieux de stage (PDF)</button>
           </div>
         </div>
         <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes lieux de stage suivis"></div>
@@ -1338,7 +1337,7 @@
       list.replaceChildren();
       if (!entries.length) {
         list.append(emptyCard('Tes pistes apparaîtront ici',
-          'Ajoute un lieu depuis les résultats, ou saisis une structure que tu as déjà repérée.',
+          'Lance une recherche et sélectionne les structures qui t’intéressent pour les retrouver ici.',
           button('Revenir à la recherche', 'cs-stage-pale', () => setPanel('search'))));
         return;
       }
@@ -1554,59 +1553,21 @@
       openDialog('Retirer du carnet', body);
     }
 
-    $('add-place').addEventListener('click', () => {
-      const form = node('form', 'cs-stage-dialog-body cs-stage-manual-form');
-      const fields = [
-        ['name', 'Nom de la structure', 'text', true, 160],
-        ['address', 'Adresse', 'text', false, 240],
-        ['phone', 'Téléphone professionnel', 'tel', false, 80],
-        ['website', 'Site web', 'url', false, 240]
-      ];
-      for (const [name, caption, type, required, length] of fields) {
-        const label = node('label', '', caption);
-        const input = node('input');
-        input.name = name;
-        input.type = type;
-        input.required = required;
-        input.maxLength = length;
-        label.append(input);
-        form.append(label);
-      }
-      const feedback = node('p', 'cs-stage-date-status');
-      feedback.setAttribute('role', 'status');
-      const submit = node('button', 'cs-stage-primary', 'Ajouter à mes lieux suivis');
-      submit.type = 'submit';
-      form.append(feedback, submit);
-      form.addEventListener('submit', event => {
-        event.preventDefault();
-        const values = new FormData(form);
-        const name = clean(values.get('name'));
-        const address = clean(values.get('address'));
-        if (!name) {
-          feedback.textContent = 'Indique le nom du lieu.';
-          return;
-        }
-        const duplicate = [...board.values()].some(({ place }) =>
-          normalize(place.name) === normalize(name) && normalize(place.address) === normalize(address));
-        if (duplicate) {
-          feedback.textContent = 'Ce lieu figure déjà dans ton carnet.';
-          return;
-        }
-        const place = placeFrom({ id: 'manual/' + (crypto.randomUUID?.() || Date.now()), name, address,
-          phone: values.get('phone'), website: values.get('website'), manual: true });
-        $('dialog').close();
-        addEntry({ place, sector, option: route(), status: 'todo', followUp: '' });
-      });
-      openDialog('Ajouter un lieu', form);
-    });
-
     $('export-board').addEventListener('click', () => {
-      const rows = [...board.values()].map(({ place, sector, option, status, followUp, contactedAt, notes }) => [
-        place.name, GUIDE.programs[sector].label, option === 'toutes' ? '' : option,
-        place.address, place.phone, place.website, STATES[status], contactedAt, followUp, notes, publicSource(place)
-      ]);
-      exportCsv('CORTEX-mes-demarches-PFMP.csv',
-        [['Lieu', 'Filière', 'Option', 'Adresse', 'Téléphone', 'Site web', 'Statut', 'Dernier contact', 'Relance prévue', 'Notes', 'Source'], ...rows]);
+      const entries = [...board.values()];
+      if (!entries.length) {
+        boardNotice('Aucun lieu suivi à télécharger. Cherche un lieu puis ajoute-le à ton suivi.');
+        return;
+      }
+      try {
+        if (typeof window.CORTEX_PFMP_PDF?.download !== 'function')
+          throw new Error('Le module PDF est indisponible. Recharge la page puis réessaie.');
+        window.CORTEX_PFMP_PDF.download(entries);
+        boardNotice(entries.length + (entries.length === 1
+          ? ' lieu inclus dans le PDF.' : ' lieux inclus dans le PDF.'));
+      } catch (error) {
+        boardNotice(error?.message || 'Le PDF n’a pas pu être créé.');
+      }
     });
 
     function updateDates() {

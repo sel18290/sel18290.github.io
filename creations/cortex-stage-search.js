@@ -337,9 +337,13 @@
             <label>Date de fin <input type="date" id="cs-stage-end"></label>
           </div>
           <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
-          <label class="cs-stage-contact-target">Lieu à contacter (facultatif)
-            <select id="cs-stage-contact-target"><option value="">Sans structure précise</option></select>
+          <label class="cs-stage-contact-target" for="cs-stage-contact-target">Entreprise à contacter
+            <select id="cs-stage-contact-target" required aria-describedby="cs-stage-contact-target-help">
+              <option value="" disabled selected>Sélectionner une entreprise déjà suivie</option>
+            </select>
           </label>
+          <p class="cs-stage-contact-target-help" id="cs-stage-contact-target-help" role="status">Choisis une entreprise parmi tes lieux de stage potentiels.</p>
+          <button type="button" class="cs-stage-pale cs-stage-contact-find" data-stage-go="search">Entreprise absente ? Rechercher et suivre un lieu</button>
           <div class="cs-stage-action-row">
             <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon contact</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-prep-cv">Préparer mon CV</button>
@@ -518,9 +522,13 @@
         renderReference();
         const target = $('contact-target');
         const previous = target.value;
-        target.replaceChildren(new Option('Sans structure précise', ''),
-          ...[...board.values()].map(({place}) => new Option(place.name, place.id)));
-        if (board.has(company || previous)) target.value = company || previous;
+        const placeholder = new Option('Sélectionner une entreprise déjà suivie', '');
+        placeholder.disabled = true;
+        target.replaceChildren(placeholder,
+          ...[...board.values()].map(({place}) => new Option(place.name, place.id)),
+          new Option('🔎 Rechercher et suivre une entreprise…', '__search__'));
+        target.value = board.has(company) ? company : board.has(previous) ? previous : '';
+        updatePrepContactState();
       }
       $('doc-launch').hidden = next !== 'search';
       if (next === 'cv') workshop.show(company, kind);
@@ -1609,7 +1617,34 @@
 
     $('start').addEventListener('change', updateDates);
     $('end').addEventListener('change', updateDates);
-    $('make-message').addEventListener('click', () => openContact(board.get($('contact-target').value) || { sector, option: route() }));
+    function updatePrepContactState() {
+      const id = $('contact-target').value;
+      const current = board.get(id);
+      $('make-message').disabled = !current;
+      const help = $('contact-target-help');
+      help.textContent = current
+        ? 'Entreprise sélectionnée : ' + current.place.name + '. Tu peux préparer ton appel ou ton e-mail.'
+        : board.size
+          ? 'Choisis une entreprise suivie. Si elle manque, recherche-la puis ajoute-la à « Mes lieux de stage potentiels ».'
+          : 'Tu n’as encore aucune entreprise suivie. Utilise la recherche pour en enregistrer une.';
+    }
+    $('contact-target').addEventListener('change', () => {
+      if ($('contact-target').value === '__search__') {
+        $('contact-target').value = '';
+        setPanel('search');
+        return;
+      }
+      updatePrepContactState();
+    });
+    $('make-message').addEventListener('click', () => {
+      const target = board.get($('contact-target').value);
+      if (!target) {
+        updatePrepContactState();
+        $('contact-target').focus();
+        return;
+      }
+      openContact(target);
+    });
     $('prep-cv').addEventListener('click', () => setPanel('cv', true, $('contact-target').value, 'cv'));
     $('prep-interview').addEventListener('click', () => setPanel('assistant', true, $('contact-target').value, 'interview'));
 

@@ -369,10 +369,8 @@
       <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><button type="button" class="cs-stage-pale" data-stage-go="board">Suivre mes démarches</button></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
-      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 02 / RÉDIGER</span><div><h2>Prépare tes documents.</h2><p>Tu peux commencer sans entreprise précise et adapter ton brouillon plus tard.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="board">Voir les lieux enregistrés</button></div>
       <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
-        <h2 id="cs-stage-cv-title" tabindex="-1">Mon CV ou ma lettre de motivation</h2>
-        <p class="cs-stage-workflow-hint"><b>1.</b> Choisis un lieu ou un brouillon général. <b>2.</b> Sélectionne CV ou lettre. <b>3.</b> Remplis les rubriques, puis clique sur « Relire mon document ».</p>
+        <h2 id="cs-stage-cv-title" tabindex="-1">CV et lettre de motivation</h2>
         <div id="cs-stage-cv-workshop"></div>
       </section>
       <div class="cs-stage-next-cta"><div><strong>Ton document est prêt ?</strong><p>Prépare maintenant ton appel ou ton premier message.</p></div><button type="button" class="cs-stage-pale" data-stage-go="prep">Préparer mon contact</button></div>

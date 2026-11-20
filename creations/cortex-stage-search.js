@@ -24,10 +24,10 @@
   ];
   const HERO = {
     search: ['Trouve ta', 'prochaine PFMP.', 'Recherche de PFMP', 'Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.'],
-    board: ['Mes', 'démarches', 'Carnet PFMP', 'Retrouve tes contacts, tes réponses et tes prochaines relances.'],
-    prep: ['Préparer', 'ma PFMP', 'Avant le premier contact', 'Prépare tes dates, les questions à poser et la convention à faire valider.'],
-    cv: ['CV et', 'lettre', 'Atelier de candidature', 'Rédige, améliore et relis tes documents avant de les partager.'],
-    assistant: ['Ton assistant', 'Albert', 'Accompagnement PFMP', 'Choisis une action pour avancer, de la recherche au premier entretien.']
+    board: ['Suivre mes', 'candidatures', 'Étape 4 · Mon suivi', 'Retrouve tes entreprises, note leurs réponses et organise tes relances.'],
+    prep: ['Contacter', 'une structure', 'Étape 3 · Prendre contact', 'Prépare un appel ou un message clair et vérifie les informations importantes.'],
+    cv: ['Préparer ma', 'candidature', 'Étape 2 · Mes documents', 'Crée ton CV ou ta lettre, puis relis le document avant de l’envoyer.'],
+    assistant: ['Besoin', 'd’aide ?', 'Albert · À chaque étape', 'Discute directement avec Albert ou choisis un conseil guidé.']
   };
 
   const clean = value => String(value ?? '').trim();
@@ -200,10 +200,11 @@
     </header>
     <nav class="cs-stage-nav" aria-label="Parcours de recherche de PFMP">
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
-      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
-      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> CV et lettre</button>
-      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span> Assistant Albert</button>
+
+      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>2 · CV et lettre</strong><small>Créer mes documents</small></span></button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>3 · Prendre contact</strong><small>Appel ou message</small></span></button>
+      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong>4 · Mes démarches</strong><small>Réponses et relances</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert · Besoin d’aide ?</strong><small>Discuter ou demander un conseil</small></span></button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
       <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span></button>
@@ -306,14 +307,16 @@
       <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle peut t’accueillir en PFMP.</p>
     </div>
     <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
+      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 04 / SUIVRE</span><div><h2>Où en sont tes candidatures ?</h2><p>Retrouve chaque lieu et indique ce qu’il t’a répondu. Tu sauras qui rappeler et quand.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="search">+ Rechercher un autre lieu</button></div>
       <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
         <div class="cs-stage-pane-head">
-          <div><h2 id="cs-stage-board-title" tabindex="-1">Mon carnet de candidatures</h2><p>Ton carnet est enregistré dans ce navigateur.</p></div>
+          <div><h2 id="cs-stage-board-title" tabindex="-1">Mes lieux et mes réponses</h2><p>Pour chaque entreprise, choisis un statut et une date de relance. Ton carnet reste enregistré sur cet appareil.</p></div>
           <div class="cs-stage-board-actions">
-            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">Ajouter un lieu</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">+ Ajouter un lieu manuellement</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
           </div>
         </div>
+        <p class="cs-stage-board-filter-help">Clique sur un chiffre pour filtrer ta liste.</p>
         <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
         <div class="cs-stage-board-tools" id="cs-stage-board-tools" hidden>
           <label>Retrouver un lieu<input type="search" id="cs-stage-board-query" placeholder="Nom ou adresse"></label>
@@ -324,20 +327,23 @@
       </section>
     </div>
     <div class="cs-stage-panel" data-stage-panel="prep" id="cs-stage-prep-panel" hidden>
+      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 03 / CONTACTER</span><div><h2>Prêt à contacter une structure ?</h2><p>Indique tes dates, choisis un lieu si tu en as un, puis prépare ce que tu vas dire.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="cv">Relire mon CV et ma lettre</button></div>
       <div class="cs-stage-prep-grid">
         <section class="cs-stage-surface cs-stage-prep-contact" aria-labelledby="cs-stage-prep-title">
-          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer le premier contact</h2>
-          <p>Ajoute les dates données par ton lycée. Elles seront reprises dans tes modèles.</p>
+          <h2 id="cs-stage-prep-title" tabindex="-1">Mon appel ou mon message</h2>
+          <p class="cs-stage-field-lead"><span>1</span> Renseigne les dates indiquées par ton lycée, si tu les connais.</p>
           <div class="cs-stage-date-fields">
             <label>Date de début <input type="date" id="cs-stage-start"></label>
             <label>Date de fin <input type="date" id="cs-stage-end"></label>
           </div>
           <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
-          <label class="cs-stage-contact-target">Lieu à contacter
+          <p class="cs-stage-field-lead"><span>2</span> Choisis le lieu à contacter (facultatif).</p>
+          <label class="cs-stage-contact-target">Entreprise ou structure
             <select id="cs-stage-contact-target"><option value="">Sans structure précise</option></select>
           </label>
+          <p class="cs-stage-field-lead"><span>3</span> Prépare ton premier échange.</p>
           <div class="cs-stage-action-row">
-            <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Écrire ou appeler</button>
+            <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon appel ou mon message</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-prep-cv">Préparer mon CV</button>
           </div>
         </section>
@@ -349,24 +355,30 @@
             <button type="button" class="cs-stage-quiet" id="cs-stage-prep-interview">M’entraîner avec Albert</button>
           </section>
           <section class="cs-stage-surface cs-stage-check-area" aria-labelledby="cs-stage-check-title">
-            <h2 id="cs-stage-check-title">Avant de commencer</h2>
+            <h2 id="cs-stage-check-title">Avant mon premier jour de PFMP</h2>
+            <p class="cs-stage-check-hint">Coche uniquement les actions réellement terminées : la validation reste à faire auprès du lycée.</p>
             <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
             <div id="cs-stage-checklist"></div>
           </section>
         </div>
         <section class="cs-stage-surface cs-stage-reference" id="cs-stage-reference"></section>
       </div>
+      <div class="cs-stage-next-cta"><div><strong>Tu as déjà envoyé ta candidature ?</strong><p>Note la réponse de chaque lieu pour ne pas oublier de relancer.</p></div><button type="button" class="cs-stage-pale" data-stage-go="board">Suivre mes démarches</button></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
+      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ÉTAPE 02 / RÉDIGER</span><div><h2>Prépare tes documents.</h2><p>Tu peux commencer sans entreprise précise et adapter ton brouillon plus tard.</p></div><button type="button" class="cs-stage-step-link" data-stage-go="board">Voir les lieux enregistrés</button></div>
       <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
-        <h2 id="cs-stage-cv-title" tabindex="-1">Ma candidature</h2>
+        <h2 id="cs-stage-cv-title" tabindex="-1">Mon CV ou ma lettre de motivation</h2>
+        <p class="cs-stage-workflow-hint"><b>1.</b> Choisis un lieu ou un brouillon général. <b>2.</b> Sélectionne CV ou lettre. <b>3.</b> Remplis les rubriques, puis clique sur « Relire mon document ».</p>
         <div id="cs-stage-cv-workshop"></div>
       </section>
+      <div class="cs-stage-next-cta"><div><strong>Ton document est prêt ?</strong><p>Prépare maintenant ton appel ou ton premier message.</p></div><button type="button" class="cs-stage-pale" data-stage-go="prep">Préparer mon contact</button></div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="assistant" id="cs-stage-assistant-panel" hidden>
+      <div class="cs-stage-step-intro"><span class="cs-stage-step-mark">ASSISTANCE / ALBERT</span><div><h2>Albert t’accompagne.</h2><p>Tu peux lui parler directement, ou choisir une aide précise juste en dessous.</p></div></div>
       <div class="cs-stage-brief cs-stage-chat-launch">
-        <div><h2>Pose ta question à Albert</h2><p>Demande un conseil, fais reformuler un message ou entraîne-toi à un entretien.</p></div>
-        <button type="button" id="cs-stage-chat-open" class="cs-stage-track" aria-haspopup="dialog">Ouvrir le chat avec Albert</button>
+        <div><h2>Discuter librement avec Albert</h2><p>Par exemple : « Comment demander une PFMP par téléphone ? »</p></div>
+        <button type="button" id="cs-stage-chat-open" class="cs-stage-primary" aria-haspopup="dialog">Ouvrir la discussion</button>
       </div>
       <dialog id="cs-stage-chat" class="cs-stage-dialog" aria-labelledby="cs-stage-chat-title">
         <div class="cs-stage-chat-head">
@@ -389,7 +401,8 @@
       </dialog>
       <div class="cs-stage-advisor-grid">
         <form class="cs-stage-surface cs-stage-advisor-form" id="cs-stage-advisor-form">
-          <h2 id="cs-stage-assistant-title" tabindex="-1">Comment Albert peut t’aider ?</h2>
+          <h2 id="cs-stage-assistant-title" tabindex="-1">Ou choisis un accompagnement guidé</h2>
+          <p class="cs-stage-workflow-hint">Choisis un objectif, précise ta situation, puis demande un conseil adapté.</p>
           <p id="cs-stage-advisor-context" class="cs-stage-advisor-context"></p>
           <fieldset class="cs-stage-advisor-goals"><legend class="cs-stage-sr-only">Choisis une action</legend><div id="cs-stage-advisor-goals"></div></fieldset>
           <label id="cs-stage-advisor-situation-wrap">Ta situation<select id="cs-stage-advisor-situation"></select></label>
@@ -534,6 +547,9 @@
       element.addEventListener('click', () => setPanel(element.dataset.stageNav));
     });
 
+    section.querySelectorAll('[data-stage-go]').forEach(element => {
+      element.addEventListener('click', () => setPanel(element.dataset.stageGo));
+    });
     section.querySelectorAll('[data-stage-document]').forEach(element => {
       element.addEventListener('click', () => setPanel('cv', true,
         panel === 'prep' ? $('contact-target').value : '', element.dataset.stageDocument));

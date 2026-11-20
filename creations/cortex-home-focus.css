@@ -65,7 +65,7 @@ body.cortex-noctis .cortex-focus-copy>p{font-size:clamp(15px,1.4vw,18px);line-he
 .layout>.hero.cortex-focus-real>footer{margin-top:17px;font-size:10px;color:#87a6b8}
 body:not(.academy-authenticated) .layout:has(.cortex-focus-real){align-items:center;gap:clamp(16px,3vw,55px)}
 body:not(.academy-authenticated) .layout:has(.cortex-focus-real)>.access{align-self:center;margin-top:0}
-body:has(.cortex-focus-home) .cortex-traffic{display:none}
+/* Les compteurs Explorations / En orbite restent visibles sur l'accueil. */
 @media(max-width:1000px){.cortex-focus-hero{grid-template-columns:minmax(0,1fr) minmax(250px,.85fr);padding:clamp(25px,3vw,42px);gap:20px}.cortex-focus-visual{height:360px}.cortex-focus-panel{transform:none}.cortex-focus-sheet{min-height:230px}}
 @media(max-width:760px){.cortex-focus-home{padding-top:14px!important;padding-bottom:30px!important}.cortex-focus-hero{grid-template-columns:1fr;gap:20px;min-height:0;padding:28px 21px 23px;border-radius:23px}.cortex-focus-copy h1,body.cortex-noctis .cortex-focus-copy h1{font-size:clamp(40px,10.5vw,58px)!important;margin:19px 0 15px}.cortex-focus-copy>p{font-size:14px!important}.cortex-focus-actions{gap:10px;margin-top:22px}.cortex-focus-actions>.btn,.cortex-focus-actions>a{flex:1 1 180px;min-width:0;padding:13px 12px;font-size:13px}.cortex-focus-meta{margin-top:14px}.cortex-focus-visual{height:250px}.cortex-focus-panel{width:min(100%,315px);padding:11px;border-radius:19px}.cortex-focus-panel-top{padding-bottom:6px}.cortex-focus-sheet{min-height:155px;padding:15px}.cortex-focus-sheet strong{font-size:21px}.cortex-focus-lines{margin-top:12px;gap:5px}.cortex-focus-lines i{height:6px}.cortex-focus-progress{margin-top:14px}.cortex-focus-orbit-note{right:-4px;bottom:0;padding:9px 11px;min-width:100px}.cortex-focus-orbit-note strong{font-size:15px}.cortex-focus-capabilities{grid-template-columns:1fr;margin-top:12px}.cortex-focus-capability{padding:14px 17px}.cortex-focus-capability-icon{width:38px;height:38px}.cortex-focus-capability strong{font-size:14px}.cortex-focus-trust{padding-top:15px;gap:6px 11px;font-size:11px}.cortex-focus-real .cortex-focus-actions{margin-top:22px}.layout>.hero.cortex-focus-real{padding:18px 5px 16px}.cortex-focus-real .cortex-focus-copy h1{font-size:clamp(41px,9.7vw,61px)!important}.cortex-focus-real .cortex-focus-capabilities{margin-top:23px}}
 @media(max-width:400px){.cortex-focus-hero{padding:23px 16px}.cortex-focus-actions>.btn,.cortex-focus-actions>a{flex-basis:100%}.cortex-focus-visual{height:225px}.cortex-focus-panel{max-width:277px}.cortex-focus-sheet{min-height:143px}.cortex-focus-orbit-note{right:-7px}.cortex-focus-copy h1,body.cortex-noctis .cortex-focus-copy h1{font-size:clamp(38px,10vw,47px)!important}}
@@ -79,3 +79,66 @@ body:has(.cortex-focus-home) #ct-tour-launch-mobile,
 body:has(.cortex-focus-home) .top-actions .top-link{display:none!important}
 body:not(.academy-authenticated):has(.cortex-focus-real) .academy-header-actions .academy-student-entry,
 body:not(.academy-authenticated):has(.cortex-focus-real) .academy-header-actions .academy-professor-entry{display:none!important}
+
+/* Galerie Noctis : remplace le vide sous les actions par une vue panoramique
+   de la station, sans ajouter de nouvelles portes d'entrée. */
+.cortex-focus-vista{
+ position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+ align-items:center;gap:clamp(22px,3.6vw,52px);
+ min-height:clamp(245px,24vw,305px);
+ margin-top:26px;padding:clamp(26px,3.5vw,46px);
+ border:1px solid rgba(168,224,250,.41);border-radius:clamp(20px,2.5vw,30px);
+ overflow:hidden;color:#f1faff;
+ background-image:linear-gradient(90deg,rgba(4,15,33,.95) 0%,rgba(6,19,40,.89) 24%,rgba(7,22,44,.68) 55%,rgba(4,19,38,.40) 100%),url('./cortex-noctis-corridor.svg');
+ background-size:cover;background-position:center 52%;
+ box-shadow:inset 0 1px rgba(244,254,255,.13),0 20px 55px rgba(0,10,24,.24)
+}
+.cortex-focus-vista:before{
+ content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:linear-gradient(130deg,transparent 30%,rgba(198,247,255,.13) 53%,transparent 67%),
+            linear-gradient(0deg,rgba(2,11,28,.48),transparent 48%);
+}
+.cortex-focus-vista:after{
+ content:'';position:absolute;left:7%;right:7%;bottom:0;height:1px;
+ background:linear-gradient(90deg,transparent,#bbf3ff 50%,transparent);
+ pointer-events:none;
+}
+.cortex-focus-vista-copy{position:relative;z-index:1;min-width:0;text-shadow:0 2px 20px rgba(0,8,24,.55)}
+.cortex-focus-vista-kicker{display:flex;align-items:center;gap:10px;color:#b2e6fa;font-size:10px;font-weight:850;letter-spacing:.16em;line-height:1.4}
+.cortex-focus-vista-led{flex:none;width:7px;height:7px;border-radius:50%;background:#a3f9e7;box-shadow:0 0 0 4px rgba(119,234,222,.11),0 0 17px rgba(125,252,224,.67)}
+body.cortex-noctis .cortex-focus-vista-copy h2{font-size:clamp(29px,3.2vw,46px);line-height:1.1;letter-spacing:-.055em;margin:18px 0 12px;color:#f8fcff;font-weight:830}
+.cortex-focus-vista-copy h2 em{font-style:normal;color:#b4eaff;background:linear-gradient(110deg,#eefaff,#aee6ff 47%,#8ce7d8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cortex-focus-vista-copy p{max-width:345px;font-size:13px;line-height:1.65;color:#d2e4ef;margin:0}
+.cortex-focus-vista-terminal{
+ position:relative;z-index:1;min-width:0;border:1px solid rgba(191,237,253,.49);
+ border-radius:17px;padding:15px 17px;
+ background:linear-gradient(145deg,rgba(8,31,53,.93),rgba(9,28,47,.84));
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+ box-shadow:inset 0 1px rgba(255,255,255,.12),0 17px 42px rgba(0,9,30,.32)
+}
+.cortex-focus-vista-terminal-top{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ border-bottom:1px solid rgba(171,226,244,.2);padding:0 1px 12px;
+ font-weight:800;font-size:9px;letter-spacing:.11em;color:#a5c8e1}
+.cortex-focus-vista-terminal-top span:last-child{color:#9be8d1;font-size:8px;white-space:nowrap}
+.cortex-focus-vista-step{display:grid;grid-template-columns:22px 30px minmax(0,1fr);grid-template-rows:auto auto;
+ align-items:center;column-gap:10px;padding:11px 0 9px;min-width:0}
+.cortex-focus-vista-step+.cortex-focus-vista-step{border-top:1px solid rgba(161,211,234,.13)}
+.cortex-focus-vista-number{font-size:10px;letter-spacing:.05em;font-weight:850;color:#8bbacf;grid-row:1/3}
+.cortex-focus-vista-step-icon{grid-row:1/3;width:30px;height:30px;display:grid;place-items:center;
+ border-radius:9px;background:rgba(157,231,250,.11);border:1px solid rgba(159,226,238,.30);color:#c3f5f0;font-size:17px}
+.cortex-focus-vista-step strong{grid-column:3;grid-row:1;font-size:13px;color:#f7fdff}
+.cortex-focus-vista-step small{grid-column:3;grid-row:2;min-width:0;font-size:10px;line-height:1.5;color:#a7c9db}
+.cortex-focus-vista-step-line{display:none}
+@media(max-width:760px){
+ .cortex-focus-vista{grid-template-columns:1fr;gap:17px;min-height:0;margin-top:17px;padding:24px 22px;border-radius:22px;background-position:center 50%}
+ .cortex-focus-vista-copy h2,body.cortex-noctis .cortex-focus-vista-copy h2{font-size:clamp(27px,7vw,37px);margin:15px 0 8px}
+ .cortex-focus-vista-copy p{font-size:12px;max-width:290px}
+ .cortex-focus-vista-terminal{display:none}
+}
+@media(max-width:410px){
+ .cortex-focus-vista{padding:23px 18px;min-height:183px}
+ .cortex-focus-vista-kicker{font-size:9px;letter-spacing:.11em}
+}
+@media(prefers-reduced-transparency:reduce){
+ .cortex-focus-vista-terminal{backdrop-filter:none;-webkit-backdrop-filter:none}
+}

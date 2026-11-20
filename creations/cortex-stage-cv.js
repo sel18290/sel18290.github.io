@@ -73,141 +73,376 @@
 
   function mount(host, api) {
     let selected = '', kind = 'cv', step = 2;
-    let request;
+    let request = null;
+    const descriptions = {
+      cv: 'Présente ton parcours, tes compétences et tes expériences.',
+      lettre: 'Explique pourquoi cette structure t’intéresse et ce que tu veux apprendre.'
+    };
+    const placeholders = {
+      profil: 'Ex. Je suis élève en bac pro Métiers de l’accueil, motivé(e) et à l’aise pour renseigner le public.',
+      formation: 'Ex. Bac pro AGOrA au lycée …, 2025–2028.',
+      experiences: 'Ex. Projet réalisé en classe, PFMP précédente, bénévolat, accueil d’un événement…',
+      competences: 'Ex. Accueillir des visiteurs, communiquer à l’oral, organiser des documents, utiliser un logiciel…',
+      interets: 'Ex. Sport collectif, lecture, théâtre, engagement associatif…',
+      motivation: 'Ex. J’aimerais découvrir votre activité car …',
+      qualites: 'Ex. Lors d’un projet de classe, j’ai montré mon sens de l’organisation en …',
+      objectif: 'Ex. J’aimerais apprendre à accueillir les visiteurs et à traiter une demande.'
+    };
+
+    function progress(draft, type) {
+      const count = fields[type].filter(([key]) => filled(draft?.[key])).length;
+      return { count, total: fields[type].length };
+    }
+
+    function draftFor(entry) {
+      const key = entry.place.id;
+      if (!Object.hasOwn(api.drafts,key) || !api.drafts[key] || typeof api.drafts[key] !== 'object')
+        api.drafts[key] = {cv:{},lettre:{}};
+      for (const type of ['cv','lettre']) {
+        if (!api.drafts[key][type] || typeof api.drafts[key][type] !== 'object')
+          api.drafts[key][type] = {};
+      }
+      return api.drafts[key];
+    }
+
+    function badge(cls, content) {
+      return element('span',cls,content);
+    }
+
+    function scrollToWork() {
+      host.querySelector('.cs-stage-cv-step')?.focus({preventScroll:true});
+      host.querySelector('.cs-stage-cv-step')?.scrollIntoView({block:'nearest',behavior:'auto'});
+    }
+
     function render() {
       request?.abort();
       request = null;
       const entries = api.entries();
-      if (selected && !entries.some(item => item.place.id === selected)) { selected = ''; step = 2; }
-      const entry = entries.find(item => item.place.id === selected) || api.general();
-      const draftKey = entry.place.id;
-      if (!Object.hasOwn(api.drafts, draftKey)) api.drafts[draftKey] = {cv:{},lettre:{}};
-      const draft = api.drafts[draftKey][kind];
-      const setup = element('div','cs-stage-cv-setup');
-      const pickerLabel = element('label','','Pour quel lieu ?'), picker = element('select');
-      picker.replaceChildren(new Option('Brouillon général', ''), ...entries.map(item => new Option(item.place.name, item.place.id)));
-      picker.value = selected;
-      picker.addEventListener('change', () => { selected = picker.value; step = 2; render(); focusStep(); });
-      pickerLabel.append(picker);
-      setup.append(pickerLabel);
-      const folio = element('div','cs-stage-cv-work');
-      if (step === 2) folio.classList.add('is-editing');
-      const tabs = element('div','cs-stage-cv-tools');
-      tabs.setAttribute('role','group');
-      tabs.setAttribute('aria-label','Type de document');
-      for (const [key,label] of [['cv','CV'],['lettre','Lettre de motivation']]) {
-        const tab = button(label,'cs-stage-pale',() => {kind=key;step=2;render();focusStep();});
-        tab.setAttribute('aria-pressed',String(kind===key));tabs.append(tab);
+      if (selected && !entries.some(item => item.place.id === selected)) {
+        selected = '';
+        step = 2;
       }
-      setup.append(tabs);
-      const path = element('p','cs-stage-cv-filing',entry.place.name
-        ? 'Brouillon pour ' + entry.place.name : 'Tu peux préparer un brouillon avant de choisir un lieu.');
-      host.replaceChildren(setup,path,folio);
-      const heading = element('h3','cs-stage-cv-step',step===2 ? 'Rédige ton ' + (kind === 'cv' ? 'CV' : 'premier jet') : 'Relis ton document');
-      heading.tabIndex = -1;
-      if (step === 3) {
-        const content = finalText(entry,api.identity,kind,draft,api.period(),api.program(entry));
+      const entry = entries.find(item => item.place.id === selected) || api.general();
+      const allDrafts = draftFor(entry);
+      const draft = allDrafts[kind];
+      const shell = element('div','cs-stage-cv-shell');
+      shell.dataset.document = kind;
+      shell.dataset.phase = String(step);
+
+      const masthead = element('div','cs-stage-cv-masthead');
+      const mastheadText = element('div','cs-stage-cv-masthead-copy');
+      mastheadText.append(badge('cs-stage-cv-eyebrow','CORTEX / ATELIER DE CANDIDATURE'),
+        element('h3','', 'Construis ta candidature.'),
+        element('p','', 'Un espace guidé pour rédiger, améliorer et finaliser tes documents de PFMP.'));
+      const mastheadStatus = element('div','cs-stage-cv-masthead-status');
+      mastheadStatus.append(badge('cs-stage-cv-status-dot','●'),element('span','', 'BROUILLONS ENREGISTRÉS SUR CET APPAREIL'));
+      masthead.append(mastheadText,mastheadStatus);
+
+      const chooser = element('section','cs-stage-cv-chooser');
+      chooser.append(element('h4','cs-stage-cv-minititle','01 — Quel document veux-tu préparer ?'));
+      const choices = element('div','cs-stage-cv-choices');
+      for (const [type,number,title,subtitle] of [
+        ['cv','01','Mon CV','Parcours, compétences, expériences'],
+        ['lettre','02','Ma lettre de motivation','Motivations, qualités, objectifs']
+      ]) {
+        const control = button('','cs-stage-cv-choice',()=>{
+          if (kind === type && step === 2) return;
+          kind = type;
+          step = 2;
+          render();
+          scrollToWork();
+        });
+        control.dataset.kind = type;
+        control.setAttribute('aria-pressed',String(kind===type));
+        control.setAttribute('aria-label',title+' : '+subtitle);
+        const texts = element('span','cs-stage-cv-choice-text');
+        texts.append(element('strong','',title),element('small','',subtitle));
+        const done = progress(allDrafts[type],type);
+        const meter = element('span','cs-stage-cv-choice-progress',done.count+'/'+done.total+' rubriques');
+        control.append(badge('cs-stage-cv-choice-index',number),texts,meter,badge('cs-stage-cv-choice-arrow','↗'));
+        choices.append(control);
+      }
+      chooser.append(choices);
+
+      const target = element('section','cs-stage-cv-target');
+      const targetLabel = element('label','cs-stage-cv-target-label');
+      targetLabel.append(element('strong','', '02 — Pour quelle structure ?'),
+        element('small','', 'Tu peux commencer un brouillon général, sans entreprise.'));
+      const select = element('select','cs-stage-cv-company-select');
+      select.setAttribute('aria-label','Choisir une structure pour ma candidature');
+      select.replaceChildren(new Option('Brouillon général — pas encore de structure',''),
+        ...entries.map(item=>new Option(item.place.name,item.place.id)));
+      select.value = selected;
+      select.addEventListener('change',()=>{
+        selected = select.value;
+        step = 2;
+        render();
+        scrollToWork();
+      });
+      targetLabel.append(select);
+      const targetNote = element('div','cs-stage-cv-target-note');
+      targetNote.append(badge('cs-stage-cv-target-icon','✧'),
+        element('p','',entry.place.name
+          ? 'Document associé à « '+entry.place.name+' ». Tes autres brouillons restent séparés.'
+          : 'Choisis une structure plus tard pour personnaliser ton document.'));
+      target.append(targetLabel,targetNote);
+
+      const stages = element('nav','cs-stage-cv-phases');
+      stages.setAttribute('aria-label','Progression de la candidature');
+      for (const [id,label] of [[1,'Choisir'],[2,'Rédiger'],[3,'Relire et exporter']]) {
+        const item = element('span','cs-stage-cv-phase');
+        if(id===1)item.classList.add('is-done');
+        if(id===step)item.classList.add('is-current');
+        if(step>id)item.classList.add('is-done');
+        item.append(badge('cs-stage-cv-phase-number',String(id)),badge('cs-stage-cv-phase-label',label));
+        stages.append(item);
+      }
+
+      const folio = element('div','cs-stage-cv-work');
+      if (step===2) folio.classList.add('is-editing');
+      shell.append(masthead,chooser,target,stages,folio);
+      host.replaceChildren(shell);
+
+      if (step===3) {
+        const review = element('section','cs-stage-cv-review');
+        const reviewHead = element('div','cs-stage-cv-review-head');
+        const title = element('h3','cs-stage-cv-step','03 — Relis et finalise ton '+(kind==='cv'?'CV':'courrier'));
+        title.tabIndex = -1;
+        reviewHead.append(badge('cs-stage-cv-eyebrow','DOCUMENT / VERSION FINALE'),title,
+          element('p','', 'Vérifie le nom, les coordonnées, les dates et le contenu. Tu peux modifier directement ce document avant de le copier ou de l’exporter.'));
+        const paper = element('div','cs-stage-cv-paper');
+        paper.append(badge('cs-stage-cv-paper-head','APERÇU ÉDITABLE · FORMAT A4'));
         const area = element('textarea','cs-stage-cv-preview');
-        area.setAttribute('aria-label','Document prêt à relire');
-        area.rows = 14;
-        area.value = draft.final ?? content;
+        area.setAttribute('aria-label','Document prêt à relire et à modifier');
+        area.rows = 17;
         area.maxLength = 16000;
+        const baseText = finalText(entry,api.identity,kind,draft,api.period(),api.program(entry));
+        area.value = draft.final ?? baseText;
         area.addEventListener('input',()=>{draft.final=area.value;api.save();});
-        const tools = element('div','cs-stage-cv-tools'), notice = element('p');
+        paper.append(area);
+        const actions = element('div','cs-stage-cv-export');
+        const notice=element('p','cs-stage-cv-notice');
         notice.setAttribute('role','status');
-        tools.append(button('Modifier le brouillon','cs-stage-pale',()=>{step=2;render();focusStep();}),
-          button('Reprendre la version du brouillon','cs-stage-pale',()=>{delete draft.final;area.value=content;api.save();notice.textContent='Version du brouillon rétablie.';}),
-          button('Copier','cs-stage-pale',async()=>{
-            try {await navigator.clipboard.writeText(area.value);notice.textContent='Document copié.';}
-            catch {area.focus();area.select();notice.textContent='Texte sélectionné. Utilise la commande Copier.';}
-          }),button('Imprimer ou enregistrer en PDF','cs-stage-primary',()=>printText(kind==='cv'?'CV':'Lettre de motivation',area.value)));
-        folio.append(heading,element('p','cs-stage-contact-guidance','Vérifie les coordonnées, les dates et le nom du lieu avant de partager ta candidature.'),area,tools,notice);
+        actions.append(
+          button('← Modifier mon brouillon','cs-stage-cv-secondary',()=>{step=2;render();scrollToWork();}),
+          button('Recréer depuis mes réponses','cs-stage-cv-secondary',()=>{
+            delete draft.final;
+            area.value=baseText;
+            api.save();
+            notice.textContent='Le document est reconstruit à partir de tes réponses.';
+          }),
+          button('Copier le texte','cs-stage-cv-secondary',async()=>{
+            try{await navigator.clipboard.writeText(area.value);notice.textContent='Document copié.';}
+            catch{area.focus();area.select();notice.textContent='Texte sélectionné : utilise la commande Copier.';}
+          }),
+          button('Imprimer / Enregistrer en PDF','cs-stage-cv-export-main',()=>{
+            printText(kind==='cv'?'CV':'Lettre de motivation',area.value);
+          })
+        );
+        review.append(reviewHead,paper,actions,notice);
+        folio.append(review);
         return;
       }
 
-      const editor = element('div','cs-stage-cv-editor'), sidebar = element('aside','cs-stage-cv-sidebar');
-      const identity = element('div','cs-stage-cv-fields');
-      const identityPanel = element('details','cs-stage-cv-identity');
-      identityPanel.append(element('summary','','Mes coordonnées'),identity);
-      editor.append(heading,identityPanel);
-      folio.append(editor,sidebar);
-      for (const [key,label,fieldType] of [['first','Prénom','text'],['last','Nom','text'],['school','Nom du lycée','text'],['email','E-mail (facultatif)','email'],['phone','Téléphone (facultatif)','tel']]) {
-        const wrap = element('label','',label), input = element('input');
-        input.type = fieldType; input.maxLength=100; input.value=api.identity[key]||'';
-        input.addEventListener('input',()=>{api.identity[key]=input.value.trim();api.save();});
-        wrap.append(input);identity.append(wrap);
-      }
-      const inputs = new Map();
-      const fieldChanged = () => {
-        if (draft.final !== undefined) delete draft.final;
-        api.save();
-        preview.disabled = !fields[kind].some(([id])=>filled(draft[id]));
-      };
-      for (const [key,title,hint] of fields[kind]) {
-        const wrap=element('label','cs-stage-cv-field',title), input=element('textarea');
-        input.rows=3;input.maxLength=1300;input.value=draft[key]||'';
-        wrap.append(element('small','cs-stage-contact-guidance',hint),input);
-        editor.append(wrap); inputs.set(key,input);
-        input.addEventListener('input',()=>{draft[key]=input.value;fieldChanged();});
-      }
-      const hook = api.getHook(entry).trim();
-      if (kind === 'lettre' && hook) editor.append(button('Ajouter mon accroche au brouillon','cs-stage-pale',()=>{
-        const target=inputs.get('motivation');
-        if(!target.value.includes(hook)){
-          target.value=[hook,target.value].filter(Boolean).join('\n').slice(0,target.maxLength);
-          draft.motivation=target.value;fieldChanged();
-        }
-        target.focus();
-      }));
+      const editor=element('section','cs-stage-cv-editor');
+      const sidebar=element('aside','cs-stage-cv-sidebar');
+      const heading=element('h3','cs-stage-cv-step','03 — Rédige '+(kind==='cv'?'ton CV':'ta lettre de motivation'));
+      heading.tabIndex=-1;
+      const intro=element('p','cs-stage-cv-editor-intro',descriptions[kind]+' Réponds simplement avec tes propres mots : Albert peut ensuite t’aider à améliorer une partie.');
+      const editorHead=element('div','cs-stage-cv-editor-head');
+      const count=progress(draft,kind);
+      const tracker=element('div','cs-stage-cv-tracker');
+      const trackerText=element('span','cs-stage-cv-tracker-text',count.count+' / '+count.total+' rubriques renseignées');
+      const track=element('progress','cs-stage-cv-tracker-bar');
+      track.max=count.total;
+      track.value=count.count;
+      track.setAttribute('aria-label','Progression du '+(kind==='cv'?'CV':'courrier'));
+      tracker.append(trackerText,track);
+      editorHead.append(heading,intro,tracker);
+      editor.append(editorHead);
 
-      const box=element('div','cs-stage-cv-assistance'), select=element('select'), label=element('label','','Partie à améliorer');
-      const feedback=element('p');feedback.setAttribute('role','status');
+      const identityPanel=element('details','cs-stage-cv-identity');
+      if (!api.identity.first || !api.identity.last) identityPanel.open=true;
+      identityPanel.append(element('summary','','✦ Mes coordonnées (à vérifier avant l’envoi)'));
+      identityPanel.append(element('p','cs-stage-cv-identity-hint','Elles figurent sur ton document, mais ne sont pas envoyées à Albert.'));
+      const identity=element('div','cs-stage-cv-fields');
+      for(const [key,label,type,autocomplete] of [
+        ['first','Prénom','text','given-name'],['last','Nom','text','family-name'],
+        ['school','Nom du lycée','text','organization'],
+        ['email','E-mail (facultatif)','email','email'],['phone','Téléphone (facultatif)','tel','tel']
+      ]) {
+        const wrap=element('label','',label);
+        const input=element('input');
+        input.type=type; input.maxLength=100;input.value=api.identity[key]||'';
+        input.autocomplete=autocomplete;
+        input.addEventListener('input',()=>{
+          api.identity[key]=input.value.trim();
+          for(const data of Object.values(api.drafts)) {
+            if(data && typeof data==='object'){
+              if(data.cv)delete data.cv.final;
+              if(data.lettre)delete data.lettre.final;
+            }
+          }
+          api.save();
+        });
+        wrap.append(input);
+        identity.append(wrap);
+      }
+      identityPanel.append(identity);
+      editor.append(identityPanel);
+
+      const fieldList=element('div','cs-stage-cv-field-list');
+      const inputs=new Map();
+      let finalize;
+      function fieldChanged(){
+        if(draft.final!==undefined)delete draft.final;
+        api.save();
+        const next=progress(draft,kind);
+        trackerText.textContent=next.count+' / '+next.total+' rubriques renseignées';
+        track.value=next.count;
+        finalize.disabled=next.count===0;
+        const cards=fieldList.querySelectorAll('.cs-stage-cv-field');
+        cards.forEach((card,index)=>{
+          const item=fields[kind][index];
+          if(!item)return;
+          const ok=Boolean(filled(draft[item[0]]));
+          card.classList.toggle('is-filled',ok);
+          const state=card.querySelector('.cs-stage-cv-field-state');
+          if(state)state.textContent=ok?'✓ Renseigné':'À compléter';
+        });
+      }
+      for(const [index,[key,title,hint]] of fields[kind].entries()){
+        const wrap=element('label','cs-stage-cv-field');
+        if(filled(draft[key]))wrap.classList.add('is-filled');
+        const top=element('span','cs-stage-cv-field-top');
+        top.append(badge('cs-stage-cv-field-index',String(index+1).padStart(2,'0')),
+          element('strong','cs-stage-cv-field-name',title),
+          badge('cs-stage-cv-field-state',filled(draft[key])?'✓ Renseigné':'À compléter'));
+        const instruction=element('span','cs-stage-cv-field-hint',hint);
+        const input=element('textarea','cs-stage-cv-field-input');
+        input.rows=3;
+        input.maxLength=1300;
+        input.value=draft[key]||'';
+        input.placeholder=placeholders[key]||'Écris ici avec tes mots…';
+        input.addEventListener('input',()=>{draft[key]=input.value;fieldChanged();});
+        wrap.append(top,instruction,input);
+        fieldList.append(wrap);
+        inputs.set(key,input);
+      }
+      editor.append(fieldList);
+
+      const hook=api.getHook(entry).trim();
+      if(kind==='lettre' && hook) {
+        editor.append(button('✦ Insérer mon accroche déjà préparée','cs-stage-cv-secondary',()=>{
+          const input=inputs.get('motivation');
+          if(!input.value.includes(hook)){
+            input.value=[hook,input.value].filter(Boolean).join('\n').slice(0,input.maxLength);
+            draft.motivation=input.value;
+            fieldChanged();
+          }
+          input.focus();
+        }));
+      }
+
+      const footer=element('div','cs-stage-cv-editor-footer');
+      const footerText=element('div','');
+      footerText.append(element('strong','','Tes réponses sont conservées sur cet appareil.'),
+        element('small','','Une seule rubrique suffit pour voir un premier brouillon ; complète les autres pour un meilleur résultat.'));
+      finalize=button('Relire et finaliser mon '+(kind==='cv'?'CV':'courrier')+' →','cs-stage-cv-export-main',()=>{
+        step=3;render();scrollToWork();
+      });
+      finalize.disabled=count.count===0;
+      footer.append(footerText,finalize);
+      editor.append(footer);
+
+      const guidance=element('section','cs-stage-cv-help-card');
+      guidance.append(badge('cs-stage-cv-eyebrow','CONSEILS / MISSION'),
+        element('h3','',kind==='cv'?'Un CV clair, en quelques lignes.':'Une lettre personnelle, sans phrases copiées.'),
+        element('p','',kind==='cv'
+          ? 'Privilégie ce que tu sais faire, même lors d’un projet scolaire. Sois précis et évite les compétences que tu ne peux pas expliquer.'
+          : 'Montre pourquoi tu souhaites découvrir cette structure. Donne un exemple réel et indique une mission que tu aimerais apprendre.'));
+      const tips=element('ul','cs-stage-cv-tips');
+      for(const item of (kind==='cv'
+        ? ['Parcours et formation à jour','Compétences avec un exemple concret','Informations de contact vérifiées']
+        : ['Nom de la structure vérifié','Motivation personnelle et précise','Dates et missions cohérentes']))tips.append(element('li','',item));
+      guidance.append(tips);
+      sidebar.append(guidance);
+
+      const box=element('section','cs-stage-cv-assistance');
+      box.append(badge('cs-stage-cv-eyebrow','ALBERT IA / CO-RÉDACTION'),
+        element('h3','', 'Améliore un passage avec Albert'),
+        element('p','cs-stage-cv-ai-note','Albert propose une reformulation : tu restes libre de l’accepter ou non. Évite d’envoyer tes coordonnées personnelles.'));
+      const selectLabel=element('label','cs-stage-cv-ai-select','Rubrique à améliorer');
+      const aiSelect=element('select');
+      for(const [id,title] of fields[kind]){
+        const option=element('option','',title);option.value=id;aiSelect.append(option);
+      }
+      selectLabel.append(aiSelect);
+      const feedback=element('p','cs-stage-cv-notice');
+      feedback.setAttribute('role','status');
       const suggestion=element('div','cs-stage-contact-suggestion');
       suggestion.hidden=true;
-      for(const [id,title] of fields[kind]){const option=element('option','',title);option.value=id;select.append(option);}
-      label.append(select);
-      select.addEventListener('change',()=>{suggestion.hidden=true;feedback.textContent='';request?.abort();ask.disabled=false;});
-      const ask=button('Améliorer ce passage avec Albert','cs-stage-primary',async()=>{
-        const id=select.value, input=inputs.get(id), raw=input.value.trim();
-        if(raw.length<12){feedback.textContent='Écris d’abord une phrase dans cette partie.';input.focus();return;}
+      aiSelect.addEventListener('change',()=>{
+        suggestion.hidden=true;feedback.textContent='';request?.abort();ask.disabled=false;
+      });
+      const ask=button('✦ Améliorer cette rubrique','cs-stage-cv-ai-action',async()=>{
+        const id=aiSelect.value, input=inputs.get(id), raw=input.value.trim();
+        if(raw.length<12){
+          feedback.textContent='Écris d’abord une phrase (au moins 12 caractères) dans cette rubrique.';
+          input.focus();
+          return;
+        }
         request?.abort();
-        const own=new AbortController();request=own;ask.disabled=true;suggestion.hidden=true;
+        const own=new AbortController();request=own;
+        ask.disabled=true;suggestion.hidden=true;
         feedback.textContent='Albert relit ton passage…';
-        try {
+        try{
           const data=await api.ask(entry,kind,id,raw,own.signal);
           if(own.signal.aborted)return;
-          if(input.value.trim()!==raw){feedback.textContent='Ton passage a changé. Demande une nouvelle reformulation.';return;}
-          feedback.textContent='Lis la proposition et garde ce qui te ressemble.';
-          const improved = normalizePFMP(data.improved);
-          suggestion.replaceChildren(element('strong','','Proposition Albert'),element('p','',improved),element('p','',normalizePFMP(data.tip)),
-            button('Utiliser cette proposition','cs-stage-pale',()=>{
-              if(input.value.trim()!==raw){feedback.textContent='Ton passage a changé. Demande une nouvelle reformulation.';suggestion.hidden=true;return;}
-              input.value=improved;draft[id]=improved;fieldChanged();suggestion.hidden=true;input.focus();
+          if(input.value.trim()!==raw){
+            feedback.textContent='Ce passage a changé. Redemande une reformulation.';
+            return;
+          }
+          const improved=normalizePFMP(data.improved);
+          feedback.textContent='Lis la proposition et garde uniquement ce qui te correspond.';
+          suggestion.replaceChildren(element('strong','','Proposition Albert'),
+            element('p','',improved),element('p','',normalizePFMP(data.tip)),
+            button('Utiliser cette proposition','cs-stage-cv-ai-action',()=>{
+              if(input.value.trim()!==raw){
+                feedback.textContent='Ce passage a changé. Redemande une reformulation.';
+                suggestion.hidden=true;return;
+              }
+              input.value=improved;draft[id]=improved;fieldChanged();
+              suggestion.hidden=true;input.focus();
             }));
           suggestion.hidden=false;
-        } catch(error) {
+        }catch(error){
           if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Ton brouillon reste accessible.';
-        } finally {if(request===own)ask.disabled=false;}
+        }finally{if(request===own)ask.disabled=false;}
       });
-      box.append(element('h3','','Reformuler avec Albert'),label,
-        element('small','cs-stage-contact-guidance','Seul le passage choisi est relu avec le contexte de la filière. Renseigne tes coordonnées dans le volet prévu.'),
-        ask,feedback,suggestion);
-      editor.insertBefore(button('Ouvrir l’aide d’Albert','cs-stage-pale cs-stage-cv-ai-jump',()=>select.focus()),identityPanel);
-      const preview=button('Relire mon document','cs-stage-primary',()=>{step=3;render();focusStep();});
-      preview.disabled=!fields[kind].some(([id])=>filled(draft[id]));
-      editor.append(preview);
-      sidebar.append(box,button('Renseigner mes dates de PFMP','cs-stage-pale',api.openPrep));
-      if (!entries.length) sidebar.append(button('Ouvrir mes démarches','cs-stage-pale',api.openBoard));
+      box.append(selectLabel,ask,feedback,suggestion);
+      sidebar.append(box);
+      sidebar.append(button('↗ Renseigner mes dates de PFMP','cs-stage-cv-aside-link',api.openPrep));
+      if(!entries.length)sidebar.append(button('↗ Retrouver mes démarches','cs-stage-cv-aside-link',api.openBoard));
+      const quick=button('✦ Aide Albert','cs-stage-cv-ai-jump',()=>{
+        box.scrollIntoView({block:'start',behavior:'smooth'});
+        aiSelect.focus({preventScroll:true});
+      });
+      editorHead.append(quick);
+      folio.append(editor,sidebar);
     }
-    function focusStep(){host.querySelector('.cs-stage-cv-step')?.focus();}
+
+    function focusStep(){ scrollToWork(); }
+
     return {
-      show(company, preferredKind) {
-        if (preferredKind) { kind = preferredKind; step = 2; }
-        if (company) { selected = company; step = 2; }
+      show(company, preferredKind){
+        if(preferredKind && ['cv','lettre'].includes(preferredKind)){kind=preferredKind;step=2;}
+        if(company){selected=company;step=2;}
         render();
       },
-      hide() { request?.abort(); }
+      hide(){request?.abort();}
     };
   }
+
   window.CORTEX_STAGE_CV = { mount };
 })();

@@ -59,7 +59,14 @@
   }
 
   function mount(context) {
-    const root = node('section', 'cs-stage-contact-editor');
+    const root = node('section', 'cs-stage-contact-editor cs-stage-contact-v2');
+    const header = node('div', 'cs-stage-contact-v2-head');
+    header.append(
+      node('span','cs-stage-contact-overline','CORTEX / CONSOLE DE CANDIDATURE'),
+      node('h3','','Ton premier contact, en 3 étapes'),
+      node('p','','Prépare ce que tu vas dire, personnalise ton message et copie-le quand il te convient.')
+    );
+    root.append(header);
     const pending = new AbortController();
     let method = 'call';
     const edits = new Map();
@@ -98,8 +105,16 @@
       });
       label.append(input); identity.append(label);
     }
-    root.append(node('h3', '', 'Trouve ton accroche'), node('p', 'cs-stage-contact-guidance',
-      'En une phrase, dis ce qui t’intéresse chez cette structure ou ce que tu voudrais apprendre. Choisis un détail que tu as vérifié.'));
+    const identityPanel = node('details','cs-stage-contact-v2-identity');
+    identityPanel.open = !context.identity.first || !context.identity.last || !context.identity.school;
+    identityPanel.append(node('summary','','01 · Vérifier mes coordonnées'),
+      node('p','cs-stage-contact-guidance','Ces informations servent uniquement à personnaliser ton message.'));
+    identityPanel.append(identity,nameFeedback);
+    root.append(identityPanel);
+    const personal = node('section','cs-stage-contact-v2-step');
+    personal.append(node('span','cs-stage-contact-overline','ÉTAPE 02 / PERSONNALISER'),
+      node('h3','','Une phrase qui te ressemble'),
+      node('p','cs-stage-contact-guidance','Explique pourquoi cette structure t’intéresse ou ce que tu souhaites apprendre.'));
 
     const choices = node('fieldset', 'cs-stage-contact-motives');
     choices.append(node('legend', '', 'Je veux parler de…'));
@@ -123,7 +138,9 @@
     }
     choices.append(choiceList);
     const opening = node('strong', 'cs-stage-fixed-opening', fundingOpening);
-    root.append(choices, opening);
+    const condition = node('div','cs-stage-contact-v2-condition');
+    condition.append(choices,opening);
+    personal.append(condition);
 
     const hookLabel = node('label', 'cs-stage-contact-hook', 'La suite de mon accroche');
     const hook = node('textarea');
@@ -131,7 +148,7 @@
     hook.maxLength = 250;
     hook.placeholder = 'Ex. J’ai remarqué… et j’aimerais apprendre à…';
     hookLabel.append(hook);
-    root.append(hookLabel);
+    personal.append(hookLabel);
     const tools = node('div', 'cs-stage-contact-actions');
     const feedback = node('p', 'cs-stage-date-status');
     feedback.setAttribute('role', 'status');
@@ -178,8 +195,13 @@
       }
     });
     tools.append(example, albert);
-    root.append(tools, node('small', 'cs-stage-contact-guidance',
-      'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton brouillon reste dans cette fenêtre.'), feedback, suggestion);
+    const assistance = node('details','cs-stage-contact-v2-assistance');
+    assistance.append(node('summary','','✦ Besoin d’une idée ? Exemple et Albert'),
+      node('p','cs-stage-contact-guidance','Tu peux écrire seul(e). L’aide est facultative.'));
+    assistance.append(tools, node('small', 'cs-stage-contact-guidance',
+      'Albert reçoit ta filière, le type de lieu et le thème choisi. Ton brouillon reste dans cette fenêtre.'),feedback,suggestion);
+    personal.append(assistance);
+    root.append(personal);
     choiceList.addEventListener('change', () => {
       suggestion.hidden = true;
       feedback.textContent = '';
@@ -188,10 +210,16 @@
     const methodControls = node('div', 'cs-stage-contact-method');
     methodControls.setAttribute('role', 'group');
     methodControls.setAttribute('aria-label', 'Type de contact');
-    const call = button('Ce que je vais dire', 'cs-stage-pale', () => selectMethod('call'));
-    const email = button('Mon e-mail', 'cs-stage-pale', () => selectMethod('email'));
+    const call = button('☎ Appeler', 'cs-stage-pale', () => selectMethod('call'));
+    call.setAttribute('aria-label','Préparer un script téléphonique');
+    const email = button('✉ Écrire un e-mail', 'cs-stage-pale', () => selectMethod('email'));
+    email.setAttribute('aria-label','Préparer un message e-mail');
     methodControls.append(call, email);
-    root.append(node('h3', '', 'Prépare ton message'), methodControls);
+    const output = node('section','cs-stage-contact-v2-step cs-stage-contact-v2-output');
+    output.append(node('span','cs-stage-contact-overline','ÉTAPE 03 / FINALISER'),
+      node('h3','','Choisis comment contacter la structure'),
+      node('p','cs-stage-contact-guidance','Sélectionne Appeler ou Écrire un e-mail. Le modèle reste modifiable.'));
+    output.append(methodControls);
 
     const messageLabel = node('label', 'cs-stage-contact-message');
     const caption = node('span');
@@ -205,7 +233,7 @@
       updateMessage();
       copied.textContent = 'Modèle mis à jour.';
     });
-    const copy = button('Copier le texte', 'cs-stage-primary', async () => {
+    const copy = button('Copier mon message →', 'cs-stage-primary cs-stage-contact-v2-copy', async () => {
       const missing = nameInputs.find(input => !input.value.trim());
       if (missing) {
         nameFeedback.textContent = 'Renseigne ton prénom et ton nom pour personnaliser et copier ton message.';
@@ -222,13 +250,10 @@
       }
     });
     const note = node('p', 'cs-stage-contact-guidance');
-    const actions = node('div', 'cs-stage-contact-actions');
-    actions.append(copy, reset);
-    root.append(messageLabel, note);
-    if (!context.identity.first || !context.identity.last || !context.identity.school) {
-      root.append(node('h3', '', 'Tes coordonnées'), identity, nameFeedback);
-    }
-    root.append(actions, copied);
+    const actions = node('div', 'cs-stage-contact-actions cs-stage-contact-v2-actions');
+    actions.append(copy,reset);
+    output.append(messageLabel,note,actions,copied);
+    root.append(output);
 
     function updateMessage() {
       message.value = edits.has(method) ? edits.get(method) : writeMessage(context, sentence(hook.value), method);
@@ -239,7 +264,7 @@
     }
     function selectMethod(next) {
       method = next;
-      caption.textContent = method === 'call' ? 'Ton script pour l’appel' : 'Ton message à personnaliser avant l’envoi';
+      caption.textContent = method === 'call' ? 'Voici ce que tu peux dire au téléphone' : 'Voici le texte de ton e-mail';
       call.setAttribute('aria-pressed', String(method === 'call'));
       email.setAttribute('aria-pressed', String(method === 'email'));
       copied.textContent = '';

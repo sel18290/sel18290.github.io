@@ -227,12 +227,16 @@
             </div>
           </fieldset>
           <div class="cs-stage-zone">
-            <label for="cs-stage-city">Ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="90" required placeholder="Ex. Paris 15e ou Saint-Denis"></label>
+            <label for="cs-stage-city">Adresse, ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="140" required placeholder="Ex. 12 rue du Commerce, Paris"></label>
             <label for="cs-stage-radius">Rayon<select id="cs-stage-radius">
               <option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>
               <option value="4000">4 km</option><option value="6500">6,5 km</option>
               <option value="10000">10 km</option><option value="20000">20 km</option><option value="50000">50 km</option>
             </select></label>
+          </div>
+          <div class="cs-stage-location">
+            <button type="button" class="cs-stage-pale" id="cs-stage-position" aria-pressed="false">Utiliser ma position</button>
+            <p id="cs-stage-position-status" role="status"></p>
           </div>
           <details class="cs-stage-kinds" id="cs-stage-kinds">
             <summary>Types de lieux <span id="cs-stage-type-count" class="cs-stage-kind-count"></span></summary>
@@ -404,6 +408,9 @@
     let shown = [];
     let contactsDirty = true;
     let destroyed = false;
+    let position = null;
+    let locating = false;
+    let positionRequest = 0;
     const calibrationScores = new Map();
 
     const section = node('section', 'cs-stage-search');
@@ -602,7 +609,7 @@
     function updateTypeSummary() {
       const n = selected().length;
       $('type-count').textContent = n + ' / ' + available().length;
-      $('submit').disabled = Boolean(pending) || !n;
+      $('submit').disabled = Boolean(pending) || locating || !n;
     }
 
     function renderTypes() {
@@ -676,6 +683,48 @@
       option = event.target.value;
       changeCriteria();
     });
+    function setPosition(value, message = '') {
+      position = value;
+      locating = false;
+      $('city').required = !position;
+      $('position').disabled = false;
+      $('position').setAttribute('aria-pressed', String(Boolean(position)));
+      $('position').textContent = position ? 'Revenir à la saisie manuelle' : 'Utiliser ma position';
+      $('position-status').textContent = message;
+      updateTypeSummary();
+      updateSearchHint();
+    }
+
+    $('position').addEventListener('click', () => {
+      if (position) {
+        setPosition(null);
+        $('city').focus();
+        return;
+      }
+      if (!navigator.geolocation) {
+        setPosition(null, 'La localisation est indisponible. Saisis une adresse ou une ville.');
+        return;
+      }
+      const request = ++positionRequest;
+      locating = true;
+      $('position').disabled = true;
+      $('position-status').textContent = 'Recherche de ta position…';
+      updateTypeSummary();
+      navigator.geolocation.getCurrentPosition(({ coords }) => {
+        if (destroyed || request !== positionRequest) return;
+        setPosition({ lat: Number(coords.latitude.toFixed(3)), lon: Number(coords.longitude.toFixed(3)) },
+          'Position actuelle sélectionnée comme point de départ.');
+      }, error => {
+        if (destroyed || request !== positionRequest) return;
+        setPosition(null, error.code === 1
+          ? 'Accès à la position refusé. Saisis une adresse ou une ville.'
+          : 'Impossible de récupérer ta position. Réessaie ou saisis une adresse.');
+      }, { timeout: 10000, maximumAge: 0 });
+    });
+    $('city').addEventListener('input', () => {
+      positionRequest++;
+      setPosition(null);
+    });
     $('city').addEventListener('change', changeCriteria);
     $('radius').addEventListener('change', changeCriteria);
     $('albert').addEventListener('change', changeCriteria);
@@ -734,24 +783,24 @@
     }
 
     function queryFromForm() {
-      return { city: clean($('city').value).replace(/\s+/g, ' '), sector, option: route(),
+      return { city: position ? 'Ma position' : clean($('city').value).replace(/\s+/g, ' '), position, sector, option: route(),
         types: selected().sort(), radius: Number($('radius').value), albert: $('albert').checked,
         confirmed: $('confirmed').checked, level: apiLevel(settings.className) };
     }
 
     function signature(query) {
       return JSON.stringify([normalize(query.city), query.sector, query.option, query.types, query.radius, query.albert,
-        query.albert ? query.level : '', ...(query.confirmed ? ['confirmed'] : [])]);
+        query.albert ? query.level : '', ...(query.confirmed ? ['confirmed'] : []), ...(query.position ? [query.position.lat, query.position.lon] : [])]);
     }
 
     function cached(query, allowOld = false) {
-      if (query.confirmed && !settings.demo) return null;
+      if (query.position || (query.confirmed && !settings.demo)) return null;
       const record = read(cacheKey, []).find(item => item.key === signature(query));
       return record && (allowOld || Date.now() - record.time < CACHE_AGE) ? record : null;
     }
 
     function remember(query, data) {
-      if (query.confirmed && !settings.demo) return;
+      if (query.position || (query.confirmed && !settings.demo)) return;
       const id = signature(query);
       const recent = read(cacheKey, []).filter(item => item.key !== id && Date.now() - item.time < CACHE_AGE);
       const records = [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8);
@@ -815,7 +864,7 @@
     }
 
     async function loadStagePage(query, continuation, signal) {
-      const payload = JSON.stringify({ city: query.city, filiere: query.sector,
+      const payload = JSON.stringify({ ...(query.position ? { position: query.position } : { city: query.city }), filiere: query.sector,
         optionCommerce: query.option, types: query.types, radius: query.radius,
         continuation, ...(query.confirmed ? {confirmed_only:true, demo:settings.demo === true, session:settings.session || ''} : {}) });
       const attempts = continuation ? 3 : 1;
@@ -867,9 +916,9 @@
     }
 
     async function search(query = queryFromForm(), { force = false, focus = true, resume = false } = {}) {
-      if (destroyed || pending) return;
-      if (query.city.length < 2 || !/^[\p{L}0-9 .,'’\-]+$/u.test(query.city)) {
-        status('Indique une commune ou un arrondissement français.', true);
+      if (destroyed || pending || locating) return;
+      if (!query.position && (query.city.length < 2 || !/^[\p{L}\p{M}0-9 .,'’°()\/\-]+$/u.test(query.city))) {
+        status('Indique une adresse, une ville ou un quartier en France.', true);
         $('city').focus();
         return;
       }
@@ -946,7 +995,7 @@
         if (backup) {
           showResult(backup.data, query, focus, true);
           status('L’annuaire est momentanément indisponible. Les derniers résultats restent consultables.');
-        } else if (/^Ville (introuvable|ou quartier non valide)/i.test(error.message) || (query.confirmed && /^(Reconnecte-toi|Historique PFMP|Session PFMP)/.test(error.message))) {
+        } else if (/^(Adresse ou ville introuvable|Adresse, ville ou quartier non valide|Position non valide)/i.test(error.message) || (query.confirmed && /^(Reconnecte-toi|Historique PFMP|Session PFMP)/.test(error.message))) {
           status(error.message, true);
         } else {
           status('L’annuaire ne répond pas. Réessaie ou réduis le rayon de recherche.', true);

@@ -317,6 +317,11 @@ body:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-pers
   font-weight: 730;
 }
 
+.cs-stage-location { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .7rem; margin-bottom: .8rem; }
+.cs-stage-search .cs-stage-location p { margin: 0; color: var(--cs-ink-muted); font-size: .9rem; }
+.cs-stage-search .cs-stage-location p:empty { display: none; }
+.cs-stage-search .cs-stage-location button[aria-pressed="true"] { border-color: #176960; background: #e4f4ef; }
+
 .cs-stage-kinds {
   overflow: clip;
   border: 1px solid var(--cs-paper-line);

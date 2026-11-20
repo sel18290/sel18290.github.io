@@ -64,17 +64,17 @@ async function timed(url,opt,ms){
 const fallback={"paris":[48.8566,2.3522],"paris 15e":[48.8414,2.3001],"boulogne-billancourt":[48.8352,2.2409],"saint-denis":[48.9362,2.3574],"montreuil":[48.8638,2.4485],"nanterre":[48.8924,2.2066],"versailles":[48.8014,2.1301]};
 const geocodedCities=new Map();
 async function geocode(city){
- if(!/^[\p{L}0-9 .,'’\-]{2,90}$/u.test(city))throw Error("Ville ou quartier non valide.");
+ if(!/^[\p{L}\p{M}0-9 .,'’°()\/\-]{2,140}$/u.test(city))throw Error("Adresse, ville ou quartier non valide.");
  const key=city.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  const cached=geocodedCities.get(key);
  if(cached&&Date.now()<cached.expires)return cached.place;
  try{
   const url=new URL("https://data.geopf.fr/geocodage/search");
-  url.searchParams.set("q",city+", France");url.searchParams.set("limit","1");
+  url.searchParams.set("q",city);url.searchParams.set("limit","1");
   const res=await timed(url.toString(),{headers:{"accept":"application/json"}},10000);
   if(res.ok){
    const data=await res.json(),loc=data.features?.[0],x=loc?.geometry?.coordinates;
-   if(Array.isArray(x)&&x.length>=2&&x[0]>=-6&&x[0]<=11&&x[1]>=41&&x[1]<=52){
+   if(Array.isArray(x)&&x.length>=2&&x[0]>=-180&&x[0]<=180&&x[1]>=-90&&x[1]<=90){
     const place={lat:x[1],lon:x[0],label:clean(loc.properties?.label||city),source:"IGN"};
     if(geocodedCities.size>=128)geocodedCities.delete(geocodedCities.keys().next().value);
     geocodedCities.set(key,{place,expires:Date.now()+20*60*1000});
@@ -83,7 +83,13 @@ async function geocode(city){
   }
  }catch{}
  if(fallback[key])return {lat:fallback[key][0],lon:fallback[key][1],label:city,source:"Coordonnées locales"};
- throw Error("Ville introuvable : indique une commune ou un arrondissement français.");
+ throw Error("Adresse ou ville introuvable. Ajoute le code postal ou le nom de la commune.");
+}
+function positionOrigin(point){
+ const lat=point?.lat,lon=point?.lon;
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)
+  throw Error("Position non valide. Saisis une adresse ou une ville.");
+ return {lat:Math.round(lat*1000)/1000,lon:Math.round(lon*1000)/1000,label:"Ma position",source:"Position de l’appareil"};
 }
 function osmQuery(lat,lon,radius,sector,chosen){
  const rules=[...new Set(chosen.flatMap(id=>sectors[sector].types[id].rules.map(([key,pattern])=>'["'+key+'"~"'+pattern+'"]')))];
@@ -673,7 +679,7 @@ Deno.serve(async req=>{
   if(body.action==="prepare_contact")return await contactSuggestion(body,origin);
   if(body.action==="improve_application")return await applicationSuggestion(body,origin);
   if(["host_admin_list","host_lookup","host_confirm","host_remove"].includes(body.action))return await manageHosts(body,req,origin);
-  const sector=clean(body.filiere,40),city=clean(body.city||"Paris 15e",90);
+  const sector=clean(body.filiere,40),city=clean(body.city||"Paris 15e",140);
   if(!Object.hasOwn(sectors,sector))throw Error("Choisis une filière valide.");
   const niveau=clean(body.niveau,20);
   if(niveau&&!["seconde","premiere","terminale"].includes(niveau))throw Error("Niveau non valide.");
@@ -688,7 +694,8 @@ Deno.serve(async req=>{
   const page=body.continuation?.page??1,branches=body.continuation?.branches??1;
   if(!Number.isSafeInteger(page)||page<1||!Number.isSafeInteger(branches)||branches<1)
    throw Error("Page de recherche invalide.");
-  const loc=await geocode(city);
+  const position=body.position;
+  const loc=await (position===undefined ? geocode(city) : positionOrigin(position));
   const {places,next,incomplete}=body.confirmed_only===true
    ? {places:await confirmedPlaces(loc,radius,sector,chosen,body),next:null,incomplete:false}
    : await lookup(loc,radius,sector,chosen,page,branches);

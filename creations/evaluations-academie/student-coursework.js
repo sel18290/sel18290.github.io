@@ -46,30 +46,30 @@ if(qr||globalPortal){
  const main=E('main','cw-student-portal');main.id='cw-student-portal';
  main.innerHTML='<div class="cw-student-frame">'+
   '<div class="cw-student-brand">CORTEX <span>ACADÉMIE · ESPACE ÉLÈVE</span></div>'+
-  '<div class="cw-student-hero"><span>STATION NOCTIS · ESPACE ÉLÈVE</span><h1>'+(qr?'Rejoindre mon contrôle.':'Bienvenue dans mon CORTEX.')+'</h1>'+
+  '<div class="cw-student-hero"><span>ESPACE ÉLÈVE</span><h1>'+(qr?'Rejoindre mon contrôle':'Ton espace élève')+'</h1>'+
   '<p>'+(qr?'Le QR code t’a envoyé vers le contrôle attribué à ta classe.':'Choisis ta classe, indique ton numéro sur la liste et confirme ton PIN pour retrouver tes contrôles et corrections.')+'</p></div>'+
   '<div id="cw-student-link-target" class="cw-pin-intro" role="status" aria-live="polite" hidden></div>'+
   '<div id="cw-student-status" role="status" aria-live="polite" class="cw-status" hidden></div>'+
   '<section id="cw-student-login" class="cw-pin-entry">'+
   '<a class="cw-student-home" href="./">Retour à CORTEX Académie</a>'+
   '<div class="cw-pin-paths" role="group" aria-label="Choisir sa connexion">'+
-  '<button id="cw-back-to-login" type="button" class="cw-pin-path is-selected" aria-pressed="true">◈ J’ai déjà mon PIN</button>'+
-  '<button id="cw-show-activation" type="button" class="cw-pin-path" aria-pressed="false">✦ Je crée mon PIN</button></div>'+
-  '<div class="cw-pin-intro"><strong>Un numéro, un PIN, tous mes contrôles.</strong><p>Comme dans la démonstration : choisis ton numéro sur la liste et utilise le même PIN à six chiffres pour toutes les évaluations de ta classe.</p></div>'+
+  '<button id="cw-back-to-login" type="button" class="cw-pin-path is-selected" aria-pressed="true">J’ai déjà mon PIN</button>'+
+  '<button id="cw-show-activation" type="button" class="cw-pin-path" aria-pressed="false">Je crée mon PIN</button></div>'+
+  '<div class="cw-pin-intro"><p>Utilise le même PIN à six chiffres pour les évaluations de ta classe.</p></div>'+
   '<form id="cw-student-login-form" class="cw-student-login-form">'+
   (qr?'':'<label for="cw-student-class">Ma classe<select id="cw-student-class" required><option value="">Chargement des classes…</option></select></label>')+
   '<label for="cw-student-number">Mon numéro sur la liste<input id="cw-student-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
   '<label for="cw-student-pin">Mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-student-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off" placeholder="●●●●●●" required><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-student-pin">Afficher</button></div></label>'+
-  '<button type="submit" class="cw-student-submit">'+(qr?'Ouvrir mon contrôle →':'Accéder à mon espace →')+'</button></form>'+
+  '<button type="submit" class="cw-student-submit">'+(qr?'Ouvrir mon contrôle':'Accéder à mon espace')+'</button></form>'+
   '<form id="cw-student-activation-form" class="cw-student-login-form cw-activation-form" hidden>'+
-  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION · STATION NOCTIS</span><h2>Je choisis mon PIN.</h2><p>'+(qr?'Tu es bien arrivé par le QR de ton contrôle. Ton professeur doit ouvrir la création des PIN pendant 30 minutes depuis ce même contrôle.':'Ouvre le lien temporaire transmis par ton professeur pendant les 30 minutes d’inscription.')+' Choisis ton numéro, crée ton PIN et confirme-le. Aucun code individuel à demander.</p></div>'+
+  '<div class="cw-activation-heading"><span>PREMIÈRE CONNEXION</span><h2>Choisir mon PIN</h2><p>'+(qr?'Tu es bien arrivé par le QR de ton contrôle. Ton professeur doit ouvrir la création des PIN pendant 30 minutes depuis ce même contrôle.':'Ouvre le lien temporaire transmis par ton professeur pendant les 30 minutes d’inscription.')+' Choisis ton numéro, crée ton PIN et confirme-le. Aucun code individuel à demander.</p></div>'+
   (qr?'':'<label for="cw-activation-class">Ma classe<select id="cw-activation-class" required><option value="">Choisir ma classe…</option></select></label>')+
   '<label for="cw-activation-number">Mon numéro sur la liste<input id="cw-activation-number" type="number" min="1" max="60" inputmode="numeric" autocomplete="off" placeholder="Ex. 12" required></label>'+
   '<label for="cw-activation-new-pin">Je choisis mon PIN à 6 chiffres<div class="cw-pin-input-wrap"><input id="cw-activation-new-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Choisis 6 chiffres"><button type="button" class="cw-pin-eye" aria-label="Afficher ou masquer le PIN" aria-controls="cw-activation-new-pin">Afficher</button></div></label>'+
   '<label for="cw-activation-confirm-pin">Je confirme mon PIN<input id="cw-activation-confirm-pin" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password" required placeholder="Répète les 6 chiffres"></label>'+
   '<label for="cw-activation-group" class="cw-pin-group-choice">Mon demi-groupe <span class="cw-pin-group-required">(obligatoire)</span><select id="cw-activation-group" name="demi_groupe" required><option value="" selected disabled>Choisir mon demi-groupe…</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option></select><small>Choisis le groupe indiqué par ton professeur. Il apparaîtra directement dans « PIN élèves ».</small></label>'+
   '<p class="cw-pin-privacy">🔒 Ton professeur ne voit pas ton PIN. Ne le partage avec personne.</p>'+
-  '<button type="submit" class="cw-student-submit">✓ Créer mon PIN et entrer →</button></form>'+
+  '<button type="submit" class="cw-student-submit">Créer mon PIN et entrer</button></form>'+
   '<p class="cw-student-help">PIN oublié ? Demande à ton professeur un lien individuel pour choisir un nouveau PIN.</p></section>'+
   '<section id="cw-student-work" hidden></section>'+
   '<footer>Accès personnel sécurisé · Ne communique jamais ton PIN · Les notes apparaissent seulement après publication par ton professeur.</footer></div>';
@@ -217,30 +217,14 @@ if(qr||globalPortal){
    E('h2','','Mes évaluations'),
    E('p','','Élève n°'+classData.student_number+' · '+classData.class.name));
   const controls=E('div','cw-student-dashboard-tools');
-  controls.append(button('🎓 Recherche de PFMP','cw-accent',renderStageView),
-   button('Actualiser mes résultats ↻','cw-secondary',loadClass),
+  controls.append(button('Actualiser mes résultats','cw-secondary',loadClass),
    button('Changer de compte','cw-outline',async()=>{reset();await getClasses()}));
   header.append(controls);work.append(header);
-  // L'accès aux PFMP est une vraie porte d'entrée, au même niveau visuel
-  // que le grand accès au tableau de bord de la démonstration.
-  const stageHero=E('section','cs-stage-featured cs-stage-featured-real');
-  stageHero.setAttribute('aria-label','Trouver une PFMP professionnelle');
-  stageHero.innerHTML=
-   '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">ALBERT IA</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · DES ENTREPRISES AUTOUR DE TOI</span>'+
-   '<h2>Découvre ta<br><em>prochaine PFMP.</em></h2>'+
-   '<p>Choisis ta filière et ta ville, prépare ton premier contact et enregistre tes candidatures dans ton carnet.</p></div></div>';
-  const stageCta=E('button','cs-stage-featured-button');
-  stageCta.type='button';
-  const stageIcon=E('span','cs-stage-featured-icon','⌖');stageIcon.setAttribute('aria-hidden','true');stageCta.append(stageIcon);
-  const copy=E('span','cs-stage-featured-button-copy');
-  copy.append(E('strong','','Rechercher ma PFMP'),
-   E('small','','Annuaire · Modèles de contact · Suivi des relances'));
-  stageCta.append(copy);
-  stageCta.addEventListener('click',renderStageView);
-  stageHero.append(stageCta);
-  // L'évaluation est la première action du tableau de bord.
-  // Ne pas cacher « Démarrer ce contrôle » sous la grande bannière de PFMP.
+  const stageCard=E('section','cw-student-stage-link');
+  const stageIntro=E('div');
+  stageIntro.append(E('h3','','Préparer ma PFMP'),
+   E('p','','Trouve un lieu de stage, prépare tes messages et suis tes candidatures.'));
+  stageCard.append(stageIntro,button('Recherche de PFMP','cw-secondary',renderStageView));
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];
   if(!assessments.length){
    cards.append(E('div','cw-student-empty','Aucun contrôle n’est encore ouvert pour ta classe. Les prochaines évaluations apparaîtront ici.'));
@@ -271,7 +255,7 @@ if(qr||globalPortal){
    const accessGuide=E('p','cw-student-help','Ton contrôle est disponible ci-dessous. Appuie sur « Démarrer ce contrôle » pour commencer.');
    work.append(accessGuide);
   }
-  work.append(stats,cards,stageHero);
+  work.append(stats,cards,stageCard);
   renderDashboardAi(work,{session:token,assessments});
  }
  // Relire sa véritable copie après remise, sans divulguer de corrigé avant

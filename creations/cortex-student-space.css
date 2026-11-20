@@ -8,13 +8,15 @@ body.cortex-noctis :is(.portal-root, #cw-student-portal) {
   --student-muted: #bed2df;
 }
 
-body.cortex-noctis :is(.portal-login, #cw-student-portal .cw-student-frame) {
+body.cortex-noctis .portal-login,
+body.cortex-noctis #cw-student-portal .cw-student-frame {
   border-color: var(--student-border);
   background: var(--student-surface);
   box-shadow: 0 18px 48px #040c1a69;
 }
 
-body.cortex-noctis :is(.portal-login-visual, .portal-welcome, #cw-student-portal .cw-student-hero, #cw-student-portal .cw-student-dashboard-head) {
+body.cortex-noctis :is(.portal-login-visual, .portal-welcome),
+body.cortex-noctis #cw-student-portal :is(.cw-student-hero, .cw-student-dashboard-head) {
   border-color: var(--student-border);
   background: linear-gradient(95deg, #081b2bef 25%, #10273ccf 60%, #10273c70),
     url('./cortex-noctis-corridor.svg') center / cover no-repeat, #122b40;
@@ -41,7 +43,8 @@ body.cortex-noctis .portal-dashboard .portal-main { display: flex; flex-directio
 body.cortex-noctis .portal-dashboard .portal-main > * { margin-block: 0; }
 body.cortex-noctis .portal-dashboard .portal-welcome { min-height: 0; padding: clamp(1rem, 3vw, 2.35rem); }
 body.cortex-noctis .portal-dashboard .portal-welcome-art { min-height: 0; }
-body.cortex-noctis :is(.portal-dashboard .portal-section, .portal-dashboard .portal-stat, #cw-student-portal .cw-pin-entry, #cw-student-portal .cw-student-assessment) {
+body.cortex-noctis .portal-dashboard :is(.portal-section, .portal-stat),
+body.cortex-noctis #cw-student-portal :is(.cw-pin-entry, .cw-student-assessment) {
   background: var(--student-surface);
   color: var(--student-text);
   border: 1px solid var(--student-border);

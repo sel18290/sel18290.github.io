@@ -91,32 +91,22 @@ window.CORTEX_PORTAL=(function(){
  function studentLogin(state,opts={}){
   const classes=(state.classes||[]).filter(c=>!c.archived);
   const levels=[['3e','Troisième'],['seconde','Seconde'],['première','Première'],['terminale','Terminale'],['autre','Autre']];
-  return '<div class="portal-root portal-login"><section class="portal-login-visual">'+
-   '<div class="portal-symbol" aria-hidden="true">C<span>·</span></div><p class="portal-kicker">STATION NOCTIS / MON CORTEX</p>'+
-   '<h1>Ton espace<br><em>élève.</em></h1><p>Passe un contrôle, consulte tes copies et suis ta progression.</p>'+
-   '<div class="portal-illustration" aria-hidden="true"><div class="portal-illustration-glow"></div><div class="portal-planet">20<span>points</span></div><div class="portal-small-orbit">✦</div></div>'+
-   '</section>'+
-   '<section class="portal-login-form">'+
-   '<div class="portal-demo-gateway" aria-label="Découvrir le carnet élève fictif de CORTEX">'+
-   '<div class="portal-demo-gateway-top"><span class="portal-demo-status"><span class="portal-demo-status-dot" aria-hidden="true"></span> MODE DÉMONSTRATION</span><span class="portal-demo-noctis">NOCTIS / MON CORTEX</span></div>'+
-   '<div class="portal-demo-gateway-main"><div class="portal-demo-gateway-copy"><span class="portal-demo-kicker">✦ TON ESPACE ÉLÈVE</span><h2>Entre dans ton <em>univers.</em></h2><p>Découvre ton carnet fictif : copies corrigées, progression, estimation d’une note et conseils d’Albert IA. Aucun compte nécessaire.</p></div><div class="portal-demo-orbit" aria-hidden="true"><span class="portal-demo-orbit-core">C<span>·</span></span><i class="portal-demo-star star-one"></i><i class="portal-demo-star star-two"></i><i class="portal-demo-star star-three"></i></div></div>'+
-   '<button class="portal-preview-button" type="button" data-action="portal-demo"><span class="portal-preview-icon" aria-hidden="true">✦</span><span class="portal-preview-copy"><strong>Découvrir mon tableau de bord</strong><small>13 contrôles fictifs · Notes · Albert IA</small></span><span class="portal-preview-arrow" aria-hidden="true">↗</span></button>'+
-   '<div class="portal-demo-features" aria-hidden="true"><span>◈ Mes résultats</span><span>≈ Estimation IA</span><span>✧ Conseils Albert</span></div>'+
-   '</div>'+
-   '<section class="cs-stage-featured cs-stage-featured-demo" aria-label="Accéder à la recherche de PFMP">'+
-   '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · TON AVENIR PROFESSIONNEL</span><span class="cs-stage-featured-status">OUTIL PFMP</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · 3 FILIÈRES</span>'+
-   '<h2>Ta prochaine PFMP<br><em>commence ici.</em></h2>'+
-    '<p>Repère des lieux adaptés à ta filière, prépare ton premier contact et retrouve tes candidatures dans ton carnet.</p></div>'+
-   '<div class="cs-stage-featured-illustration" aria-hidden="true"><span class="cs-stage-featured-globe">⌖</span><span class="cs-stage-featured-orbit">✦</span><span class="cs-stage-featured-dot"></span></div></div>'+
-   '<button class="cs-stage-featured-button" type="button" data-action="student-stages"><span class="cs-stage-featured-icon">🎓</span>'+
-    '<span class="cs-stage-featured-button-copy"><strong>Rechercher ma PFMP</strong><small>Annuaire · Modèles de contact · Suivi des relances</small></span>'+
-   '<span class="cs-stage-featured-arrow" aria-hidden="true">↗</span></button>'+
-   '<div class="cs-stage-featured-tags"><span>◈ Gestion-administration</span><span>◈ Commerce-vente</span><span>◈ Accueil</span></div></section>'+
-   '<div class="portal-pse-teaser"><div class="portal-pse-teaser-mark">PSE · 60 MINUTES</div><h2>Tester un vrai contrôle de PSE</h2><p>20 questions sur le sommeil, documents et chronomètre. Aucun compte ni PIN requis pour cette démonstration.</p><button class="portal-pse-teaser-action" type="button" data-action="demo-pse-open">Tester le contrôle PSE <span aria-hidden="true">↗</span></button></div>'+
-   '<div class="portal-login-divider"><span>OU ACCÉDER À MES COPIES</span></div>'+
-   '<div class="portal-tag">ESPACE ELEVE</div><h2>Retrouve ton espace</h2>'+
-   '<p class="portal-muted">Accès personnel avec ton numéro de liste, ton PIN et le code communiqué par ton professeur.</p>'+
+  return '<div class="portal-root portal-login">'+
+   '<header class="portal-login-visual"><p class="portal-kicker">CORTEX ÉVALUATIONS</p>'+
+   '<h1>Ton espace élève</h1><p>Passe un contrôle, consulte tes copies ou prépare ton stage.</p></header>'+
+   '<section class="portal-entry-options" aria-label="Que veux-tu faire ?">'+
+   '<article class="portal-entry-option"><h2>Voir un carnet élève</h2>'+
+   '<p>Explore 13 copies fictives, leurs corrections et les conseils d’Albert.</p>'+
+   '<button type="button" class="portal-entry-button is-primary" data-action="portal-demo">Ouvrir le carnet de démo</button></article>'+
+   '<article class="portal-entry-option"><h2>Trouver un stage</h2>'+
+   '<p>Recherche un lieu de PFMP et organise tes candidatures.</p>'+
+   '<button type="button" class="portal-entry-button" data-action="student-stages">Recherche de PFMP</button></article>'+
+   '<article class="portal-entry-option"><h2>Essayer un contrôle</h2>'+
+   '<p>Teste une évaluation de PSE sur le sommeil : 20 questions, 60 minutes.</p>'+
+   '<button type="button" class="portal-entry-button" data-action="demo-pse-open">Tester le contrôle PSE</button></article></section>'+
+   '<section class="portal-login-form" aria-labelledby="portal-login-title">'+
+   '<h2 id="portal-login-title">Accéder à mes copies</h2>'+
+   '<p class="portal-muted">Utilise ton numéro sur la liste, ton PIN et le code donné par ton professeur.</p>'+
    '<div class="portal-form-grid"><div class="field"><label for="portal-level">Mon niveau</label><select id="portal-level"><option value="">Choisir un niveau</option>'+
    levels.map(([v,t])=>'<option value="'+esc(v)+'" '+(opts.level===v?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></div>'+
    '<div class="field"><label for="portal-class">Ma classe</label><select id="portal-class"><option value="">Choisir une classe</option>'+
@@ -125,7 +115,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="field"><label for="portal-classcode">Code de ma classe</label><input id="portal-classcode" type="text" autocomplete="off" autocapitalize="characters" maxlength="12" placeholder="Code remis par le professeur" spellcheck="false"></div>'+
    '<div class="field"><label for="portal-pin">Mon PIN personnel à 6 chiffres</label>'+
    '<div class="portal-pin-wrap"><input id="portal-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="••••••"><button type="button" class="portal-show-pin" data-action="portal-toggle-pin" aria-label="Afficher ou masquer le PIN">Afficher</button></div></div>'+
-   '<button class="portal-main-button" type="button" data-action="portal-login">Accéder à mon espace <span aria-hidden="true">↗</span></button>'+
+   '<button class="portal-main-button" type="button" data-action="portal-login">Accéder à mon espace</button>'+
    '<p class="portal-login-help">Première connexion ? Scanne le QR code de ton contrôle pour créer ton PIN. Si tu l’as oublié, demande sa réinitialisation au professeur.</p>'+
    '<div class="portal-safety"><strong>Version de démonstration.</strong> Les données sont locales à cet appareil, non synchronisées, et l’espace professeur n’est pas protégé. N’utilise aucune donnée réelle.</div>'+
    '</section></div>';
@@ -207,25 +197,25 @@ window.CORTEX_PORTAL=(function(){
    '<button class="portal-revision-button" data-action="portal-revision" data-attempt="'+esc(s.attemptId)+'" data-question="'+esc(s.qid)+'" aria-pressed="'+(s.done?'true':'false')+'">'+(s.done?'✓ Revus':'À revoir')+'</button></article>').join('');
   const periodLabel=period==='s1'?'Septembre → janvier':'Février → juin';
   return '<div class="portal-root portal-dashboard">'+
-   (opts.preview?'<div class="portal-demo-ribbon">✧ APERÇU FICTIF · AUCUNE NOTE RÉELLE</div>':'')+
-   '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>STATION NOCTIS · ÉLÈVE</span></div></div>'+
-   '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion ↗</button></div></header>'+
-   '<div class="portal-main"><section class="portal-welcome"><div><span class="portal-tag">TON ESPACE D’APPRENTISSAGE</span>'+
-   '<h1>Mes évaluations<br><em>et ma progression.</em></h1><p>Retrouve tes copies, les corrections et les conseils pour progresser.</p>'+
-   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button><button data-action="student-stages">🎓 Recherche de PFMP</button></div></div>'+
-   '<div class="portal-welcome-art" aria-hidden="true"><div class="portal-art-ring"><span>'+(avg===null?'—':grade(avg))+'</span><small>/20</small></div><div class="portal-art-orbit"></div><div class="portal-art-stars">✦</div></div></section>'+
+   (opts.preview?'<div class="portal-demo-ribbon">Carnet de démonstration · Notes fictives</div>':'')+
+   '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>Espace élève</span></div></div>'+
+   '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion</button></div></header>'+
+   '<div class="portal-main"><section class="portal-welcome"><div>'+
+   '<h1>Mes évaluations</h1><p>Retrouve tes copies, les corrections et les conseils pour progresser.</p>'+
+   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles</button><button data-action="portal-show-revision">Mes révisions</button><button data-action="student-stages">Recherche de PFMP</button></div></div>'+
+   '</section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
-   '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
+   '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><h2>Copies et corrections</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
    '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
    (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
-   '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><span class="portal-kicker">PROGRESSION</span><h2>Tes moyennes, semaine après semaine.</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+
+   '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><h2>Progression par semaine</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+
    '<div class="portal-select"><label for="portal-year">Année scolaire</label><select id="portal-year">'+
    yearList.map(y=>'<option value="'+y+'" '+(y===year?'selected':'')+'>'+formatYear(y)+'</option>').join('')+'</select></div></div>'+
    '<div class="portal-segment" role="group" aria-label="Choisir un semestre"><button class="'+(period==='s1'?'selected':'')+'" data-action="portal-period" data-period="s1" aria-pressed="'+(period==='s1')+'">Septembre — janvier</button>'+
    '<button class="'+(period==='s2'?'selected':'')+'" data-action="portal-period" data-period="s2" aria-pressed="'+(period==='s2')+'">Février — juin</button></div>'+
    '<div class="portal-chart-title"><strong>'+periodLabel+'</strong><span>'+formatYear(year)+' · '+periodGrades.length+' contrôle(s) noté(s)</span></div>'+
    graph(graphItems)+'</section>'+
-   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">RÉVISIONS</span><h2>Albert t’aide à progresser.</h2><p>'+
+   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><h2>Réviser avec Albert</h2><p>'+
     (opts.preview?'Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.':
     'Les aides automatiques sur les copies réelles nécessitent une validation institutionnelle et ne sont pas activées.')+
     '</p></div><span class="portal-count">✦ Aides Albert</span></div>'+
@@ -268,7 +258,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-correction-hero"><div><span class="portal-kicker">'+esc(date(at.submittedAt||at.startedAt))+' · '+esc(at.className||'Classe')+'</span><h1>'+esc(exam.title)+'</h1><p>Lis les retours question par question. L’important est de comprendre comment progresser.</p></div><div class="portal-correction-grade">'+grade(at.grade)+'<small>/20</small></div></div>'+
    (general?'<div class="portal-general"><span>APPRÉCIATION GÉNÉRALE</span><p>'+esc(general)+'</p></div>':'')+
    (id.startsWith('exemple-')?'<section class="portal-corrected-invitation"><div><span class="portal-kicker">✦ CONSEILS PERSONNALISÉS · ALBERT</span><h2>Et si tu allais plus loin que la note ?</h2><p>Albert lit ta correction déjà publiée et t’explique ce que tu réussis, ce que tu peux améliorer et comment progresser. Il ne change jamais les points du professeur.</p></div><button class="portal-albert-corrected" data-action="portal-albert-corrected" data-id="'+esc(at.id)+'">Découvrir les conseils d’Albert ✦</button><div class="portal-albert-corrected-slot" data-albert-copy="'+esc(at.id)+'" role="status" aria-live="polite"></div></section>':'')+
-   '<div class="portal-section-head"><div><span class="portal-kicker">TON TRAVAIL</span><h2>La correction en détail.</h2></div><span class="portal-count">'+exam.questions.length+' question(s)</span></div>'+
+   '<div class="portal-section-head"><div><h2>Correction question par question</h2></div><span class="portal-count">'+exam.questions.length+' question(s)</span></div>'+
    '<div class="portal-question-grid">'+questions+'</div>'+
    (exam.sourceId?'<div class="portal-footer-tools"><button type="button" class="portal-secondary-button" data-action="portal-original" data-id="'+esc(at.id)+'">▤ Voir le document original</button></div>':'')+
    '<div class="portal-footer-tools"><button type="button" class="portal-secondary-button" data-action="portal-back">← Revenir aux résultats</button><button type="button" class="portal-secondary-button" data-action="portal-print">▤ Imprimer</button></div>'+

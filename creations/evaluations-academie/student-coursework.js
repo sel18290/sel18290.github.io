@@ -573,7 +573,10 @@ if(qr||globalPortal){
  }
  const restored=sessionStorage.getItem(storageKey);
  if(mode==='class')getClasses();
- if(restored){
+ // Sur téléphone ou ordinateur partagé, ouvrir une invitation doit TOUJOURS
+ // permettre de créer un nouvel accès, sans restaurer la session d'un autre élève.
+ if(registrationToken&&restored)sessionStorage.removeItem(storageKey);
+ if(restored&&!registrationToken){
   token=restored;
   (mode==='qr'?loadExam():loadClass()).catch(err=>{reset();message('Merci de confirmer de nouveau ton PIN. '+String(err.message||''),true)});
  }

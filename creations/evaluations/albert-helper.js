@@ -104,6 +104,11 @@
  launcher.title='Albert IA · Aide et signalement de bug';launcher.setAttribute('aria-label','Albert IA : je peux t’aider. Clique pour obtenir de l’aide ou signaler un bug.');
  launcher.innerHTML='<span class="cortex-albert-invite" id="cortex-albert-invite" aria-hidden="true"><strong>Je peux t’aider !</strong><small>Clique ici ✦</small></span><span class="cortex-albert-buddy" aria-hidden="true"><span class="buddy-antenna"></span><span class="buddy-head"><i></i><i></i></span><span class="buddy-body"></span><span class="buddy-arms"></span><span class="buddy-feet"></span></span><span class="buddy-name">Albert IA</span>';
  document.body.append(launcher);
+ const quick=el('button','✦ Albert IA','cortex-albert-quick');
+ quick.id='cortex-albert-quick';quick.type='button';
+ quick.title='Albert IA · Aide pour les élèves et professeurs';
+ quick.setAttribute('aria-label','Ouvrir Albert, mode élève ou professeur');
+ document.body.append(quick);
  const dialog=el('dialog',undefined,'cortex-albert-dialog');
  dialog.id='cortex-albert-dialog';
  const main=el('div',undefined,'cortex-albert-dialog-content');
@@ -114,21 +119,35 @@
  const head=el('div');head.append(el('div','ALBERT · STATION NOCTIS','cortex-albert-kicker'),el('h2','Comment puis-je t’aider ?'));
  const close=el('button','✕','cortex-albert-close');close.type='button';close.setAttribute('aria-label','Fermer Albert');
  close.addEventListener('click',()=>dialog.close());header.append(head,close);
+ const roles=el('div',undefined,'cortex-albert-roles');
+ roles.setAttribute('role','group');roles.setAttribute('aria-label','Choisir le mode Albert');
+ const studentRole=el('button','🎓 Mode élève','cortex-albert-role');
+ const teacherRole=el('button','▣ Mode professeur','cortex-albert-role');
+ studentRole.type='button';teacherRole.type='button';
+ roles.append(studentRole,teacherRole);
+ const roleInfo=el('p',undefined,'cortex-albert-role-info');
  const tabs=el('div',undefined,'cortex-albert-tabs');
  const helpTab=el('button','✦ Comprendre le site'),reportTab=el('button','⚑ Signaler un bug');
  helpTab.type='button';reportTab.type='button';tabs.append(helpTab,reportTab);
  const help=el('section',undefined,'cortex-albert-panel'),bug=el('section',undefined,'cortex-albert-panel');
- help.append(el('p','Je suis Albert, ton guide dans la démonstration CORTEX. Tu peux me poser une question sur les fonctions de l’espace professeur.','cortex-albert-muted'));
+ const roleHint=el('p',undefined,'cortex-albert-muted');
+ help.append(roleHint);
  const chips=el('div',undefined,'cortex-albert-examples');
- for(const q of ['Comment créer et publier un contrôle ?','Comment associer une capture à une question ?','Comment tester le contrôle comme un élève ?']){
-  const b=el('button',q);b.type='button';b.addEventListener('click',()=>{question.value=q;question.focus()});chips.append(b);
- }
+ const prompts={
+  eleve:['Comment faire un contrôle et voir le temps restant ?','Comment voir ma copie corrigée et ma note ?',
+   'Comment chercher une PFMP et suivre une entreprise ?','Comment préparer mon CV et ma lettre avec Albert ?',
+   'Comment prendre en photo une réponse manuscrite ?'],
+  professeur:['Comment créer et publier un contrôle ?','Comment importer un PDF avec ses images ?',
+   'Comment retrouver et corriger les copies ?','Comment consulter les alertes anti-triche ?',
+   'Comment créer des PIN et publier le QR code ?']
+ };
  help.append(chips);
  const question=el('textarea');question.maxLength=500;question.rows=3;question.placeholder='Ex. Comment publier seulement pour le groupe 2 ?';
  question.setAttribute('aria-label','Ta question à Albert');
  const ask=el('button','Demander à Albert','cortex-albert-send');ask.type='button';
  const answer=el('div',undefined,'cortex-albert-answer');answer.setAttribute('role','status');answer.setAttribute('aria-live','polite');
- help.append(question,ask,answer);
+ const shortcut=el('button','Ouvrir mon espace ↗','cortex-albert-open-space');shortcut.type='button';
+ help.append(question,ask,shortcut,answer);
  bug.append(el('p','Décris le problème et l’écran concerné. Le signalement sera enregistré pour l’administrateur dans Supabase, sans publication publique.','cortex-albert-muted'));
  const issue=el('textarea');issue.rows=5;issue.maxLength=1500;issue.placeholder='Ex. Dans Mes contrôles, le bouton Tester ne lance pas le chronomètre…';
  issue.setAttribute('aria-label','Description du bug');
@@ -136,21 +155,58 @@
  const send=el('button','Transmettre le bug à l’administrateur','cortex-albert-send');send.type='button';
  const reportStatus=el('div',undefined,'cortex-albert-answer');reportStatus.setAttribute('role','status');reportStatus.setAttribute('aria-live','polite');
  bug.append(issue,safety,send,reportStatus);
- main.append(header,hologram,tabs,help,bug);dialog.append(main);document.body.append(dialog);
+ main.append(header,roles,roleInfo,hologram,tabs,help,bug);dialog.append(main);document.body.append(dialog);
+ let role='eleve';
+ function chooseRole(next){
+  role=next==='professeur'?'professeur':'eleve';
+  studentRole.setAttribute('aria-pressed',String(role==='eleve'));
+  teacherRole.setAttribute('aria-pressed',String(role==='professeur'));
+  roleInfo.textContent=role==='eleve'
+   ? 'Contrôles, notes, copies corrigées, révisions et recherche de PFMP.'
+   : 'Classes, sujets, import PDF, QR codes, suivi des copies et correction.';
+  roleHint.textContent=role==='eleve'
+   ? 'Albert te guide dans CORTEX avec des mots simples, sans accéder à ta copie réelle.'
+   : 'Albert t’accompagne dans la démonstration, sans accéder aux données des élèves réels.';
+  question.placeholder=role==='eleve'
+   ? 'Ex. Comment voir ma correction ou trouver une PFMP ?'
+   : 'Ex. Comment transformer un PDF en contrôle avec ses documents ?';
+  shortcut.textContent=role==='eleve'?'Ouvrir l’espace élève ↗':'Ouvrir l’espace professeur ↗';
+  chips.replaceChildren();
+  for(const q of prompts[role]){
+   const b=el('button',q);b.type='button';
+   b.addEventListener('click',()=>{question.value=q;question.focus()});
+   chips.append(b);
+  }
+  answer.replaceChildren();
+ }
+ studentRole.onclick=()=>chooseRole('eleve');
+ teacherRole.onclick=()=>chooseRole('professeur');
+ shortcut.onclick=()=>{
+  dialog.close();
+  const action=role==='eleve'?'student':'teacher';
+  const target=document.querySelector('[data-action="'+action+'"]');
+  if(target)target.click();
+  else location.hash=role==='eleve'?'#eleve':'#prof';
+ };
  function tab(mode){
   help.hidden=mode!=='help';bug.hidden=mode!=='bug';
   helpTab.setAttribute('aria-selected',String(mode==='help'));
   reportTab.setAttribute('aria-selected',String(mode==='bug'));
  }
  tab('help');helpTab.onclick=()=>tab('help');reportTab.onclick=()=>tab('bug');
- launcher.onclick=()=>{tab('help');dialog.showModal()};
+ function openAssistant(){
+  tab('help');
+  chooseRole(/eleve|student|carnet/i.test(location.hash||'')?'eleve':'professeur');
+  dialog.showModal();
+ }
+ launcher.onclick=openAssistant;quick.onclick=openAssistant;
  dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
  ask.onclick=async()=>{
   const message=question.value.trim();
   if(message.length<5){answer.textContent='Écris une question de cinq caractères minimum.';return;}
   ask.disabled=true;answer.replaceChildren();
   const busy=waitForAlbert('Albert prépare sa réponse','Analyse de ta question et recherche des étapes dans CORTEX.');
-  try{const data=await endpoint(GUIDE,{action:'teacher_help',screen:screen(),message});renderGuide(data,answer)}
+  try{const data=await endpoint(GUIDE,{action:role==='eleve'?'student_help':'teacher_help',screen:screen(),message});renderGuide(data,answer)}
   catch(e){answer.textContent='⚠ '+String(e.message||e)}
   finally{busy.close();ask.disabled=false}
  };
@@ -159,8 +215,7 @@
   if(description.length<20){reportStatus.textContent='Décris le problème en 20 caractères minimum.';return;}
   send.disabled=true;reportStatus.textContent='Transmission du signalement…';
   try{
-   const isStudent=location.hash.includes('eleve')||location.hash.includes('student');
-   const data=await endpoint(GUIDE,{action:'report_bug',description,screen:screen(),interface:isStudent?'eleve':screen()==='accueil'?'autre':'professeur'});
+   const data=await endpoint(GUIDE,{action:'report_bug',description,screen:screen(),interface:role});
    reportStatus.textContent='✓ Bug enregistré sous la référence '+data.reference+'. L’administrateur peut le consulter dans Supabase.';
    issue.value='';
   }catch(e){reportStatus.textContent='⚠ '+String(e.message||e)}finally{send.disabled=false}

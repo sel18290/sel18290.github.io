@@ -244,7 +244,10 @@
       <section class="cs-stage-results" id="cs-stage-results" aria-labelledby="cs-stage-result-title" hidden>
         <div class="cs-stage-result-header">
           <div><div class="cs-stage-kicker">Résultats de recherche</div><h2 id="cs-stage-result-title" tabindex="-1"></h2><p id="cs-stage-result-context"></p></div>
-          <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
+          <div>
+            <button type="button" id="cs-stage-resume" class="cs-stage-primary" hidden>Reprendre la recherche</button>
+            <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
+          </div>
         </div>
         <p class="cs-stage-ai-note" id="cs-stage-ai-note"></p>
         <div class="cs-stage-filters" id="cs-stage-filters" hidden>
@@ -644,8 +647,9 @@
       $('ai-note').textContent = aiCopy + (registry ? ' · Adresses issues de l’Annuaire des entreprises' : '') +
         (checked ? ' · Annuaire consulté le ' + checked : '') +
         (fromCache ? ' · Résultats enregistrés' : '') +
-        (data.continuation ? ' · Chargement des pages suivantes…' : '') +
+        (data.continuation && !data.incomplete ? ' · Chargement des pages suivantes…' : '') +
         (data.incomplete ? ' · Une partie des résultats est disponible' : '');
+      $('resume').hidden = !data.incomplete || !data.continuation;
       $('results').hidden = false;
       $('filters').hidden = !count;
       renderCards();
@@ -659,10 +663,43 @@
         ? 'Consultation de l’annuaire et classement des lieux avec Albert.'
         : 'Consultation des établissements répertoriés près de la zone choisie.';
       $('refresh').disabled = Boolean(query);
+      $('resume').disabled = Boolean(query);
       updateTypeSummary();
     }
 
-    async function search(query = queryFromForm(), { force = false, focus = true } = {}) {
+    async function loadStagePage(query, continuation, signal) {
+      const payload = JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
+        optionCommerce: query.option, types: query.types, radius: query.radius,
+        albert: !continuation && query.albert, continuation,
+        demo: settings.demo === true, session: !continuation && query.albert ? settings.session || '' : '' });
+      const attempts = continuation ? 3 : 1;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        if (signal.aborted) throw signal.reason;
+        const pageRequest = new AbortController();
+        const abortPage = () => pageRequest.abort(signal.reason);
+        signal.addEventListener('abort', abortPage, { once: true });
+        const timer = setTimeout(() => pageRequest.abort(), 50000);
+        try {
+          const response = await fetch(ENDPOINT, {
+            method: 'POST', headers: { 'content-type': 'application/json' }, body: payload,
+            signal: pageRequest.signal
+          });
+          const batch = await response.json();
+          if (!response.ok || !batch.ok || !Array.isArray(batch.businesses)) {
+            throw new Error(clean(batch.error) || 'Annuaire indisponible.');
+          }
+          return batch;
+        } catch (error) {
+          if (signal.aborted || attempt + 1 === attempts) throw error;
+        } finally {
+          clearTimeout(timer);
+          signal.removeEventListener('abort', abortPage);
+        }
+        await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 900));
+      }
+    }
+
+    async function search(query = queryFromForm(), { force = false, focus = true, resume = false } = {}) {
       if (destroyed || pending) return;
       if (query.city.length < 2 || !/^[\p{L}0-9 .,'’\-]+$/u.test(query.city)) {
         status('Indique une commune ou un arrondissement français.', true);
@@ -675,7 +712,7 @@
         $('kinds').querySelector('summary').focus();
         return;
       }
-      const recent = !force && cached(query);
+      const recent = !force && !resume && cached(query);
       if (recent) {
         status('');
         showResult(recent.data, query, focus, true);
@@ -686,29 +723,17 @@
       pending = request;
       status('');
       setBusy(query);
-      let data;
+      let data = resume ? result.data : null;
+      if (data) {
+        data.incomplete = false;
+        showResult(data, query, false, false, []);
+      }
       try {
         do {
           const continuation = data?.continuation;
-          const timer = setTimeout(() => request.abort('timeout'), 60000);
-          let batch;
-          try {
-            const response = await fetch(ENDPOINT, {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ city: query.city, filiere: query.sector, niveau: query.level,
-                optionCommerce: query.option, types: query.types, radius: query.radius,
-                albert: !continuation && query.albert, continuation,
-                demo: settings.demo === true, session: !continuation && query.albert ? settings.session || '' : '' }),
-              signal: request.signal
-            });
-            batch = await response.json();
-            if (!response.ok || !batch.ok || !Array.isArray(batch.businesses)) {
-              throw new Error(clean(batch.error) || 'Annuaire indisponible.');
-            }
-          } finally {
-            clearTimeout(timer);
-          }
+          if (continuation) await new Promise(resolve => setTimeout(resolve, 250));
+          if (browserRequestChanged(request)) return;
+          const batch = await loadStagePage(query, continuation, request.signal);
           if (destroyed || browserRequestChanged(request)) return;
           if (data) {
             data.businesses.push(...batch.businesses);
@@ -725,10 +750,10 @@
         if (destroyed || browserRequestChanged(request)) return;
         if (data) {
           markPartial();
-          status('L’annuaire n’a pas renvoyé la suite. Les lieux déjà trouvés restent consultables.');
+          status('L’annuaire a interrompu la recherche. Tu peux la reprendre à partir des résultats affichés.');
           return;
         }
-        if (request.signal.aborted && request.signal.reason !== 'timeout') {
+        if (request.signal.aborted) {
           status('Recherche annulée.');
           return;
         }
@@ -751,7 +776,6 @@
 
     function markPartial() {
       if (!result?.data.continuation) return;
-      result.data.continuation = null;
       result.data.incomplete = true;
       showResult(result.data, result.query, false, false, []);
     }
@@ -776,6 +800,9 @@
     });
     $('refresh').addEventListener('click', () => {
       if (result) search(result.query, { force: true });
+    });
+    $('resume').addEventListener('click', () => {
+      if (result?.data.continuation) search(result.query, { resume: true, focus: false });
     });
 
     /* Résultats, carnet et préparation de la prise de contact. */

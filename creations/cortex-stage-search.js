@@ -312,16 +312,19 @@
         <div class="cs-stage-pane-head">
           <div><h2 id="cs-stage-board-title" tabindex="-1">Mes lieux et mes réponses</h2><p>Pour chaque entreprise, choisis un statut et une date de relance. Ton carnet reste enregistré sur cet appareil.</p></div>
           <div class="cs-stage-board-actions">
-            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">+ Ajouter un lieu manuellement</button>
-            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-add-place">+ Ajouter un lieu</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter mon carnet</button>
           </div>
         </div>
-        <p class="cs-stage-board-filter-help">Clique sur un chiffre pour filtrer ta liste.</p>
+        <p class="cs-stage-board-filter-help">Un aperçu de tes candidatures. Pour agir sur un lieu, utilise son bouton principal.</p>
         <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
-        <div class="cs-stage-board-tools" id="cs-stage-board-tools" hidden>
-          <label>Retrouver un lieu<input type="search" id="cs-stage-board-query" placeholder="Nom ou adresse"></label>
-          <label>Afficher<select id="cs-stage-board-filter"><option value="all">Toutes mes démarches</option><option value="todo">À contacter</option><option value="due">À relancer</option><option value="progress">En cours</option><option value="waiting">En attente</option><option value="meeting">Entretien prévu</option><option value="accepted">Accord reçu</option><option value="declined">Refus</option></select></label>
-        </div>
+        <details class="cs-stage-board-tools cs-stage-board-tools-v2" id="cs-stage-board-tools" hidden>
+          <summary>⌕ Rechercher ou filtrer mes candidatures</summary>
+          <div class="cs-stage-board-tool-fields">
+            <label>Nom de la structure<input type="search" id="cs-stage-board-query" placeholder="Rechercher une entreprise"></label>
+            <label>État des candidatures<select id="cs-stage-board-filter"><option value="all">Toutes les candidatures</option><option value="todo">À contacter</option><option value="due">À relancer</option><option value="progress">En cours</option><option value="waiting">En attente</option><option value="meeting">Entretien prévu</option><option value="accepted">Accord reçu</option><option value="declined">Refus</option></select></label>
+          </div>
+        </details>
         <p class="cs-stage-board-notice" id="cs-stage-board-notice" role="status"></p>
         <div class="cs-stage-board-list" id="cs-stage-board-list"></div>
       </section>
@@ -432,6 +435,7 @@
     const legacy = settings.demo && !settings.storageScope ? read('cortex-stage-favoris:v1', []) : [];
     const legacyIds = new Set(Array.isArray(legacy) ? legacy : []);
     const board = new Map(Array.isArray(saved.board) ? saved.board.map(entry => [entry.place.id, entry]) : []);
+    const expandedBoard = new Set(); // Affichage seulement : les données restent dans board
     const preferences = saved.preferences || {};
     let sector = Object.hasOwn(GUIDE.programs, preferences.sector)
       ? preferences.sector : GUIDE.inferProgram(settings.filiere || settings.className);
@@ -1332,15 +1336,8 @@
       const stats = $('board-stats');
       stats.replaceChildren();
       for (const [number, label, state] of statistics) {
-        const metric = button('', 'cs-stage-board-metric', () => {
-          $('board-filter').value = state;
-          $('board-query').value = '';
-          renderBoard();
-          $('board-filter').focus({ preventScroll:true });
-        });
+        const metric = node('div', 'cs-stage-board-metric cs-stage-board-metric-v2');
         metric.dataset.metric = state;
-        metric.disabled = !entries.length;
-        metric.setAttribute('aria-pressed', String($('board-filter').value === state));
         metric.append(node('strong', '', String(number)), node('span', '', label));
         stats.append(metric);
       }
@@ -1384,27 +1381,94 @@
     function boardCard(entry, restore) {
       const { place } = entry;
       const due = needsFollowUp(entry);
-      const card = node('article', 'cs-stage-board-card');
+      const card = node('article', 'cs-stage-board-card cs-stage-board-card-v2');
       card.dataset.place = place.id;
       if (due) card.classList.add('is-due');
+
       const top = node('div', 'cs-stage-board-card-top');
-      const title = node('div');
+      const title = node('div', 'cs-stage-board-main');
+      const eyebrow = node('span','cs-stage-board-eyebrow','CORTEX / DOSSIER PFMP');
       const heading = node('h3', '', place.name);
       heading.tabIndex = -1;
-      title.append(heading,
-        node('p', '', place.address || 'Adresse à vérifier'),
-        node('p', '', place.phone || 'Téléphone non renseigné'));
+      title.append(eyebrow,heading,node('p','',place.address || 'Adresse à vérifier'));
       const stage = node('span', 'cs-stage-board-state', due ? 'À relancer' : STATES[entry.status]);
       stage.dataset.stageState = due ? 'due' : entry.status;
-      top.append(title, stage);
-      card.append(placeTags(place, entry), top);
+      top.append(title,stage);
+      card.append(top);
+
+      const actionInfo = {
+        todo: ['Ton prochain geste','Contacte cette structure, puis note la réponse.'],
+        waiting: ['Demande en cours','Si tu as une réponse, mets à jour son statut.'],
+        meeting: ['Entretien prévu','Prépare les questions et les missions à aborder.'],
+        accepted: ['Accord reçu','Fais valider le lieu et la convention avec ton lycée.'],
+        declined: ['Refus reçu','Tu peux chercher une autre structure.']
+      };
+      const [stepTitle,stepHint] = due
+        ? ['Relance à faire','La date prévue est passée : prépare un rappel poli.']
+        : actionInfo[entry.status] || ['À suivre','Mets à jour ce dossier.'];
+      const next = node('div','cs-stage-board-next');
+      next.append(node('span','',stepTitle),node('p','',stepHint));
+      if (validDate(entry.followUp) && canRelance(entry.status)) {
+        next.append(node('small','', 'Relance prévue le ' + formatDate(entry.followUp)));
+      }
+      card.append(next);
+
+      const controls = node('div','cs-stage-board-main-actions');
+      let primary;
+      const markContacted = () => {
+        entry.contactedAt = today();
+        entry.status = 'waiting';
+        if (!validDate(entry.followUp) || entry.followUp <= entry.contactedAt) {
+          const date = new Date();
+          for (let days = 0; days < 3;) {
+            date.setDate(date.getDate() + 1);
+            if (date.getDay() % 6) days++;
+          }
+          entry.followUp = date.toLocaleDateString('sv-SE');
+        }
+        if (['todo','due'].includes($('board-filter').value)) $('board-filter').value = 'all';
+        syncBoardCard(entry, 'date');
+        boardNotice('Contact enregistré. Prochaine relance prévue le ' + formatDate(entry.followUp) + '.');
+      };
+      if (due) {
+        primary = button('Préparer une relance →','cs-stage-primary',()=>setPanel('assistant',true,place.id,'followup'));
+      } else if (entry.status==='todo') {
+        primary = button('J’ai contacté cette structure →','cs-stage-primary',markContacted);
+      } else if (entry.status==='meeting') {
+        primary = button('Préparer mon entretien →','cs-stage-primary',()=>setPanel('assistant',true,place.id,'interview'));
+      } else if (entry.status==='accepted') {
+        primary = button('Préparer ma PFMP →','cs-stage-primary',()=>setPanel('prep',true,place.id));
+      } else if (entry.status==='declined') {
+        primary = button('Chercher un autre lieu →','cs-stage-primary',()=>setPanel('search'));
+      } else {
+        primary = button('Mettre à jour ma réponse →','cs-stage-primary',()=>{
+          details.open=true;
+          expandedBoard.add(place.id);
+          select.focus();
+        });
+      }
+      controls.append(primary);
+      card.append(controls);
+
+      const details = node('details','cs-stage-board-details');
+      details.open = expandedBoard.has(place.id) || restore?.id===place.id;
+      details.addEventListener('toggle',()=>{
+        if(details.open)expandedBoard.add(place.id);
+        else expandedBoard.delete(place.id);
+      });
+      details.append(node('summary','','Gérer le suivi · Options et informations'));
+      const content = node('div','cs-stage-board-detail-content');
+      const data = node('div','cs-stage-board-detail-information');
+      data.append(node('strong','','Informations du lieu'),
+        node('p','',place.phone || 'Téléphone non renseigné'));
+      data.append(linksFor(place));
       const evidence = evidenceFor(place);
-      if (evidence) card.append(evidence);
-      card.append(linksFor(place));
-      if (validDate(entry.contactedAt)) card.append(node('p', 'cs-stage-last-contact', 'Dernier contact le ' + formatDate(entry.contactedAt)));
+      if(evidence)data.append(evidence);
+      if(validDate(entry.contactedAt))data.append(node('p','cs-stage-last-contact','Dernier contact le '+formatDate(entry.contactedAt)));
+      content.append(data);
 
       const fields = node('div', 'cs-stage-board-fields');
-      const stateLabel = node('label', '', 'Statut');
+      const stateLabel = node('label', '', 'Réponse de la structure');
       const select = node('select');
       for (const [value, label] of Object.entries(STATES)) {
         const option = node('option', '', label);
@@ -1417,12 +1481,12 @@
       select.addEventListener('change', () => {
         entry.status = select.value;
         if (!canRelance(entry.status)) entry.followUp = '';
+        expandedBoard.add(place.id);
         syncBoardCard(entry, 'status');
       });
       if (restore?.id === place.id && restore.field === 'status') select.dataset.stageRestore = '';
-
       if (canRelance(entry.status)) {
-        const followUpLabel = node('label', '', 'Relancer le');
+        const followUpLabel = node('label', '', 'Date de relance');
         const followUp = node('input');
         followUp.type = 'date';
         followUp.value = entry.followUp || '';
@@ -1430,50 +1494,42 @@
         fields.append(followUpLabel);
         followUp.addEventListener('change', () => {
           entry.followUp = followUp.value;
+          expandedBoard.add(place.id);
           syncBoardCard(entry, 'date');
         });
         if (restore?.id === place.id && restore.field === 'date') followUp.dataset.stageRestore = '';
       }
-      card.append(fields);
-      const notes = node('details', 'cs-stage-board-notes');
-      const caption = node('summary', '', entry.notes ? 'Notes enregistrées' : 'Ajouter une note');
-      const label = node('label', '', 'Ma note de suivi'), draftNote = node('textarea');
+      content.append(fields);
+
+      const notes = node('div', 'cs-stage-board-notes');
+      const label = node('label', '', 'Mes notes personnelles');
+      const draftNote = node('textarea');
       draftNote.rows = 2;
       draftNote.maxLength = 600;
       draftNote.value = entry.notes || '';
       draftNote.placeholder = 'Ex. Rappeler lundi matin avec mon CV.';
       draftNote.addEventListener('input', () => {
         entry.notes = draftNote.value;
-        caption.textContent = entry.notes ? 'Notes enregistrées' : 'Ajouter une note';
-        if (!persist()) boardNotice('Le navigateur ne peut pas enregistrer cette note.');
+        if(!persist())boardNotice('Le navigateur ne peut pas enregistrer cette note.');
       });
       label.append(draftNote);
-      notes.append(caption, label);
-      card.append(notes);
+      notes.append(label);
+      content.append(notes);
+
       const actions = node('div', 'cs-stage-board-card-actions');
-      if (canRelance(entry.status)) {
-        actions.append(button('J’ai pris contact', 'cs-stage-primary', () => {
-          entry.contactedAt = today();
-          entry.status = 'waiting';
-          if (!validDate(entry.followUp) || entry.followUp <= entry.contactedAt) {
-            const next = new Date();
-            for (let days = 0; days < 3;) {
-              next.setDate(next.getDate() + 1);
-              if (next.getDay() % 6) days++;
-            }
-            entry.followUp = next.toLocaleDateString('sv-SE');
-          }
-          if (['todo','due'].includes($('board-filter').value)) $('board-filter').value = 'all';
-          syncBoardCard(entry, 'date');
-          boardNotice('Contact noté. Relance prévue le ' + formatDate(entry.followUp) + '.');
-        }));
-      }
-      actions.append(button('Préparer le contact', 'cs-stage-pale', () => openContact(entry)),
-        button('CV et lettre', 'cs-stage-pale', () => setPanel('cv', true, place.id)));
-      if (due || entry.status === 'meeting') actions.append(button(due ? 'Relancer avec Albert' : 'Préparer l’entretien',
-        'cs-stage-pale', () => setPanel('assistant', true, place.id, due ? 'followup' : 'interview')));
-      actions.append(button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
-      card.append(actions);
+      actions.append(
+        button('Préparer un appel ou un e-mail','cs-stage-pale',()=>openContact(entry)),
+        button('Modifier mon CV / ma lettre','cs-stage-pale',()=>setPanel('cv',true,place.id))
+      );
+      if(canRelance(entry.status) && entry.status!=='todo')actions.append(
+        button('Noter un contact effectué','cs-stage-pale',markContacted));
+      if(due || entry.status==='meeting')actions.append(
+        button(due?'Demander une relance à Albert':'Préparer l’entretien avec Albert','cs-stage-pale',
+          ()=>setPanel('assistant',true,place.id,due?'followup':'interview')));
+      actions.append(button('Retirer cette structure','cs-stage-text-button',()=>confirmRemoval(entry)));
+      content.append(actions);
+      details.append(content);
+      card.append(details);
       return card;
     }
 

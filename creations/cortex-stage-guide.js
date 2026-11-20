@@ -134,5 +134,56 @@
       .replace(/\bun stage\b/gi, 'une PFMP').replace(/\bstages?\b/gi, 'PFMP');
   }
 
-  window.CORTEX_STAGE_GUIDE = { programs, profiles, forSearch, forPlace, inferProgram, normalizePFMP };
+  // Extensions validées sur le serveur : mêmes catégories et même parcours que les 3 filières natives.
+  const customPrograms = Object.create(null);
+  function registerCustom(program) {
+    if(!program || !/^perso-[a-f0-9]{24}$/.test(program.id) ||
+       typeof program.name!=='string' || !Array.isArray(program.types) ||
+       program.types.length<4 || program.types.length>12 || !program.profile) return false;
+    const id = program.id;
+    const copy = value => String(value||'').replace(/[<>]/g,'').trim();
+    const items=[],seen=new Set();
+    for (const item of program.types) {
+      if(!item || typeof item.ref!=='string' ||
+         !/^(commerce-vente|accueil|gestion-administration|catalogue):[a-z0-9-]+$/.test(item.ref) ||
+         seen.has(item.ref) || !copy(item.label)) return false;
+      seen.add(item.ref);
+      items.push([item.ref,copy(item.label).slice(0,120),
+        copy(item.mission).slice(0,180)||'Découvrir les activités de ce lieu.']);
+    }
+    const blocks=(Array.isArray(program.profile.blocks)?program.profile.blocks:[])
+      .slice(0,5).filter(row=>Array.isArray(row)&&row.length>=2)
+      .map(row=>[copy(row[0]).slice(0,100),copy(row[1]).slice(0,260)])
+      .filter(row=>row[0]&&row[1]);
+    if(blocks.length<2)return false;
+    const data={
+      id,name:copy(program.name).slice(0,65),label:copy(program.label).slice(0,45),
+      short:copy(program.short).slice(0,12),detail:copy(program.detail).slice(0,100),
+      types:program.types.map(item=>({
+        ref:item.ref,label:copy(item.label).slice(0,120),
+        mission:copy(item.mission).slice(0,180)
+      })),
+      profile:{
+        title:copy(program.profile.title).slice(0,100),
+        lead:copy(program.profile.lead).slice(0,220),
+        contact:copy(program.profile.contact).slice(0,120),
+        question:copy(program.profile.question).slice(0,200),
+        goal:copy(program.profile.goal).slice(0,250),
+        blocks
+      }
+    };
+    customPrograms[id]=data;
+    programs[id]={short:data.short||'PFMP',label:data.label||data.name,name:data.name,
+      detail:data.detail||'Filière personnalisée'};
+    types[id]=items;
+    profiles[id]={
+      title:data.profile.title||data.name,lead:data.profile.lead,
+      source:'',blocks,
+      contact:data.profile.contact,question:data.profile.question,goal:data.profile.goal
+    };
+    return true;
+  }
+  const getCustom = id => customPrograms[id] || null;
+  window.CORTEX_STAGE_GUIDE = { programs, profiles, forSearch, forPlace, inferProgram, normalizePFMP,
+    registerCustom, getCustom };
 })();

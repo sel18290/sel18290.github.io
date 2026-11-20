@@ -38,7 +38,7 @@ function render(){
   const registrationOpen=!!record?.registration_open_until&&new Date(record.registration_open_until)>new Date();
   title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Tu n’as aucun PIN à distribuer.'));
   head.append(title);
-  if(registrationOpen||record)head.append(E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'PIN ouverts · 30 min':'Accès actif'));
+  if(registrationOpen||record)head.append(E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'Création de PIN ouverte':'Connexion possible · créations fermées'));
   card.append(head);
   const controls=E('div','cw-publish-row'),selector=E('select','cw-roster-size');
   selector.setAttribute('aria-label','Effectif pour la classe '+cl.code);
@@ -81,7 +81,9 @@ function render(){
    }else info.append(E('p','cw-pin-invite-tip','Pour afficher un nouveau lien temporaire, clique sur « Prolonger de 30 min ». Le précédent lien sera remplacé.'));
    card.append(info);
   }
-  const assigned=enrollments.filter(x=>x.class_id===cl.id&&!!x.activated_at);
+  const prepared=enrollments.filter(x=>x.class_id===cl.id);
+  const assigned=prepared.filter(x=>!!x.activated_at);
+  const waiting=prepared.filter(x=>!x.activated_at);
   const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2),
    whole=assigned.filter(x=>!x.demi_groupe);
   const stats=E('div','cw-group-stats');
@@ -90,6 +92,26 @@ function render(){
    E('span','cw-group-stat-two','Groupe 2 · '+group2.length));
   if(whole.length)stats.append(E('span','cw-group-stat-whole','Groupe non renseigné · '+whole.length));
   card.append(stats);
+  if(record?.portal_code){
+   // Un PIN provisoire prégénéré ne signifie pas que l'élève a créé son compte.
+   // L'inspection est réservée au professeur authentifié et ne montre jamais un PIN.
+   const check=E('div','cw-reset-row'),numberCheck=E('input');
+   numberCheck.type='number';numberCheck.min='1';numberCheck.max=String(record.roster_size);
+   numberCheck.placeholder='Vérifier un n° (ex. 5)';
+   numberCheck.setAttribute('aria-label','Vérifier si un numéro a créé son compte en '+cl.code);
+   const result=E('p','cw-group-help');result.setAttribute('role','status');result.setAttribute('aria-live','polite');
+   const checkNumber=()=>{
+    const n=Number(numberCheck.value);
+    if(!Number.isInteger(n)||n<1||n>record.roster_size){result.textContent='Saisis un numéro valide (1 à '+record.roster_size+').';return}
+    const entry=prepared.find(row=>row.student_number===n);
+    result.textContent=!entry?'N° '+n+' : accès à préparer.':entry.activated_at?
+     'N° '+n+' : compte déjà créé dans '+cl.code+'. L’élève doit se connecter avec son PIN. Sinon, utilise « Réinitialiser le PIN » après vérification de son identité.':
+     'N° '+n+' : compte NON créé dans '+cl.code+'. Ouvre les inscriptions 30 min, partage le lien temporaire et laisse l’élève choisir son PIN.';
+   };
+   numberCheck.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();checkNumber()}});
+   check.append(numberCheck,button('Vérifier le compte','cw-secondary',checkNumber));
+   card.append(E('p','cw-group-help',waiting.length+' numéro(s) préparé(s), sans compte personnel activé. Un numéro préparé n’est pas un compte déjà créé.'),check,result);
+  }
   if(assigned.length){
    const details=E('details','cw-group-roster'),summary=E('summary','','Voir les élèves inscrits par demi-groupe ('+assigned.length+')');
    details.dataset.classId=cl.id;

@@ -245,7 +245,8 @@ async function input(req){
 }
 async function teacherAction(action,body,form,req){
  const teacher=await userFromRequest(req);
- if(action==='teacher_pin_admin'||action==='teacher_pin_sessions'||action==='teacher_pin_action'){
+ if(action==='teacher_pin_admin'||action==='teacher_pin_sessions'||action==='teacher_pin_action'||
+   action==='teacher_pin_copies'||action==='teacher_pin_copy'){
   const classId=String(body.class_id||'');
   await classOwned(teacher,classId);
   const scope={p_teacher:teacher.id,p_class:classId};
@@ -256,10 +257,36 @@ async function teacherAction(action,body,form,req){
    if(sessions&&((number!==null&&(!Number.isInteger(number)||number<1||number>60))||
      !['active','all','expired'].includes(state)||!Number.isSafeInteger(offset)||offset<0||offset>2147483647))
     throw Error('Filtres de sessions invalides.');
-   const {data,error}=await admin.rpc(sessions?'cortex_class_pin_admin_sessions':'cortex_class_pin_admin_overview',
-    sessions?{...scope,p_student:number,p_state:state,p_offset:offset}:scope);
+   const [overview,copies]=await Promise.all([
+    admin.rpc(sessions?'cortex_class_pin_admin_sessions':'cortex_class_pin_admin_overview',
+     sessions?{...scope,p_student:number,p_state:state,p_offset:offset}:scope),
+    sessions?null:admin.rpc('cortex_class_pin_copies',scope)
+   ]);
+   const {data,error}=overview;
    if(error||!data)throw Error('Impossible de charger les accès de cette classe.');
-   return ret({ok:true,...data});
+   return ret(sessions?{ok:true,...data}:{ok:true,...data,copy_summaries:copies?.data??null});
+  }
+  if(action==='teacher_pin_copies'||action==='teacher_pin_copy'){
+   const number=Number(body.student_number);
+   if(!Number.isInteger(number)||number<1||number>60)throw Error('Numéro élève invalide.');
+   const detail=action==='teacher_pin_copy',examId=body.assessment_id;
+   if(detail&&!validUuid(examId))throw Error('Contrôle invalide.');
+   const {data,error}=await admin.rpc('cortex_class_pin_copies',{
+    ...scope,p_student:number,p_assessment:detail?examId:null
+   });
+   if(error||!Array.isArray(data))throw Error('Impossible de consulter les copies de ce numéro.');
+   if(!detail)return ret({ok:true,copies:data});
+   if(!data.length)throw Error('Aucune copie ou brouillon disponible pour ce contrôle.');
+   const {file_path,file_name,...copy}=data[0];
+   if(body.download_attachment===true){
+    if(!file_path)throw Error('Aucune pièce jointe disponible.');
+    const download=await signed(file_path,90);
+    if(!download)throw Error('Impossible de préparer le téléchargement du document.');
+    const url=new globalThis.URL(download);
+    url.searchParams.set('download',file_name||'');
+    return ret({ok:true,url:url.href,name:file_name});
+   }
+   return ret({ok:true,copy:{...copy,file_name}});
   }
   const number=Number(body.student_number),op=body.operation,sessionId=body.session_id||null;
   if(!Number.isInteger(number)||number<1||number>60||!['issue','release','unlock','disconnect'].includes(op)||

@@ -1,5 +1,6 @@
 /* Gestion des comptes et sessions de la classe sélectionnée. */
 import {api} from './coursework.js?v=2.13';
+import {downloadCopyPdf} from './class-copy-pdf.js?v=1.0';
 
 const $=id=>document.getElementById(id);
 const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
@@ -76,7 +77,7 @@ const toolbarActions=el('div','cpa-actions');
 toolbarActions.append(refreshButton,classButton);
 toolbar.append(labeled('Classe',classes),toolbarActions);
 const counts=el('div','cpa-stats');
-const figures=['Comptes actifs','Liens en attente','Sessions valides'].map(label=>{
+const figures=['Comptes actifs','Liens en attente','Connexions ouvertes'].map(label=>{
  const metric=el('div','cpa-stat');
  const value=el('strong','','—');
  metric.append(value,el('span','',label));
@@ -86,9 +87,11 @@ const figures=['Comptes actifs','Liens en attente','Sessions valides'].map(label
 const tabs=el('div','cpa-tabs');
 tabs.setAttribute('role','group');
 tabs.setAttribute('aria-label','Gestion des accès élèves');
-const accountsTab=button('Comptes et PIN','cpa-button',()=>chooseTab('accounts'));
+const accountsTab=button('Comptes et PIN','cpa-button',showAllAccounts);
 const sessionsTab=button('Sessions','cpa-button',()=>chooseTab('sessions'));
 tabs.append(accountsTab,sessionsTab);
+const sessionHelp=el('p','cpa-session-help',
+ 'Une connexion reste utilisable jusqu’à son expiration. Un élève peut en avoir plusieurs, par exemple via le portail et le QR d’un contrôle.');
 const filters=el('div','cpa-filters');
 const search=el('input');
 search.type='search';search.inputMode='numeric';search.maxLength=2;search.placeholder='Ex. 12';
@@ -96,16 +99,28 @@ const accountState=el('select');
 options(accountState,[['all','Tous'],['active','Actifs'],['waiting','PIN à créer'],['locked','Bloqués'],['free','Libres']]);
 const accountFilter=labeled('État du compte',accountState);
 const sessionState=el('select');
-options(sessionState,[['active','Valides'],['all','Toutes'],['expired','Expirées']]);
-const sessionFilter=labeled('État de la session',sessionState);
+options(sessionState,[['active','Ouvertes'],['all','Toutes'],['expired','Expirées']]);
+const sessionFilter=labeled('État de la connexion',sessionState);
 filters.append(labeled('Numéro sur la liste',search),accountFilter,sessionFilter);
+const allAccounts=button('← Tous les élèves','cpa-button cpa-back',showAllAccounts);
 const results=el('div','cpa-results');
 const pagination=el('div','cpa-actions cpa-pages');
 const prev=button('Page précédente','cpa-button',()=>movePage(-1));
 const next=button('Page suivante','cpa-button',()=>movePage(1));
 const pageLabel=el('span');
 pagination.append(prev,pageLabel,next);
-root.replaceChildren(toolbar,counts,tabs,filters,results,pagination);
+root.replaceChildren(toolbar,counts,tabs,sessionHelp,filters,allAccounts,results,pagination);
+
+function resetFilters(){
+ search.value='';
+ accountState.value='all';
+ sessionState.value='active';
+}
+function showAllAccounts(){
+ resetFilters();
+ chooseTab('accounts');
+ accountsTab.focus({preventScroll:true});
+}
 
 function activeClass(){return classList().find(cl=>cl.id===scope.id);}
 function syncClasses(){
@@ -118,7 +133,7 @@ function syncClasses(){
  }
  if(selected!==scope.id){
   scope={id:selected,page:0};
-  search.value='';
+  resetFilters();
  }
  classes.disabled=!selected;
  if(selected)classes.value=selected;
@@ -127,8 +142,12 @@ function accountRows(){
  const records=scope.overview?.accounts||[];
  const byNumber=new Map(records.map(row=>[row.student_number,row]));
  const important=records.filter(row=>row.activated_at||row.invitation_issued_at||row.active_sessions);
- const size=Math.max(scope.overview?.access?.roster_size||30,...important.map(row=>row.student_number));
- return Array.from({length:size},(_,i)=>byNumber.get(i+1)||{student_number:i+1});
+ const size=Math.max(scope.overview?.access?.roster_size||30,...important.map(row=>row.student_number),
+  ...(scope.copySummaries?.keys()||[]));
+ return Array.from({length:size},(_,i)=>{
+  const number=i+1;
+  return {student_number:number,...byNumber.get(number),copySummary:scope.copySummaries?.get(number)};
+ });
 }
 function activeLock(row){return Date.parse(row.locked_until)>Date.now();}
 function pendingInvite(row){return Date.parse(row.invitation_expires_at)>Date.now();}
@@ -144,6 +163,7 @@ function badge([label,type]){
  return el('span','cpa-badge'+(type?' cpa-'+type:''),label);
 }
 function studentLabel(n){return 'N° '+n;}
+const quantity=(n,singular,plural)=>n+' '+(n===1?singular:plural);
 function keyForSessions(){return [scope.id,numberValue(),sessionState.value,scope.page].join(':');}
 function chooseTab(value,student=null){
  tab=value;
@@ -161,6 +181,7 @@ function showSessions(number){
  activeDialog?.close();
  sessionState.value=accountRows().find(row=>row.student_number===number)?.active_sessions?'active':'all';
  chooseTab('sessions',number);
+ sessionsTab.focus();
 }
 function render(){
  const ready=!!scope.id;
@@ -173,6 +194,8 @@ function render(){
  refreshButton.disabled=!ready;
  classButton.disabled=!ready||!scope.overview;
  tabs.hidden=!ready;filters.hidden=!ready;counts.hidden=!ready;
+ allAccounts.hidden=!ready||(tab==='accounts'&&!search.value&&accountState.value==='all');
+ sessionHelp.hidden=!ready||tab!=='sessions';
  accountFilter.hidden=tab!=='accounts';
  sessionFilter.hidden=tab!=='sessions';
  accountsTab.setAttribute('aria-pressed',String(tab==='accounts'));
@@ -199,27 +222,28 @@ function render(){
   if(!sessionPage)view=scope.sessionError?'Impossible de charger les sessions. Utilise « Actualiser ».':'Chargement des sessions…';
   else{
    data=sessionPage.rows;
-   if(!data.length)view='Aucune session pour ces filtres.';
+   if(!data.length)view='Aucune connexion pour ces filtres.';
    pagination.hidden=!scope.page&&!sessionPage.hasMore;
    prev.disabled=!scope.page;
    next.disabled=!sessionPage.hasMore;
    pageLabel.textContent='Page '+(scope.page+1);
   }
  }
- const signature=JSON.stringify([scope.id,tab,view,data,data.map(row=>tab==='accounts'?accountStatus(row):row.active)]);
+ const signature=JSON.stringify([scope.id,tab,view,!!scope.copySummaries,data,
+  data.map(row=>tab==='accounts'?accountStatus(row):row.active)]);
  if(signature===lastRows)return;
  lastRows=signature;
  results.replaceChildren(view?el('p','cpa-empty',view):makeTable(data,tab));
 }
 
 function makeTable(data,kind){
- const table=el('table','cpa-table');
+ const table=el('table','cpa-table'+(kind==='accounts'?' cpa-account-table':''));
  table.setAttribute('aria-label',kind==='accounts'?'Comptes élèves de la classe':'Sessions élèves de la classe');
  table.setAttribute('role','table');
  const body=table.createTBody();
  const header=table.createTHead().insertRow();
- const labels=kind==='accounts'?['N°','Compte et PIN','Demi-groupe','Sessions','Actions']:
-  ['N°','Accès','Créée le','Expiration','Actions'];
+ const labels=kind==='accounts'?['N°','Compte et PIN','Demi-groupe','Connexions','Copies','Actions']:
+  ['N°','Accès','Ouverte le','Expiration','Actions'];
  for(const label of labels){
   const cell=el('th','',label);cell.scope='col';header.append(cell);
  }
@@ -231,16 +255,20 @@ function makeTable(data,kind){
    const cell=row.insertCell();cell.dataset.label=label;cell.setAttribute('role','cell');return cell;
   });
   if(kind==='accounts'){
-   const [account,group,sessions,actions]=cells;
+   const [account,group,sessions,copies,actions]=cells;
    account.append(badge(accountStatus(dataRow)));
    if(dataRow.activated_at)account.append(el('small','','PIN créé le '+when(dataRow.activated_at)));
    else if(dataRow.invitation_expires_at)account.append(el('small','',(pendingInvite(dataRow)?'Jusqu’au ':'Expiré le ')+when(dataRow.invitation_expires_at)));
    group.textContent=dataRow.demi_groupe?'Groupe '+dataRow.demi_groupe:'—';
-   if(dataRow.active_sessions||dataRow.last_session_at){
-    const validCount=Number(dataRow.active_sessions||0);
-    sessions.append(button(validCount+(validCount>1?' valides':' valide'),'cpa-inline',()=>showSessions(dataRow.student_number)));
-    if(dataRow.last_session_at)sessions.append(el('small','','Dernière ouverture le '+when(dataRow.last_session_at)));
-   }else sessions.textContent='Aucune';
+   const connections=Number(dataRow.active_sessions||0);
+   if(connections)sessions.append(button(quantity(connections,'connexion ouverte','connexions ouvertes'),
+    'cpa-inline',()=>showSessions(dataRow.student_number)));
+   else{
+    sessions.append(el('small','','Aucune connexion ouverte'));
+    if(dataRow.last_session_at)sessions.append(button('Voir l’historique','cpa-inline',()=>showSessions(dataRow.student_number)));
+   }
+   if(dataRow.last_session_at)sessions.append(el('small','','Dernière ouverture le '+when(dataRow.last_session_at)));
+   appendCopySummary(copies,dataRow);
    const manage=button('Gérer','cpa-button cpa-small',()=>showAccount(dataRow,manage));
    manage.setAttribute('aria-label','Gérer le n° '+dataRow.student_number);
    actions.append(manage);
@@ -248,7 +276,7 @@ function makeTable(data,kind){
    const [access,created,expiry,actions]=cells;
    access.append(el('strong','',dataRow.kind==='qr'?'QR du contrôle':'Portail de classe'));
    if(dataRow.exam_title)access.append(el('small','',dataRow.exam_title));
-   access.append(badge(dataRow.active?['Valide','ok']:['Expirée','']));
+   access.append(badge(dataRow.active?['Ouverte','ok']:['Expirée','']));
    created.textContent=sessionTime(dataRow.created_at);
    expiry.textContent=sessionTime(dataRow.expires_at);
    if(dataRow.active){
@@ -259,6 +287,135 @@ function makeTable(data,kind){
   }
  }
  return table;
+}
+
+function appendCopySummary(cell,row){
+ const summary=row.copySummary;
+ if(!scope.copySummaries)cell.append(el('small','','État des copies indisponible'));
+ else if(!summary){cell.append(el('small','','Aucune copie ni brouillon'));return;}
+ else{
+  if(summary.submitted)cell.append(el('strong','cpa-copy-count',quantity(summary.submitted,'copie remise','copies remises')));
+  if(summary.drafts)cell.append(el('strong','cpa-copy-count',quantity(summary.drafts,'brouillon sauvegardé','brouillons sauvegardés')));
+  if(summary.previous)cell.append(el('small','',quantity(summary.previous,'travail antérieur','travaux antérieurs')));
+ }
+ const link=button('Voir les copies','cpa-inline cpa-copy-link',event=>showCopies(row.student_number,event.currentTarget));
+ link.setAttribute('aria-label','Voir les copies du n° '+row.student_number);
+ cell.append(link);
+}
+
+function copyStatus(copy){return copy.kind==='draft'?'Brouillon sauvegardé':'Copie remise';}
+function copyDate(copy){
+ const label=copy.kind==='draft'?'Contrôle commencé le ':copy.auto_submitted?'Remise automatique le ':'Remise le ';
+ return label+when(copy.recorded_at);
+}
+function copyAnswers(copy){
+ const answers=copy.answers||{};
+ const questions=Array.isArray(copy.questions)?copy.questions.filter(q=>q?.id):[];
+ const known=new Set(questions.map(q=>q.id));
+ return [...questions,...Object.keys(answers).filter(id=>!known.has(id)).map(id=>({id}))].map((q,i)=>{
+  const value=Object.hasOwn(answers,q.id)?answers[q.id]:null;
+  const raw=typeof value==='string'?value:value==null?'':JSON.stringify(value);
+  const display=raw.trim()?window.CORTEX_QUESTION_TYPES?.summary(q,raw):'';
+  const answer=(display&&display!=='Sans réponse'?display:raw.trim()?raw:'Sans réponse');
+  return {prompt:(i+1)+'. '+(q.prompt||q.id),answer};
+ });
+}
+function copyHeading(copy){
+ const heading=el('div','cpa-copy-heading');
+ const state=badge([copyStatus(copy),copy.kind==='draft'?'wait':'ok']);
+ heading.append(el('h4','',copy.title),state,el('p','cpa-copy-date',copyDate(copy)));
+ return heading;
+}
+function showCopies(number,trigger){
+ const cl=activeClass(),teacher=bridge()?.teacher?.();
+ if(!cl||!teacher)return;
+ const panel=openDialog('Copies · '+cl.code+' · '+studentLabel(number),trigger);
+ panel.dialog.classList.add('cpa-copy-dialog');
+ const params={class_id:cl.id,student_number:number};
+ let view=0;
+ const current=request=>view===request&&panel.dialog.open&&bridge()?.teacher?.()===teacher&&scope.id===cl.id;
+
+ async function showList(){
+  const request=++view;
+  panel.body.replaceChildren();
+  panel.status('Recherche des copies…');
+  try{
+   const {copies}=await api('teacher_pin_copies',params,null,true);
+   if(!current(request))return;
+   panel.status('');
+   if(!copies.length){panel.body.append(el('p','','Aucune copie remise ni brouillon sauvegardé pour ce numéro.'));return;}
+   const list=el('div','cpa-copy-list');
+   let previous=false;
+   for(const copy of copies){
+    if(copy.previous_assignment&&!previous){
+     list.append(el('h4','cpa-copy-history','Anciennes attributions du numéro'));
+     previous=true;
+    }
+    const card=el('article','cpa-copy-item');
+    const open=button(copy.kind==='draft'?'Ouvrir le brouillon':'Ouvrir la copie','cpa-button cpa-primary',()=>{void showCopy(copy);});
+    card.append(copyHeading(copy),open);
+    list.append(card);
+   }
+   panel.body.append(list);
+   list.querySelector('button')?.focus({preventScroll:true});
+  }catch(error){
+   if(!current(request))return;
+   panel.status(error.message,true);
+   panel.body.append(button('Réessayer','cpa-button',()=>{void showList();}));
+  }
+ }
+
+ async function showCopy(item){
+  const request=++view;
+  const back=button('← Retour aux copies','cpa-button cpa-back',()=>{void showList();});
+  panel.body.replaceChildren(back);
+  back.focus();
+  panel.status('Ouverture…');
+  const selection={...params,assessment_id:item.assessment_id};
+  try{
+   const {copy}=await api('teacher_pin_copy',selection,null,true);
+   if(!current(request))return;
+   panel.status('');
+   const heading=copyHeading(copy),answers=copyAnswers(copy),actions=el('div','cpa-actions');
+   if(copy.previous_assignment)heading.append(badge(['Ancienne attribution du numéro','warn']));
+   const pdf=button('Télécharger le PDF','cpa-button cpa-primary',()=>{
+    try{
+     downloadCopyPdf({classCode:cl.code,number,title:copy.title,status:copyStatus(copy),date:copyDate(copy),
+      draft:copy.kind==='draft',previous:copy.previous_assignment,attachment:copy.file_name,answers});
+     panel.status('');
+    }catch{panel.status('Impossible de générer le PDF.',true);}
+   });
+   actions.append(pdf);
+   if(copy.has_attachment){
+    const attachment=button('Télécharger la pièce jointe','cpa-button',async()=>{
+     attachment.disabled=true;
+     try{
+      const {url}=await api('teacher_pin_copy',{...selection,download_attachment:true},null,true);
+      if(!current(request))return;
+      const link=el('a');
+      link.href=url;
+      link.referrerPolicy='no-referrer';
+      panel.body.append(link);
+      link.click();
+      link.remove();
+      panel.status('');
+     }catch(error){if(current(request))panel.status(error.message,true);}
+     finally{attachment.disabled=false;}
+    });
+    actions.append(attachment);
+    if(copy.file_name)heading.append(el('small','cpa-copy-date',copy.file_name));
+   }
+   const responses=el('div','cpa-copy-responses');
+   for(const {prompt,answer} of answers){
+    const entry=el('section','cpa-copy-answer');
+    entry.append(el('h5','',prompt),el('p','',answer));
+    responses.append(entry);
+   }
+   if(!answers.length)responses.append(el('p','','Aucune réponse saisie dans le contrôle.'));
+   panel.body.append(heading,actions,responses);
+  }catch(error){if(current(request))panel.status(error.message,true);}
+ }
+ void showList();
 }
 
 function publishSummaries(){
@@ -276,6 +433,7 @@ async function loadAccounts(){
  current.accountRequest=api('teacher_pin_admin',{class_id:current.id},null,true).then(data=>{
   if(current!==scope||bridge()?.teacher?.()!==teacher)return;
   current.overview=data;current.overviewError=false;
+  current.copySummaries=Array.isArray(data.copy_summaries)?new Map(data.copy_summaries.map(row=>[row.student_number,row])):null;
   summarize(current.id,data.accounts||[]);
   publishSummaries();
   render();
@@ -315,7 +473,7 @@ function selectClass(id){
  if(!classList().some(cl=>cl.id===id)||scope.id===id)return;
  scope={id,page:0};
  classes.value=id;
- search.value='';
+ resetFilters();
  notice('');
  render();
  void refresh();
@@ -428,7 +586,8 @@ function showAccount(row,trigger){
   else void issue();
  }));
  if(activeLock(row))actions.append(button('Débloquer le numéro','cpa-button',()=>accountAction(dialog,cl.id,row,'unlock')));
- if(row.active_sessions||row.last_session_at)actions.append(button('Voir les sessions','cpa-button',()=>showSessions(row.student_number)));
+ if(row.active_sessions||row.last_session_at)actions.append(button('Voir les connexions','cpa-button',()=>showSessions(row.student_number)));
+ if(row.copySummary||!scope.copySummaries)actions.append(button('Voir les copies','cpa-button',()=>showCopies(row.student_number,trigger)));
  if(row.active_sessions)actions.append(button('Fermer toutes ses sessions','cpa-button',()=>confirmAction(dialog,
   'Ce numéro devra se reconnecter avec son PIN.','Fermer les sessions',()=>accountAction(dialog,cl.id,row,'disconnect'))));
  if(row.activated_at||row.invitation_issued_at)actions.append(button(row.activated_at?'Supprimer le compte':'Libérer le numéro','cpa-button cpa-danger',()=>confirmAction(dialog,
@@ -497,7 +656,7 @@ window.addEventListener('cortex:academy-live-snapshot',event=>{
 });
 window.addEventListener('cortex:academy-logout',()=>{
  activeDialog?.close();classLinks.clear();individualLinks.clear();summaries.clear();
- scope={id:''};tab='accounts';classSignature='';lastRows='';search.value='';
+ scope={id:''};tab='accounts';classSignature='';lastRows='';resetFilters();
  classes.replaceChildren();notice('');render();
 });
 document.addEventListener('visibilitychange',()=>{if(!activeDialog)void refresh();});

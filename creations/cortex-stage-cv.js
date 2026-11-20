@@ -1,4 +1,4 @@
-/* Atelier CV et lettre : brouillons séparés par entreprise, dans le carnet de l’élève. */
+/* Atelier CV et lettre : données conservées sans gestion visible de versions intermédiaires. */
 (function () {
   'use strict';
   const { normalizePFMP } = window.CORTEX_STAGE_GUIDE;
@@ -123,19 +123,11 @@
         step = 2;
       }
       const entry = entries.find(item => item.place.id === selected) || api.general();
-      const allDrafts = draftFor(entry);
+      const allDrafts = draftFor(entry); // Compatibilité des réponses déjà enregistrées
       const draft = allDrafts[kind];
       const shell = element('div','cs-stage-cv-shell');
       shell.dataset.document = kind;
       shell.dataset.phase = String(step);
-
-      const masthead = element('div','cs-stage-cv-masthead');
-      const mastheadText = element('div','cs-stage-cv-masthead-copy');
-      mastheadText.append(
-        badge('cs-stage-cv-eyebrow','ATELIER DE CANDIDATURE'),
-        element('p','', 'Rédige à ton rythme. Tes brouillons sont conservés sur cet appareil.')
-      );
-      masthead.append(mastheadText);
 
       const chooser = element('section','cs-stage-cv-chooser');
       chooser.append(element('h4','cs-stage-cv-minititle','Choisis ton document'));
@@ -163,43 +155,16 @@
       }
       chooser.append(choices);
 
-      const target = element('section','cs-stage-cv-target');
-      const targetLabel = element('label','cs-stage-cv-target-label');
-      targetLabel.append(element('strong','', 'Pour quelle structure ?'),
-        element('small','', 'Tu peux choisir une entreprise plus tard.'));
-      const select = element('select','cs-stage-cv-company-select');
-      select.setAttribute('aria-label','Choisir une structure pour ma candidature');
-      select.replaceChildren(new Option('Brouillon général — pas encore de structure',''),
-        ...entries.map(item=>new Option(item.place.name,item.place.id)));
-      select.value = selected;
-      select.addEventListener('change',()=>{
-        selected = select.value;
-        step = 2;
-        render();
-        scrollToWork();
-      });
-      targetLabel.append(select);
-      const targetNote = element('div','cs-stage-cv-target-note');
-      targetNote.append(badge('cs-stage-cv-target-icon','✧'),
-        element('p','',entry.place.name
-          ? 'Brouillon enregistré pour « '+entry.place.name+' ».'
-          : 'Brouillon général, à personnaliser ensuite.'));
-      target.append(targetLabel,targetNote);
-
-      const stages = element('nav','cs-stage-cv-phases');
-      stages.setAttribute('aria-label','Progression de la candidature');
-      for (const [id,label] of [[1,'Choisir'],[2,'Rédiger'],[3,'Relire et exporter']]) {
-        const item = element('span','cs-stage-cv-phase');
-        if(id===1)item.classList.add('is-done');
-        if(id===step)item.classList.add('is-current');
-        if(step>id)item.classList.add('is-done');
-        item.append(badge('cs-stage-cv-phase-number',String(id)),badge('cs-stage-cv-phase-label',label));
-        stages.append(item);
-      }
+      // Aucun sélecteur de version : la structure éventuelle est transmise
+      // directement depuis « Mes démarches », sans étape supplémentaire.
+      const recipient = kind === 'lettre' && entry.place.name
+        ? element('p','cs-stage-cv-recipient','Lettre destinée à : ' + entry.place.name) : null;
 
       const folio = element('div','cs-stage-cv-work');
       if (step===2) folio.classList.add('is-editing');
-      shell.append(masthead,chooser,target,stages,folio);
+      shell.append(chooser);
+      if(recipient) shell.append(recipient);
+      shell.append(folio);
       host.replaceChildren(shell);
 
       if (step===3) {
@@ -223,13 +188,7 @@
         const notice=element('p','cs-stage-cv-notice');
         notice.setAttribute('role','status');
         actions.append(
-          button('← Modifier mon brouillon','cs-stage-cv-secondary',()=>{step=2;render();scrollToWork();}),
-          button('Recréer depuis mes réponses','cs-stage-cv-secondary',()=>{
-            delete draft.final;
-            area.value=baseText;
-            api.save();
-            notice.textContent='Le document est reconstruit à partir de tes réponses.';
-          }),
+          button('← Modifier mes réponses','cs-stage-cv-secondary',()=>{step=2;render();scrollToWork();}),
           button('Copier le texte','cs-stage-cv-secondary',async()=>{
             try{await navigator.clipboard.writeText(area.value);notice.textContent='Document copié.';}
             catch{area.focus();area.select();notice.textContent='Texte sélectionné : utilise la commande Copier.';}
@@ -340,7 +299,7 @@
       const footer=element('div','cs-stage-cv-editor-footer');
       const footerText=element('div','');
       footerText.append(element('strong','','Tes réponses sont conservées sur cet appareil.'),
-        element('small','','Une seule rubrique suffit pour voir un premier brouillon ; complète les autres pour un meilleur résultat.'));
+        element('small','','Complète les rubriques, puis relis ton document avant de le partager.'));
       finalize=button('Relire et finaliser mon '+(kind==='cv'?'CV':'courrier')+' →','cs-stage-cv-export-main',()=>{
         step=3;render();scrollToWork();
       });
@@ -410,7 +369,7 @@
             }));
           suggestion.hidden=false;
         }catch(error){
-          if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Ton brouillon reste accessible.';
+          if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Tes réponses restent accessibles.';
         }finally{if(request===own)ask.disabled=false;}
       });
       box.append(selectLabel,ask,feedback,suggestion);

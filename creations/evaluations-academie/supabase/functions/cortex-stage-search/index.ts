@@ -188,8 +188,18 @@ async function registry(loc,radius,sector,chosen,page,branches){
   activite_principale:codes.join(","),etat_administratif:"A",per_page:"25",page:String(page),
   limite_matching_etablissements:"100",page_etablissements:String(branches),minimal:"true",include:"matching_etablissements,siege"
  }).toString();
- const response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},9000);
- if(!response.ok)throw Error("HTTP "+response.status);
+ let response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},9000);
+ for(let attempt=0;attempt<2&&(response.status===429||response.status>=500);attempt++){
+  const retryAfter=Number(response.headers.get("retry-after"));
+  await response.body?.cancel();
+  await new Promise(resolve=>setTimeout(resolve,Math.min(5000,Math.max((attempt+1)*800,retryAfter*1000||0))));
+  response=await timed(url.toString(),{headers:DIRECTORY_HEADERS},9000);
+ }
+ if(!response.ok){
+  const info=await response.json().catch(()=>null);
+  console.warn("CORTEX stages · Annuaire",page,branches,response.status,clean(info?.message||info?.detail||"",180));
+  throw Error("L’Annuaire des entreprises est temporairement indisponible.");
+ }
  const payload=await response.json();
  if(!Array.isArray(payload.results))throw Error("Réponse invalide");
  const results=new Map();

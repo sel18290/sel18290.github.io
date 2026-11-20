@@ -35,7 +35,7 @@ async function compressImage(file){
   }
   const w=bitmap?.width||img?.naturalWidth||0,h=bitmap?.height||img?.naturalHeight||0;
   if(!w||!h)throw Error('Image illisible. Essaie une photo JPG.');
-  const scale=Math.min(1,1800/Math.max(w,h));
+  const scale=Math.min(1,1600/Math.max(w,h));
   const width=Math.max(1,Math.round(w*scale)),height=Math.max(1,Math.round(h*scale));
   const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Traitement image indisponible.');
@@ -153,13 +153,15 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
    const pdf=await createPdf(snapshot,questions);
    if(pdf.size>MAX_PDF)throw Error('Les photos dépassent 8 Mo après compression. Retire certaines images.');
    if(closed||requested!==version)return;
-   const name='CORTEX_Manuscrit_'+questions.length+'Q_'+snapshot.length+'photos.pdf';
+   const qs=[...new Set(snapshot.map(p=>questions.findIndex(q=>q.id===p.questionId)+1))].sort((a,b)=>a-b);
+   const name='CORTEX_Manuscrit_Q'+qs.join('-')+'_'+snapshot.length+'photos.pdf';
    onAttach?.(new File([pdf],name,{type:'application/pdf'}));
    onStatus?.(snapshot.length+' photo(s) manuscrite(s) préparée(s) pour la sauvegarde sur le serveur.');
   }).catch(error=>onStatus?.('PDF manuscrit non préparé : '+String(error.message||error),true));
   return changing;
  }
  async function addPhoto(questionId,file){
+  await ready;
   if(closed)return;
   if(!canAdd?.())throw Error('Une autre pièce jointe est présente : retire-la avant de photographier tes réponses.');
   if(count()>=MAX_PHOTOS)throw Error('Limite de '+MAX_PHOTOS+' photos par contrôle atteinte.');

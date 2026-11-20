@@ -18,8 +18,8 @@ async function store(key,method,record){
  try{return await new Promise((resolve,reject)=>{
   const tx=db.transaction('drafts',method==='get'?'readonly':'readwrite');
   const rq=tx.objectStore('drafts')[method](method==='get'||method==='delete'?key:record);
-  rq.onsuccess=()=>resolve(rq.result);
-  rq.onerror=()=>reject(rq.error);
+  tx.oncomplete=()=>resolve(rq.result);
+  tx.onabort=tx.onerror=()=>reject(tx.error||rq.error);
  })}finally{db.close()}
 }
 async function compressImage(file){
@@ -86,8 +86,21 @@ async function createPdf(items,questions){
  add('trailer\n<< /Size '+(total+1)+' /Root 1 0 R >>\nstartxref\n'+at+'\n%%EOF\n');
  return new Blob(chunks,{type:'application/pdf'});
 }
-export function createHandwritingManager({form,questions,key,onAttach,onRemove,onStatus,canAdd,onCameraOpen,onCameraClose}){
+export async function downloadHandwriting(key,questions,questionId){
+ const row=await store(key,'get',key);
+ const items=(row?.photos||[]).filter(item=>item.blob instanceof Blob&&
+  (!questionId||item.questionId===questionId)&&questions.some(q=>q.id===item.questionId));
+ if(!items.length)throw Error('Aucune photo manuscrite à ouvrir.');
+ const pdf=await createPdf(items,questions);
+ const url=URL.createObjectURL(pdf),link=el('a');
+ link.href=url;
+ link.download=questionId?'CORTEX_Manuscrit_Q'+(questions.findIndex(q=>q.id===questionId)+1)+'.pdf':'CORTEX_Manuscrit.pdf';
+ document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+export function createHandwritingManager({form,questions,key,onAttach,onRemove,onStatus,onChange,canAdd,onCameraOpen,onCameraClose,restoreAttachment=false}){
  let photos=[],closed=false,changing=Promise.resolve(),version=0,preparedVersion=0;
+ let edits=Promise.resolve(),editing=0;
  let observer=null;const urls=new Set();let cameraOpen=false;
  const count=()=>photos.length;
  const cleanUrls=()=>{for(const url of urls)URL.revokeObjectURL(url);urls.clear()};
@@ -98,9 +111,8 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
  function render(){
   cleanUrls();
   for(const [i,q] of questions.entries()){
-   const card=form.querySelector('#cw-student-question-'+(i+1))||
-    form.querySelectorAll('.cw-answer-question')[i];
-   if(!card)continue;
+   const card=form.querySelector('#cw-student-question-'+(i+1));
+   if(!card||card.hidden)continue;
    let panel=card.querySelector('.cw-handwriting');
    if(!panel){
     panel=el('section','cw-handwriting');
@@ -118,12 +130,13 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
     if(capture)input.setAttribute('capture','environment');
     input.setAttribute('aria-label',label+' pour la question '+(i+1));
     input.addEventListener('click',suspend);
+    input.addEventListener('cancel',resume);
     input.addEventListener('change',async()=>{
      resume();
      const file=input.files?.[0];input.value='';
      if(!file)return;
      onStatus?.('Traitement de ta photo manuscrite…');
-     try{await addPhoto(q.id,file)}catch(error){onStatus?.(String(error.message||error),true)}
+     edit(()=>addPhoto(q.id,file));
     });
     wrapper.append(input);return wrapper;
    }
@@ -135,7 +148,7 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
     const src=URL.createObjectURL(it.blob);urls.add(src);img.src=src;img.alt='Photo de réponse manuscrite pour la question '+(i+1);
     const remove=el('button','cw-handwriting-remove','Retirer ✕');remove.type='button';
     remove.setAttribute('aria-label','Retirer cette photo manuscrite');
-    remove.addEventListener('click',()=>{void removePhoto(it)});
+    remove.addEventListener('click',()=>edit(()=>removePhoto(it)));
     figure.append(img,remove);list.append(figure);
    }
    const status=el('small','cw-handwriting-count',own.length?own.length+' photo(s) pour cette question':'Aucune photo ajoutée');
@@ -144,13 +157,19 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
  }
  async function persist(){
   try{await store(key,'put',{id:key,updated:Date.now(),photos})}
-  catch{onStatus?.('Le navigateur ne conserve pas les photos hors de cette page. Vérifie la sauvegarde serveur avant de quitter.',true)}
+  catch{onStatus?.('Le navigateur ne peut pas conserver cette photo.',true);return false}
+  return true;
+ }
+ function edit(operation){
+  editing++;
+  edits=edits.then(operation).catch(error=>onStatus?.(String(error.message||error),true)).finally(()=>{editing--});
  }
  function updatePdf(){
   const requested=++version, snapshot=photos.slice();
   changing=changing.catch(()=>{}).then(async()=>{
    if(closed||requested!==version)return;
    if(!snapshot.length){onRemove?.();preparedVersion=requested;return}
+   if(!onAttach){preparedVersion=requested;return}
    const pdf=await createPdf(snapshot,questions);
    if(pdf.size>MAX_PDF)throw Error('Les photos dépassent 8 Mo après compression. Retire certaines images.');
    if(closed||requested!==version)return;
@@ -165,17 +184,26 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
  async function addPhoto(questionId,file){
   await ready;
   if(closed)return;
-  if(!canAdd?.())throw Error('Une autre pièce jointe est présente : retire-la avant de photographier tes réponses.');
-  if(count()>=MAX_PHOTOS)throw Error('Limite de '+MAX_PHOTOS+' photos par contrôle atteinte.');
+  if(canAdd&&!canAdd())throw Error('Une autre pièce jointe est présente : retire-la avant de photographier tes réponses.');
+  const totalLimit=Math.max(MAX_PHOTOS,questions.length);
+  if(count()>=totalLimit)throw Error('Limite de '+totalLimit+' photos par contrôle atteinte.');
   if(photos.filter(p=>p.questionId===questionId).length>=MAX_PER_QUESTION)
    throw Error('Quatre photos maximum par question.');
   const item=await compressImage(file);
-  photos.push({...item,questionId,id:'photo-'+Date.now()+'-'+Math.random().toString(36).slice(2)});
-  await persist();render();await updatePdf();
+  if(closed)return;
+  const previous=photos;
+  photos=[...photos,{...item,questionId,id:'photo-'+Date.now()+'-'+Math.random().toString(36).slice(2)}];
+  if(!await persist()&&!onAttach){photos=previous;return}
+  if(closed)return;
+  render();onChange?.(photos.map(photo=>photo.questionId));await updatePdf();
  }
  async function removePhoto(item){
+  if(closed)return;
+  const previous=photos;
   photos=photos.filter(p=>p.id!==item.id);
-  await persist();render();await updatePdf();
+  if(!await persist()&&!onAttach){photos=previous;return}
+  if(closed)return;
+  render();onChange?.(photos.map(photo=>photo.questionId));await updatePdf();
  }
  const record=awaitPromise(store(key,'get',key));
  function awaitPromise(promise){return promise.catch(()=>null)}
@@ -183,18 +211,20 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
   if(closed)return;
   photos=Array.isArray(row?.photos)?row.photos.filter(p=>questions.some(q=>q.id===p.questionId)&&p.blob instanceof Blob):[];
   render();
+  if(photos.length)onChange?.(photos.map(photo=>photo.questionId));
+  if(restoreAttachment&&photos.length)void updatePdf();
  });
  observer=new MutationObserver(()=>{if(!closed){
   const cards=form.querySelectorAll('.cw-answer-question');
-  for(const card of cards)if(!card.querySelector('.cw-handwriting')){render();break}
+  for(const card of cards)if(!card.hidden&&!card.querySelector('.cw-handwriting')){render();break}
  }});
  observer.observe(form,{childList:true,subtree:true});
  render();
  return {
   ready,
   count,
-  get busy(){return cameraOpen},
-  async flush(){await ready;await changing;if(version!==preparedVersion)throw Error('Le PDF des photos n’est pas prêt. Retire une image ou réessaie avant la remise.')},
+  get busy(){return cameraOpen||editing>0},
+  async flush(){await ready;await edits;await changing;if(version!==preparedVersion)throw Error('Le PDF des photos n’est pas prêt. Retire une image ou réessaie avant la remise.')},
   async forget(){try{await store(key,'delete')}catch{}},
   dispose(){closed=true;observer?.disconnect();window.removeEventListener('focus',onFocus);cleanUrls();resume()}
  };

@@ -1,0 +1,66 @@
+/* Palette commune aux portails et tableaux de bord élèves. */
+body.cortex-noctis :is(.portal-root, #cw-student-portal) {
+  --student-surface: #102336;
+  --student-surface-raised: #162e42;
+  --student-border: #3d6074;
+  --student-accent: #a3eadd;
+  --student-text: #eff8fc;
+  --student-muted: #bed2df;
+}
+
+body.cortex-noctis :is(.portal-login, #cw-student-portal .cw-student-frame) {
+  border-color: var(--student-border);
+  background: var(--student-surface);
+  box-shadow: 0 18px 48px #040c1a69;
+}
+
+body.cortex-noctis :is(.portal-login-visual, .portal-welcome, #cw-student-portal .cw-student-hero, #cw-student-portal .cw-student-dashboard-head) {
+  border-color: var(--student-border);
+  background: linear-gradient(95deg, #081b2bef 25%, #10273ccf 60%, #10273c70),
+    url('./cortex-noctis-corridor.svg') center / cover no-repeat, #122b40;
+  color: var(--student-text);
+}
+
+body.cortex-noctis :is(.portal-login-visual, .portal-welcome, .cw-student-hero, .cw-student-dashboard-head) :is(h1, h2) {
+  color: var(--student-text);
+  text-wrap: balance;
+}
+
+body.cortex-noctis :is(.portal-login-visual, .portal-welcome, .cw-student-hero, .cw-student-dashboard-head) :is(p, small) {
+  color: var(--student-muted);
+}
+
+body.cortex-noctis :is(.portal-login-visual, .portal-welcome) em { color: var(--student-accent); }
+body.cortex-noctis .portal-login .portal-illustration { align-self: center; opacity: .75; }
+body.cortex-noctis .portal-login .portal-demo-gateway { padding: clamp(14px, 2.5vw, 24px); }
+body.cortex-noctis .portal-login .portal-demo-gateway h2 { font-size: clamp(22px, 3vw, 36px); }
+body.cortex-noctis .portal-login .portal-demo-gateway p { max-width: 42ch; }
+
+body.cortex-noctis .portal-dashboard .portal-toolbar { padding: .75rem .9rem; border: 1px solid var(--student-border); border-radius: 14px; background: var(--student-surface); }
+body.cortex-noctis .portal-dashboard .portal-main { display: flex; flex-direction: column; gap: clamp(.85rem, 1.7vw, 1.25rem); padding-top: 1rem; }
+body.cortex-noctis .portal-dashboard .portal-main > * { margin-block: 0; }
+body.cortex-noctis .portal-dashboard .portal-welcome { min-height: 0; padding: clamp(1rem, 3vw, 2.35rem); }
+body.cortex-noctis .portal-dashboard .portal-welcome-art { min-height: 0; }
+body.cortex-noctis :is(.portal-dashboard .portal-section, .portal-dashboard .portal-stat, #cw-student-portal .cw-pin-entry, #cw-student-portal .cw-student-assessment) {
+  background: var(--student-surface);
+  color: var(--student-text);
+  border: 1px solid var(--student-border);
+  border-radius: 16px;
+}
+body.cortex-noctis .portal-dashboard :is(.portal-result, .portal-revision) { background: var(--student-surface-raised); border-color: var(--student-border); }
+body.cortex-noctis .portal-dashboard .portal-section-head h2 { font-size: clamp(1.25rem, 3vw, 1.85rem); }
+body.cortex-noctis #cw-student-portal.is-identified .cw-student-hero { display: none; }
+body.cortex-noctis #cw-student-portal .cw-student-dashboard-head { padding: clamp(1rem, 3vw, 2rem); border-radius: 16px; }
+body.cortex-noctis #cw-student-portal .cw-student-dashboard-head h2 { font-size: clamp(1.85rem, 4vw, 3rem); }
+body.cortex-noctis #cw-student-portal .cw-student-stats { display: flex; flex-wrap: wrap; gap: .6rem; }
+body.cortex-noctis #cw-student-portal .cw-student-stats span { background: var(--student-surface-raised); border: 1px solid var(--student-border); color: var(--student-text); border-radius: 10px; padding: .6rem .75rem; }
+
+.exam-question > .cw-answer-question { padding: 0; margin: 0; border: 0; background: transparent; }
+.cw-handwriting-hint[role="status"]:empty { display: none; }
+.cw-handwriting-hint.is-error { color: #ffcad4; }
+
+@media (max-width: 760px) {
+  body.cortex-noctis .portal-dashboard .portal-welcome { grid-template-columns: minmax(0, 1fr); }
+  body.cortex-noctis .portal-dashboard .portal-welcome-art { display: none; }
+  body.cortex-noctis .portal-dashboard .portal-toolbar { align-items: flex-start; flex-wrap: wrap; }
+}

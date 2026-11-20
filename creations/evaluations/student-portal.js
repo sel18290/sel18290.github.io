@@ -93,9 +93,9 @@ window.CORTEX_PORTAL=(function(){
   const levels=[['3e','Troisième'],['seconde','Seconde'],['première','Première'],['terminale','Terminale'],['autre','Autre']];
   return '<div class="portal-root portal-login"><section class="portal-login-visual">'+
    '<div class="portal-symbol" aria-hidden="true">C<span>·</span></div><p class="portal-kicker">STATION NOCTIS / MON CORTEX</p>'+
-   '<h1>Ta progression.<br><em>Ton univers.</em></h1><p>Retrouve tes contrôles corrigés, comprends tes erreurs et observe tes progrès au fil des semaines.</p>'+
+   '<h1>Ton espace<br><em>élève.</em></h1><p>Passe un contrôle, consulte tes copies et suis ta progression.</p>'+
    '<div class="portal-illustration" aria-hidden="true"><div class="portal-illustration-glow"></div><div class="portal-planet">20<span>points</span></div><div class="portal-small-orbit">✦</div></div>'+
-   '<div class="portal-visual-foot">Une note ne résume pas ce que tu sais. Chaque correction est une occasion d’avancer.</div></section>'+
+   '</section>'+
    '<section class="portal-login-form">'+
    '<div class="portal-demo-gateway" aria-label="Découvrir le carnet élève fictif de CORTEX">'+
    '<div class="portal-demo-gateway-top"><span class="portal-demo-status"><span class="portal-demo-status-dot" aria-hidden="true"></span> MODE DÉMONSTRATION</span><span class="portal-demo-noctis">NOCTIS / MON CORTEX</span></div>'+
@@ -211,25 +211,21 @@ window.CORTEX_PORTAL=(function(){
    '<header class="portal-toolbar"><div class="portal-brand"><div class="portal-mark">C</div><div><strong>MON CORTEX</strong><span>STATION NOCTIS · ÉLÈVE</span></div></div>'+
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion ↗</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div><span class="portal-tag">TON ESPACE D’APPRENTISSAGE</span>'+
-   '<h1>Chaque progrès<br><em>compte.</em></h1><p>Des résultats pour comprendre, des corrections pour avancer. Voici ton parcours personnel.</p>'+
+   '<h1>Mes évaluations<br><em>et ma progression.</em></h1><p>Retrouve tes copies, les corrections et les conseils pour progresser.</p>'+
    '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles ↓</button><button data-action="portal-show-revision">Mes révisions ↗</button><button data-action="student-stages">🎓 Recherche de PFMP</button></div></div>'+
    '<div class="portal-welcome-art" aria-hidden="true"><div class="portal-art-ring"><span>'+(avg===null?'—':grade(avg))+'</span><small>/20</small></div><div class="portal-art-orbit"></div><div class="portal-art-stars">✦</div></div></section>'+
-    '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver une PFMP"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ta<br><em>prochaine PFMP.</em></h2>'+
-    '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+
-    '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de PFMP</strong><small>Recherche par filière · Carnet de candidatures</small></span></button></section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
-   '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><span class="portal-kicker">01 / TA TRAJECTOIRE</span><h2>Tes moyennes, semaine après semaine.</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+
+   '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
+   '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
+   (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
+   '<section class="portal-section" id="portal-progression"><div class="portal-section-head"><div><span class="portal-kicker">PROGRESSION</span><h2>Tes moyennes, semaine après semaine.</h2><p>Seules les notes publiées sont comptabilisées. Une semaine sans contrôle reste vide.</p></div>'+
    '<div class="portal-select"><label for="portal-year">Année scolaire</label><select id="portal-year">'+
    yearList.map(y=>'<option value="'+y+'" '+(y===year?'selected':'')+'>'+formatYear(y)+'</option>').join('')+'</select></div></div>'+
    '<div class="portal-segment" role="group" aria-label="Choisir un semestre"><button class="'+(period==='s1'?'selected':'')+'" data-action="portal-period" data-period="s1" aria-pressed="'+(period==='s1')+'">Septembre — janvier</button>'+
    '<button class="'+(period==='s2'?'selected':'')+'" data-action="portal-period" data-period="s2" aria-pressed="'+(period==='s2')+'">Février — juin</button></div>'+
    '<div class="portal-chart-title"><strong>'+periodLabel+'</strong><span>'+formatYear(year)+' · '+periodGrades.length+' contrôle(s) noté(s)</span></div>'+
    graph(graphItems)+'</section>'+
-   '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><span class="portal-kicker">02 / TES ÉVALUATIONS</span><h2>Copies et corrections.</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
-   '<span class="portal-count">'+finished.length+' corrigée(s)</span></div>'+
-   (cards?'<div class="portal-results">'+cards+'</div>':'<div class="portal-empty">Aucune copie pour l’instant. Tes contrôles apparaîtront ici dès qu’ils seront rendus.</div>')+'</section>'+
-   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">03 / TON PARCOURS DE RÉVISION</span><h2>Albert t’aide à progresser.</h2><p>'+
+   '<section class="portal-section" id="portal-revisions"><div class="portal-section-head"><div><span class="portal-kicker">RÉVISIONS</span><h2>Albert t’aide à progresser.</h2><p>'+
     (opts.preview?'Albert examine les 13 contrôles corrigés de cet élève fictif : notes, questions, retours du professeur, difficultés et progression.':
     'Les aides automatiques sur les copies réelles nécessitent une validation institutionnelle et ne sont pas activées.')+
     '</p></div><span class="portal-count">✦ Aides Albert</span></div>'+
@@ -239,6 +235,10 @@ window.CORTEX_PORTAL=(function(){
       '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p></div></div>'+
      '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p>':
     '<p class="portal-empty">L’analyse IA des copies réelles est désactivée en attente des autorisations nécessaires. Consulte la correction et les observations de ton professeur.</p>')+'</section>'+
+    '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver une PFMP"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ta<br><em>prochaine PFMP.</em></h2>'+
+    '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+
+    '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de PFMP</strong><small>Recherche par filière · Carnet de candidatures</small></span></button></section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+

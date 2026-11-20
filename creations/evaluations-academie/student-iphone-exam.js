@@ -20,10 +20,10 @@ const hasAnswer=value=>{
 };
 export const mobileExam=()=>window.matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)').matches;
 
-export function installMobileExam({form,questions,exam,current,initialAnswers,onNavigate}){
+export function installMobileExam({form,questions,exam,current,initialAnswers,onNavigate,canNavigate}){
  const answers=Object.assign(Object.create(null),initialAnswers);
  form.classList.add('cw-answer-form-paged');
- let active=0,destroyed=false;
+ let active=0,destroyed=false,photoQuestions=new Set();
  const cards=[],steps=[],previous=[],next=[];
  const pager=E('nav','cw-mobile-pager');
  pager.setAttribute('aria-label','Navigation dans les questions du contrôle');
@@ -76,14 +76,15 @@ export function installMobileExam({form,questions,exam,current,initialAnswers,on
   const q=questions[active],wrapper=cards[active]?.querySelector('[data-cortex-q]');
   if(q&&wrapper)answers[q.id]=String(window.CORTEX_QUESTION_TYPES.readAnswer(wrapper,q)??'');
  }
- function answeredCount(){return questions.filter(q=>hasAnswer(answers[q.id])).length}
+ function answered(q){return hasAnswer(answers[q.id])||photoQuestions.has(q.id)}
+ function answeredCount(){return questions.filter(answered).length}
  function refresh(){
   const n=answeredCount();
   position.textContent='Question '+(active+1)+' / '+questions.length;
   countLabel.textContent=n+' / '+questions.length+' répondues';
   selector.value=String(active);
   for(let i=0;i<steps.length;i++){
-   const done=hasAnswer(answers[questions[i].id]),current=i===active;
+   const done=answered(questions[i]),current=i===active;
    const chip=steps[i];
    chip.classList.toggle('is-current',current);
    chip.classList.toggle('is-answered',done);
@@ -97,6 +98,7 @@ export function installMobileExam({form,questions,exam,current,initialAnswers,on
  }
  function show(i){
   if(destroyed||!Number.isInteger(i)||i<0||i>=questions.length)return;
+  if(canNavigate&&!canNavigate()){selector.value=String(active);return;}
   readVisible();
   if(i!==active){
    const old=cards[active];old.hidden=true;
@@ -160,6 +162,7 @@ export function installMobileExam({form,questions,exam,current,initialAnswers,on
  },{passive:true});
  refresh();
  return {
+  setPhotoQuestions(ids){photoQuestions=new Set(ids);refresh()},
   getAnswers(){
    readVisible();
    return Object.fromEntries(questions.map(q=>[q.id,String(answers[q.id]??'')]));

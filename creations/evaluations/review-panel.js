@@ -61,7 +61,7 @@ window.CORTEX_REVIEW=(function reviewModule(){
     }
     return `<div class="review-no-source"><span aria-hidden="true">◇</span><h3>Aucun document joint</h3><p>Cette question a été créée sans document source.</p></div>`;
   }
-  function render({attempt,exam,index=0}){
+  function render({attempt,exam,index=0,photo=''}){
     if(!attempt||!exam)return '<section class="panel"><p>Copie introuvable.</p><button class="btn" data-action="review-back">Retour aux copies</button></section>';
     index=Math.max(0,Math.min(exam.questions.length-1,index));
     const q=exam.questions[index],m=attempt.marks?.[q.id]||{},t=totals(attempt,exam),scored=isMark(m);
@@ -92,8 +92,9 @@ window.CORTEX_REVIEW=(function reviewModule(){
       <section class="review-response-pane" aria-label="Correction de la question ${index+1}">
         <div class="review-pane-title"><div><span class="review-overline">QUESTION ${esc(q.number||index+1)} / ${exam.questions.length}</span><h2>Corriger la réponse</h2></div><span class="review-points-pill">${fmt(q.points)} pt${q.points>1?'s':''}</span></div>
         <div class="review-prompt">${esc(q.prompt)}</div>
-        <div class="review-subhead"><span>RÉPONSE DE L’ÉLÈVE</span><span>${String(attempt.answers?.[q.id]??'').trim()?'Réponse enregistrée':'Non répondu'}</span></div>
-        ${answer(attempt,q)}
+        <div class="review-subhead"><span>RÉPONSE DE L’ÉLÈVE</span><span>${photo?'Réponse manuscrite':String(attempt.answers?.[q.id]??'').trim()?'Réponse enregistrée':'Non répondu'}</span></div>
+        ${!photo||String(attempt.answers?.[q.id]??'').trim()?answer(attempt,q):''}
+        ${photo}
         <div class="review-mark-zone"><div class="review-mark-title"><h3>Points attribués</h3><span>${scored?'✓ Évaluée':'À évaluer'}</span></div>
         <div class="review-quick-row">${scoreControls}</div>
         <div class="review-manual-row"><label for="review-points">Ajuster précisément</label><div><input id="review-points" type="number" min="0" max="${Number(q.points)}" step="0.25" inputmode="decimal" value="${scored?esc(m.points):''}" placeholder="—" aria-describedby="review-max"><span id="review-max">/ ${fmt(q.points)} pt</span></div><button type="button" class="review-clear" data-action="review-clear">Effacer la note</button></div>

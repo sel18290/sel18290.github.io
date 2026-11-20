@@ -46,6 +46,14 @@ return makeSeed();
 }
 let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='documents',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integritySetupId='';
 let stageWorkspace=null;
+let handwriting=null;
+const handwritingModule=()=>import('../evaluations-academie/student-handwriting.js?v=1.3');
+const photoKey=attempt=>'demo-cortex:'+attempt.id;
+const hasPhoto=(attempt,question)=>attempt.photoQuestions?.includes(question.id)===true;
+const answeredQuestion=(attempt,question)=>Boolean(String(attempt.answers[question.id]??'').trim())||hasPhoto(attempt,question);
+function photoReview(attempt,question){
+ return hasPhoto(attempt,question)?'<button type="button" class="btn secondary small" data-action="demo-photo-pdf" data-id="'+esc(attempt.id)+'" data-question="'+esc(question.id)+'">Ouvrir la réponse manuscrite (PDF)</button>':'';
+}
 let monitorExamId='';
 const guard=window.CORTEX_EXAM_INTEGRITY.create({
  storageKey:KEY+':sortie',onEvent:recordIntegrityEvent,onNotice:showToast
@@ -118,14 +126,48 @@ const stages=view==='student'&&tab==='stages';
 if(stages&&stageWorkspace&&document.getElementById('cortex-demo-stages'))return;
 stageWorkspace?.dispose();
 stageWorkspace=null;
+handwriting?.dispose();
+handwriting=null;
 if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
 const monitoredAttempt=view==='student'&&tab==='examen'?activeAttempt():null;
-guard.setActive(monitoredAttempt?.status==='progress'&&authorizedAttempt(monitoredAttempt)?{
+const examGuard=monitoredAttempt?.status==='progress'&&authorizedAttempt(monitoredAttempt)?{
  key:monitoredAttempt.id,startedAt:monitoredAttempt.startedAt,root,subjectSelector:'.exam-question',
  settings:window.CORTEX_INTEGRITY.config(examBy(monitoredAttempt.examId))
-}:null);
+}:null;
+guard.setActive(examGuard);
+if(examGuard){
+ const exam=examBy(monitoredAttempt.examId);
+ const card=root.querySelector('.exam-question');
+ const question=exam.questions[currentQuestion];
+ if(card&&question){
+  const panel=document.createElement('div');
+  panel.id='cw-student-question-'+(currentQuestion+1);
+  panel.className='cw-answer-question';
+  const status=document.createElement('p');
+  status.className='cw-handwriting-hint';
+  status.setAttribute('role','status');
+  card.querySelector('.exam-nav').before(panel,status);
+  handwritingModule().then(({createHandwritingManager})=>{
+   if(!panel.isConnected)return;
+   handwriting=createHandwritingManager({
+    form:card,questions:exam.questions,key:photoKey(monitoredAttempt),
+    onCameraOpen:()=>guard.setActive(),
+    onCameraClose:()=>{if(panel.isConnected)guard.setActive(examGuard)},
+    onStatus:(text,error)=>{if(panel.isConnected){status.textContent=text;status.classList.toggle('is-error',Boolean(error));}},
+    onChange:ids=>{
+     monitoredAttempt.photoQuestions=[...new Set(ids)];save();
+     const total=exam.questions.filter(q=>answeredQuestion(monitoredAttempt,q)).length;
+     root.querySelector('.exam-top strong').textContent='Ta progression : '+total+' / '+exam.questions.length+' réponses';
+     root.querySelector('.exam-progress span').style.width=total/exam.questions.length*100+'%';
+     root.querySelectorAll('.question-dot').forEach((dot,i)=>dot.classList.toggle('answered',answeredQuestion(monitoredAttempt,exam.questions[i])));
+     status.textContent='Photos enregistrées sur cet appareil.';
+    }
+   });
+  }).catch(()=>{if(panel.isConnected)status.textContent='Le chargement de l’outil photo a échoué. Actualise la page.';});
+ }
+}
 if(view==='teacher'&&tab==='suivi')mountDemoMonitor();
 if(view==='student'&&window.CORTEX_ALBERT_TOOLS?.hydrate)window.CORTEX_ALBERT_TOOLS.hydrate();
 if(stages){
@@ -215,7 +257,7 @@ return `<div class="home cortex-focus-home">
   </div>
  </section>
  <section class="cortex-focus-capabilities" aria-label="Les trois essentiels de CORTEX">
-  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">▤</span><div><strong>Évaluer</strong><span>Questions numériques ou réponses manuscrites en photo.</span></div></article>
+  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">▤</span><div><strong>Évaluer</strong><span>Réponses numériques ou photo manuscrite à chaque question.</span></div></article>
   <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">✧</span><div><strong>Accompagner</strong><span>Estimation, conseils et aide à la correction par IA.</span></div></article>
   <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">⌖</span><div><strong>Trouver une PFMP</strong><span>Recherche de structures adaptée à la filière avec Albert IA.</span></div></article>
  </section>
@@ -239,7 +281,7 @@ return `<div class="home cortex-focus-home">
 const teacherMenu=[['dashboard','▦','Vue d’ensemble'],['classes','▣','Mes classes'],['codes','⌑','PIN élèves'],['controles','▤','Mes contrôles'],['copies','✎','Copies & notes'],['suivi','◷','Suivi des épreuves'],['integrite','◈','Anti-triche'],['analyses','▥','Analyses'],['import','⇪','Importer PDF / Word'],['creer','＋','Créer un contrôle']];
 function teacherReviewFull(){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId);
- return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex})+(at?'<section class="panel" style="margin:18px auto;max-width:1100px;padding:18px"><h3>Journal de l’épreuve</h3>'+window.CORTEX_INTEGRITY.attemptEvents(state.events,at,e)+'</section>':'');
+ return window.CORTEX_REVIEW.render({attempt:at,exam:e,index:reviewIndex,photo:at&&e?.questions[reviewIndex]?photoReview(at,e.questions[reviewIndex]):''})+(at?'<section class="panel" style="margin:18px auto;max-width:1100px;padding:18px"><h3>Journal de l’épreuve</h3>'+window.CORTEX_INTEGRITY.attemptEvents(state.events,at,e)+'</section>':'');
 }
 function teacherShell(){
 if(tab==='corriger')return teacherReviewFull();
@@ -462,7 +504,7 @@ function studentPseDiscovery(){
   '<button type="button" class="btn pse-discovery-start" data-action="demo-pse-entry">Entrer sans connexion <span aria-hidden="true">↗</span></button>'+
   '<button type="button" class="btn secondary pse-discovery-back" data-action="student">← Retour à l’espace élève</button></div></section>';
 }
-function prepareDemoPse(){
+function prepareDemoPse(start=false){
  let exam=examBy('sommeil-pdf-a2');
  if(!exam&&window.CORTEX_DOCS?.demoExam){
    exam=JSON.parse(JSON.stringify(window.CORTEX_DOCS.demoExam));state.exams.unshift(exam);
@@ -476,7 +518,12 @@ function prepareDemoPse(){
  studentAssignmentId=ass.id;studentQrToken=ass.token;studentRollNumber='12';
  studentSession={demoPreview:true,assignmentId:ass.id,classId:ass.classId,number:'12'};
  currentQuestion=0;save();persistPsePreview();
- nav('student','pret/'+encodeURIComponent(ass.id)+'/'+encodeURIComponent(ass.token));
+ if(start){
+  const previous=state.attempts.find(at=>at.assignmentId===ass.id&&at.studentNumber==='12'&&at.status==='progress'&&Date.now()-at.startedAt<Number(at.durationMinutes||60)*60000);
+  if(previous){state.activeAttemptId=previous.id;save();nav('student','examen');return;}
+  tab='pret';
+  startExam();
+ }else nav('student','pret/'+encodeURIComponent(ass.id)+'/'+encodeURIComponent(ass.token));
 }
 function studentShell(){
  if(tab==='stages')return '<div class="student-shell"><section id="cortex-demo-stages"></section></div>';
@@ -655,7 +702,7 @@ function renderDocumentStudent(e,q,a,answered,remaining){
   '<aside class="panel sidebar-note"><div class="panel-head"><h2>Navigation</h2>'+pill(Math.round(answered/e.questions.length*100)+' %','ok')+'</div>'+
   (sample?'<p class="small muted">6 parties · 8 documents · 20 questions</p>':'<p class="small muted">Document importé depuis ton navigateur</p>')+
   '<div class="question-dots">'+e.questions.map((other,i)=>'<button class="question-dot '+(i===currentQuestion?'current ':'')+
-  (String(a.answers[other.id]||'').trim()?'answered':'')+'" data-action="question-jump" data-index="'+i+'" title="Question '+(i+1)+'">'+(i+1)+'</button>').join('')+'</div>'+
+  (answeredQuestion(a,other)?'answered':'')+'" data-action="question-jump" data-index="'+i+'" title="Question '+(i+1)+'">'+(i+1)+'</button>').join('')+'</div>'+
   '<hr class="divider"><p class="small muted">Les réponses peuvent être modifiées avant la remise. Une sortie de page ne prouve pas une fraude.</p>'+
   btn('Simuler une interruption','simulate-interruption','ghost small full')+'</aside></div>';
 }
@@ -825,7 +872,7 @@ function studentExam(){
 const a=activeAttempt();
 if(!a||a.status!=='progress'){tab='accueil';return studentWelcome();}
 const e=examBy(a.examId),q=e.questions[currentQuestion]||e.questions[0];if(!q)return '<p>Ce contrôle ne contient pas de questions.</p>';
-const answered=e.questions.filter(q=>String(a.answers[q.id]??'').trim().length>0).length;
+const answered=e.questions.filter(q=>answeredQuestion(a,q)).length;
 const elapsed=Math.max(0,Math.floor((Date.now()-a.startedAt)/60000));const remaining=Math.max(0,e.duration-elapsed);
 const ans=String(a.answers[q.id]??'');
 if(e.pdfSource || e.sourceId) return renderDocumentStudent(e,q,a,answered,remaining);
@@ -836,7 +883,7 @@ ${window.CORTEX_CLOCK.render(e,a)}
 ${window.CORTEX_VISUAL?.renderAssets(e,q,'student')||''}
 ${window.CORTEX_QUESTION_TYPES.studentFields(q,ans)}
 <div class="exam-nav"><button class="btn ghost" data-action="question-prev" ${currentQuestion===0?'disabled':''}>← Précédent</button>${currentQuestion===e.questions.length-1?btn('Relire et terminer →','review-exam',''):btn('Question suivante →','question-next','')}</div></section>
-<aside class="panel sidebar-note"><div class="panel-head"><h2>Mes questions</h2>${pill( Math.round(answered/e.questions.length*100)+' %','ok')}</div><div class="question-dots">${e.questions.map((other,i)=>`<button class="question-dot ${i===currentQuestion?'current':''} ${String(a.answers[other.id]??'').trim()?'answered':''}" title="Question ${i+1}" aria-label="Aller à la question ${i+1}" data-action="question-jump" data-index="${i}">${i+1}</button>`).join('')}</div><hr class="divider"><p class="small muted">Le passage à une autre application peut être détecté comme une interruption. Ce signal n'est jamais une preuve de triche.</p><button class="btn ghost small full" data-action="simulate-interruption">Simuler une interruption</button><p class="tiny muted" style="margin-top:13px">Fonction de démonstration. Elle n'identifie pas l'application ouverte.</p></aside></div>`;
+<aside class="panel sidebar-note"><div class="panel-head"><h2>Mes questions</h2>${pill( Math.round(answered/e.questions.length*100)+' %','ok')}</div><div class="question-dots">${e.questions.map((other,i)=>`<button class="question-dot ${i===currentQuestion?'current':''} ${answeredQuestion(a,other)?'answered':''}" title="Question ${i+1}" aria-label="Aller à la question ${i+1}" data-action="question-jump" data-index="${i}">${i+1}</button>`).join('')}</div><hr class="divider"><p class="small muted">Le passage à une autre application peut être détecté comme une interruption. Ce signal n'est jamais une preuve de triche.</p><button class="btn ghost small full" data-action="simulate-interruption">Simuler une interruption</button><p class="tiny muted" style="margin-top:13px">Fonction de démonstration. Elle n'identifie pas l'application ouverte.</p></aside></div>`;
 }
 function studentDone(){
 const a=activeAttempt(),e=examBy(a?.examId);
@@ -890,8 +937,9 @@ modalShow('Copie · '+esc(a.name),`<p class="muted small">${esc(e.title)} · ${a
 }
 function reviewExam(){
 const a=activeAttempt(),e=examBy(a?.examId);if(!a||!e)return;
-const empty=e.questions.filter(q=>!String(a.answers[q.id]??'').trim()).length;
-modalShow('Relire ma copie',`<p>${e.questions.length-empty} réponses sur ${e.questions.length}. ${empty?'<strong>'+empty+' question(s) sans réponse.</strong>':'Toutes les questions ont une réponse.'}</p><div class="preview-list">${e.questions.map((q,i)=>`<div class="summary-answer"><strong>Question ${i+1}</strong><p>${esc(window.CORTEX_QUESTION_TYPES.summary(q,a.answers[q.id]))}</p></div>`).join('')}</div><p class="small muted">Cette remise reste une simulation enregistrée dans ton navigateur.</p>`,
+if(handwriting?.busy){showToast('Attends la fin de l’enregistrement de ta photo.');return;}
+const empty=e.questions.filter(q=>!answeredQuestion(a,q)).length;
+modalShow('Relire ma copie',`<p>${e.questions.length-empty} réponses sur ${e.questions.length}. ${empty?'<strong>'+empty+' question(s) sans réponse.</strong>':'Toutes les questions ont une réponse.'}</p><div class="preview-list">${e.questions.map((q,i)=>`<div class="summary-answer"><strong>Question ${i+1}</strong><p>${hasPhoto(a,q)&&!String(a.answers[q.id]??'').trim()?'Réponse manuscrite jointe':esc(window.CORTEX_QUESTION_TYPES.summary(q,a.answers[q.id]))}</p>${photoReview(a,q)}</div>`).join('')}</div><p class="small muted">Cette remise reste une simulation enregistrée dans ton navigateur.</p>`,
 `<button class="btn" data-action="confirm-submit">Rendre ma copie →</button>${btn('Continuer à répondre','close-modal','ghost')}`);
 }
 function notifyAbout(){
@@ -1170,6 +1218,14 @@ async function downloadPDFCopies(copies,scopeLabel=''){
 
 function action(el){
 const a=el.dataset.action,id=el.dataset.id;
+if(a==='demo-photo-pdf'){
+ const attempt=attemptBy(id),exam=examBy(attempt?.examId);
+ if(attempt&&exam)handwritingModule().then(m=>m.downloadHandwriting(photoKey(attempt),exam.questions,el.dataset.question)).catch(error=>showToast(error.message));
+ return;
+}
+if(handwriting?.busy&&['question-next','question-prev','question-jump','confirm-submit'].includes(a)){
+ showToast('Attends la fin de l’enregistrement de ta photo.');return;
+}
 if(a==='pdf-download-copy'){
  const at=attemptBy(id);
  if(!at||at.status!=='submitted'){showToast('Copie non remise ou introuvable.');return;}
@@ -1665,6 +1721,11 @@ document.addEventListener('paste',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.children.length)closeModal();});
 window.addEventListener('hashchange',routePage);
+document.addEventListener('cortex:tour-student-exam',()=>{
+ const attempt=activeAttempt();
+ if(view==='student'&&tab==='examen'&&attempt?.assignmentId===PSE_DEMO_ASSIGNMENT&&authorizedAttempt(attempt))return;
+ prepareDemoPse(true);
+});
 if(typeof window.setInterval==='function'){
   window.setInterval(()=>{
     if(view!=='student'||tab!=='examen')return;

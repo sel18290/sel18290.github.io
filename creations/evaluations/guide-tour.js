@@ -63,10 +63,10 @@ const steps=[
   targets:['[data-action="ai-chatgpt-copy"]','.review-head-actions','.workspace-main'],
   body:'La correction humaine reste obligatoire. La fonction de correction avec ChatGPT possède une alerte RGPD spécifique : une confirmation ne vaut pas autorisation institutionnelle. La démonstration Albert n’utilise que des copies fictives prédéfinies.',
   task:'Observez l’avertissement associé à « Corriger avec ChatGPT · RGPD ». N’envoyez aucune donnée réelle d’élève pendant cette visite.'},
- {phase:'ÉLÈVE',title:'Passer le contrôle de sommeil',eyebrow:'60 minutes · 20 questions',route:'#eleve/decouverte',icon:'✎',
-  targets:['.pse-discovery-start','.pse-discovery-entry','.pse-discovery'],
-  body:'Le parcours élève propose un contrôle PSE Sommeil fictif de 60 minutes : documents, questions et compte à rebours. Aucun compte n’est nécessaire pour cette passation de découverte.',
-  task:'Choisissez « Entrer sans connexion », puis « Démarrer le contrôle ». Le temps commence seulement après le démarrage explicite.'},
+ {phase:'ÉLÈVE',title:'Passer le contrôle de sommeil',eyebrow:'60 minutes · 20 questions',route:'#eleve/examen',openExam:true,icon:'✎',
+  targets:['.exam-question .cw-handwriting','.exam-question'],
+  body:'La visite ouvre le contrôle fictif de PSE directement. Tu vois l’énoncé, les documents et le chronomètre. Chaque question permet de répondre au clavier ou de joindre une photo manuscrite.',
+  task:'Appuie sur « Essayer sur la page » pour dégager la question. Sous la réponse, choisis « Prendre une photo » ou « Ajouter une image ». Passe à la question suivante pour essayer une deuxième photo. En démonstration, elles restent dans ce navigateur.'},
  {phase:'CARNET',title:'Entrer dans le carnet élève fictif',eyebrow:'Mon CORTEX · Notes et progression',route:'#eleve/espace',enterDemoPortal:true,icon:'◈',
   targets:['.portal-welcome','.portal-dashboard','.portal-root'],
   body:'La visite ouvre automatiquement le carnet fictif, sans demander de PIN. Vous y retrouvez les contrôles corrigés, les notes publiées, une copie encore en correction et les bilans par période.',
@@ -138,7 +138,9 @@ function route(){
  const step=steps[index],hash=step.route,expected=index;
  // Entrer automatiquement dans le seul carnet FICTIF lors de la visite guidée.
  // Cela n'ouvre aucun compte réel et ne demande ni PIN ni données personnelles.
- if(step.enterDemoPortal&&!tourDemoEntered){
+ if(step.openExam){
+  document.dispatchEvent(new Event('cortex:tour-student-exam'));
+ }else if(step.enterDemoPortal&&(!tourDemoEntered||!document.querySelector('.portal-dashboard'))){
   // La visite installe le carnet fictif une fois ; elle ne lit pas un compte réel.
   if(location.hash!=='#eleve/accueil')location.hash='#eleve/accueil';
   window.setTimeout(()=>{

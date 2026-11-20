@@ -2,10 +2,10 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.14-handwriting';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.5';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.6';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.0';
-import { createHandwritingManager } from './student-handwriting.js?v=1.2';
+import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe');
@@ -85,7 +85,7 @@ if(qr||globalPortal){
   noticeTimeout=setTimeout(()=>{integrityNotice.hidden=true;},4500);
  }
  function message(text,error=false){const el=$('cw-student-status');el.textContent=text||'';el.hidden=!text;el.classList.toggle('error',!!error)}
- function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false }
+ function showWork(){ $('cw-student-login').hidden=true;$('cw-student-work').hidden=false;main.classList.add('is-identified') }
  function closeStageView(){
   stageWorkspace?.dispose();
   stageWorkspace=null;
@@ -98,7 +98,7 @@ if(qr||globalPortal){
   saveEventQueue();
   if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   token=null;current=null;currentId=null;classData=null;sessionStorage.removeItem(storageKey);
-  $('cw-student-work').hidden=true;$('cw-student-login').hidden=false;
+  $('cw-student-work').hidden=true;$('cw-student-login').hidden=false;main.classList.remove('is-identified');
  }
  function stopIntegrity(){
   guard.setActive();
@@ -541,10 +541,11 @@ if(qr||globalPortal){
    }else presence.setActive();
   }
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
-  if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current,initialAnswers,onNavigate:()=>draftEditor?.update(true)});
+  if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current,initialAnswers,onNavigate:()=>draftEditor?.update(true),canNavigate:()=>!photoManager?.busy});
   else{
   for(let i=0;i<questions.length;i++){
    const q=questions[i],label=E('div','cw-answer-question');
+   label.id='cw-student-question-'+(i+1);
    label.append(E('strong','',(i+1)+'. '+q.prompt));
    if(q.page&&current.subject)label.append(E('small','cw-doc-ref','Document original · page '+q.page));
    const related=(exam.assets||[]).filter(a=>(q.assetIds||[]).includes(a.id)&&a.url);
@@ -656,7 +657,7 @@ if(qr||globalPortal){
   file.addEventListener('change',()=>{
    const chosen=file.files?.[0];
    if(!chosen)return;
-   if(photoManager?.count()){
+   if(photoManager?.busy||photoManager?.count()){
     file.value='';submissionMessage('Des photos manuscrites sont déjà présentes. Retire-les avant de joindre un autre fichier.',true);return;
    }
    if(chosen.size>8*1024*1024){file.value='';submissionMessage('Le fichier dépasse 8 Mo.',true);return}
@@ -674,6 +675,7 @@ if(qr||globalPortal){
   };
   async function openConfirmation(){
    if(busy)return;
+   if(photoManager?.busy){submissionMessage('Attends l’enregistrement de ta photo avant de remettre ta copie.');return;}
    try{
     await photoManager?.flush();
     if(photoManager?.count()&&!String(editor.attachment).startsWith('CORTEX_Manuscrit_')){
@@ -754,8 +756,10 @@ if(qr||globalPortal){
   form.prepend(handwritingNote);
   photoManager=createHandwritingManager({
    form,questions,key:draftKey+':handwriting',
+   restoreAttachment:!editor.attachment||String(editor.attachment).startsWith('CORTEX_Manuscrit_'),
    onAttach:pdf=>editor.attach(pdf),
    onRemove:()=>editor.attach(null),
+   onChange:ids=>mobileController?.setPhotoQuestions(ids),
    onStatus:(text,error=false)=>{draftStatus.textContent=text;draftStatus.classList.toggle('error',error)},
    canAdd:()=>!editor.attachment||(String(editor.attachment).startsWith('CORTEX_Manuscrit_')&&photoManager?.count()>0),
    onCameraOpen:()=>{guard.setActive();presence.setActive()},

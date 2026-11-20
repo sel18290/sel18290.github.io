@@ -1539,8 +1539,9 @@
       boardNotice(stored ? 'Carnet mis à jour.' : 'Le navigateur ne peut pas enregistrer ce changement.');
     }
 
-    function openDialog(title, content) {
+    function openDialog(title, content, variant = '') {
       $('dialog-title').textContent = title;
+      $('dialog').classList.toggle('cs-stage-dialog--contact', variant === 'contact');
       $('dialog-content').replaceChildren(content);
       if (!$('dialog').open) $('dialog').showModal();
     }
@@ -1667,50 +1668,68 @@
       const label = GUIDE.programs[program].name + (track !== 'toutes' ? ' (option ' + track + ')' : '');
       const period = stagePeriod();
       const recipient = profile?.contact || 'la personne qui organise l’accueil en PFMP';
-      const body = node('div', 'cs-stage-dialog-body');
-      if (place) {
-        body.append(linksFor(place));
-        const source = publicSource(place);
-        if (source) {
-          const title = place.id.startsWith('siret/') ? 'Ouvrir la fiche de l’Annuaire des entreprises' : 'Vérifier la fiche OpenStreetMap';
-          body.append(outbound(title, source, 'cs-stage-text-button'));
-        }
-        const evidence = evidenceFor(place);
-        if (evidence) body.append(evidence);
-        body.append(button('Préparer mon CV et ma lettre', 'cs-stage-pale', () => {
-          if (!board.has(place.id)) addEntry(context);
-          $('dialog').close();
-          setPanel('cv', true, place.id, 'lettre');
-        }));
-      }
-      const mission = node('section', 'cs-stage-dialog-subsection');
-      mission.append(node('h3', '', 'Missions à vérifier'));
-      const list = node('ul');
-      if (categories.length) {
-        for (const type of categories.slice(0, 3)) list.append(node('li', '', type[2]));
-      } else if (profile) {
-        list.append(node('li', '', profile.blocks.at(-1)[1]));
-      } else {
-        list.append(node('li', '', GUIDE.profiles.A.question), node('li', '', GUIDE.profiles.B.question));
-      }
-      if (profile) list.append(node('li', '', profile.question));
-      list.append(node('li', '', 'Qui sera mon tuteur et quelles missions pourra-t-on inscrire dans la convention ?'));
-      mission.append(list);
-      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + GUIDE.normalizePFMP(place.suggestion)));
-      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + GUIDE.normalizePFMP(place.why)));
-      body.append(mission);
+      const body = node('div','cs-stage-dialog-body cs-stage-apply-body');
+
+      const contextCard = node('div','cs-stage-apply-intro');
+      contextCard.append(node('span','cs-stage-apply-eyebrow','CORTEX / TRANSMISSION DE CANDIDATURE'),
+        node('h3','',place?.name || 'Candidature générale'),
+        node('p','',label + ' · ' + period));
+      body.append(contextCard);
 
       const workshop = window.CORTEX_STAGE_CONTACT.mount({
         label, period, recipient, place, identity, save: persist,
         hook: hooks[place?.id || program+'-'+track],
         rememberHook: value => { hooks[place?.id || program+'-'+track] = value; persist(); },
         profile: program === 'commerce-vente' ? categories[0]?.[3] || track : program,
-        ask: (motivation, signal) => askAlbert({ action:'prepare_contact', filiere:program, optionCommerce:track,
-          type:categories[0]?.[0] || '', motivation }, signal)
+        ask: (motivation, signal) => askAlbert({action:'prepare_contact', filiere:program, optionCommerce:track,
+          type:categories[0]?.[0] || '', motivation}, signal)
       });
-      $('dialog').addEventListener('close', workshop.dispose, { once: true });
       body.append(workshop.root);
-      openDialog(place ? place.name : 'Préparer ma candidature', body);
+
+      const extras = node('details','cs-stage-apply-extras');
+      extras.append(node('summary','','Informations complémentaires sur la structure'));
+      const extraBody = node('div','cs-stage-apply-extras-body');
+      if (place) {
+        const about = node('div','cs-stage-apply-place');
+        about.append(node('h3','','Coordonnées et liens utiles'),linksFor(place));
+        const source = publicSource(place);
+        if(source){
+          const sourceTitle=place.id.startsWith('siret/')
+            ? 'Fiche officielle Annuaire des entreprises' : 'Consulter la fiche OpenStreetMap';
+          about.append(outbound(sourceTitle,source,'cs-stage-text-button'));
+        }
+        const evidence = evidenceFor(place);
+        if(evidence) about.append(evidence);
+        about.append(button('Ouvrir mon atelier CV et lettre','cs-stage-pale',()=>{
+          if(!board.has(place.id))addEntry(context);
+          $('dialog').close();
+          setPanel('cv',true,place.id,'lettre');
+        }));
+        extraBody.append(about);
+      }
+      const mission = node('section','cs-stage-dialog-subsection');
+      mission.append(node('h3','','Missions à vérifier avec la structure'));
+      const list = node('ul');
+      if(categories.length){
+        for(const type of categories.slice(0,3))list.append(node('li','',type[2]));
+      }else if(profile){
+        list.append(node('li','',profile.blocks.at(-1)[1]));
+      }else{
+        list.append(node('li','',GUIDE.profiles.A.question),node('li','',GUIDE.profiles.B.question));
+      }
+      if(profile)list.append(node('li','',profile.question));
+      list.append(node('li','','Qui sera mon tuteur et quelles missions pourra-t-on inscrire dans la convention ?'));
+      mission.append(list);
+      if(place?.suggestion)mission.append(node('p','cs-stage-dialog-hint',
+        'Suggestion Albert · '+GUIDE.normalizePFMP(place.suggestion)));
+      if(place?.why)mission.append(node('p','cs-stage-dialog-hint',
+        'Pourquoi Albert l’a repéré · '+GUIDE.normalizePFMP(place.why)));
+      extraBody.append(mission);
+      extras.append(extraBody);
+      body.append(extras);
+
+      $('dialog').addEventListener('close',workshop.dispose,{once:true});
+      openDialog('Préparer ma candidature',body,'contact');
     }
 
     $('back').addEventListener('click', () => {

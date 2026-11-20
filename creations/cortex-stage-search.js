@@ -1,6 +1,20 @@
-/* CORTEX · Recherche et suivi de stages, communs à la démonstration et à CORTEX Académie. */
+/* CORTEX · Recherche et suivi de PFMP, communs à la démonstration et à CORTEX Académie. */
 (function () {
   'use strict';
+  function normalizePFMP(value) {
+    return String(value || '')
+      .replace(/\bMon stage\b/g, 'Ma PFMP')
+      .replace(/\bmon stage\b/gi, 'ma PFMP')
+      .replace(/\bTon stage\b/g, 'Ta PFMP')
+      .replace(/\bton stage\b/gi, 'ta PFMP')
+      .replace(/\bCe stage\b/g, 'Cette PFMP')
+      .replace(/\bce stage\b/gi, 'cette PFMP')
+      .replace(/\bdu stage\b/gi, 'de la PFMP')
+      .replace(/\ble stage\b/gi, 'la PFMP')
+      .replace(/\bun stage\b/gi, 'une PFMP')
+      .replace(/\bstages?\b/gi, 'PFMP');
+  }
+
 
   const ENDPOINT = 'https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search';
   const GUIDE = window.CORTEX_STAGE_GUIDE;
@@ -20,7 +34,7 @@
     ['cv', 'J’ai préparé mon CV et adapté mon message.'],
     ['missions', 'J’ai vérifié les missions et identifié le tuteur.'],
     ['school', 'J’ai fait valider le lieu et les missions par le lycée.'],
-    ['agreement', 'Ma convention est signée avant le début du stage.']
+    ['agreement', 'Ma convention est signée avant le début de la PFMP.']
   ];
 
   const clean = value => String(value ?? '').trim();
@@ -181,27 +195,27 @@
           <button type="button" class="cs-stage-return" id="cs-stage-back">Retour à l’espace élève</button>
         </div>
         <div class="cs-stage-hero-copy">
-          <div class="cs-stage-kicker">Recherche de stage</div>
-          <h1 tabindex="-1" id="cs-stage-title">Trouve ton<br><em>prochain stage.</em></h1>
+          <div class="cs-stage-kicker">Recherche de PFMP</div>
+          <h1 tabindex="-1" id="cs-stage-title">Trouve ta<br><em>prochaine PFMP.</em></h1>
           <p>Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.</p>
         </div>
       </div>
     </header>
-    <nav class="cs-stage-nav" aria-label="Parcours de recherche de stage">
+    <nav class="cs-stage-nav" aria-label="Parcours de recherche de PFMP">
       <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
       <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer mon stage</button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
       <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> CV et lettre</button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
       <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span><span aria-hidden="true">→</span></button>
-      <button type="button" data-stage-document="lettre" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon is-letter" aria-hidden="true">✉</span><span><strong>Préparer ma lettre de motivation</strong><small>Explique pourquoi tu veux faire ton stage ici.</small></span><span aria-hidden="true">→</span></button>
+      <button type="button" data-stage-document="lettre" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon is-letter" aria-hidden="true">✉</span><span><strong>Préparer ma lettre de motivation</strong><small>Explique pourquoi tu veux faire ta PFMP ici.</small></span><span aria-hidden="true">→</span></button>
     </div>
     <div class="cs-stage-panel" data-stage-panel="search" id="cs-stage-search-panel">
       <div class="cs-stage-workspace">
         <form class="cs-stage-surface cs-stage-console" id="cs-stage-form" aria-labelledby="cs-stage-form-title">
           <div class="cs-stage-panel-kicker">Annuaire des structures</div>
-          <h2 id="cs-stage-form-title" tabindex="-1">Où veux-tu faire ton stage ?</h2>
+          <h2 id="cs-stage-form-title" tabindex="-1">Où veux-tu faire ta PFMP ?</h2>
           <fieldset class="cs-stage-fieldset">
             <legend>Ta filière</legend>
             <div class="cs-stage-programs" id="cs-stage-programs"></div>
@@ -264,7 +278,7 @@
           </ul>
           <p>Albert peut ajuster la priorité des types de lieux. Confirme les missions et les possibilités d’accueil auprès de chaque structure.</p>
         </details>
-        <nav class="cs-stage-batch-nav" id="cs-stage-batch-nav" aria-label="Sélections de lieux de stage" hidden>
+        <nav class="cs-stage-batch-nav" id="cs-stage-batch-nav" aria-label="Sélections de lieux de PFMP" hidden>
           <p id="cs-stage-batch-label" aria-live="polite"></p>
           <div>
             <button type="button" id="cs-stage-batch-prev" class="cs-stage-quiet" hidden>Sélection précédente</button>
@@ -303,7 +317,7 @@
       <div class="cs-stage-prep-grid">
         <section class="cs-stage-surface" aria-labelledby="cs-stage-prep-title">
           <div class="cs-stage-panel-kicker">Écrire ou appeler</div>
-          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer mon stage</h2>
+          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer ma PFMP</h2>
           <p>Renseigne les dates données par ton lycée pour personnaliser les modèles de candidature.</p>
           <div class="cs-stage-date-fields">
             <label>Date de début <input type="date" id="cs-stage-start"></label>
@@ -315,8 +329,8 @@
           </label>
           <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon message</button>
           <div class="cs-stage-check-area">
-            <h3>Avant de commencer ton stage</h3>
-            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant le stage"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
+            <h3>Avant de commencer ta PFMP</h3>
+            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
             <div id="cs-stage-checklist"></div>
           </div>
         </section>
@@ -872,7 +886,7 @@
       const all = result.ordered.length;
       const nextCount = Math.min(RANKING.SIZE, all - (batchIndex + 1) * RANKING.SIZE);
       const collecting = Boolean(result.data.continuation || result.data.calibrating);
-      $('result-title').textContent = count ? count + ' ' + plural(count, 'piste pour ton stage', 'pistes pour ton stage') : 'Aucun lieu repéré';
+      $('result-title').textContent = count ? count + ' ' + plural(count, 'piste pour ta PFMP', 'pistes pour ta PFMP') : 'Aucun lieu repéré';
       $('batch-nav').hidden = !count;
       $('batch-label').textContent = count
         ? (collecting ? 'Sélection provisoire' : 'Sélection ' + (batchIndex + 1)) + ' · ' +
@@ -1269,7 +1283,7 @@
       const { categories, profile } = GUIDE.forPlace(program, track, place?.types || []);
       const label = GUIDE.programs[program].name + (track !== 'toutes' ? ' (option ' + track + ')' : '');
       const period = stagePeriod();
-      const recipient = profile?.contact || 'la personne responsable des stages ou des ventes';
+      const recipient = profile?.contact || 'la personne responsable des PFMP ou des ventes';
       const body = node('div', 'cs-stage-dialog-body');
       if (place) {
         body.append(linksFor(place));
@@ -1292,8 +1306,8 @@
       if (profile) list.append(node('li', '', profile.question));
       list.append(node('li', '', 'Qui sera mon tuteur et quelles missions pourra-t-on inscrire dans la convention ?'));
       mission.append(list);
-      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + place.suggestion));
-      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + place.why));
+      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + normalizePFMP(place.suggestion)));
+      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + normalizePFMP(place.why)));
       body.append(mission);
 
       const workshop = window.CORTEX_STAGE_CONTACT.mount({

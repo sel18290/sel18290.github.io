@@ -1,18 +1,32 @@
 /* Atelier CV et lettre : brouillons séparés par entreprise, dans le carnet de l’élève. */
 (function () {
   'use strict';
+  function normalizePFMP(value) {
+    return String(value || '')
+      .replace(/\bMon stage\b/g, 'Ma PFMP')
+      .replace(/\bmon stage\b/gi, 'ma PFMP')
+      .replace(/\bTon stage\b/g, 'Ta PFMP')
+      .replace(/\bton stage\b/gi, 'ta PFMP')
+      .replace(/\bCe stage\b/g, 'Cette PFMP')
+      .replace(/\bce stage\b/gi, 'cette PFMP')
+      .replace(/\bdu stage\b/gi, 'de la PFMP')
+      .replace(/\ble stage\b/gi, 'la PFMP')
+      .replace(/\bun stage\b/gi, 'une PFMP')
+      .replace(/\bstages?\b/gi, 'PFMP');
+  }
+
   const fields = {
     cv: [
-      ['profil', 'Mon profil', 'En deux phrases, présente ta formation, le stage recherché et une qualité que tu peux expliquer.'],
+      ['profil', 'Mon profil', 'En deux phrases, présente ta formation, la PFMP recherchée et une qualité que tu peux expliquer.'],
       ['formation', 'Ma formation', 'Indique ton diplôme et les années. Ex. Bac pro AGOrA, 2025–2028.'],
-      ['experiences', 'Mes expériences et projets', 'Un projet au lycée, une aide dans une association ou un stage précédent. Indique ce que tu as vraiment fait.'],
+      ['experiences', 'Mes expériences et projets', 'Un projet au lycée, une aide dans une association ou une PFMP précédente. Indique ce que tu as vraiment fait.'],
       ['competences', 'Mes compétences', 'Note les outils ou activités que tu sais utiliser. Donne un exemple concret pour chaque compétence.'],
       ['interets', 'Mes centres d’intérêt (facultatif)', 'Choisis un intérêt dont tu peux parler en entretien.']
     ],
     lettre: [
       ['motivation', 'Pourquoi cette entreprise ?', 'Dis ce qui te plaît dans cette entreprise. Ajoute un détail que tu as réellement vérifié.'],
       ['qualites', 'Ce que je peux apporter', 'Choisis une qualité et raconte une situation où tu l’as montrée.'],
-      ['objectif', 'Ce que j’aimerais apprendre', 'Nomme une ou deux missions que tu aimerais découvrir pendant ton stage.']
+      ['objectif', 'Ce que j’aimerais apprendre', 'Nomme une ou deux missions que tu aimerais découvrir pendant ta PFMP.']
     ]
   };
 
@@ -38,14 +52,14 @@
     if (kind === 'cv') {
       const sections = fields.cv.filter(([key]) => filled(draft[key]))
         .map(([key, title]) => title.replace(' (facultatif)', '') + '\n' + draft[key].trim());
-      return [header, 'CV · Stage en bac pro ' + programLabel + '\n' + target + ' · ' + period, ...sections].join('\n\n');
+      return [header, 'CV · PFMP en bac pro ' + programLabel + '\n' + target + ' · ' + period, ...sections].join('\n\n');
     }
     return [
       header, ['À l’attention de l’équipe de ' + target, entry.place.address].filter(Boolean).join('\n'),
-      'Objet : candidature pour un stage ' + period,
-      'Madame, Monsieur,\n\nJe suis en bac pro ' + programLabel + ' et je souhaite faire mon stage dans votre équipe. Mon lycée fournit la convention et mon allocation de stage est versée par l’État.',
+      'Objet : candidature pour une PFMP ' + period,
+      'Madame, Monsieur,\n\nJe suis en bac pro ' + programLabel + ' et je souhaite faire ma PFMP dans votre équipe. Mon lycée fournit la convention et mon allocation de PFMP est versée par l’État.',
       ...fields.lettre.map(([key]) => filled(draft[key])).filter(Boolean),
-      'Seriez-vous disponible pour échanger au sujet de mon stage ? Je vous remercie pour votre attention.',
+      'Seriez-vous disponible pour échanger au sujet de ma PFMP ? Je vous remercie pour votre attention.',
       'Cordialement,\n' + (name || '[Prénom et nom]')
     ].join('\n\n');
   }
@@ -182,9 +196,9 @@
           const data=await api.ask(entry,kind,id,raw,own.signal);
           if(own.signal.aborted)return;
           feedback.textContent='Lis la proposition et garde ce qui te ressemble.';
-          suggestion.replaceChildren(element('strong','','Proposition Albert'),element('p','',data.improved),element('p','',data.tip),
+          suggestion.replaceChildren(element('strong','','Proposition Albert'),element('p','',normalizePFMP(data.improved)),element('p','',normalizePFMP(data.tip)),
             button('Utiliser cette proposition','cs-stage-pale',()=>{
-              input.value=data.improved;draft[id]=data.improved;fieldChanged();suggestion.hidden=true;input.focus();
+              input.value=normalizePFMP(data.improved);draft[id]=normalizePFMP(data.improved);fieldChanged();suggestion.hidden=true;input.focus();
             }));
           suggestion.hidden=false;
         } catch(error) {

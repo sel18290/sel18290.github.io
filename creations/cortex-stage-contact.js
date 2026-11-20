@@ -1,10 +1,24 @@
-/* Atelier de candidature dans la rubrique stage. */
+/* Atelier de candidature dans la rubrique PFMP. */
 (function () {
   'use strict';
+  function normalizePFMP(value) {
+    return String(value || '')
+      .replace(/\bMon stage\b/g, 'Ma PFMP')
+      .replace(/\bmon stage\b/gi, 'ma PFMP')
+      .replace(/\bTon stage\b/g, 'Ta PFMP')
+      .replace(/\bton stage\b/gi, 'ta PFMP')
+      .replace(/\bCe stage\b/g, 'Cette PFMP')
+      .replace(/\bce stage\b/gi, 'cette PFMP')
+      .replace(/\bdu stage\b/gi, 'de la PFMP')
+      .replace(/\ble stage\b/gi, 'la PFMP')
+      .replace(/\bun stage\b/gi, 'une PFMP')
+      .replace(/\bstages?\b/gi, 'PFMP');
+  }
 
-  const ALLOCATION = 'L’allocation de mon stage est versée par l’État. Mon lycée fournit la convention.';
-  const fundingOpening = 'C’est un stage non rémunéré par votre entreprise si la durée cumulée reste sous le seuil de gratification.';
-  const withoutOpening = text => text.trim().replace(/^c['’]est un stage non rémunéré[^.!?]*[.!?]\s*/i, '');
+
+  const ALLOCATION = 'L’allocation de ma PFMP est versée par l’État. Mon lycée fournit la convention.';
+  const fundingOpening = 'C’est une PFMP non rémunérée par votre entreprise si la durée cumulée reste sous le seuil de gratification.';
+  const withoutOpening = text => normalizePFMP(String(text || '').trim().replace(/^c['’]est (?:un stage non rémunéré|une PFMP non rémunérée)[^.!?]*[.!?]\s*/i, ''));
   const HOOK_HINT = '[Mon accroche : ce qui me motive et ce que j’aimerais apprendre.]';
   const MOTIVES = [
     ['public', 'Le contact avec le public'],
@@ -13,7 +27,7 @@
   ];
   const EXAMPLES = {
     A: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Votre magasin m’intéresse et j’aimerais apprendre à travailler avec votre équipe.'],
-    B: ['J’aimerais travailler avec vous et apprendre à présenter vos services aux clients.', 'Ce stage me motive et j’aimerais apprendre à prendre contact avec vos clients.'],
+    B: ['J’aimerais travailler avec vous et apprendre à présenter vos services aux clients.', 'Cette PFMP me motive et j’aimerais apprendre à prendre contact avec vos clients.'],
     accueil: ['J’aime aider les gens et j’aimerais apprendre à accueillir vos visiteurs.', 'J’aimerais rejoindre votre équipe et apprendre à renseigner les personnes qui viennent chez vous.'],
     'gestion-administration': ['Je suis motivé(e) et j’aimerais travailler avec vous pour apprendre à gérer des dossiers.', 'J’aimerais apprendre à organiser les dossiers et à aider votre équipe au quotidien.'],
     toutes: ['J’aime le contact avec les gens et j’aimerais apprendre à conseiller vos clients.', 'Je suis motivé(e) et j’aimerais découvrir le travail de votre équipe.']
@@ -43,16 +57,16 @@
     const name = [context.identity.first, context.identity.last].filter(Boolean).join(' ') || '[prénom et nom]';
     const intro = 'Je suis ' + name + ', élève en bac pro ' + label + ' au lycée ' + (context.identity.school || '[nom du lycée]') + '.';
     const funding = fundingOpening + ' ' + ALLOCATION;
-    const line = hook || HOOK_HINT;
+    const line = normalizePFMP(hook || HOOK_HINT);
     if (method === 'call') {
       return 'Bonjour. ' + funding + ' ' + intro +
-        ' J’appelle pour un stage ' + period + '. Puis-je parler à ' + recipient + ' ?\n\n' +
+        ' J’appelle pour une PFMP ' + period + '. Puis-je parler à ' + recipient + ' ?\n\n' +
         line + ' Accueillez-vous des stagiaires à ces dates ?\n\n' +
         'À qui puis-je envoyer mon CV ou remettre ma candidature ? Merci pour votre temps.';
     }
-    const subject = 'Candidature pour un stage' + (place ? ' — ' + place.name : '');
+    const subject = 'Candidature pour une PFMP' + (place ? ' — ' + place.name : '');
     return 'Objet : ' + subject + '\n\nBonjour,\n\n' + funding + ' ' + intro +
-      ' Je cherche un stage ' + period + '.' + '\n\n' + line + '\n\n' +
+      ' Je cherche une PFMP ' + period + '.' + '\n\n' + line + '\n\n' +
       'Auriez-vous la possibilité de m’accueillir à ces dates ? Je peux vous transmettre mon CV ou venir me présenter.\n\n' +
       'Merci pour votre réponse.\n\nCordialement,\n' + name;
   }
@@ -108,7 +122,7 @@
     unpaid.type = 'checkbox';
     unpaid.checked = true;
     unpaid.disabled = true;
-    fixed.append(unpaid, node('span', '', 'Stage non rémunéré'));
+    fixed.append(unpaid, node('span', '', 'PFMP non rémunérée'));
     choiceList.append(fixed);
     for (const [value, text] of MOTIVES) {
       const label = node('label');
@@ -145,7 +159,7 @@
       const continuation = withoutOpening(idea);
       suggestion.replaceChildren(node('strong', '', title),
         node('p', '', fundingOpening + ' ' + continuation));
-      if (advice) suggestion.append(node('p', 'cs-stage-contact-guidance', advice));
+      if (advice) suggestion.append(node('p', 'cs-stage-contact-guidance', normalizePFMP(advice)));
       suggestion.append(button('Reprendre cette accroche', 'cs-stage-pale', () => {
         hook.value = continuation.slice(0, hook.maxLength);
         applyHook();

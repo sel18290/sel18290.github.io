@@ -139,7 +139,7 @@ if(stages){
  });
  area.querySelector('h1')?.focus();
 }
-document.title=(stages?'Recherche de stage':view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
+document.title=(stages?'Recherche de PFMP':view==='teacher'?'Espace professeur':view==='student'?'Espace élève':'Accueil')+' · CORTEX Évaluations';
 if(view==='teacher'&&tab==='creer'&&editor){
  window.CORTEX_DEMO_REAL_WORKSHOP.mount(editor,state.classes,editorIndex,async()=>{
   action({dataset:{action:'save-exam'}});
@@ -192,12 +192,12 @@ return `<div class="home nxp-home">
  <div class="hero-copy">
   <p class="eyebrow">CORTEX / STATION NOCTIS · ÉCOSYSTÈME PÉDAGOGIQUE</p>
   <h1>Un nouvel horizon<br><em>pour apprendre.</em></h1>
-  <p class="lead">Des contrôles numériques qui ne s'arrêtent pas à la remise d'une copie. CORTEX relie l'évaluation, les conseils pédagogiques, la correction accompagnée par IA et la recherche de stages.</p>
+  <p class="lead">Des contrôles numériques qui ne s'arrêtent pas à la remise d'une copie. CORTEX relie l'évaluation, les conseils pédagogiques, la correction accompagnée par IA et la recherche de PFMP.</p>
   <div class="hero-actions">
    ${btn('Explorer l’espace élève <span class="button-arrow">↗</span>','student','')}
    ${btn('Découvrir les outils professeur →','teacher','secondary')}
   </div>
-  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>Stages & orientation</span></div>
+  <div class="hero-foot"><span>Évaluation & progression</span><span>Albert IA</span><span>PFMP & orientation</span></div>
  </div>
  <div class="hero-visual" aria-hidden="true"><div class="visual-grid"></div><div class="visual-orbit"></div><div class="mock-window"><div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span style="font-size:10px;color:#8da7c0;margin-left:12px">CORTEX / ÉVALUATION</span></div><div class="mock-content"><span class="chip teal">Contrôle en cours</span><div class="mock-line"></div><div class="mock-line"></div><div class="mock-answer"><span style="color:#8dded6;font-size:11px">QUESTION 8 / 20</span><div class="mock-line"></div><div class="mock-line" style="width:80%"></div><div class="mock-progress"></div></div></div></div><div class="floating-card"><small>Progression du contrôle</small><strong>8 / 20</strong></div></div>
 </section>
@@ -243,14 +243,14 @@ return `<div class="home nxp-home">
    </article>
    <article class="nxp-service nxp-service-stage" aria-labelledby="nxp-stage-title">
     <div class="nxp-service-top"><span class="nxp-service-id">03 / PARCOURS PROFESSIONNEL</span><span class="nxp-service-symbol" aria-hidden="true">⌖</span></div>
-    <h3 id="nxp-stage-title">Un stage à trouver ?<br><em>Albert IA vous guide.</em></h3>
+    <h3 id="nxp-stage-title">Une PFMP à trouver ?<br><em>Albert IA vous guide.</em></h3>
      <p>Trouvez des structures adaptées à votre filière, préparez votre candidature et suivez vos relances.</p>
-    <a href="#eleve/stages">Lancer la recherche de stages <span aria-hidden="true">↗</span></a>
+    <a href="#eleve/stages">Lancer la recherche de PFMP <span aria-hidden="true">↗</span></a>
     <span class="nxp-stage-orbit" aria-hidden="true"></span>
    </article>
   </div>
  </div>
- <div class="nxp-disclaimer"><span class="nxp-disclaimer-mark" aria-hidden="true">i</span> La note estimée ne remplace jamais la correction officielle. Les lieux recensés ne garantissent pas une place de stage.</div>
+ <div class="nxp-disclaimer"><span class="nxp-disclaimer-mark" aria-hidden="true">i</span> La note estimée ne remplace jamais la correction officielle. Les lieux recensés ne garantissent pas une place de PFMP.</div>
 </section>
 <section class="home-section nxp-access-section" aria-labelledby="nxp-access-title">
  <div class="nxp-section-lead nxp-access-lead">
@@ -265,7 +265,7 @@ return `<div class="home nxp-home">
   </article>
   <article class="nxp-role nxp-role-student">
    <div class="nxp-role-head"><span class="nxp-role-chip">ÉLÈVE</span><span class="nxp-role-glyph" aria-hidden="true">✧</span></div>
-   <div><h3>Répondre. Comprendre.<br><em>Progresser.</em></h3><p>Passez une évaluation, découvrez un retour pédagogique, ou cherchez un lieu de stage.</p></div>
+   <div><h3>Répondre. Comprendre.<br><em>Progresser.</em></h3><p>Passez une évaluation, découvrez un retour pédagogique, ou cherchez un lieu de PFMP.</p></div>
    ${btn('Découvrir l’espace élève ↗','student','secondary')}
   </article>
  </div>

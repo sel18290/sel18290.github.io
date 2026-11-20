@@ -172,7 +172,7 @@ if(qr||globalPortal){
   const nav=E('nav','cs-stage-student-tabs');
   nav.setAttribute('aria-label','Rubriques de mon espace élève');
   const controls=button('▤ Mes évaluations','cs-stage-tab'+(active==='controls'?' is-active':''),()=>renderClass());
-  const stages=button('🎓 Recherche de stages','cs-stage-tab'+(active==='stages'?' is-active':''),renderStageView);
+  const stages=button('🎓 Recherche de PFMP','cs-stage-tab'+(active==='stages'?' is-active':''),renderStageView);
   controls.setAttribute('aria-current',active==='controls'?'page':'false');
   stages.setAttribute('aria-current',active==='stages'?'page':'false');
   nav.append(controls,stages);
@@ -188,7 +188,7 @@ if(qr||globalPortal){
   work.append(studentTabs('stages'));
   const stageHost=E('div','cs-stage-host');work.append(stageHost);
   if(!window.CORTEX_STAGE?.mount){
-   work.append(E('p','cw-student-empty','Recherche de stages indisponible. Recharge la page.'));
+   work.append(E('p','cw-student-empty','Recherche de PFMP indisponible. Recharge la page.'));
    return;
   }
   main.classList.add('cs-stage-academy-active');
@@ -213,30 +213,30 @@ if(qr||globalPortal){
    E('h2','','Mes évaluations'),
    E('p','','Élève n°'+classData.student_number+' · '+classData.class.name));
   const controls=E('div','cw-student-dashboard-tools');
-  controls.append(button('🎓 Recherche de stages','cw-accent',renderStageView),
+  controls.append(button('🎓 Recherche de PFMP','cw-accent',renderStageView),
    button('Actualiser mes résultats ↻','cw-secondary',loadClass),
    button('Changer de compte','cw-outline',async()=>{reset();await getClasses()}));
   header.append(controls);work.append(header);
-  // L'accès aux stages est une vraie porte d'entrée, au même niveau visuel
+  // L'accès aux PFMP est une vraie porte d'entrée, au même niveau visuel
   // que le grand accès au tableau de bord de la démonstration.
   const stageHero=E('section','cs-stage-featured cs-stage-featured-real');
-  stageHero.setAttribute('aria-label','Trouver un stage professionnel');
+  stageHero.setAttribute('aria-label','Trouver une PFMP professionnelle');
   stageHero.innerHTML=
    '<div class="cs-stage-featured-top"><span class="cs-stage-featured-label">✦ CORTEX · PARCOURS PROFESSIONNEL</span><span class="cs-stage-featured-status">ALBERT IA</span></div>'+
-   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">STAGES · DES ENTREPRISES AUTOUR DE TOI</span>'+
-   '<h2>Découvre ton<br><em>prochain stage.</em></h2>'+
+   '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · DES ENTREPRISES AUTOUR DE TOI</span>'+
+   '<h2>Découvre ta<br><em>prochaine PFMP.</em></h2>'+
    '<p>Choisis ta filière et ta ville, prépare ton premier contact et enregistre tes candidatures dans ton carnet.</p></div></div>';
   const stageCta=E('button','cs-stage-featured-button');
   stageCta.type='button';
   const stageIcon=E('span','cs-stage-featured-icon','⌖');stageIcon.setAttribute('aria-hidden','true');stageCta.append(stageIcon);
   const copy=E('span','cs-stage-featured-button-copy');
-  copy.append(E('strong','','Rechercher mon stage'),
+  copy.append(E('strong','','Rechercher ma PFMP'),
    E('small','','Annuaire · Modèles de contact · Suivi des relances'));
   stageCta.append(copy);
   stageCta.addEventListener('click',renderStageView);
   stageHero.append(stageCta);
   // L'évaluation est la première action du tableau de bord.
-  // Ne pas cacher « Démarrer ce contrôle » sous la grande bannière de stages.
+  // Ne pas cacher « Démarrer ce contrôle » sous la grande bannière de PFMP.
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];
   if(!assessments.length){
    cards.append(E('div','cw-student-empty','Aucun contrôle n’est encore ouvert pour ta classe. Les prochaines évaluations apparaîtront ici.'));

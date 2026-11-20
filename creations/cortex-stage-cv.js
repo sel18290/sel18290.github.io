@@ -1,25 +1,12 @@
 /* Atelier CV et lettre : brouillons séparés par entreprise, dans le carnet de l’élève. */
 (function () {
   'use strict';
-  function normalizePFMP(value) {
-    return String(value || '')
-      .replace(/\bMon stage\b/g, 'Ma PFMP')
-      .replace(/\bmon stage\b/gi, 'ma PFMP')
-      .replace(/\bTon stage\b/g, 'Ta PFMP')
-      .replace(/\bton stage\b/gi, 'ta PFMP')
-      .replace(/\bCe stage\b/g, 'Cette PFMP')
-      .replace(/\bce stage\b/gi, 'cette PFMP')
-      .replace(/\bdu stage\b/gi, 'de la PFMP')
-      .replace(/\ble stage\b/gi, 'la PFMP')
-      .replace(/\bun stage\b/gi, 'une PFMP')
-      .replace(/\bstages?\b/gi, 'PFMP');
-  }
-
+  const { normalizePFMP } = window.CORTEX_STAGE_GUIDE;
   const fields = {
     cv: [
-      ['profil', 'Mon profil', 'En deux phrases, présente ta formation, la PFMP recherchée et une qualité que tu peux expliquer.'],
+      ['profil', 'Mon profil', 'Présente ta formation, la PFMP recherchée et une qualité que tu peux expliquer.'],
       ['formation', 'Ma formation', 'Indique ton diplôme et les années. Ex. Bac pro AGOrA, 2025–2028.'],
-      ['experiences', 'Mes expériences et projets', 'Un projet au lycée, une aide dans une association ou une PFMP précédente. Indique ce que tu as vraiment fait.'],
+      ['experiences', 'Mes expériences et projets', 'Décris ce que tu as fait lors d’un projet au lycée, d’une action associative ou d’une PFMP précédente.'],
       ['competences', 'Mes compétences', 'Note les outils ou activités que tu sais utiliser. Donne un exemple concret pour chaque compétence.'],
       ['interets', 'Mes centres d’intérêt (facultatif)', 'Choisis un intérêt dont tu peux parler en entretien.']
     ],
@@ -48,18 +35,19 @@
     const name = [identity.first, identity.last].filter(Boolean).join(' ');
     const identityLine = [identity.email, identity.phone].filter(Boolean).join(' · ');
     const header = [name || '[Prénom et nom]', identityLine, identity.school].filter(Boolean).join('\n');
-    const target = entry.place.name;
+    const target = entry.place.name || '[nom de la structure]';
     if (kind === 'cv') {
       const sections = fields.cv.filter(([key]) => filled(draft[key]))
         .map(([key, title]) => title.replace(' (facultatif)', '') + '\n' + draft[key].trim());
-      return [header, 'CV · PFMP en bac pro ' + programLabel + '\n' + target + ' · ' + period, ...sections].join('\n\n');
+      return [header, 'CV · PFMP en bac pro ' + programLabel + '\n' +
+        [entry.place.name, period].filter(Boolean).join(' · '), ...sections].join('\n\n');
     }
     return [
       header, ['À l’attention de l’équipe de ' + target, entry.place.address].filter(Boolean).join('\n'),
       'Objet : candidature pour une PFMP ' + period,
-      'Madame, Monsieur,\n\nJe suis en bac pro ' + programLabel + ' et je souhaite faire ma PFMP dans votre équipe. Mon lycée fournit la convention et mon allocation de PFMP est versée par l’État.',
+      'Madame, Monsieur,\n\nJe suis en bac pro ' + programLabel + ' et je souhaite effectuer ma PFMP au sein de votre équipe. Mon lycée fournit la convention.',
       ...fields.lettre.map(([key]) => filled(draft[key])).filter(Boolean),
-      'Seriez-vous disponible pour échanger au sujet de ma PFMP ? Je vous remercie pour votre attention.',
+      'Seriez-vous disponible pour échanger au sujet de ma candidature ? Je vous remercie pour votre attention.',
       'Cordialement,\n' + (name || '[Prénom et nom]')
     ].join('\n\n');
   }
@@ -84,50 +72,39 @@
   }
 
   function mount(host, api) {
-    let selected = '', kind = 'lettre', step = 1;
+    let selected = '', kind = 'cv', step = 2;
     let request;
     function render() {
       request?.abort();
       request = null;
       const entries = api.entries();
-      const entry = entries.find(item => item.place.id === selected);
-      if (!entry) { selected = ''; step = 1; }
-      host.replaceChildren(element('p', 'cs-stage-contact-guidance',
-        'Choisis une entreprise de ton carnet, rédige un premier jet et prépare ton document.'));
-      if (!entries.length) {
-        host.append(element('p', '', 'Ajoute une entreprise dans « Mes démarches » pour préparer ton CV ou ta lettre.'),
-          button('Ouvrir mes démarches', 'cs-stage-primary', api.openBoard));
-        return;
-      }
-      const rail = element('div', 'cs-stage-cv-rail'), controls = element('div', 'cs-stage-cv-tools');
-      rail.setAttribute('aria-label','Entreprises enregistrées');
-      rail.setAttribute('role','group');
-      controls.append(button('Précédentes', 'cs-stage-pale', () => rail.scrollBy({left:-rail.clientWidth,behavior:'smooth'})),
-        button('Suivantes', 'cs-stage-pale', () => rail.scrollBy({left:rail.clientWidth,behavior:'smooth'})));
-      host.append(element('h3', '', 'Choisis ton entreprise'), controls, rail);
-      for (const item of entries) {
-        const card = button('', 'cs-stage-cv-company', () => { selected = item.place.id; step = 2; render(); focusStep(); });
-        card.append(element('strong','',item.place.name),element('small','',item.place.address || api.status(item)));
-        card.setAttribute('aria-pressed',String(item === entry));
-        rail.append(card);
-      }
-      const active = rail.querySelector('[aria-pressed="true"]');
-      if (active) rail.scrollLeft = active.getBoundingClientRect().left - rail.getBoundingClientRect().left;
-      if (!entry) return;
-      if (!Object.hasOwn(api.drafts, selected)) api.drafts[selected] = {cv:{},lettre:{}};
-      const draft = api.drafts[selected][kind];
+      if (selected && !entries.some(item => item.place.id === selected)) { selected = ''; step = 2; }
+      const entry = entries.find(item => item.place.id === selected) || api.general();
+      const draftKey = entry.place.id;
+      if (!Object.hasOwn(api.drafts, draftKey)) api.drafts[draftKey] = {cv:{},lettre:{}};
+      const draft = api.drafts[draftKey][kind];
+      const setup = element('div','cs-stage-cv-setup');
+      const pickerLabel = element('label','','Pour quel lieu ?'), picker = element('select');
+      picker.replaceChildren(new Option('Brouillon général', ''), ...entries.map(item => new Option(item.place.name, item.place.id)));
+      picker.value = selected;
+      picker.addEventListener('change', () => { selected = picker.value; step = 2; render(); focusStep(); });
+      pickerLabel.append(picker);
+      setup.append(pickerLabel);
       const folio = element('div','cs-stage-cv-work');
-      folio.append(element('h3','','Candidature pour '+entry.place.name));
+      if (step === 2) folio.classList.add('is-editing');
       const tabs = element('div','cs-stage-cv-tools');
-      for (const [key,label] of [['lettre','Lettre de motivation'],['cv','CV']]) {
+      tabs.setAttribute('role','group');
+      tabs.setAttribute('aria-label','Type de document');
+      for (const [key,label] of [['cv','CV'],['lettre','Lettre de motivation']]) {
         const tab = button(label,'cs-stage-pale',() => {kind=key;step=2;render();focusStep();});
         tab.setAttribute('aria-pressed',String(kind===key));tabs.append(tab);
       }
-      folio.append(tabs);
-      const heading = element('h3','cs-stage-cv-step',step===2 ? 'Rédige ton premier jet' : 'Relis ton document');
+      setup.append(tabs);
+      const path = element('p','cs-stage-cv-filing',entry.place.name
+        ? 'Brouillon pour ' + entry.place.name : 'Tu peux préparer un brouillon avant de choisir un lieu.');
+      host.replaceChildren(setup,path,folio);
+      const heading = element('h3','cs-stage-cv-step',step===2 ? 'Rédige ton ' + (kind === 'cv' ? 'CV' : 'premier jet') : 'Relis ton document');
       heading.tabIndex = -1;
-      folio.append(heading);
-      host.append(folio);
       if (step === 3) {
         const content = finalText(entry,api.identity,kind,draft,api.period(),api.program(entry));
         const area = element('textarea','cs-stage-cv-preview');
@@ -144,18 +121,22 @@
             try {await navigator.clipboard.writeText(area.value);notice.textContent='Document copié.';}
             catch {area.focus();area.select();notice.textContent='Texte sélectionné. Utilise la commande Copier.';}
           }),button('Imprimer ou enregistrer en PDF','cs-stage-primary',()=>printText(kind==='cv'?'CV':'Lettre de motivation',area.value)));
-        folio.append(element('p','cs-stage-contact-guidance','Vérifie les coordonnées, les dates et le nom de l’entreprise avant de remettre ta candidature.'),area,tools,notice);
+        folio.append(heading,element('p','cs-stage-contact-guidance','Vérifie les coordonnées, les dates et le nom du lieu avant de partager ta candidature.'),area,tools,notice);
         return;
       }
 
+      const editor = element('div','cs-stage-cv-editor'), sidebar = element('aside','cs-stage-cv-sidebar');
       const identity = element('div','cs-stage-cv-fields');
+      const identityPanel = element('details','cs-stage-cv-identity');
+      identityPanel.append(element('summary','','Mes coordonnées'),identity);
+      editor.append(heading,identityPanel);
+      folio.append(editor,sidebar);
       for (const [key,label,fieldType] of [['first','Prénom','text'],['last','Nom','text'],['school','Nom du lycée','text'],['email','E-mail (facultatif)','email'],['phone','Téléphone (facultatif)','tel']]) {
         const wrap = element('label','',label), input = element('input');
         input.type = fieldType; input.maxLength=100; input.value=api.identity[key]||'';
         input.addEventListener('input',()=>{api.identity[key]=input.value.trim();api.save();});
         wrap.append(input);identity.append(wrap);
       }
-      folio.append(identity);
       const inputs = new Map();
       const fieldChanged = () => {
         if (draft.final !== undefined) delete draft.final;
@@ -166,11 +147,11 @@
         const wrap=element('label','cs-stage-cv-field',title), input=element('textarea');
         input.rows=3;input.maxLength=1300;input.value=draft[key]||'';
         wrap.append(element('small','cs-stage-contact-guidance',hint),input);
-        folio.append(wrap); inputs.set(key,input);
+        editor.append(wrap); inputs.set(key,input);
         input.addEventListener('input',()=>{draft[key]=input.value;fieldChanged();});
       }
       const hook = api.getHook(entry).trim();
-      if (kind === 'lettre' && hook) folio.append(button('Ajouter mon accroche au brouillon','cs-stage-pale',()=>{
+      if (kind === 'lettre' && hook) editor.append(button('Ajouter mon accroche au brouillon','cs-stage-pale',()=>{
         const target=inputs.get('motivation');
         if(!target.value.includes(hook)){
           target.value=[hook,target.value].filter(Boolean).join('\n').slice(0,target.maxLength);
@@ -195,22 +176,28 @@
         try {
           const data=await api.ask(entry,kind,id,raw,own.signal);
           if(own.signal.aborted)return;
+          if(input.value.trim()!==raw){feedback.textContent='Ton passage a changé. Demande une nouvelle reformulation.';return;}
           feedback.textContent='Lis la proposition et garde ce qui te ressemble.';
-          suggestion.replaceChildren(element('strong','','Proposition Albert'),element('p','',normalizePFMP(data.improved)),element('p','',normalizePFMP(data.tip)),
+          const improved = normalizePFMP(data.improved);
+          suggestion.replaceChildren(element('strong','','Proposition Albert'),element('p','',improved),element('p','',normalizePFMP(data.tip)),
             button('Utiliser cette proposition','cs-stage-pale',()=>{
-              input.value=normalizePFMP(data.improved);draft[id]=normalizePFMP(data.improved);fieldChanged();suggestion.hidden=true;input.focus();
+              if(input.value.trim()!==raw){feedback.textContent='Ton passage a changé. Demande une nouvelle reformulation.';suggestion.hidden=true;return;}
+              input.value=improved;draft[id]=improved;fieldChanged();suggestion.hidden=true;input.focus();
             }));
           suggestion.hidden=false;
         } catch(error) {
           if(!own.signal.aborted)feedback.textContent=error.message||'Albert est indisponible. Ton brouillon reste accessible.';
         } finally {if(request===own)ask.disabled=false;}
       });
-      box.append(element('h3','','Demander un coup de main à Albert'),label,
-        element('small','cs-stage-contact-guidance','Albert reçoit le passage choisi, ta filière et le nom de la structure. Garde tes coordonnées et tes informations personnelles dans les champs prévus.'),
+      box.append(element('h3','','Reformuler avec Albert'),label,
+        element('small','cs-stage-contact-guidance','Seul le passage choisi est relu avec le contexte de la filière. Renseigne tes coordonnées dans le volet prévu.'),
         ask,feedback,suggestion);
+      editor.insertBefore(button('Ouvrir l’aide d’Albert','cs-stage-pale cs-stage-cv-ai-jump',()=>select.focus()),identityPanel);
       const preview=button('Relire mon document','cs-stage-primary',()=>{step=3;render();focusStep();});
       preview.disabled=!fields[kind].some(([id])=>filled(draft[id]));
-      folio.append(box,preview);
+      editor.append(preview);
+      sidebar.append(box,button('Renseigner mes dates de PFMP','cs-stage-pale',api.openPrep));
+      if (!entries.length) sidebar.append(button('Ouvrir mes démarches','cs-stage-pale',api.openBoard));
     }
     function focusStep(){host.querySelector('.cs-stage-cv-step')?.focus();}
     return {

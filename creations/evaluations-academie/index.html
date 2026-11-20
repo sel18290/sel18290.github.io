@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../question-types.css?v=1.0">
 <link rel="stylesheet" href="../cortex-student-simulator.css?v=1.1">
 <link rel="stylesheet" href="./student-timer.css?v=1.0">
-<link rel="stylesheet" href="../cortex-stage-search.css?v=4.0">
+<link rel="stylesheet" href="../cortex-stage-search.css?v=5.0">
 <link rel="stylesheet" href="./student-ai.css?v=1.2">
 <link rel="stylesheet" href="./student-chatgpt.css?v=1.0">
 <script defer src="../question-types.js?v=1.2"></script>
@@ -30,11 +30,13 @@
 <link rel="stylesheet" href="./exam-tiles.css?v=1.4">
 <link rel="stylesheet" href="./ist-a6-documents.css?v=1.0">
 <script defer src="./ist-a6-documents.js?v=1.1"></script>
-<script defer src="../cortex-stage-guide.js?v=1.0"></script>
-<script defer src="../cortex-stage-contact.js?v=3.1-pfmp"></script>
-<script defer src="../cortex-stage-cv.js?v=3.1-pfmp"></script>
+<script defer src="../cortex-stage-guide.js?v=1.1"></script>
+<script defer src="../cortex-stage-contact.js?v=3.2"></script>
+<script defer src="../cortex-stage-cv.js?v=4.0"></script>
 <script defer src="../cortex-stage-ranking.js?v=1.0"></script>
-<script defer src="../cortex-stage-search.js?v=4.1-pfmp"></script>
+<script defer src="../cortex-pfmp-assistant.js?v=1.0"></script>
+<script defer src="../cortex-stage-search.js?v=5.0"></script>
+<script defer src="./pfmp-host-admin.js?v=1.0"></script>
 <script defer src="../cortex-exam-integrity.js?v=1.1"></script>
 <script defer src="../cortex-exam-live.js?v=1.0"></script>
 <script defer src="../cortex-exam-monitor.js?v=1.1"></script>
@@ -142,7 +144,32 @@
     <section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2><p>Les contrôles réellement enregistrés dans ton espace professeur.</p></div><a href="#prof-assessments" data-acad-view="assessments" class="btn ghost small">Tout voir →</a></div><div id="acad-live-recent-exams" class="acad-live-recent-exams"><div class="empty">Aucun contrôle enregistré pour le moment.</div></div></section>
     <section class="panel"><div class="panel-head"><h2>Ton espace professeur</h2><span class="chip teal">Données réelles</span></div><p class="muted small">Les mêmes rubriques que sur le site test, avec tes classes, tes sujets et les copies sauvegardées dans Supabase.</p><div class="inline-note"><strong>Parcours conseillé</strong><p>1. Ouvre les inscriptions PIN pendant 30 minutes : les élèves choisissent eux-mêmes leur code.</p><p>2. Crée un contrôle, importe son document et publie le QR code.</p><p>3. Retrouve les copies dans « Copies & notes » pour les corriger.</p></div><div class="btn-row" style="margin-top:18px"><a href="#cw-persistent-classes" data-acad-view="pins" class="btn secondary full">Préparer les PIN élèves →</a></div><p class="muted small acad-live-disclaimer">Les fonctions non encore raccordées au serveur sont signalées. Aucune donnée fictive n'est présentée comme réelle.</p></section>
    </div>
+   <section class="panel cs-stage-host-overview" aria-labelledby="pfmp-host-overview-title">
+    <div class="panel-head"><div><h2 id="pfmp-host-overview-title">Historique des accueils PFMP</h2><p>Confirme les lieux qui ont déjà accueilli tes élèves pour qu’ils puissent les retrouver dans leur recherche.</p></div><button type="button" class="btn secondary" data-pfmp-host-open>Gérer les accueils PFMP</button></div>
+   </section>
   </section>
+  <dialog class="cs-stage-search cs-stage-dialog cs-stage-host-admin" id="pfmp-host-admin" aria-labelledby="pfmp-host-title">
+   <div class="cs-stage-dialog-head"><h2 id="pfmp-host-title">Historique des accueils PFMP</h2><form method="dialog"><button class="cs-stage-pale">Fermer</button></form></div>
+   <div class="cs-stage-dialog-body">
+    <p>Enregistre le lieu et la date de fin d’une PFMP effectuée. Ces confirmations sont accessibles à tes élèves connectés.</p>
+    <form class="cs-stage-host-form" data-host-form novalidate>
+     <label>SIRET de l’établissement<input name="siret" type="text" inputmode="numeric" maxlength="17" autocomplete="off" required></label>
+     <div class="cs-stage-action-row"><button type="button" data-host-lookup class="cs-stage-pale">Vérifier le SIRET</button><a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer" class="cs-stage-text-button">Trouver un SIRET</a></div>
+     <fieldset data-host-details hidden><legend>PFMP effectuée</legend><div>
+      <div data-host-match></div>
+      <label>Filière<select name="program"></select></label>
+      <label>Type de lieu<select name="type"></select></label>
+      <label>Date de fin<input name="completed" type="date" min="2000-01-01" required></label>
+      <label class="cs-stage-host-confirm"><input name="confirmed" type="checkbox" required><span>Je confirme qu’une PFMP a été effectuée dans cet établissement.</span></label>
+      <button type="submit" class="cs-stage-primary" data-host-submit>Enregistrer l’accueil confirmé</button>
+     </div></fieldset>
+    </form>
+    <p role="status" data-host-status></p>
+    <h3>Mes confirmations</h3>
+    <div class="cs-stage-host-list" data-host-list></div>
+    <div class="cs-stage-action-row" data-host-pages hidden><button type="button" class="cs-stage-pale" data-host-previous>Page précédente</button><button type="button" class="cs-stage-pale" data-host-next>Page suivante</button></div>
+   </div>
+  </dialog>
 <div id="prof-content">
 <section class="prof-sec cw-workspace" id="acad-live-workflow">
  <div class="prof-head"><div><span class="eyebrow">PASSATION RÉELLE · SUPABASE</span><h3>Déposer un sujet, recevoir les copies.</h3></div><button type="button" id="cw-refresh" class="cw-refresh">Actualiser les copies ↻</button></div>

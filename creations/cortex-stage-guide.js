@@ -117,7 +117,7 @@
     return types[sector].filter(type => !type[3] || option === 'toutes' || type[3] === option);
   }
 
-  function forPlace(sector, option, matched) {
+  function forPlace(sector, option, matched = []) {
     const categories = forSearch(sector, option).filter(type => matched.includes(type[0]));
     if (sector !== 'commerce-vente') return { categories, profile: profiles[sector] };
     const routes = new Set(categories.map(type => type[3]));
@@ -125,5 +125,14 @@
     return { categories, profile: profiles[route] || null };
   }
 
-  window.CORTEX_STAGE_GUIDE = { programs, profiles, forSearch, forPlace, inferProgram };
+  function normalizePFMP(value) {
+    return String(value || '')
+      .replace(/\bMon stage\b/g, 'Ma PFMP').replace(/\bmon stage\b/gi, 'ma PFMP')
+      .replace(/\bTon stage\b/g, 'Ta PFMP').replace(/\bton stage\b/gi, 'ta PFMP')
+      .replace(/\bCe stage\b/g, 'Cette PFMP').replace(/\bce stage\b/gi, 'cette PFMP')
+      .replace(/\bdu stage\b/gi, 'de la PFMP').replace(/\ble stage\b/gi, 'la PFMP')
+      .replace(/\bun stage\b/gi, 'une PFMP').replace(/\bstages?\b/gi, 'PFMP');
+  }
+
+  window.CORTEX_STAGE_GUIDE = { programs, profiles, forSearch, forPlace, inferProgram, normalizePFMP };
 })();

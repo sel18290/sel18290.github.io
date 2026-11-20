@@ -1,20 +1,6 @@
-/* CORTEX · Recherche et suivi de PFMP, communs à la démonstration et à CORTEX Académie. */
+/* CORTEX · Recherche et suivi des PFMP, en démonstration et en Académie. */
 (function () {
   'use strict';
-  function normalizePFMP(value) {
-    return String(value || '')
-      .replace(/\bMon stage\b/g, 'Ma PFMP')
-      .replace(/\bmon stage\b/gi, 'ma PFMP')
-      .replace(/\bTon stage\b/g, 'Ta PFMP')
-      .replace(/\bton stage\b/gi, 'ta PFMP')
-      .replace(/\bCe stage\b/g, 'Cette PFMP')
-      .replace(/\bce stage\b/gi, 'cette PFMP')
-      .replace(/\bdu stage\b/gi, 'de la PFMP')
-      .replace(/\ble stage\b/gi, 'la PFMP')
-      .replace(/\bun stage\b/gi, 'une PFMP')
-      .replace(/\bstages?\b/gi, 'PFMP');
-  }
-
 
   const ENDPOINT = 'https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-stage-search';
   const GUIDE = window.CORTEX_STAGE_GUIDE;
@@ -36,6 +22,13 @@
     ['school', 'J’ai fait valider le lieu et les missions par le lycée.'],
     ['agreement', 'Ma convention est signée avant le début de la PFMP.']
   ];
+  const HERO = {
+    search: ['Trouve ta', 'prochaine PFMP.', 'Recherche de PFMP', 'Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.'],
+    board: ['Mes', 'démarches', 'Carnet PFMP', 'Retrouve tes contacts, tes réponses et tes prochaines relances.'],
+    prep: ['Préparer', 'ma PFMP', 'Avant le premier contact', 'Prépare tes dates, les questions à poser et la convention à faire valider.'],
+    cv: ['CV et', 'lettre', 'Atelier de candidature', 'Rédige, améliore et relis tes documents avant de les partager.'],
+    assistant: ['Ton assistant', 'Albert', 'Accompagnement PFMP', 'Choisis une action pour avancer, de la recherche au premier entretien.']
+  };
 
   const clean = value => String(value ?? '').trim();
   const numbers = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
@@ -128,6 +121,10 @@
       rank: Number(raw.albert_rank) > 0 ? Number(raw.albert_rank) : 0,
       why: clean(raw.albert_why),
       suggestion: Array.isArray(raw.missions) ? raw.missions.map(clean).filter(Boolean)[0] || '' : '',
+      evidence: raw.pfmp_evidence?.label ? {
+        label: clean(raw.pfmp_evidence.label), date: clean(raw.pfmp_evidence.date),
+        period: clean(raw.pfmp_evidence.period), url: webUrl(raw.pfmp_evidence.url)
+      } : null,
       manual: raw.manual === true
     };
   }
@@ -195,9 +192,9 @@
           <button type="button" class="cs-stage-return" id="cs-stage-back">Retour à l’espace élève</button>
         </div>
         <div class="cs-stage-hero-copy">
-          <div class="cs-stage-kicker">Recherche de PFMP</div>
-          <h1 tabindex="-1" id="cs-stage-title">Trouve ta<br><em>prochaine PFMP.</em></h1>
-          <p>Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.</p>
+          <div class="cs-stage-kicker" id="cs-stage-hero-kicker">Recherche de PFMP</div>
+          <h1 tabindex="-1" id="cs-stage-title"><span id="cs-stage-hero-title">Trouve ta</span><br><em id="cs-stage-hero-emphasis">prochaine PFMP.</em></h1>
+          <p id="cs-stage-hero-description">Repère des lieux autour de toi, prépare le premier contact et garde le fil de tes candidatures.</p>
         </div>
       </div>
     </header>
@@ -206,10 +203,11 @@
       <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> Mes démarches <span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
       <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span> Préparer ma PFMP</button>
       <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span> CV et lettre</button>
+      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span> Assistant Albert</button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
-      <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span><span aria-hidden="true">→</span></button>
-      <button type="button" data-stage-document="lettre" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon is-letter" aria-hidden="true">✉</span><span><strong>Préparer ma lettre de motivation</strong><small>Explique pourquoi tu veux faire ta PFMP ici.</small></span><span aria-hidden="true">→</span></button>
+      <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span></button>
+      <button type="button" data-stage-document="lettre" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon is-letter" aria-hidden="true">✉</span><span><strong>Préparer ma lettre de motivation</strong><small>Explique pourquoi le lieu t’intéresse.</small></span></button>
     </div>
     <div class="cs-stage-panel" data-stage-panel="search" id="cs-stage-search-panel">
       <div class="cs-stage-workspace">
@@ -247,7 +245,10 @@
             </div>
           </details>
           <div class="cs-stage-launch">
-            <label class="cs-stage-toggle"><input type="checkbox" id="cs-stage-albert" checked><span><strong>Classement Albert IA</strong><small>Prioriser les lieux adaptés à ta filière</small></span></label>
+            <div class="cs-stage-search-options">
+              <label class="cs-stage-toggle"><input type="checkbox" id="cs-stage-albert" checked><span><strong>Classement Albert IA</strong><small>Prioriser les lieux adaptés à ta filière</small></span></label>
+              <label class="cs-stage-toggle cs-stage-confirmed-toggle"><input type="checkbox" id="cs-stage-confirmed"><span><strong>Uniquement les lieux ayant déjà accueilli en PFMP</strong><small id="cs-stage-confirmed-scope"></small></span></label>
+            </div>
             <button type="submit" class="cs-stage-primary" id="cs-stage-submit"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Trouver des lieux</button>
           </div>
         </form>
@@ -264,6 +265,7 @@
           <div><div class="cs-stage-kicker">Résultats de recherche</div><h2 id="cs-stage-result-title" tabindex="-1"></h2><p id="cs-stage-result-context"></p></div>
           <div class="cs-stage-result-actions">
             <button type="button" id="cs-stage-resume" class="cs-stage-primary" hidden>Reprendre la recherche</button>
+            <button type="button" id="cs-stage-compare" class="cs-stage-quiet" hidden>Comparer avec Albert</button>
             <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
           </div>
         </div>
@@ -297,52 +299,79 @@
           <button type="button" id="cs-stage-show-all" class="cs-stage-quiet" hidden>Afficher toute la sélection</button>
         </div>
       </section>
-      <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle accueille des stagiaires.</p>
+      <p class="cs-stage-sources">Sources <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, <a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer">Annuaire des entreprises</a> et IGN. Vérifie les coordonnées et demande à la structure si elle peut t’accueillir en PFMP.</p>
     </div>
     <div class="cs-stage-panel" data-stage-panel="board" id="cs-stage-board-panel" hidden>
       <section class="cs-stage-surface cs-stage-survey" aria-labelledby="cs-stage-board-title">
         <div class="cs-stage-pane-head">
-          <div><div class="cs-stage-panel-kicker">Carnet de candidatures</div><h2 id="cs-stage-board-title" tabindex="-1">Mes démarches</h2><p>Organise les lieux à contacter, les réponses et les relances. Ton carnet est enregistré dans ce navigateur.</p></div>
+          <div><h2 id="cs-stage-board-title" tabindex="-1">Mon carnet de candidatures</h2><p>Ton carnet est enregistré dans ce navigateur.</p></div>
           <div class="cs-stage-board-actions">
             <button type="button" class="cs-stage-pale" id="cs-stage-add-place">Ajouter un lieu</button>
             <button type="button" class="cs-stage-pale" id="cs-stage-export-board" hidden>Exporter en CSV</button>
           </div>
         </div>
         <div class="cs-stage-board-stats" id="cs-stage-board-stats" aria-label="Résumé de mes démarches"></div>
+        <div class="cs-stage-board-tools" id="cs-stage-board-tools" hidden>
+          <label>Retrouver un lieu<input type="search" id="cs-stage-board-query" placeholder="Nom ou adresse"></label>
+          <label>Afficher<select id="cs-stage-board-filter"><option value="all">Toutes mes démarches</option><option value="todo">À contacter</option><option value="due">À relancer</option><option value="progress">En cours</option><option value="waiting">En attente</option><option value="meeting">Entretien prévu</option><option value="accepted">Accord reçu</option><option value="declined">Refus</option></select></label>
+        </div>
         <p class="cs-stage-board-notice" id="cs-stage-board-notice" role="status"></p>
         <div class="cs-stage-board-list" id="cs-stage-board-list"></div>
       </section>
     </div>
     <div class="cs-stage-panel" data-stage-panel="prep" id="cs-stage-prep-panel" hidden>
       <div class="cs-stage-prep-grid">
-        <section class="cs-stage-surface" aria-labelledby="cs-stage-prep-title">
-          <div class="cs-stage-panel-kicker">Écrire ou appeler</div>
-          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer ma PFMP</h2>
-          <p>Renseigne les dates données par ton lycée pour personnaliser les modèles de candidature.</p>
+        <section class="cs-stage-surface cs-stage-prep-contact" aria-labelledby="cs-stage-prep-title">
+          <h2 id="cs-stage-prep-title" tabindex="-1">Préparer le premier contact</h2>
+          <p>Ajoute les dates données par ton lycée. Elles seront reprises dans tes modèles.</p>
           <div class="cs-stage-date-fields">
             <label>Date de début <input type="date" id="cs-stage-start"></label>
             <label>Date de fin <input type="date" id="cs-stage-end"></label>
           </div>
           <p id="cs-stage-date-status" class="cs-stage-date-status" role="status"></p>
-          <label class="cs-stage-contact-target">Entreprise à contacter
-            <select id="cs-stage-contact-target"><option value="">Message sans entreprise choisie</option></select>
+          <label class="cs-stage-contact-target">Lieu à contacter
+            <select id="cs-stage-contact-target"><option value="">Sans structure précise</option></select>
           </label>
-          <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Préparer mon message</button>
-          <div class="cs-stage-check-area">
-            <h3>Avant de commencer ta PFMP</h3>
-            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
-            <div id="cs-stage-checklist"></div>
+          <div class="cs-stage-action-row">
+            <button type="button" class="cs-stage-primary" id="cs-stage-make-message">Écrire ou appeler</button>
+            <button type="button" class="cs-stage-pale" id="cs-stage-prep-cv">Préparer mon CV</button>
           </div>
         </section>
+        <div class="cs-stage-prep-side">
+          <section class="cs-stage-brief cs-stage-coach-callout" aria-labelledby="cs-stage-interview-heading">
+            <div class="cs-stage-kicker">Assistant Albert</div>
+            <h2 id="cs-stage-interview-heading">Un entretien à préparer ?</h2>
+            <p>Entraîne-toi à présenter ce que tu sais faire et à poser des questions sur tes missions.</p>
+            <button type="button" class="cs-stage-quiet" id="cs-stage-prep-interview">M’entraîner avec Albert</button>
+          </section>
+          <section class="cs-stage-surface cs-stage-check-area" aria-labelledby="cs-stage-check-title">
+            <h2 id="cs-stage-check-title">Avant de commencer</h2>
+            <div class="cs-stage-progress"><progress id="cs-stage-progress" max="4" value="0" aria-label="Étapes avant la PFMP"></progress><span id="cs-stage-progress-label">0 / 4</span></div>
+            <div id="cs-stage-checklist"></div>
+          </section>
+        </div>
         <section class="cs-stage-surface cs-stage-reference" id="cs-stage-reference"></section>
       </div>
     </div>
     <div class="cs-stage-panel" data-stage-panel="cv" id="cs-stage-cv-panel" hidden>
       <section class="cs-stage-surface" aria-labelledby="cs-stage-cv-title">
-        <div class="cs-stage-panel-kicker">Atelier de candidature</div>
-        <h2 id="cs-stage-cv-title" tabindex="-1">Prépare ton CV et ta lettre</h2>
+        <h2 id="cs-stage-cv-title" tabindex="-1">Ma candidature</h2>
         <div id="cs-stage-cv-workshop"></div>
       </section>
+    </div>
+    <div class="cs-stage-panel" data-stage-panel="assistant" id="cs-stage-assistant-panel" hidden>
+      <div class="cs-stage-advisor-grid">
+        <form class="cs-stage-surface cs-stage-advisor-form" id="cs-stage-advisor-form">
+          <h2 id="cs-stage-assistant-title" tabindex="-1">Comment Albert peut t’aider ?</h2>
+          <p id="cs-stage-advisor-context" class="cs-stage-advisor-context"></p>
+          <fieldset class="cs-stage-advisor-goals"><legend class="cs-stage-sr-only">Choisis une action</legend><div id="cs-stage-advisor-goals"></div></fieldset>
+          <label id="cs-stage-advisor-situation-wrap">Ta situation<select id="cs-stage-advisor-situation"></select></label>
+          <label id="cs-stage-advisor-target-wrap" hidden>Lieu concerné<select id="cs-stage-advisor-target"></select></label>
+          <button type="submit" id="cs-stage-advisor-ask" class="cs-stage-primary">Demander à Albert</button>
+          <p id="cs-stage-advisor-status" role="status"></p>
+        </form>
+        <section class="cs-stage-surface cs-stage-advisor-response" id="cs-stage-advisor-response" aria-label="Conseils pour ta PFMP" tabindex="-1"></section>
+      </div>
     </div>
     <dialog class="cs-stage-dialog" id="cs-stage-dialog" aria-labelledby="cs-stage-dialog-title">
       <div class="cs-stage-dialog-head"><h2 id="cs-stage-dialog-title"></h2><form method="dialog"><button class="cs-stage-pale" aria-label="Fermer la fenêtre">Fermer</button></form></div>
@@ -375,12 +404,24 @@
     let shown = [];
     let contactsDirty = true;
     let destroyed = false;
+    const calibrationScores = new Map();
 
     const section = node('section', 'cs-stage-search');
     section.setAttribute('aria-labelledby', 'cs-stage-title');
     section.innerHTML = screen;
     container.replaceChildren(section);
     const $ = id => section.querySelector('#cs-stage-' + id);
+    const navigation = section.querySelector('.cs-stage-nav');
+    const siteHeader = document.querySelector('header.topbar, header.top');
+
+    function setScrollOffset() {
+      const rect = siteHeader?.getBoundingClientRect();
+      const visible = rect && rect.top >= -2 && ['fixed','sticky'].includes(getComputedStyle(siteHeader).position);
+      const offset = Math.ceil(visible ? rect.bottom : 0) + 12;
+      section.style.setProperty('--cs-stage-scroll-start', offset + 'px');
+      return offset;
+    }
+    setScrollOffset();
 
     const prep = saved.prep || { start: '', end: '', done: [] };
     const checks = new Set(Array.isArray(prep.done) ? prep.done : []);
@@ -388,6 +429,9 @@
     $('city').value = clean(preferences.city) || 'Paris 15e';
     $('radius').value = RADII.includes(preferences.radius) ? String(preferences.radius) : '2500';
     $('albert').checked = preferences.albert !== false;
+    $('confirmed').checked = preferences.confirmed === true;
+    $('confirmed-scope').textContent = settings.demo
+      ? 'S’appuie sur les témoignages publics vérifiés.' : 'S’appuie sur l’historique de ton enseignant et les sources publiques vérifiées.';
     section.querySelector('input[name="stage-option"][value="' + option + '"]').checked = true;
     $('start').value = validDate(prep.start) ? prep.start : '';
     $('end').value = validDate(prep.end) ? prep.end : '';
@@ -402,7 +446,7 @@
     function persist() {
       return save(key, {
         preferences: { sector, option, city: $('city').value, radius: Number($('radius').value),
-          albert: $('albert').checked, types: selections },
+          albert: $('albert').checked, confirmed: $('confirmed').checked, types: selections },
         prep: { start: prep.start || '', end: prep.end || '', done: [...checks] },
         board: [...board.values()], identity, drafts, hooks
       });
@@ -421,6 +465,12 @@
 
     function setPanel(next, moveFocus = true, company = '', kind = '') {
       panel = next;
+      section.dataset.stageView = next;
+      const [title, emphasis, kicker, description] = HERO[next];
+      $('hero-title').textContent = title;
+      $('hero-emphasis').textContent = emphasis;
+      $('hero-kicker').textContent = kicker;
+      $('hero-description').textContent = description;
       section.querySelectorAll('[data-stage-panel]').forEach(element => {
         element.hidden = element.dataset.stagePanel !== next;
       });
@@ -432,15 +482,22 @@
         renderReference();
         const target = $('contact-target');
         const previous = target.value;
-        target.replaceChildren(new Option('Message sans entreprise choisie', ''),
+        target.replaceChildren(new Option('Sans structure précise', ''),
           ...[...board.values()].map(({place}) => new Option(place.name, place.id)));
-        if (board.has(previous)) target.value = previous;
+        if (board.has(company || previous)) target.value = company || previous;
       }
-      $('doc-launch').hidden = next === 'cv';
+      $('doc-launch').hidden = next !== 'search';
       if (next === 'cv') workshop.show(company, kind);
       else workshop.hide();
+      if (next === 'assistant') assistant.show(kind, company);
+      else assistant.hide();
       if (next === 'search' && result && contactsDirty) renderCards();
-      if (moveFocus) $(next === 'search' ? 'form-title' : next + '-title').focus();
+      if (moveFocus) {
+        const offset = setScrollOffset();
+        const area = navigation.getBoundingClientRect();
+        $(next === 'search' ? 'form-title' : next + '-title').focus({ preventScroll:true });
+        if (area.top < offset || area.bottom > innerHeight) navigation.scrollIntoView({ block:'start' });
+      }
     }
 
     section.querySelectorAll('[data-stage-nav]').forEach(element => {
@@ -453,10 +510,11 @@
     });
 
     function stagePeriod() {
-      return validDate(prep.start) && validDate(prep.end)
+      return periodKnown()
         ? 'du ' + formatDate(prep.start) + ' au ' + formatDate(prep.end)
         : 'du [date de début] au [date de fin]';
     }
+    function periodKnown() { return validDate(prep.start) && validDate(prep.end); }
 
     async function askAlbert(input, signal) {
       const response = await fetch(ENDPOINT, {
@@ -470,7 +528,8 @@
 
     const workshop = window.CORTEX_STAGE_CV.mount($('cv-workshop'), {
       identity, drafts, save: persist, entries: () => [...board.values()],
-      openBoard: () => setPanel('board'), status: entry => STATES[entry.status],
+      general: () => ({ place:{id:'general/' + sector + '/' + route(),name:'',address:'',types:[]}, sector, option:route() }),
+      openBoard: () => setPanel('board'), openPrep: () => setPanel('prep'),
       program: entry => GUIDE.programs[entry.sector].name + (entry.option==='toutes'?'':' (option '+entry.option+')'),
       getHook: entry => hooks[entry.place.id] || hooks[entry.sector+'-'+entry.option] || '',
       period: stagePeriod,
@@ -483,7 +542,55 @@
         const {categories} = GUIDE.forPlace(entry.sector,entry.option,entry.place.types);
         return askAlbert({action:'improve_application',document:kind,field,text,
           filiere:entry.sector,optionCommerce:entry.option,type:categories[0]?.[0]||'',
-          company:entry.place.name.slice(0,120)},signal);
+          company:entry.place.manual ? '' : entry.place.name.slice(0,120)},signal);
+      }
+    });
+
+    function targetEntries() {
+      const entries = new Map(board);
+      if (result) for (const place of currentBatch()) {
+        if (!entries.has(place.id)) entries.set(place.id, resultEntry(place));
+      }
+      return [...entries.values()];
+    }
+
+    function assistantContext(goal, targetId) {
+      const target = targetId ? targetEntries().find(entry => entry.place.id === targetId) : null;
+      const useResults = goal === 'compare' && result && shown.length;
+      const program = target?.sector || (useResults ? result.query.sector : sector);
+      const track = target?.option || (useResults ? result.query.option : route());
+      const types = useResults ? result.query.types : program === sector && track === route() ? selected() : [];
+      const entries = goal === 'compare'
+        ? (useResults ? shown.map(place => resultEntry(place)) : [...board.values()].filter(entry => entry.sector === program && entry.option === track)).slice(0, 8)
+        : target ? [target] : [];
+      const targetGuide = GUIDE.forPlace(program, track, target?.place.types || []);
+      const candidates = entries.map(({place}) => ({types:place.types, distance:place.distance,
+        phone:place.callable, website:Boolean(place.website), confirmed:Boolean(place.evidence)}));
+      return {
+        input: { filiere:program, optionCommerce:track, niveau:apiLevel(settings.className), types,
+          candidates, state:target?.status || '', has_dates:periodKnown(), saved_count:board.size,
+          due_count:[...board.values()].filter(needsFollowUp).length },
+        entries, target, period:periodKnown() ? stagePeriod() : '',
+        typeLabels:GUIDE.forSearch(program, track).filter(([id]) => types.includes(id)).map(([,label]) => label),
+        mission:targetGuide.categories[0]?.[2] || targetGuide.profile?.question,
+        label:GUIDE.programs[program].label + (track === 'toutes' ? '' : ' · Option ' + track) +
+          (goal === 'compare' ? ' · ' + entries.length + ' ' + plural(entries.length, 'piste') : '')
+      };
+    }
+
+    const assistant = window.CORTEX_PFMP_ASSISTANT.mount($('assistant-panel'), {
+      node, button, context:assistantContext, targets:targetEntries,
+      refreshScrollOffset: setScrollOffset,
+      ask: (input, signal) => askAlbert({action:'guide_search', ...input}, signal),
+      isSaved: entry => board.has(entry.place.id), keep: addEntry, contact: openContact,
+      search: () => setPanel('search'), board: showBoardEntry,
+      documents(entry) {
+        if (entry && !board.has(entry.place.id)) addEntry(entry);
+        setPanel('cv', true, entry?.place.id || '', entry ? 'lettre' : 'cv');
+      },
+      async copy(text, notice) {
+        try { await navigator.clipboard.writeText(text); notice.textContent = 'Modèle copié.'; }
+        catch { notice.textContent = 'Sélectionne le modèle, puis utilise la commande Copier.'; }
       }
     });
 
@@ -572,6 +679,7 @@
     $('city').addEventListener('change', changeCriteria);
     $('radius').addEventListener('change', changeCriteria);
     $('albert').addEventListener('change', changeCriteria);
+    $('confirmed').addEventListener('change', changeCriteria);
 
     function updateSearchHint() {
       if (pending) return;
@@ -613,8 +721,8 @@
       reference.replaceChildren(node('div', 'cs-stage-panel-kicker', GUIDE.programs[sector].label),
         node('h2', '', 'Vérifier les missions'));
       for (const [label, profile] of programProfiles()) {
-        const group = node('section', 'cs-stage-reference-group');
-        group.append(node('h3', '', label + ' · ' + profile.title));
+        const group = node('details', 'cs-stage-reference-group');
+        group.append(node('summary', '', label + ' · ' + profile.title));
         const list = node('dl', 'cs-stage-competencies');
         for (const [title, example] of profile.blocks) {
           list.append(node('dt', '', title), node('dd', '', example));
@@ -628,20 +736,22 @@
     function queryFromForm() {
       return { city: clean($('city').value).replace(/\s+/g, ' '), sector, option: route(),
         types: selected().sort(), radius: Number($('radius').value), albert: $('albert').checked,
-        level: apiLevel(settings.className) };
+        confirmed: $('confirmed').checked, level: apiLevel(settings.className) };
     }
 
     function signature(query) {
       return JSON.stringify([normalize(query.city), query.sector, query.option, query.types, query.radius, query.albert,
-        query.albert ? query.level : '']);
+        query.albert ? query.level : '', ...(query.confirmed ? ['confirmed'] : [])]);
     }
 
     function cached(query, allowOld = false) {
+      if (query.confirmed && !settings.demo) return null;
       const record = read(cacheKey, []).find(item => item.key === signature(query));
       return record && (allowOld || Date.now() - record.time < CACHE_AGE) ? record : null;
     }
 
     function remember(query, data) {
+      if (query.confirmed && !settings.demo) return;
       const id = signature(query);
       const recent = read(cacheKey, []).filter(item => item.key !== id && Date.now() - item.time < CACHE_AGE);
       const records = [{ key: id, time: Date.now(), data }, ...recent].slice(0, 8);
@@ -674,26 +784,31 @@
       }
       const routeLabel = query.option === 'toutes' ? '' : ' · Option ' + query.option;
       $('result-context').textContent = (clean(data.city) || query.city) + ' · ' + numbers.format(query.radius / 1000) +
-        ' km · ' + GUIDE.programs[query.sector].label + routeLabel;
+        ' km · ' + GUIDE.programs[query.sector].label + routeLabel + (query.confirmed ? ' · Accueil PFMP documenté' : '');
       const aiCopy = data.priorities ? 'Priorités par type de lieu ajustées par Albert.'
         : data.calibrating ? 'Albert prépare les priorités par type de lieu…'
         : 'Sélection selon les missions, la distance et les informations des annuaires.';
-      $('ai-note').textContent = aiCopy +
+      const rankingNote = query.confirmed && !data.priorities && !data.calibrating ? '' : aiCopy;
+      const historyNote = query.confirmed ? 'Vérifie la disponibilité pour ta période auprès du lieu.' : '';
+      $('ai-note').textContent = [historyNote, rankingNote].filter(Boolean).join(' ') +
         (fromCache ? ' · Résultats enregistrés' : '') +
         (data.continuation && !data.incomplete ? ' · Chargement des pages suivantes…' : '') +
         (data.incomplete ? ' · Une partie des résultats est disponible' : '');
       $('resume').hidden = !data.incomplete || !data.continuation;
       $('results').hidden = false;
       renderBatch();
-      if (focusResults && panel === 'search') $('result-title').focus();
+      if (focusResults && panel === 'search') {
+        setScrollOffset();
+        $('result-title').focus();
+      }
     }
 
     function setBusy(query) {
       $('loader').hidden = !query;
       $('form').setAttribute('aria-busy', String(Boolean(query)));
-      if (query) $('loader-copy').textContent = query.albert
-        ? 'Consultation de l’annuaire et classement des lieux avec Albert.'
-        : 'Consultation des établissements répertoriés près de la zone choisie.';
+      if (query) $('loader-copy').textContent = query.confirmed ? 'Vérification des lieux avec un accueil PFMP déjà documenté.'
+        : query.albert ? 'Consultation de l’annuaire et classement des lieux avec Albert.'
+          : 'Consultation des établissements répertoriés près de la zone choisie.';
       $('refresh').disabled = Boolean(query);
       $('resume').disabled = Boolean(query);
       updateTypeSummary();
@@ -702,7 +817,7 @@
     async function loadStagePage(query, continuation, signal) {
       const payload = JSON.stringify({ city: query.city, filiere: query.sector,
         optionCommerce: query.option, types: query.types, radius: query.radius,
-        continuation });
+        continuation, ...(query.confirmed ? {confirmed_only:true, demo:settings.demo === true, session:settings.session || ''} : {}) });
       const attempts = continuation ? 3 : 1;
       for (let attempt = 0; attempt < attempts; attempt++) {
         if (signal.aborted) throw signal.reason;
@@ -776,10 +891,12 @@
       status('');
       setBusy(query);
       let data = resume ? result.data : null;
-      let priorities = data?.priorities ?? null;
+      const calibrationKey = JSON.stringify([query.sector, query.option, query.types, query.level]);
+      let priorities = query.albert ? data?.priorities ?? calibrationScores.get(calibrationKey) ?? null : null;
       let calibrating = query.albert && !priorities;
       const calibration = calibrating ? calibrate(query, request.signal).then(scores => {
         priorities = scores;
+        if (scores) calibrationScores.set(calibrationKey, scores);
         calibrating = false;
         if (data && !browserRequestChanged(request)) {
           data.priorities = scores;
@@ -829,7 +946,7 @@
         if (backup) {
           showResult(backup.data, query, focus, true);
           status('L’annuaire est momentanément indisponible. Les derniers résultats restent consultables.');
-        } else if (/^Ville (introuvable|ou quartier non valide)/i.test(error.message)) {
+        } else if (/^Ville (introuvable|ou quartier non valide)/i.test(error.message) || (query.confirmed && /^(Reconnecte-toi|Historique PFMP|Session PFMP)/.test(error.message))) {
           status(error.message, true);
         } else {
           status('L’annuaire ne répond pas. Réessaie ou réduis le rayon de recherche.', true);
@@ -874,6 +991,7 @@
     $('resume').addEventListener('click', () => {
       if (result?.data.continuation) search(result.query, { resume: true, focus: false });
     });
+    $('compare').addEventListener('click', () => setPanel('assistant', true, '', 'compare'));
 
     /* Résultats, carnet et préparation de la prise de contact. */
     function currentBatch() {
@@ -933,6 +1051,7 @@
       const count = currentBatch().length;
       $('matches').textContent = count ? Math.min(pageLimit, shown.length) + ' / ' + shown.length + ' affichés' : '';
       $('export').disabled = !shown.length;
+      $('compare').hidden = !shown.length;
       $('more').hidden = shown.length <= pageLimit;
       $('show-all').hidden = shown.length <= pageLimit;
       $('more').textContent = 'Afficher ' + Math.min(PAGE_SIZE, Math.max(0, shown.length - pageLimit)) + ' lieux de plus';
@@ -940,6 +1059,16 @@
       if (!shown.length) {
         if (!count && result.data.continuation && !result.data.incomplete) {
           cards.append(emptyCard('Recherche en cours', 'CORTEX examine les établissements de cette zone.'));
+          return;
+        }
+        if (!count && result.query.confirmed) {
+          cards.append(emptyCard('Aucun accueil confirmé pour ces critères',
+            'Essaie d’élargir le rayon ou consulte toutes les pistes de l’annuaire.',
+            button('Rechercher tous les lieux', 'cs-stage-quiet', () => {
+              $('confirmed').checked = false;
+              persist();
+              search({ ...result.query, confirmed:false });
+            })));
           return;
         }
         const bigger = RADII.find(value => value > result.query.radius);
@@ -983,8 +1112,24 @@
       return tags;
     }
 
+    function evidenceFor(place) {
+      const evidence = place.evidence;
+      if (!evidence) return null;
+      const block = node('div', 'cs-stage-evidence');
+      const period = validDate(evidence.date) ? 'PFMP terminée le ' + formatDate(evidence.date) : evidence.period;
+      block.append(node('strong', '', 'Accueil PFMP documenté'), node('p', '',
+        [evidence.label, period].filter(Boolean).join(' · ')));
+      if (evidence.url) block.append(outbound('Voir la source de l’accueil', evidence.url, 'cs-stage-evidence-link'));
+      block.append(node('small', '', 'Confirme la disponibilité pour tes dates.'));
+      return block;
+    }
+
+    function resultEntry(place) {
+      return { place, sector: result.query.sector, option: result.query.option, status: 'todo', followUp: '' };
+    }
+
     function resultCard(place) {
-      const context = { place, sector: result.query.sector, option: result.query.option, status: 'todo', followUp: '' };
+      const context = resultEntry(place);
       const { categories, profile } = GUIDE.forPlace(context.sector, context.option, place.types);
       const card = node('article', 'cs-stage-card');
       const top = node('div', 'cs-stage-card-top');
@@ -995,6 +1140,8 @@
       contact.append(node('p', '', place.address || 'Adresse à vérifier sur la carte'),
         node('p', 'cs-stage-contact-number', place.phone || 'Téléphone non renseigné'));
       card.append(contact);
+      const evidence = evidenceFor(place);
+      if (evidence) card.append(evidence);
       const mission = categories[0]?.[2] || profile?.lead
         || 'Vérifie si l’équipe peut te confier des missions en espace de vente ou en prospection.';
       const missions = node('div', 'cs-stage-mission-preview');
@@ -1010,7 +1157,7 @@
           status(place.name + ' ajouté à mes démarches.');
         }
       });
-      actions.append(follow);
+      actions.append(follow, button('Préparer le contact', 'cs-stage-quiet', () => openContact(board.get(place.id) || context)));
       card.append(actions);
       return card;
     }
@@ -1054,10 +1201,12 @@
         const { categories, profile } = GUIDE.forPlace(context.sector, context.option, place.types);
         return [place.name, categories.map(type => type[1]).join(', '), place.address, place.phone,
           place.distance === null ? '' : numbers.format(place.distance), place.website, publicSource(place),
-          categories[0]?.[2] || profile?.question || ''];
+          categories[0]?.[2] || profile?.question || '', place.evidence?.label || '',
+          place.evidence?.date || place.evidence?.period || '', place.evidence?.url || ''];
       });
-      exportCsv('CORTEX-recherche-stages.csv',
-        [['Lieu', 'Type', 'Adresse', 'Téléphone', 'Distance (km)', 'Site web', 'Source', 'Mission à vérifier'], ...rows]);
+      exportCsv('CORTEX-recherche-PFMP.csv',
+        [['Lieu', 'Type', 'Adresse', 'Téléphone', 'Distance (km)', 'Site web', 'Source', 'Mission à vérifier',
+          'Accueil PFMP documenté', 'Période attestée', 'Lien de la preuve'], ...rows]);
     });
 
     function addEntry(entry) {
@@ -1074,19 +1223,28 @@
       const inProgress = entries.filter(entry => entry.status === 'waiting' || entry.status === 'meeting').length;
       const accepted = entries.filter(entry => entry.status === 'accepted').length;
       const statistics = [
-        [entries.length, plural(entries.length, 'lieu suivi', 'lieux suivis')],
-        [inProgress, 'en cours'],
-        [entries.filter(needsFollowUp).length, 'à relancer'],
-        [accepted, plural(accepted, 'accord')]
+        [entries.length, plural(entries.length, 'Lieu suivi', 'Lieux suivis'), 'all'],
+        [inProgress, 'En cours', 'progress'],
+        [entries.filter(needsFollowUp).length, 'À relancer', 'due'],
+        [accepted, plural(accepted, 'Accord reçu', 'Accords reçus'), 'accepted']
       ];
       const stats = $('board-stats');
       stats.replaceChildren();
-      for (const [number, label] of statistics) {
-        const metric = node('div', 'cs-stage-board-metric');
+      for (const [number, label, state] of statistics) {
+        const metric = button('', 'cs-stage-board-metric', () => {
+          $('board-filter').value = state;
+          $('board-query').value = '';
+          renderBoard();
+          $('board-filter').focus({ preventScroll:true });
+        });
+        metric.dataset.metric = state;
+        metric.disabled = !entries.length;
+        metric.setAttribute('aria-pressed', String($('board-filter').value === state));
         metric.append(node('strong', '', String(number)), node('span', '', label));
         stats.append(metric);
       }
       $('export-board').hidden = !entries.length;
+      $('board-tools').hidden = !entries.length;
       const list = $('board-list');
       list.replaceChildren();
       if (!entries.length) {
@@ -1095,24 +1253,54 @@
           button('Revenir à la recherche', 'cs-stage-pale', () => setPanel('search'))));
         return;
       }
-      for (const entry of entries) list.append(boardCard(entry, restore));
+      const query = normalize($('board-query').value);
+      const filter = $('board-filter').value;
+      const matches = entries.filter(entry => {
+        const statusMatches = filter === 'all' || (filter === 'due' && needsFollowUp(entry)) ||
+          (filter === 'progress' && ['waiting','meeting'].includes(entry.status)) || filter === entry.status;
+        return statusMatches && normalize(entry.place.name + ' ' + entry.place.address).includes(query);
+      });
+      if (!matches.length) {
+        list.append(emptyCard('Aucune démarche dans cette vue', 'Change le statut ou le nom recherché.',
+          button('Afficher toutes mes démarches', 'cs-stage-pale', () => showBoardEntry())));
+      }
+      for (const entry of matches) list.append(boardCard(entry, restore));
       list.querySelector('[data-stage-restore]')?.focus({ preventScroll: true });
     }
+
+    function showBoardEntry(entry) {
+      $('board-filter').value = 'all';
+      $('board-query').value = '';
+      setPanel('board', !entry);
+      if (!entry) return;
+      const card = [...$('board-list').children].find(item => item.dataset.place === entry.place.id);
+      (card?.querySelector('h3') || $('board-title')).focus();
+    }
+
+    $('board-query').addEventListener('input', () => renderBoard());
+    $('board-filter').addEventListener('change', () => renderBoard());
 
     function boardCard(entry, restore) {
       const { place } = entry;
       const due = needsFollowUp(entry);
       const card = node('article', 'cs-stage-board-card');
+      card.dataset.place = place.id;
       if (due) card.classList.add('is-due');
       const top = node('div', 'cs-stage-board-card-top');
       const title = node('div');
-      title.append(node('h3', '', place.name),
+      const heading = node('h3', '', place.name);
+      heading.tabIndex = -1;
+      title.append(heading,
         node('p', '', place.address || 'Adresse à vérifier'),
         node('p', '', place.phone || 'Téléphone non renseigné'));
       const stage = node('span', 'cs-stage-board-state', due ? 'À relancer' : STATES[entry.status]);
       stage.dataset.stageState = due ? 'due' : entry.status;
       top.append(title, stage);
-      card.append(placeTags(place, entry), top, linksFor(place));
+      card.append(placeTags(place, entry), top);
+      const evidence = evidenceFor(place);
+      if (evidence) card.append(evidence);
+      card.append(linksFor(place));
+      if (validDate(entry.contactedAt)) card.append(node('p', 'cs-stage-last-contact', 'Dernier contact le ' + formatDate(entry.contactedAt)));
 
       const fields = node('div', 'cs-stage-board-fields');
       const stateLabel = node('label', '', 'Statut');
@@ -1146,7 +1334,43 @@
         if (restore?.id === place.id && restore.field === 'date') followUp.dataset.stageRestore = '';
       }
       card.append(fields);
+      const notes = node('details', 'cs-stage-board-notes');
+      const caption = node('summary', '', entry.notes ? 'Notes enregistrées' : 'Ajouter une note');
+      const label = node('label', '', 'Ma note de suivi'), draftNote = node('textarea');
+      draftNote.rows = 2;
+      draftNote.maxLength = 600;
+      draftNote.value = entry.notes || '';
+      draftNote.placeholder = 'Ex. Rappeler lundi matin avec mon CV.';
+      draftNote.addEventListener('input', () => {
+        entry.notes = draftNote.value;
+        caption.textContent = entry.notes ? 'Notes enregistrées' : 'Ajouter une note';
+        if (!persist()) boardNotice('Le navigateur ne peut pas enregistrer cette note.');
+      });
+      label.append(draftNote);
+      notes.append(caption, label);
+      card.append(notes);
       const actions = node('div', 'cs-stage-board-card-actions');
+      if (canRelance(entry.status)) {
+        actions.append(button('J’ai pris contact', 'cs-stage-primary', () => {
+          entry.contactedAt = today();
+          entry.status = 'waiting';
+          if (!validDate(entry.followUp) || entry.followUp <= entry.contactedAt) {
+            const next = new Date();
+            for (let days = 0; days < 3;) {
+              next.setDate(next.getDate() + 1);
+              if (next.getDay() % 6) days++;
+            }
+            entry.followUp = next.toLocaleDateString('sv-SE');
+          }
+          if (['todo','due'].includes($('board-filter').value)) $('board-filter').value = 'all';
+          syncBoardCard(entry, 'date');
+          boardNotice('Contact noté. Relance prévue le ' + formatDate(entry.followUp) + '.');
+        }));
+      }
+      actions.append(button('Préparer le contact', 'cs-stage-pale', () => openContact(entry)),
+        button('CV et lettre', 'cs-stage-pale', () => setPanel('cv', true, place.id)));
+      if (due || entry.status === 'meeting') actions.append(button(due ? 'Relancer avec Albert' : 'Préparer l’entretien',
+        'cs-stage-pale', () => setPanel('assistant', true, place.id, due ? 'followup' : 'interview')));
       actions.append(button('Retirer', 'cs-stage-text-button', () => confirmRemoval(entry)));
       card.append(actions);
       return card;
@@ -1229,12 +1453,12 @@
     });
 
     $('export-board').addEventListener('click', () => {
-      const rows = [...board.values()].map(({ place, sector, option, status, followUp }) => [
+      const rows = [...board.values()].map(({ place, sector, option, status, followUp, contactedAt, notes }) => [
         place.name, GUIDE.programs[sector].label, option === 'toutes' ? '' : option,
-        place.address, place.phone, place.website, STATES[status], followUp, publicSource(place)
+        place.address, place.phone, place.website, STATES[status], contactedAt, followUp, notes, publicSource(place)
       ]);
-      exportCsv('CORTEX-mes-demarches-de-stage.csv',
-        [['Lieu', 'Filière', 'Option', 'Adresse', 'Téléphone', 'Site web', 'Statut', 'Relance prévue', 'Source'], ...rows]);
+      exportCsv('CORTEX-mes-demarches-PFMP.csv',
+        [['Lieu', 'Filière', 'Option', 'Adresse', 'Téléphone', 'Site web', 'Statut', 'Dernier contact', 'Relance prévue', 'Notes', 'Source'], ...rows]);
     });
 
     function updateDates() {
@@ -1277,13 +1501,15 @@
     $('start').addEventListener('change', updateDates);
     $('end').addEventListener('change', updateDates);
     $('make-message').addEventListener('click', () => openContact(board.get($('contact-target').value) || { sector, option: route() }));
+    $('prep-cv').addEventListener('click', () => setPanel('cv', true, $('contact-target').value, 'cv'));
+    $('prep-interview').addEventListener('click', () => setPanel('assistant', true, $('contact-target').value, 'interview'));
 
     function openContact(context) {
       const { place, sector: program, option: track } = context;
       const { categories, profile } = GUIDE.forPlace(program, track, place?.types || []);
       const label = GUIDE.programs[program].name + (track !== 'toutes' ? ' (option ' + track + ')' : '');
       const period = stagePeriod();
-      const recipient = profile?.contact || 'la personne responsable des PFMP ou des ventes';
+      const recipient = profile?.contact || 'la personne qui organise l’accueil en PFMP';
       const body = node('div', 'cs-stage-dialog-body');
       if (place) {
         body.append(linksFor(place));
@@ -1292,6 +1518,13 @@
           const title = place.id.startsWith('siret/') ? 'Ouvrir la fiche de l’Annuaire des entreprises' : 'Vérifier la fiche OpenStreetMap';
           body.append(outbound(title, source, 'cs-stage-text-button'));
         }
+        const evidence = evidenceFor(place);
+        if (evidence) body.append(evidence);
+        body.append(button('Préparer mon CV et ma lettre', 'cs-stage-pale', () => {
+          if (!board.has(place.id)) addEntry(context);
+          $('dialog').close();
+          setPanel('cv', true, place.id, 'lettre');
+        }));
       }
       const mission = node('section', 'cs-stage-dialog-subsection');
       mission.append(node('h3', '', 'Missions à vérifier'));
@@ -1306,8 +1539,8 @@
       if (profile) list.append(node('li', '', profile.question));
       list.append(node('li', '', 'Qui sera mon tuteur et quelles missions pourra-t-on inscrire dans la convention ?'));
       mission.append(list);
-      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + normalizePFMP(place.suggestion)));
-      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + normalizePFMP(place.why)));
+      if (place?.suggestion) mission.append(node('p', 'cs-stage-dialog-hint', 'Suggestion Albert · ' + GUIDE.normalizePFMP(place.suggestion)));
+      if (place?.why) mission.append(node('p', 'cs-stage-dialog-hint', 'Pourquoi Albert l’a repéré · ' + GUIDE.normalizePFMP(place.why)));
       body.append(mission);
 
       const workshop = window.CORTEX_STAGE_CONTACT.mount({
@@ -1315,16 +1548,8 @@
         hook: hooks[place?.id || program+'-'+track],
         rememberHook: value => { hooks[place?.id || program+'-'+track] = value; persist(); },
         profile: program === 'commerce-vente' ? categories[0]?.[3] || track : program,
-        async ask(motivation, signal) {
-          const response = await fetch(ENDPOINT, {
-            method: 'POST', headers: { 'content-type': 'application/json' }, signal,
-            body: JSON.stringify({ action: 'prepare_contact', filiere: program, optionCommerce: track,
-              type: categories[0]?.[0] || '', motivation, demo: settings.demo === true, session: settings.session || '' })
-          });
-          const result = await response.json().catch(() => null);
-          if (!response.ok || !result?.hook) throw Error(result?.error || 'Albert est momentanément indisponible.');
-          return result;
-        }
+        ask: (motivation, signal) => askAlbert({ action:'prepare_contact', filiere:program, optionCommerce:track,
+          type:categories[0]?.[0] || '', motivation }, signal)
       });
       $('dialog').addEventListener('close', workshop.dispose, { once: true });
       body.append(workshop.root);
@@ -1341,6 +1566,7 @@
     function dispose() {
       destroyed = true;
       workshop.hide();
+      assistant.hide();
       pending?.abort();
       pending = null;
       if ($('dialog').open) $('dialog').close();

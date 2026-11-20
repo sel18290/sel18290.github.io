@@ -1,21 +1,8 @@
 /* Atelier de candidature dans la rubrique PFMP. */
 (function () {
   'use strict';
-  function normalizePFMP(value) {
-    return String(value || '')
-      .replace(/\bMon stage\b/g, 'Ma PFMP')
-      .replace(/\bmon stage\b/gi, 'ma PFMP')
-      .replace(/\bTon stage\b/g, 'Ta PFMP')
-      .replace(/\bton stage\b/gi, 'ta PFMP')
-      .replace(/\bCe stage\b/g, 'Cette PFMP')
-      .replace(/\bce stage\b/gi, 'cette PFMP')
-      .replace(/\bdu stage\b/gi, 'de la PFMP')
-      .replace(/\ble stage\b/gi, 'la PFMP')
-      .replace(/\bun stage\b/gi, 'une PFMP')
-      .replace(/\bstages?\b/gi, 'PFMP');
-  }
 
-
+  const { normalizePFMP } = window.CORTEX_STAGE_GUIDE;
   const ALLOCATION = 'L’allocation de ma PFMP est versée par l’État. Mon lycée fournit la convention.';
   const fundingOpening = 'C’est une PFMP non rémunérée par votre entreprise si la durée cumulée reste sous le seuil de gratification.';
   const withoutOpening = text => normalizePFMP(String(text || '').trim().replace(/^c['’]est (?:un stage non rémunéré|une PFMP non rémunérée)[^.!?]*[.!?]\s*/i, ''));
@@ -61,7 +48,7 @@
     if (method === 'call') {
       return 'Bonjour. ' + funding + ' ' + intro +
         ' J’appelle pour une PFMP ' + period + '. Puis-je parler à ' + recipient + ' ?\n\n' +
-        line + ' Accueillez-vous des stagiaires à ces dates ?\n\n' +
+        line + ' Pourriez-vous accueillir un élève en PFMP à ces dates ?\n\n' +
         'À qui puis-je envoyer mon CV ou remettre ma candidature ? Merci pour votre temps.';
     }
     const subject = 'Candidature pour une PFMP' + (place ? ' — ' + place.name : '');
@@ -122,7 +109,7 @@
     unpaid.type = 'checkbox';
     unpaid.checked = true;
     unpaid.disabled = true;
-    fixed.append(unpaid, node('span', '', 'PFMP non rémunérée'));
+    fixed.append(unpaid, node('span', '', 'Conditions d’accueil en PFMP'));
     choiceList.append(fixed);
     for (const [value, text] of MOTIVES) {
       const label = node('label');

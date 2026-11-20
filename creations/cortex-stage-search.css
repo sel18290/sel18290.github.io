@@ -1530,3 +1530,317 @@ body:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-pers
   .cs-stage-search #cs-stage-cv-panel .cs-stage-cv-shell button { transition:none; }
   .cs-stage-search #cs-stage-cv-panel .cs-stage-cv-shell button:hover { transform:none; }
 }
+
+
+/* PFMP / CORTEX NOCTIS : console candidature et suivi simplifié v6 */
+.cs-stage-search #cs-stage-board-panel > .cs-stage-surface {
+  color-scheme: dark; color: #ebf7fc;
+  background: linear-gradient(155deg,#0c1d31,#122a3b 64%,#101e34);
+  border: 1px solid #52778e; box-shadow: 0 1rem 3rem #02091563;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-pane-head {
+  display:flex; gap:1rem; align-items:flex-start; justify-content:space-between;
+  flex-wrap:wrap; padding-bottom:.65rem;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-pane-head :is(h2,p) {color:#ecf9fd}
+.cs-stage-search #cs-stage-board-panel .cs-stage-pane-head p {color:#b7d0df;max-width:42rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-filter-help {color:#c1dce7;font-size:.86rem;font-weight:550}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-stats {
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem;margin:.7rem 0 1rem;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 {
+  display:flex;flex-direction:column;min-height:5.5rem;align-items:flex-start;gap:.35rem;
+  border:1px solid #46697e;border-radius:.75rem;padding:.85rem 1rem;
+  background:linear-gradient(145deg,#203d52,#173347);text-align:left;cursor:default;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 strong {
+  color:#a9f3e2;font-size:clamp(1.45rem,3vw,2.05rem);
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 span {color:#d1e0e9;font-size:.86rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2[data-metric="due"] strong {color:#ffd59d}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tools-v2 {
+  display:block;border:1px solid #476e82;border-radius:.8rem;
+  background:#183448;margin:.9rem 0 1.1rem;overflow:hidden;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tools-v2 summary {
+  cursor:pointer;min-height:3rem;padding:.85rem 1.1rem;
+  color:#d8f4f0;font-weight:750;list-style-position:inside;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tools-v2[open] summary {border-bottom:1px solid #4e7184}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tool-fields {
+  display:grid;grid-template-columns:1.3fr 1fr;gap:.75rem;padding:.95rem;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tool-fields label {
+  color:#ebf6fc;display:grid;gap:.38rem;font-weight:650;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-tool-fields :is(input,select) {
+  min-height:2.9rem;width:100%;min-width:0;border:1px solid #8ca9b9;
+  border-radius:.55rem;background:#eff7f9;color:#153142;padding:.65rem .75rem;
+  font:500 .93rem/1.3 system-ui,sans-serif;color-scheme:light;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-list {grid-template-columns:minmax(0,1fr);gap:.85rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 {
+  gap:.85rem;padding:clamp(1rem,2.5vw,1.3rem);
+  border:1px solid #55748b;border-radius:1rem;
+  background:
+    radial-gradient(ellipse at 100% 0,#444b8770,transparent 55%),
+    linear-gradient(130deg,#193448,#122b3d);
+  color:#e9f7fc;box-shadow:0 .5rem 1.5rem #030b1730;overflow:visible;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2.is-due {border-color:#ebc189;box-shadow:inset 3px 0 #e9b874}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-top {
+  display:flex;align-items:flex-start;gap:.8rem;justify-content:space-between;margin:0;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-top h3 {
+  color:#f5ffff;font-size:clamp(1.1rem,2.5vw,1.45rem);line-height:1.3;margin:.15rem 0;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-top p {
+  color:#c3d9e5;font-size:.9rem;margin:.2rem 0;overflow-wrap:anywhere;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-eyebrow {
+  color:#93e9d7;font:750 .7rem/1.3 Consolas,monospace;letter-spacing:.07em;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state {
+  padding:.42rem .7rem;border:1px solid #8db2c2;border-radius:2rem;
+  background:#29485b;color:#e6f3fa;white-space:nowrap;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state[data-stage-state="due"] {
+  background:#5a4432;border-color:#e5b37e;color:#fff0d7;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-state[data-stage-state="accepted"] {
+  background:#22594a;border-color:#7ed0af;color:#dbfff0;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next {
+  display:grid;gap:.22rem;padding:.75rem .9rem;
+  border:1px solid #365b6c;border-left:3px solid #7cdacb;
+  border-radius:.6rem;background:#102839;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next span {color:#a5f6e0;font-weight:800;font-size:.89rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next p {color:#e4eff5;font-size:.88rem;line-height:1.46}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-next small {color:#ffd6a3;font-size:.78rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-main-actions {display:flex;flex-wrap:wrap;gap:.5rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-main-actions .cs-stage-primary {
+  min-height:3rem;min-width:min(100%,16rem);padding:.68rem 1rem;border-radius:.7rem;
+  background:linear-gradient(125deg,#b2f4e1,#80d9e5);color:#15333c;font-weight:800;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-main-actions .cs-stage-primary:hover {background:#dbfff1}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-details {
+  min-width:0;overflow:hidden;border:1px solid #456780;border-radius:.7rem;background:#102a3e;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-details summary {
+  display:list-item;cursor:pointer;padding:.82rem 1rem;color:#def5f2;
+  font-weight:760;line-height:1.35;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-details[open] summary {
+  border-bottom:1px solid #507184;background:#1b3d50;color:#f3fffd;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-content {display:grid;gap:.85rem;padding:1rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-information {display:grid;gap:.45rem;color:#d6ecf5}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-information > strong {color:#b9f0e4;font-size:.88rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-information > p {color:#d2e4ef;font-size:.9rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-detail-information .cs-stage-contact-links {gap:.55rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-fields {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;padding:.8rem;
+  border:1px solid #35556d;border-radius:.7rem;background:#1b394e;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 :is(.cs-stage-board-fields,.cs-stage-board-notes) label {
+  display:grid;gap:.38rem;color:#e4f4fa;font-weight:720;font-size:.88rem;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 :is(.cs-stage-board-fields,.cs-stage-board-notes) :is(select,input,textarea) {
+  display:block;width:100%;min-width:0;padding:.65rem .8rem;min-height:2.8rem;
+  border:1px solid #a1bac7;border-radius:.55rem;background:#eef7fa;
+  color:#1b3441;color-scheme:light;font:500 .94rem/1.45 system-ui,sans-serif;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-notes {
+  padding:0;border:0;background:none;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-notes textarea {min-height:5.5rem}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions {
+  display:flex;gap:.55rem;flex-wrap:wrap;margin-top:.2rem;padding-top:.9rem;
+  border-top:1px solid #3a586c;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions .cs-stage-pale {
+  min-height:2.7rem;border-color:#7bafae;color:#e8fff9;background:#245462;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions .cs-stage-text-button {
+  color:#ffdfd2;min-height:2.6rem;
+}
+.cs-stage-search #cs-stage-board-panel .cs-stage-board-notice {color:#aaf0dd}
+.cs-stage-search #cs-stage-board-panel :is(button,summary,input,textarea,select):focus-visible {
+  outline:3px solid #f5c482;outline-offset:3px;
+}
+
+/* Modale : le parcours devient une console SF, non un formulaire surchargé */
+.cs-stage-search .cs-stage-dialog--contact {
+  width:min(56rem,calc(100% - 1rem));max-height:calc(100dvh - .8rem);
+  border:1px solid #79a4b8;border-radius:1.15rem;
+  background:#0c1d2e;color:#e7f6fc;color-scheme:dark;
+  box-shadow:0 1.5rem 6rem #000d;
+}
+.cs-stage-search .cs-stage-dialog--contact::backdrop {background:#020917e8}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-head {
+  background:#11283c;border-bottom:1px solid #41657c;padding:.9rem 1.15rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-head h2 {color:#f4faff;font-size:1.2rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-head button {
+  background:#284559;border:1px solid #7fa9b5;color:#ecfcff;border-radius:.6rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-body {
+  display:grid;gap:1rem;padding:clamp(.75rem,2.5vw,1.3rem);
+  justify-items:stretch;color:#e9f6fb;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-intro {
+  display:grid;gap:.35rem;padding:1.15rem 1.35rem;
+  border:1px solid #5a768e;border-radius:.95rem;
+  background:radial-gradient(ellipse at 90% 0,#5f58a36e,transparent 65%),
+    linear-gradient(130deg,#1c334e,#16334b);
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-eyebrow,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-overline {
+  display:block;color:#a2f1df;font:750 .71rem/1.35 Consolas,monospace;letter-spacing:.06em;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-intro h3 {color:#f3ffff;font-size:clamp(1.25rem,3vw,1.8rem)}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-intro p {color:#cee2ed;font-size:.88rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2 {display:grid;gap:1rem;padding:0;width:100%}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2 :is(h3,h4) {color:#f3fcff}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-head {
+  display:grid;gap:.45rem;padding:1.1rem 1.35rem;
+  border:1px solid #4f6d87;border-radius:.9rem;
+  background:linear-gradient(125deg,#152c44,#1a2948);
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-head h3 {
+  font-size:clamp(1.2rem,2.6vw,1.55rem);line-height:1.2;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-head p,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2 .cs-stage-contact-guidance {
+  color:#c1dbe8;font-size:.88rem;line-height:1.5;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-identity,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-step {
+  display:grid;gap:.75rem;padding:1.05rem 1.25rem;
+  border:1px solid #486b81;border-radius:.9rem;background:#152e41;min-width:0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-identity > summary {
+  cursor:pointer;color:#e4f9f6;font-weight:800;padding:.2rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-identity[open] summary {
+  margin-bottom:.5rem;border-bottom:1px solid #456c7a;padding-bottom:.75rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-cv-fields {grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-cv-fields label {display:grid;gap:.35rem;color:#eaf9fd;font-weight:700;font-size:.88rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-cv-fields input {
+  min-width:0;width:100%;min-height:2.75rem;padding:.6rem .75rem;
+  border:1px solid #9cb7c6;border-radius:.6rem;background:#eff9fc;
+  color:#203743;color-scheme:light;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-step > h3 {font-size:1.27rem;line-height:1.3}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-condition {display:grid;gap:.6rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives {min-width:0}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives legend {color:#e9f8fa;font-weight:700;margin-bottom:.45rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives > div {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives label {
+  display:flex;align-items:flex-start;gap:.6rem;min-width:0;
+  padding:.7rem .8rem;border:1px solid #53758b;border-radius:.68rem;
+  background:#1c3d50;color:#ebfaff;cursor:pointer;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives label:has(input:checked) {
+  border-color:#8ce4d0;background:#245e5c;color:#f0fff9;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives input {margin:.2rem 0 0;accent-color:#86eacb}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-fixed-opening {
+  color:#b2efe2;font-size:.85rem;font-weight:700;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-hook,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-message {display:grid;gap:.45rem;color:#ecfaff;font-weight:780}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-hook textarea,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-message textarea {
+  display:block;width:100%;min-width:0;padding:.85rem 1rem;
+  border:1px solid #9cb5c5;border-radius:.68rem;background:#f2fafc;
+  color:#183344;color-scheme:light;font:500 .96rem/1.6 system-ui,sans-serif;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-hook textarea {min-height:5.1rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-message textarea {min-height:14rem;resize:vertical}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-assistance {
+  padding:.7rem .8rem;border:1px solid #527982;border-radius:.7rem;background:#1a3748;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-assistance summary {
+  cursor:pointer;color:#cbf6e8;font-weight:790;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-assistance .cs-stage-contact-actions {margin:.7rem 0}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-assistance .cs-stage-pale {
+  border-color:#7bafae;color:#f1fff9;background:#245462;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-assistance .cs-stage-primary {
+  background:#a8efe0;color:#18393b;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-suggestion {
+  color:#173c41;background:#e3f5ef;border-radius:.6rem;padding:.8rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-suggestion :is(p,strong) {color:#173c41}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-method {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-method button {
+  min-height:3.1rem;padding:.65rem 1rem;border:1px solid #5a8099;
+  border-radius:.65rem;background:#214058;color:#dbedf6;
+  font-size:.94rem;font-weight:750;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-method button[aria-pressed="true"] {
+  background:#a5efe2;border-color:#adf6e6;color:#103b43;box-shadow:0 0 .75rem #4adbb828;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-actions {
+  display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-copy {
+  min-height:3.15rem;background:linear-gradient(125deg,#b0f9e1,#7cd7e3);
+  color:#10343c;border:1px solid #b0ffe8;border-radius:.65rem;
+  font-weight:850;padding:.72rem 1.1rem;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-actions .cs-stage-pale {
+  min-height:2.75rem;background:#254d62;color:#defaf5;border-color:#669eb0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-extras {
+  padding:.9rem 1rem;border:1px solid #54768b;border-radius:.78rem;background:#152f43;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-extras summary {
+  cursor:pointer;color:#d4efe8;font-weight:750;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-extras-body {display:grid;gap:.8rem;padding-top:.85rem;color:#eaf6fa}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-place {display:grid;gap:.55rem}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-place h3 {color:#e9f9fd}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-subsection {
+  background:#214458;border:1px solid #577b8d;color:#e5f5fa;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-subsection h3 {color:#f0fffd}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-subsection li {color:#ddedf7}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-extras .cs-stage-pale {
+  background:#285466;color:#e9faf8;border-color:#8bb9bf;
+}
+.cs-stage-search .cs-stage-dialog--contact :is(button,input,textarea,summary):focus-visible {
+  outline:3px solid #f4bd7b;outline-offset:3px;
+}
+
+@container cortex-stage (max-width:46rem) {
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-stats {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-tool-fields {grid-template-columns:minmax(0,1fr)}
+}
+@container cortex-stage (max-width:35rem) {
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-top {flex-wrap:wrap}
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-metric-v2 {min-height:4.75rem;padding:.7rem .75rem}
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-main-actions .cs-stage-primary {width:100%}
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-fields {grid-template-columns:minmax(0,1fr)}
+  .cs-stage-search #cs-stage-board-panel .cs-stage-board-card-v2 .cs-stage-board-card-actions button {width:100%}
+}
+@media (max-width:650px) {
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-dialog-head {padding:.7rem .85rem}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-body {padding:.65rem}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-apply-intro,
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-head,
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-step,
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-identity {padding:.85rem}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-cv-fields {grid-template-columns:minmax(0,1fr)}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-motives > div {grid-template-columns:minmax(0,1fr)}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-method {grid-template-columns:minmax(0,1fr)}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2-actions button {width:100%}
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-message textarea {min-height:12rem}
+}

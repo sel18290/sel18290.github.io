@@ -1,0 +1,256 @@
+/* CORTEX PFMP : assistant mis en valeur, lisibilite CV, contact en 3 ecrans.
+   Charge APRES les anciens styles pour garantir le contraste et l'affichage. */
+
+/* Le bouton Albert doit rester visible même sur la navigation claire du CV. */
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"],
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[data-stage-nav="assistant"],
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button[data-stage-nav="assistant"] {
+  color: #fff;
+  background: linear-gradient(130deg,#146da8,#185b99);
+  border: 1.5px solid #82cbf8;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #2789cc18, 0 6px 17px #0c6bad4d;
+  font-weight: 790;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-copy strong,
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-copy small,
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-icon,
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-copy strong,
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-copy small {
+  color: #fff;
+  opacity: 1;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] .cs-stage-nav-icon {
+  font-size: 21px;
+  text-shadow: 0 0 9px #b6e6ff;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"]:hover,
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[data-stage-nav="assistant"]:hover {
+  color:#fff;
+  background: linear-gradient(130deg,#0c82c5,#105b98);
+  border-color:#a4e0ff;
+  box-shadow:0 0 0 2px #268bde27,0 8px 20px #0876b658;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"][aria-pressed="true"],
+.cs-stage-search[data-stage-view="cv"] .cs-stage-nav > button[data-stage-nav="assistant"][aria-pressed="true"],
+.cs-stage-search[data-stage-view]:not([data-stage-view="search"]) .cs-stage-nav > button[data-stage-nav="assistant"][aria-pressed="true"] {
+  background:#0b75ad;
+  color:#fff;
+  border-color:#a9e8ff;
+  box-shadow:inset 0 0 0 1px #a9e8ff, 0 4px 18px #0b75ad50;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"][aria-pressed="true"] .cs-stage-nav-copy small {
+  color:#e9f7ff;
+}
+.cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"]:focus-visible {
+  outline:3px solid #ffdc91;
+  outline-offset:3px;
+}
+/* Légère augmentation des intitulés et des boutons CV/LM, sans gonfler les blocs. */
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-choice-text strong {
+  font-size:18px;
+  line-height:1.32;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-name {
+  font-size:16px;
+  line-height:1.34;
+  font-weight:750;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-index {
+  font-size:12px;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-identity summary {
+  font-size:15px;
+  line-height:1.45;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-step {
+  font-size:clamp(22px,2.6vw,29px);
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-field-hint {
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* Candidature : une seule vraie étape visible, au lieu des trois empilées. */
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel[hidden] {
+  display:none !important;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v2 {
+  display:grid;
+  gap:16px;
+  color:#1a3855;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  padding:8px;
+  margin:0;
+  background:#f3f8fc;
+  border:1px solid #dce8f1;
+  border-radius:11px;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-step {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  gap:7px;
+  padding:9px 8px;
+  color:#71899d;
+  font-size:12px;
+  font-weight:680;
+  line-height:1.25;
+  border:1px solid transparent;
+  border-radius:8px;
+  text-align:center;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-step[data-status="current"] {
+  background:#e2f0fc;
+  border-color:#a8cde7;
+  color:#154e80;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-step[data-status="complete"] {
+  color:#2b6c99;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-index {
+  display:grid;
+  place-items:center;
+  width:24px;
+  height:24px;
+  flex:0 0 24px;
+  border:1px solid #bfd4e5;
+  border-radius:50%;
+  color:inherit;
+  background:#fff;
+  font-size:12px;
+  font-weight:790;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-step[data-status="complete"] .cs-stage-contact-v3-progress-index {
+  background:#deecf9;
+  border-color:#8cbbdf;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel {
+  display:grid;
+  gap:14px;
+  min-width:0;
+  padding:clamp(18px,3vw,25px);
+  background:#fff;
+  border:1px solid #d7e5f0;
+  border-radius:12px;
+  color:#1a3855;
+  box-shadow:0 3px 12px #1d4e7410;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel > .cs-stage-contact-overline {
+  color:#4778a1;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-step-title {
+  color:#173d5e !important;
+  font-size:clamp(21px,2.6vw,27px);
+  font-weight:780;
+  line-height:1.25;
+  margin:0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel > .cs-stage-contact-guidance {
+  color:#546e84;
+  font-size:13px;
+  line-height:1.6;
+  margin:0;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel .cs-stage-cv-fields {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel .cs-stage-cv-fields label {
+  display:grid;
+  gap:6px;
+  font-size:13px;
+  font-weight:720;
+  color:#214760;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel .cs-stage-cv-fields input {
+  width:100%;
+  min-width:0;
+  min-height:46px;
+  background:#fff;
+  color:#163c58;
+  border:1px solid #bcd4e3;
+  border-radius:8px;
+  padding:9px 12px;
+  color-scheme:light;
+  font:550 15px/1.4 Inter,'Segoe UI',sans-serif;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:4px;
+  padding-top:16px;
+  border-top:1px solid #e0eaf1;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation .cs-stage-contact-v3-next {
+  margin-left:auto;
+  min-height:46px;
+  padding:11px 18px;
+  color:#fff;
+  background:#1f6399;
+  border:1px solid #195582;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:770;
+  text-align:center;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation .cs-stage-contact-v3-next:hover {
+  background:#174e7b;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation .cs-stage-contact-v3-back {
+  min-height:43px;
+  padding:9px 16px;
+  color:#1c5b8e;
+  background:#eef5fb;
+  border:1px solid #c2d9e8;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:710;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation .cs-stage-contact-v3-back:hover {
+  background:#dcebf7;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-error,
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel .cs-stage-date-status {
+  color:#9a3e26;
+  font-size:13px;
+  line-height:1.5;
+}
+.cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel :is(button,input,textarea,summary):focus-visible {
+  outline:3px solid #2c7db7;
+  outline-offset:2px;
+}
+@media(max-width:650px) {
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-progress-step {
+    flex-direction:column;
+    gap:5px;
+    padding:8px 3px;
+    font-size:10px;
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel {
+    padding:16px;
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-panel .cs-stage-cv-fields {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation {
+    flex-direction:column-reverse;
+    align-items:stretch;
+  }
+  .cs-stage-search .cs-stage-dialog--contact .cs-stage-contact-v3-navigation button {
+    width:100%;
+    margin-left:0;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .cs-stage-search .cs-stage-nav > button[data-stage-nav="assistant"] { transition:none; }
+}

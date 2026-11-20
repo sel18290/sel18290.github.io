@@ -55,25 +55,32 @@ const respond=(obj,code,origin)=>new Response(JSON.stringify(obj),{status:code,h
  "content-type":"application/json; charset=utf-8","cache-control":"no-store",
  "access-control-allow-origin":ORIGINS.includes(origin)?origin:ORIGINS[0],
  "access-control-allow-headers":"content-type,authorization,apikey",
- "access-control-allow-methods":"POST,OPTIONS","vary":"origin"}});
+ "access-control-allow-methods":"POST,OPTIONS","access-control-max-age":"600","vary":"origin"}});
 async function timed(url,opt,ms){
  const c=new AbortController(),timer=setTimeout(()=>c.abort(),ms);
  try{return await fetch(url,{...opt,signal:c.signal})}finally{clearTimeout(timer)}
 }
 const fallback={"paris":[48.8566,2.3522],"paris 15e":[48.8414,2.3001],"boulogne-billancourt":[48.8352,2.2409],"saint-denis":[48.9362,2.3574],"montreuil":[48.8638,2.4485],"nanterre":[48.8924,2.2066],"versailles":[48.8014,2.1301]};
+const geocodedCities=new Map();
 async function geocode(city){
  if(!/^[\p{L}0-9 .,'’\-]{2,90}$/u.test(city))throw Error("Ville ou quartier non valide.");
+ const key=city.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ const cached=geocodedCities.get(key);
+ if(cached&&Date.now()<cached.expires)return cached.place;
  try{
   const url=new URL("https://data.geopf.fr/geocodage/search");
   url.searchParams.set("q",city+", France");url.searchParams.set("limit","1");
   const res=await timed(url.toString(),{headers:{"accept":"application/json"}},10000);
   if(res.ok){
    const data=await res.json(),loc=data.features?.[0],x=loc?.geometry?.coordinates;
-   if(Array.isArray(x)&&x.length>=2&&x[0]>=-6&&x[0]<=11&&x[1]>=41&&x[1]<=52)
-    return{lat:x[1],lon:x[0],label:clean(loc.properties?.label||city),source:"IGN"};
+   if(Array.isArray(x)&&x.length>=2&&x[0]>=-6&&x[0]<=11&&x[1]>=41&&x[1]<=52){
+    const place={lat:x[1],lon:x[0],label:clean(loc.properties?.label||city),source:"IGN"};
+    if(geocodedCities.size>=128)geocodedCities.delete(geocodedCities.keys().next().value);
+    geocodedCities.set(key,{place,expires:Date.now()+20*60*1000});
+    return place;
+   }
   }
  }catch{}
- const key=city.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  if(fallback[key])return {lat:fallback[key][0],lon:fallback[key][1],label:city,source:"Coordonnées locales"};
  throw Error("Ville introuvable : indique une commune ou un arrondissement français.");
 }

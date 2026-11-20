@@ -261,3 +261,11 @@ body.cortex-noctis .cortex-albert-dialog :is(button,textarea):focus-visible {
 @media(prefers-reduced-motion:reduce) {
   body.cortex-noctis #cortex-albert-quick {transition:none;}
 }
+
+
+/* Comme le robot historique, le raccourci droit s'efface pendant la PFMP et les épreuves. */
+body.cortex-noctis:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-quick,
+body.cortex-noctis:has(.exam-playing) #cortex-albert-quick,
+body.cortex-noctis:has(.exam-player.is-running) #cortex-albert-quick {
+  display:none;
+}

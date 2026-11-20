@@ -117,7 +117,7 @@ async function resetClassPin(teacher,classId,n){
  const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classId).eq('teacher_id',teacher.id).maybeSingle();
  if(!access||!Number.isInteger(n)||n<1||n>access.roster_size)throw Error('Numéro élève invalide dans cette classe.');
  const value=pin();
- const {error}=await admin.from('cortex_academy_class_roster').upsert({class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null,activated_at:null,updated_at:new Date().toISOString()},{onConflict:'class_id,student_number'});
+ const {error}=await admin.from('cortex_academy_class_roster').upsert({class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null,activated_at:null,pin_origin_class_id:null,updated_at:new Date().toISOString()},{onConflict:'class_id,student_number'});
  if(error)throw Error('PIN non réinitialisé.');
  await admin.from('cortex_academy_class_sessions').delete().eq('class_id',classId).eq('student_number',n);
  const {data:exams}=await admin.from('cortex_teacher_assessments').select('id').eq('class_id',classId).eq('teacher_id',teacher.id);
@@ -126,18 +126,36 @@ async function resetClassPin(teacher,classId,n){
  return {number:n,pin:value};
 }
 async function verifyClassPin(access,n,p,requireActivated=true){
- if(!Number.isInteger(n)||n<1||n>access.roster_size||!/^\d{6}$/.test(p))throw Error('Classe, numéro ou PIN incorrect.');
- const {data:cred}=await admin.from('cortex_academy_class_roster').select('*').eq('class_id',access.class_id).eq('student_number',n).maybeSingle();
- if(!cred)throw Error('Classe, numéro ou PIN incorrect.');
- if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Trop de tentatives. Demandez un nouveau PIN au professeur ou réessayez plus tard.');
+ if(!Number.isInteger(n)||n<1||n>access.roster_size||!/^[0-9]{6}$/.test(p))throw Error('Classe, numéro ou PIN incorrect.');
+ const {data:cred,error:readError}=await admin.from('cortex_academy_class_roster')
+  .select('*').eq('class_id',access.class_id).eq('student_number',n).maybeSingle();
+ if(readError||!cred)throw Error('Classe, numéro ou PIN incorrect.');
+ if(cred.locked_until&&new Date(cred.locked_until)>new Date())
+  throw Error('Trop de tentatives. Demandez un nouveau PIN au professeur ou réessayez plus tard.');
  const expected=await pinHash(access.class_id,n,p);
- if(cred.pin_digest!==expected){
+ // Après le transfert 1AGORA2 -> 1AGORA1, garder le PIN choisi par l'élève.
+ // L'ancien identifiant de classe sert uniquement à valider le premier accès.
+ const origin=validUuid(cred.pin_origin_class_id)&&cred.pin_origin_class_id!==access.class_id
+  ?cred.pin_origin_class_id:null;
+ const legacy=origin?await pinHash(origin,n,p):null;
+ const migrated=!!origin&&cred.pin_digest===legacy;
+ if(cred.pin_digest!==expected&&!migrated){
   const tries=Number(cred.attempts||0)+1;
-  await admin.from('cortex_academy_class_roster').update({attempts:tries>=5?0:tries,locked_until:tries>=5?new Date(Date.now()+900000).toISOString():null}).eq('class_id',access.class_id).eq('student_number',n);
+  await admin.from('cortex_academy_class_roster')
+   .update({attempts:tries>=5?0:tries,locked_until:tries>=5?new Date(Date.now()+900000).toISOString():null})
+   .eq('class_id',access.class_id).eq('student_number',n);
   throw Error('Classe, numéro ou PIN incorrect.');
  }
- if(requireActivated&&!cred.activated_at)throw Error('Votre espace n’est pas encore activé. Utilisez le bouton « Première connexion » avec le PIN provisoire du professeur.');
- await admin.from('cortex_academy_class_roster').update({attempts:0,locked_until:null}).eq('class_id',access.class_id).eq('student_number',n);
+ if(requireActivated&&!cred.activated_at)
+  throw Error('Votre espace n’est pas encore activé. Utilisez le bouton « Première connexion » avec le PIN provisoire du professeur.');
+ const changes={attempts:0,locked_until:null};
+ if(migrated){
+  changes.pin_digest=expected;
+  changes.pin_origin_class_id=null;
+ }
+ const {error:updateError}=await admin.from('cortex_academy_class_roster')
+  .update(changes).eq('class_id',access.class_id).eq('student_number',n).eq('pin_digest',cred.pin_digest);
+ if(updateError)throw Error('Vérification du PIN impossible. Réessayez.');
 }
 async function activeClassStudent(token){
  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))throw Error('Session expirée. Reconnectez-vous.');
@@ -664,7 +682,7 @@ async function studentAction(action,body,form){
   if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Réessaye plus tard ou contacte le professeur.');
   const {data:result,error:changeErr}=await admin.from('cortex_academy_class_roster')
    .update({pin_digest:await pinHash(access.class_id,number,chosen),
-     demi_groupe:group,activated_at:new Date().toISOString(),
+     demi_groupe:group,activated_at:new Date().toISOString(),pin_origin_class_id:null,
      attempts:0,locked_until:null,updated_at:new Date().toISOString()})
    .eq('class_id',access.class_id).eq('student_number',number)
    .eq('pin_digest',cred.pin_digest).is('activated_at',null)
@@ -701,7 +719,7 @@ async function studentAction(action,body,form){
   await verifyClassPin(access,number,temporary,false);
   const nextDigest=await pinHash(classId,number,personal);
   const {data:updated,error}=await admin.from('cortex_academy_class_roster')
-   .update({pin_digest:nextDigest,demi_groupe:group,activated_at:new Date().toISOString(),attempts:0,locked_until:null,updated_at:new Date().toISOString()})
+   .update({pin_digest:nextDigest,demi_groupe:group,activated_at:new Date().toISOString(),pin_origin_class_id:null,attempts:0,locked_until:null,updated_at:new Date().toISOString()})
    .eq('class_id',classId).eq('student_number',number).eq('pin_digest',cred.pin_digest).is('activated_at',null).select('student_number').maybeSingle();
   if(error||!updated)throw Error('Activation impossible ou déjà effectuée. Demandez un nouveau PIN provisoire au professeur.');
   // Révoque toute session éventuellement ouverte avec les identifiants provisoires.

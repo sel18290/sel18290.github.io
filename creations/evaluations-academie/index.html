@@ -4,6 +4,8 @@
 <meta name="theme-color" content="#040a18">
 <meta name="description" content="CORTEX Académie : estimation des notes élèves, conseils pédagogiques, import PDF en questions, correction assistée et recherche de PFMP Albert IA.">
 <title>CORTEX Académie · Station Noctis</title>
+<link rel="stylesheet" href="./real-entry.css?v=2">
+<script defer src="./real-entry.js?v=2"></script>
 <link rel="stylesheet" href="./style.css?v=18">
 <link rel="stylesheet" href="../cortex-nav.css?v=1.0">
 <link rel="stylesheet" href="../cortex-traffic.css?v=1.0">
@@ -17,7 +19,7 @@
 <script defer src="../question-types.js?v=1.2"></script>
 <script defer src="../cortex-phone.js?v=2.0"></script>
 <script defer src="../cortex-student-simulator.js?v=1.2"></script>
-<script type="module" src="./app.js?v=39"></script>
+<script type="module" src="./app.js?v=40"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=2.13"></script>
 <script defer src="../evaluations/ai-albert-import.js?v=2.4"></script>
@@ -40,7 +42,7 @@
 <script defer src="../cortex-exam-integrity.js?v=1.1"></script>
 <script defer src="../cortex-exam-live.js?v=1.0"></script>
 <script defer src="../cortex-exam-monitor.js?v=1.1"></script>
-<script type="module" src="./student-coursework.js?v=3.40-pfmp"></script>
+<script type="module" src="./student-coursework.js?v=3.41"></script>
 <script type="module" src="./class-portal-teacher.js?v=2.14"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
 <link rel="stylesheet" href="../cortex-noctis.css?v=1.4">
@@ -57,14 +59,30 @@
 <link rel="stylesheet" href="../cortex-phone-ergonomics.css?v=2.0">
 <link rel="stylesheet" href="../cortex-exam-monitor.css?v=1.1">
 <link rel="stylesheet" href="./pin-admin.css?v=1.1">
-</head><body class="cortex-noctis">
-<header class="top"><div class="cortex-creator-credit cortex-creator-in-header" id="cortex-author-visible" aria-label="Présentation du créateur"><span class="cortex-creator-symbol" aria-hidden="true">✦</span><p>Créateur : <strong>Sélim ARHROR</strong>, enseignant de biotechnologie santé, au lycée Beaugrenelle 75015.</p></div><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
+</head><body class="cortex-noctis cortex-preaccess">
+<section id="cortex-real-entry" aria-labelledby="cortex-real-entry-title">
+ <div class="cortex-entry-card">
+  <div class="cortex-entry-eyebrow">CORTEX Académie</div>
+  <h1 id="cortex-real-entry-title">Accès à l’espace réel</h1>
+  <p class="cortex-entry-alert"><strong>L’espace réel est fonctionnel.</strong> L’accès est restreint pendant les démarches de mise en conformité au RGPD.</p>
+  <form id="cortex-real-entry-form" method="post">
+   <label for="cortex-real-entry-password">Mot de passe d’accès</label>
+   <input id="cortex-real-entry-password" type="password" maxlength="72" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+   <button id="cortex-real-entry-submit" type="submit" disabled>Accéder à l’espace réel</button>
+   <p id="cortex-real-entry-status" role="status" aria-live="polite"></p>
+  </form>
+  <noscript><p>Activez JavaScript pour saisir le mot de passe d’accès.</p></noscript>
+  <div class="cortex-entry-links"><a href="../evaluations/#accueil">Ouvrir la démonstration</a></div>
+ </div>
+</section>
+<header class="top" data-real-entry-covered inert><div class="cortex-creator-credit cortex-creator-in-header" id="cortex-author-visible" aria-label="Présentation du créateur"><span class="cortex-creator-symbol" aria-hidden="true">✦</span><p>Créateur : <strong>Sélim ARHROR</strong>, enseignant de biotechnologie santé, au lycée Beaugrenelle 75015.</p></div><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
  <div class="cortex-traffic-metric"><span class="cortex-traffic-symbol" aria-hidden="true">✦</span><span class="cortex-traffic-data"><strong data-traffic="visits" aria-label="Nombre d'explorations cumulées">—</strong><small>Explorations</small></span></div>
  <div class="cortex-traffic-metric cortex-traffic-metric-live"><span class="cortex-traffic-symbol" aria-hidden="true">◉</span><span class="cortex-traffic-data"><strong data-traffic="online" aria-label="Sessions actives actuellement">—</strong><small>En orbite</small></span><span class="cortex-traffic-dot" aria-hidden="true"></span></div>
  <span class="cortex-traffic-note" data-traffic="note">Sessions anonymes · activité des 2 dernières minutes</span>
 </div><a class="brand" href="./" aria-label="CORTEX Académie"><span class="logo">C</span><span><strong>CORTEX</strong><small>ACADÉMIE</small></span></a><div class="academy-header-actions"><a class="academy-student-entry" href="./?espace=eleve"><span aria-hidden="true">🎓</span><span>Espace élève</span></a><a class="academy-professor-entry" href="#form-title">Connexion prof</a><a class="demo demo-primary" href="../evaluations/#visite" aria-label="Lancer la démonstration test guidée de CORTEX" title="Découvrir la plateforme sans créer de compte"><span class="demo-play" aria-hidden="true">▶</span><span class="demo-label"><strong>DÉMONSTRATION TEST</strong><small>Visite guidée · sans compte</small></span><span class="demo-arrow" aria-hidden="true">↗</span></a></div></header>
 
-<main class="layout">
+<div id="cortex-institutional-ribbon" hidden>Accès restreint · Démarches de mise en conformité au RGPD en cours</div>
+<main class="layout" data-real-entry-covered inert>
 <section class="hero"><div class="overline">STATION NOCTIS · CORTEX ACADÉMIE</div><h1>Évaluer, progresser.<br><em>Préparer l’avenir.</em></h1><p>Une plateforme d’évaluation et d’accompagnement : les élèves obtiennent après leur copie une estimation indicative de leur note et des conseils pédagogiques. Les enseignants gagnent du temps sur la création et la correction des contrôles ; Albert IA facilite aussi la recherche de PFMP.</p>
 <div class="cortex-home-benefits cortex-home-benefits-real nxp-real-benefits" aria-label="Fonctionnalités de CORTEX Académie">
  <div class="nxp-real-heading"><span class="nxp-signal" aria-hidden="true"></span> UNE STATION · QUATRE FONCTIONS</div>

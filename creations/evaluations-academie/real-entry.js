@@ -1,49 +1,75 @@
-/* CORTEX Académie : porte d'accès de prévisualisation institutionnelle.
- * Mot de passe vérifié côté Supabase; jamais dans le JavaScript public.
- * AVERTISSEMENT : GitHub Pages reste public. Ce garde-écran est une
- * barrière d'interface, pas une authentification sécurisant les données.
- * Les comptes et données restent protégés par Supabase Auth et les contrôles backend.
- */
-(function(){
- 'use strict';
- const gate=document.getElementById('cortex-real-entry');
- const form=document.getElementById('cortex-real-entry-form');
- const input=document.getElementById('cortex-real-entry-password');
- const feedback=document.getElementById('cortex-real-entry-status');
- const submit=document.getElementById('cortex-real-entry-submit');
- const ribbon=document.getElementById('cortex-institutional-ribbon');
- const KEY='cortex_real_entry_preparation_v1';
- if(!gate||!form)return;
- function unlock(){
-  document.body.classList.remove('cortex-preaccess');
-  gate.hidden=true;
-  if(ribbon)ribbon.hidden=false;
-  input.value='';
- }
- let sessionValid=false;
- try{sessionValid=sessionStorage.getItem(KEY)==='ok'}catch{}
- if(sessionValid){unlock();return}
- gate.hidden=false;
- form.addEventListener('submit',async(e)=>{
-  e.preventDefault();
-  const password=input.value;
-  if(!password){feedback.textContent='Saisis le mot de passe de prévisualisation.';return}
-  submit.disabled=true;
-  feedback.textContent='Vérification du code auprès du serveur sécurisé…';
-  try{
-   const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('./config.js?v=1');
-   const response=await fetch(SUPABASE_URL+'/functions/v1/cortex-real-entry',{
-    method:'POST',cache:'no-store',
-    headers:{'Content-Type':'application/json',apikey:SUPABASE_PUBLISHABLE_KEY},
-    body:JSON.stringify({action:'verify',password})
-   });
-   const result=await response.json().catch(()=>null);
-   if(!response.ok||!result?.ok)throw Error(result?.error||'Vérification impossible (HTTP '+response.status+').');
-   if(!result.allowed){feedback.textContent='Mot de passe incorrect. Vérifie la saisie.';input.select();return;}
-   try{sessionStorage.setItem(KEY,'ok')}catch{}
-   unlock();
-  }catch(err){
-   feedback.textContent='⚠ '+String(err?.message||err);
-  }finally{submit.disabled=false}
- });
+/* Accès temporaire à CORTEX Académie, avant l’authentification du compte. */
+(function () {
+  'use strict';
+  const gate = document.getElementById('cortex-real-entry');
+  const form = document.getElementById('cortex-real-entry-form');
+  const input = document.getElementById('cortex-real-entry-password');
+  const feedback = document.getElementById('cortex-real-entry-status');
+  const submit = document.getElementById('cortex-real-entry-submit');
+  const storageKey = 'cortex:real-entry:ticket';
+  let ticket = '', unlock;
+  const ready = new Promise(resolve => { unlock = resolve; });
+  window.CORTEX_REAL_ENTRY = { ready, token: () => ticket };
+
+  async function request(payload) {
+    const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = await import('./config.js?v=1');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(SUPABASE_URL + '/functions/v1/cortex-real-entry', {
+        method: 'POST', cache: 'no-store', credentials: 'omit',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify(payload), signal: controller.signal
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) throw Error(result?.error || 'Vérification momentanément indisponible.');
+      return result;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function open(value) {
+    ticket = value;
+    try { sessionStorage.setItem(storageKey, value); } catch {}
+    input.value = '';
+    gate.hidden = true;
+    document.body.classList.remove('cortex-preaccess');
+    document.querySelectorAll('[data-real-entry-covered]').forEach(element => { element.inert = false; });
+    document.getElementById('cortex-institutional-ribbon').hidden = false;
+    unlock();
+  }
+
+  async function restore() {
+    let saved;
+    try { saved = sessionStorage.getItem(storageKey); } catch {}
+    if (!saved) { submit.disabled = false; return; }
+    feedback.textContent = 'Vérification de l’accès…';
+    try {
+      const result = await request({ action: 'session', ticket: saved });
+      if (result.allowed) { open(saved); return; }
+      try { sessionStorage.removeItem(storageKey); } catch {}
+    } catch {}
+    feedback.textContent = '';
+    submit.disabled = false;
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submit.disabled || !input.value) return;
+    submit.disabled = true;
+    feedback.textContent = 'Vérification du mot de passe…';
+    try {
+      const result = await request({ action: 'verify', password: input.value });
+      if (result.allowed && typeof result.ticket === 'string') { open(result.ticket); return; }
+      feedback.textContent = 'Mot de passe incorrect.';
+      input.select();
+    } catch (error) {
+      feedback.textContent = error.name === 'AbortError' || error instanceof TypeError
+        ? 'Le service d’accès ne répond pas. Réessaie dans un instant.' : error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
+  void restore();
 })();

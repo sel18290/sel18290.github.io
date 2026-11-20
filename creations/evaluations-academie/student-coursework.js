@@ -11,6 +11,8 @@ const qr=params.get('join'),classPrefill=params.get('classe');
 const registrationToken=params.get('inscription')||new URLSearchParams(location.hash.slice(1)).get('inscription')||'';
 const globalPortal=params.get('espace')==='eleve'||!!classPrefill||!!registrationToken;
 if(qr||globalPortal){
+ await window.CORTEX_REAL_ENTRY.ready;
+ const enter=(action,payload={})=>api(action,{...payload,entry_ticket:window.CORTEX_REAL_ENTRY.token()});
  const $=id=>document.getElementById(id);
  const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
  const one=(sel,root=document)=>root.querySelector(sel);
@@ -120,7 +122,7 @@ if(qr||globalPortal){
  async function getClasses(){
   if(mode!=='class')return;
   try{
-   const list=await api('student_classes');
+   const list=await enter('student_classes');
    // Un lien de classe fixe le destinataire : impossible de sélectionner
    // accidentellement 1AGORA2 avec une invitation destinée à 1AGORA1.
    const allClasses=list.classes||[];
@@ -786,11 +788,11 @@ if(qr||globalPortal){
   busy=true;submit.disabled=true;
   try{
    const classCode=mode==='class'?(validatedLink?.portal_code||$('cw-activation-class').value):'';
-   await api('student_pin_setup',{class_code:classCode,join_code:qr||'',student_number:number,
+   await enter('student_pin_setup',{class_code:classCode,join_code:qr||'',student_number:number,
     demi_groupe:group,pin,confirm_pin:confirmPin,registration_token:registrationToken});
    const result=mode==='qr'
-    ?await api('student_login',{code:qr,student_number:number,pin})
-    :await api('student_class_login',{class_code:classCode,student_number:number,pin});
+    ?await enter('student_login',{code:qr,student_number:number,pin})
+    :await enter('student_class_login',{class_code:classCode,student_number:number,pin});
    $('cw-activation-new-pin').value='';$('cw-activation-confirm-pin').value='';
    token=result.session;sessionStorage.setItem(storageKey,token);
    if(registrationToken){
@@ -810,8 +812,8 @@ if(qr||globalPortal){
   try{
    const n=Number($('cw-student-number').value),pin=$('cw-student-pin').value;
    const result=mode==='qr'
-    ?await api('student_login',{code:qr,student_number:n,pin})
-    :await api('student_class_login',{class_code:$('cw-student-class').value,student_number:n,pin});
+    ?await enter('student_login',{code:qr,student_number:n,pin})
+    :await enter('student_class_login',{class_code:$('cw-student-class').value,student_number:n,pin});
    token=result.session;sessionStorage.setItem(storageKey,token);$('cw-student-pin').value='';
    if(mode==='qr')await loadExam();else await loadClass();
   }catch(err){message(err.message||'Identification impossible. Tu n’as pas encore de PIN ? Clique sur « Je crée mon PIN ».',true)}
@@ -822,7 +824,7 @@ if(qr||globalPortal){
  // Présentation explicite de la classe portée par le QR ou l'invitation.
  // La réponse du serveur valide le code opaque et empêche les confusions entre classes.
  if(qr||registrationToken){
-  api('student_link_info',{join_code:qr||'',registration_token:registrationToken}).then(info=>{
+  enter('student_link_info',{join_code:qr||'',registration_token:registrationToken}).then(info=>{
    const banner=$('cw-student-link-target');
    banner.hidden=false;
    if(registrationToken&&classPrefill&&info.portal_code!==classPrefill){

@@ -665,4 +665,5 @@ $('logout').addEventListener('click',async()=>{
  if(!supabase)return;await supabase.auth.signOut();teacherId=null;myClasses=[];myExams=[];rosterSummaries.clear();selectedIntegrityExamId='';selectMode('login');status('Vous êtes déconnecté.');
 });
 selectMode('login');
+await window.CORTEX_REAL_ENTRY.ready;
 await init();

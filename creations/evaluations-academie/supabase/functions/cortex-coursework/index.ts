@@ -1,10 +1,12 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
+import {validRealEntry} from '../_shared/real-entry-ticket.ts';
 
 const URL=Deno.env.get('SUPABASE_URL')||'';
 const SECRET=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const BUCKET='cortex-academy-private';
 const ORIGIN='https://sel18290.github.io';
+const REQUIRE_REAL_ENTRY=new Set(['student_classes','student_link_info','student_pin_setup','student_activate','student_class_login','student_login']);
 const EVENT_MAX_AGE_MS=8*60*60*1000;
 const enc=new TextEncoder();
 const admin=createClient(URL,SECRET,{auth:{autoRefreshToken:false,persistSession:false}});
@@ -1046,6 +1048,8 @@ Deno.serve(async req=>{
  try{
   if(!URL||!SECRET)throw Error('Service temporairement indisponible.');
   const {action,body,form}=await input(req);
+  if(REQUIRE_REAL_ENTRY.has(action)&&!(await validRealEntry(body.entry_ticket)))
+   return fail('L’accès à l’espace réel est verrouillé. Ouvrez la page pour saisir le mot de passe d’accès.',403);
   if(action.startsWith('teacher_'))return await teacherAction(action,body,form,req);
   if(action.startsWith('student_'))return await studentAction(action,body,form);
   return fail('Action non prise en charge.',404);

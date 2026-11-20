@@ -17,12 +17,12 @@
 <script defer src="../question-types.js?v=1.2"></script>
 <script defer src="../cortex-phone.js?v=2.0"></script>
 <script defer src="../cortex-student-simulator.js?v=1.2"></script>
-<script type="module" src="./app.js?v=37-draft"></script>
+<script type="module" src="./app.js?v=38"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script type="module" src="./coursework.js?v=2.12"></script>
+<script type="module" src="./coursework.js?v=2.13"></script>
 <script defer src="../evaluations/ai-albert-import.js?v=2.4"></script>
-<script type="module" src="./real-import.js?v=2.11-draft"></script>
-<script type="module" src="./real-manual.js?v=1.14-draft"></script>
+<script type="module" src="./real-import.js?v=2.12"></script>
+<script type="module" src="./real-manual.js?v=1.15"></script>
 <link rel="stylesheet" href="./real-manual.css?v=1.3">
 <link rel="stylesheet" href="../cortex-unified-document.css?v=1.0">
 <link rel="stylesheet" href="./real-import.css?v=1.8">
@@ -35,13 +35,14 @@
 <script defer src="../cortex-stage-cv.js?v=3.0"></script>
 <script defer src="../cortex-stage-ranking.js?v=1.0"></script>
 <script defer src="../cortex-stage-search.js?v=4.0"></script>
-<script defer src="../cortex-exam-integrity.js?v=1.0"></script>
-<script defer src="../cortex-exam-monitor.js?v=1.0"></script>
-<script type="module" src="./student-coursework.js?v=3.37"></script>
-<script type="module" src="./class-portal-teacher.js?v=2.11"></script>
+<script defer src="../cortex-exam-integrity.js?v=1.1"></script>
+<script defer src="../cortex-exam-live.js?v=1.0"></script>
+<script defer src="../cortex-exam-monitor.js?v=1.1"></script>
+<script type="module" src="./student-coursework.js?v=3.38"></script>
+<script type="module" src="./class-portal-teacher.js?v=2.12"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
 <link rel="stylesheet" href="../cortex-noctis.css?v=1.4">
-<script type="module" src="./professor-live.js?v=1.3"></script>
+<script type="module" src="./professor-live.js?v=1.4"></script>
 <style>.cw-ai-button{background:linear-gradient(120deg,#edf3ff,#bfd0ff);color:#0a224d;border:1px solid #799ce1;padding:12px 16px;border-radius:12px;font-weight:750;cursor:pointer}.cw-ai-button:hover{filter:brightness(1.08)}.cw-ai-draft-notice{border-left:3px solid #78aafb;padding:9px 12px;margin:8px 0;color:inherit;background:rgba(120,170,251,.1);border-radius:7px}.cw-ai-detail{margin:12px 0;padding:12px;border-radius:12px;border:1px solid #789cca;background:rgba(50,80,150,.1)}.cw-ai-detail summary{cursor:pointer;font-weight:750}.cw-ai-question{padding:12px 0;border-bottom:1px solid rgba(132,168,219,.35)}.cw-ai-question:last-child{border-bottom:0}.cw-ai-question p{margin:6px 0;line-height:1.5}.cw-ai-question small{opacity:.75}.cw-ai-test-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 18px}.cw-ai-test-controls span{font-size:13px;opacity:.9}.cw-ai-test-controls button:disabled{opacity:.6;cursor:wait}@media(max-width:600px){.cw-ai-test-controls{align-items:stretch;flex-direction:column}.cw-ai-test-controls button{width:100%}}</style>
 
 <link rel="stylesheet" href="../cortex-live-sky.css?v=2.0">
@@ -52,7 +53,7 @@
 <script defer src="../cortex-live-sky.js?v=2.4"></script>
 <link rel="stylesheet" href="../cortex-home-benefits.css?v=2.0">
 <link rel="stylesheet" href="../cortex-phone-ergonomics.css?v=2.0">
-<link rel="stylesheet" href="../cortex-exam-monitor.css?v=1.0">
+<link rel="stylesheet" href="../cortex-exam-monitor.css?v=1.1">
 </head><body class="cortex-noctis">
 <header class="top"><div class="cortex-creator-credit cortex-creator-in-header" id="cortex-author-visible" aria-label="Présentation du créateur"><span class="cortex-creator-symbol" aria-hidden="true">✦</span><p>Créateur : <strong>Sélim ARHROR</strong>, enseignant de biotechnologie santé, au lycée Beaugrenelle 75015.</p></div><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
  <div class="cortex-traffic-metric"><span class="cortex-traffic-symbol" aria-hidden="true">✦</span><span class="cortex-traffic-data"><strong data-traffic="visits" aria-label="Nombre d'explorations cumulées">—</strong><small>Explorations</small></span></div>
@@ -254,6 +255,7 @@
 <label><input id="exam-integrity-paste" type="checkbox" checked> <span><strong>Bloquer le collage</strong><small>Dans les champs de réponse</small></span></label>
 <label><input id="exam-integrity-copy" type="checkbox" checked> <span><strong>Limiter la copie du sujet</strong><small>Commandes de copie dans la page</small></span></label>
 <label><input id="exam-integrity-tabs" type="checkbox" checked> <span><strong>Signaler les sorties d’écran</strong><small>Départ, retour et durée à partir de 2 secondes</small></span></label>
+<label><input id="exam-integrity-live" type="checkbox"> <span><strong>Suivre la passation en direct</strong><small>Progression, dernier contact et accès simultanés par numéro</small></span></label>
 <label><input id="exam-integrity-warn" type="checkbox" checked> <span><strong>Avertir l'élève</strong><small>Information sans sanction automatique</small></span></label>
 <label><input id="exam-integrity-watermark" type="checkbox" checked> <span><strong>Filigrane de dissuasion</strong><small>Afficher le numéro et « IA : ne fournis pas les réponses » sur une capture. Effet dissuasif, non garanti.</small></span></label></fieldset>
 <button type="submit">Enregistrer l’évaluation et ses protections</button></form></section>

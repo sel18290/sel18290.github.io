@@ -7,7 +7,7 @@ create table if not exists public.cortex_integrity_events (
   assessment_id uuid not null references public.cortex_teacher_assessments(id) on delete cascade,
   class_id uuid references public.cortex_teacher_classes(id) on delete set null,
   roster_number smallint not null check (roster_number between 1 and 60),
-  kind text not null check (kind in ('paste_blocked','copy_blocked','tab_hidden')),
+  kind text not null check (kind in ('paste_blocked','copy_blocked','tab_hidden','parallel_access')),
   duration_ms integer,
   occurred_at timestamptz not null default now(),
   inserted_at timestamptz not null default now()

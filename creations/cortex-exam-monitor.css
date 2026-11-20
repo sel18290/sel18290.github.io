@@ -179,6 +179,79 @@
 .ce-exam-list { margin-top: 14px; }
 .ce-exam-list .list-row { flex-wrap: wrap; }
 .ce-exam-list .list-row .grow { min-width: 0; overflow-wrap: anywhere; }
+.ce-monitor [hidden] { display: none !important; }
+.ce-monitor-views {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid #3c5278;
+  border-radius: 12px;
+  background: #0b1730;
+}
+.ce-monitor-views button {
+  min-height: 42px;
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #c4d5ed;
+  font: inherit;
+  font-weight: 700;
+}
+.ce-monitor-views button[aria-pressed="true"] {
+  border-color: #7eaae3;
+  background: #274c7e;
+  color: #f6faff;
+}
+.ce-live-panel { margin-top: 16px; }
+.ce-live-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-bottom: 12px;
+}
+.ce-live-heading h2 { margin: 0; color: #f0f5ff; font-size: 1.2rem; }
+.ce-live-heading label { min-width: 12rem; }
+.ce-live-rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ce-live-row {
+  display: grid;
+  grid-template-columns: minmax(3.5rem,.65fr) minmax(9rem,1.4fr) minmax(8rem,1.2fr) minmax(8rem,1fr);
+  align-items: center;
+  gap: 8px 12px;
+  padding: 11px 12px;
+  border: 1px solid #283e60;
+  border-inline-start: 3px solid #6a94c8;
+  border-radius: 10px;
+  background: #0d1b31;
+  overflow-wrap: anywhere;
+}
+.ce-live-review, .ce-event--parallel_access { border-inline-start-color: #ffcc80; }
+.ce-live-identity, .ce-live-contact, .ce-live-progress { display: grid; gap: 4px; min-width: 0; }
+.ce-live-contact, .ce-live-row small { color: #bfd0ea; font-size: .8rem; }
+.ce-live-state { display: flex; align-items: start; flex-wrap: wrap; gap: 4px; }
+.ce-live-badge {
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #253858;
+  color: #e0ebfc;
+  font-size: .75rem;
+  line-height: 1.35;
+}
+.ce-live-visible, .ce-live-submitted { background: #143c3a; color: #b4f2df; }
+.ce-live-hidden, .ce-live-parallel { background: #493429; color: #ffe1af; }
+.ce-live-progress progress { width: 100%; height: 7px; accent-color: #7ed9ed; }
 #acad-tools-journal[hidden] { display: none !important; }
 .ce-student-notice {
   position: fixed;
@@ -202,6 +275,7 @@
 @media (max-width: 800px) {
   .ce-monitor-filters, .ce-monitor-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ce-monitor-field :is(select, input) { font-size: 16px; }
+  .ce-live-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 420px) {
   .ce-monitor-field-wide { grid-column: 1 / -1; }

@@ -233,6 +233,12 @@ async function input(req){
 }
 async function teacherAction(action,body,form,req){
  const teacher=await userFromRequest(req);
+ if(action==='teacher_monitor'){
+  const exam=await owned(teacher,body.assessment_id);
+  const {data,error}=await admin.rpc('cortex_read_exam_presence',{p_exam:exam.id,p_teacher:teacher.id});
+  if(error)throw Error('Le suivi de la passation est indisponible.');
+  return ret({ok:true,...data});
+ }
  if(action==='teacher_list'){
   const [access,subs]=await Promise.all([
    admin.from('cortex_academy_access').select('assessment_id,join_code,active,roster_size,subject_name,created_at').eq('teacher_id',teacher.id),
@@ -813,6 +819,19 @@ async function studentAction(action,body,form){
   return ret({ok:true,session:token,student_number:number});
  }
  const {session,access,assessment}=await activeStudent(String(body.session||''),String(body.assessment_id||''));
+ if(action==='student_presence'){
+  const cfg=assessment.content?.antiCheat;
+  if(cfg?.enabled!==true||cfg.trackLive!==true||!access.active)return ret({ok:true,recorded:false});
+  if(!validUuid(body.page_id)||!['visible','hidden','left'].includes(body.state)||
+    !Number.isInteger(body.sequence)||body.sequence<1||body.sequence>2147483647)
+   throw Error('Contact du contrôle invalide.');
+  const {data,error}=await admin.rpc('cortex_report_exam_presence',{
+   p_exam:assessment.id,p_student:session.student_number,p_page:body.page_id,
+   p_state:body.state,p_sequence:body.sequence
+  });
+  if(error)throw Error('Le contact du contrôle est indisponible.');
+  return ret({ok:true,recorded:data===true});
+ }
  const readSubmission=()=>admin.from('cortex_academy_submissions')
   .select('id,answers,file_path,file_name,submitted_at,grade,feedback,graded_at,released_at,auto_submitted,attempt_started_at')
   .eq('assessment_id',assessment.id).eq('student_number',session.student_number).maybeSingle();

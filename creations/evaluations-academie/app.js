@@ -1,6 +1,6 @@
 /* CORTEX Académie — client autonome, activation Supabase après configuration. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
-import { api as cortexCourseworkApi } from './coursework.js?v=2.12';
+import { api as cortexCourseworkApi } from './coursework.js?v=2.13';
 
 const domain=/^[a-z0-9._%+-]+@ac-paris\.fr$/i;
 const $=id=>document.getElementById(id);
@@ -171,9 +171,9 @@ window.addEventListener('cortex:academy-roster-ready',event=>{
 window.CORTEX_ACADEMY_BRIDGE={client:()=>supabase,teacher:()=>teacherId,exams:()=>myExams,classes:()=>myClasses,refresh:()=>teacherId?loadTeacherData(teacherId):Promise.resolve()};
 let selectedIntegrityExamId='';
 let integritySaving=false;
-const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true};
+const antiDefault={enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,trackLive:false,warnStudent:true,watermarkCapture:true};
 function antiConfig(exam){const raw=exam?.content?.antiCheat||{};return {...antiDefault,...Object.fromEntries(Object.entries(raw).filter(([k,v])=>k in antiDefault&&typeof v==='boolean'))};}
-function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,warnStudent:$('exam-integrity-warn').checked,watermarkCapture:$('exam-integrity-watermark').checked};}
+function antiCreateConfig(){return {enabled:$('exam-integrity-on').checked,blockPaste:$('exam-integrity-paste').checked,blockCopy:$('exam-integrity-copy').checked,trackVisibility:$('exam-integrity-tabs').checked,trackLive:$('exam-integrity-live').checked,warnStudent:$('exam-integrity-warn').checked,watermarkCapture:$('exam-integrity-watermark').checked};}
 const el=(tag,cls,txt)=>{
  const node=document.createElement(tag);
  if(cls)node.className=cls;
@@ -225,6 +225,7 @@ const directTools=[
  {key:'blockPaste',icon:'⇩',name:'Blocage du collage',detail:'Empêche les collages dans les champs de réponse.',limit:'Un texte saisi à la main reste possible.'},
  {key:'blockCopy',icon:'▤',name:'Copie du sujet',detail:'Bloque la commande de copie ou de découpe sur le texte du sujet.',limit:'L’élève peut toujours modifier ses propres réponses.'},
  {key:'trackVisibility',icon:'◷',name:'Sorties d’écran',detail:'Au retour après au moins deux secondes, inscrit le départ, le retour et la durée dans Suivi des épreuves.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page.'},
+ {key:'trackLive',icon:'◉',name:'Suivi en direct',detail:'Affiche la progression du brouillon, l’état de la page et le dernier contact par numéro. Les accès simultanés apparaissent dans le journal.',limit:'Active ce suivi avant la passation pour que les élèves voient la règle au démarrage.'},
  {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message après une sortie signalée ou une action bloquée.',limit:'Le chronomètre continue.'},
  {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Affiche classe, numéro et message « aide IA interdite ».',limit:'N’empêche pas les captures ; une IA peut ignorer le texte.'}
 ];

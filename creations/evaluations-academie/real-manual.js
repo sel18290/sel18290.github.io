@@ -1,5 +1,5 @@
 /* Espace réel : éditeur pédagogique question par question, inspiré de la démonstration. */
-import {api} from './coursework.js?v=2.12';
+import {api} from './coursework.js?v=2.13';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);
@@ -249,6 +249,7 @@ function edit(exam){
  const cfg={enabled:'exam-integrity-on',blockPaste:'exam-integrity-paste',blockCopy:'exam-integrity-copy',
  trackVisibility:'exam-integrity-tabs',warnStudent:'exam-integrity-warn',watermarkCapture:'exam-integrity-watermark'};
  for(const [key,id] of Object.entries(cfg))if(typeof anti[key]==='boolean')$(id).checked=anti[key];
+ $('exam-integrity-live').checked=anti.trackLive===true;
  setHint(isPublished?'Le contrôle publié est préservé : création d’une nouvelle version en brouillon. Joins à nouveau son PDF/Word d’origine si nécessaire.':'Modification du contrôle existant en brouillon.');
  paint();
  location.hash='#exam-form';

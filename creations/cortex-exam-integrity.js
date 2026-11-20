@@ -37,6 +37,7 @@
     if (settings?.enabled !== true) return '';
     const rules = [];
     if (settings.trackVisibility === true) rules.push('Les sorties d’écran d’au moins 2 secondes sont signalées au retour.');
+    if (settings.trackLive === true) rules.push('Ton professeur voit la progression de ton brouillon, l’état de la page et les accès simultanés pour ton numéro.');
     if (settings.blockPaste === true) rules.push('Le collage dans les réponses est bloqué.');
     if (settings.blockCopy === true) rules.push('La copie du sujet est limitée.');
     if (settings.watermarkCapture === true) rules.push('Le sujet porte un filigrane.');

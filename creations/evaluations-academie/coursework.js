@@ -28,7 +28,8 @@ export async function api(action,payload={},file=null,teacher=false){
   form.set('file',file,file.name);body=form;
  }else{headers['Content-Type']='application/json';body=JSON.stringify({action,...payload})}
  let response;
- const keepalive=action==='student_save'&&typeof body==='string'&&new TextEncoder().encode(body).length<60000;
+ const keepalive=(action==='student_save'||action==='student_presence')&&
+  typeof body==='string'&&new TextEncoder().encode(body).length<60000;
  try{response=await fetch(ENDPOINT,{method:'POST',headers,body,cache:'no-store',keepalive})}
  catch{throw Error('Le service des évaluations est inaccessible.')}
  const out=await response.json().catch(()=>null);

@@ -454,8 +454,9 @@ function teacherMonitoring(){
 }
 function mountDemoMonitor(){
  const monitor=window.CORTEX_EXAM_MONITOR;
+ const live=window.CORTEX_EXAM_LIVE.createPanel({demo:true});
  const journal=monitor.mount(document.getElementById('demo-live-journal'),{
-  demo:true,onExamChange:id=>{monitorExamId=id;}
+  demo:true,live,onExamChange:id=>{monitorExamId=id;}
  });
  const classesByExam=new Map();
  for(const assignment of [...state.assignments,...state.attempts]){
@@ -465,10 +466,29 @@ function mountDemoMonitor(){
    window.CORTEX_CLASSES.classLabel(state,assignment.classId,assignment.className||'Classe archivée'));
  }
  journal.setExams(state.exams.map(exam=>({id:exam.id,title:exam.title,classes:[...(classesByExam.get(exam.id)||[])]})),monitorExamId);
- journal.setEvents(state.events.flatMap(event=>{
+ const events=state.events.flatMap(event=>{
   const attempt=attemptBy(event.attemptId);
   return attempt?[monitor.fromDemo(event,attempt)]:[];
- }));
+ });
+ const sample=examBy('sommeil-pdf-a2');
+ const now=Date.now();
+ const at=seconds=>new Date(now-seconds*1000).toISOString();
+ const entries=[];
+ if(sample){
+  const classes=classesByExam.get(sample.id);
+  const classId=classes?.keys().next().value||'2mrc1';
+  const examId=sample.id;
+  for(const row of [
+   {student_number:4,state:'visible',answered:14,seen_at:at(5)},
+   {student_number:9,state:'hidden',answered:6,state_since:at(22),seen_at:at(22)},
+   {student_number:12,state:'submitted',submitted_at:at(45),auto_submitted:true},
+   {student_number:16,state:'stale',answered:8,seen_at:at(62)},
+   {student_number:21,state:'visible',answered:10,seen_at:at(7),parallel:true}
+  ])entries.push({...row,examId,classId,title:sample.title,question_count:sample.questions.length});
+  events.push({examId,classId,className:classes?.get(classId),studentNumber:21,kind:'parallel_access',simulated:true,at:now-7000});
+ }
+ journal.setEvents(events);
+ live.setSnapshot({observed_at:at(0),enabled:true,entries});
 }
 function teacherAnalytics(){
 const done=state.attempts.filter(a=>a.status==='submitted'&&window.CORTEX_CLASSES.copyMatch(a,teacherClassFilter,teacherGroupFilter)),graded=done.filter(a=>a.grade!=null),avg=graded.length?(graded.reduce((n,a)=>n+Number(a.grade),0)/graded.length).toFixed(1):'—';const bins=[0,0,0,0];graded.forEach(a=>bins[Math.min(3,Math.floor(a.grade/5))]++);

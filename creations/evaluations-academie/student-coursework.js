@@ -1,6 +1,6 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
-import { api } from './coursework.js?v=2.12';
+import { api } from './coursework.js?v=2.13';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.5';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
@@ -22,6 +22,8 @@ if(qr||globalPortal){
  let mobileController=null, draftEditor=null, clearDraftListeners=null;
  const integrity=window.CORTEX_EXAM_INTEGRITY;
  const guard=integrity.create({storageKey:storageKey+':sortie',onEvent:queueEvent,onNotice:showIntegrityNotice});
+ const presence=window.CORTEX_EXAM_LIVE.createReporter(({session,assessmentId},signal)=>
+  api('student_presence',{session,assessment_id:assessmentId,...signal}));
  const eventQueueKey=storageKey+':journal';
  let pendingEvents=[];
  try{
@@ -94,6 +96,7 @@ if(qr||globalPortal){
  }
  function stopIntegrity(){
   guard.setActive();
+  presence.setActive();
   integrityNotice.hidden=true;
  }
  function button(text,cls,handler){
@@ -513,6 +516,12 @@ if(qr||globalPortal){
   const examGuard={key:timerKey,startedAt:localStarted,root:work,settings,
     subjectSelector:'.cw-student-subject, .cw-answer-question',
     assessmentId:currentId,studentNumber:current.student_number};
+  function startIntegrity(){
+   guard.setActive(examGuard);
+   if(settings.enabled===true&&settings.trackLive===true){
+    presence.setActive({key:draftKey,session:currentSession,assessmentId:exam.id,deadline});
+   }else presence.setActive();
+  }
   const questions=exam.questions?.length?exam.questions:[{id:'general',prompt:'Ma réponse / mon travail'}];
   if(isPhoneExam)mobileController=installMobileExam({form,questions,exam,current,initialAnswers,onNavigate:()=>draftEditor?.update(true)});
   else{
@@ -694,7 +703,7 @@ if(qr||globalPortal){
      message('La copie a été enregistrée. Recharge ton espace pour voir le reçu.');
     }
    }catch(error){
-    if(!expiryNotified)guard.setActive(examGuard);
+    if(!expiryNotified)startIntegrity();
     const detail=String(error?.message||error||'Erreur inconnue');
     submissionMessage('Envoi impossible : '+detail+' Tes réponses sont conservées. Tu peux réessayer.',true);
    }finally{
@@ -715,7 +724,7 @@ if(qr||globalPortal){
    for(let i=0;i<6;i++)mark.append(E('span','','CORTEX · N°'+current.student_number+' · AIDE IA INTERDITE'));
    work.append(mark);
   }
-  guard.setActive(examGuard);
+  startIntegrity();
   refreshTimer();
   if(!expiryNotified){
    countdownInterval=setInterval(refreshTimer,1000);

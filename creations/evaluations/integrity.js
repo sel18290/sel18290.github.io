@@ -2,7 +2,7 @@
 window.CORTEX_INTEGRITY=(function(){
 'use strict';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-const defaults=()=>({enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,warnStudent:true,watermarkCapture:true});
+const defaults=()=>({enabled:false,blockPaste:true,blockCopy:true,trackVisibility:true,trackLive:false,warnStudent:true,watermarkCapture:true});
 const exitKinds=new Set(['tab_hidden','simulation','visibility']);
 const reported=event=>exitKinds.has(event.kind)||event.kind==='paste_blocked'||event.kind==='copy_blocked';
 function config(exam){const c=defaults();for(const [k,v] of Object.entries(exam?.antiCheat||{}))if(k in c&&typeof v==='boolean')c[k]=v;return c;}
@@ -40,6 +40,7 @@ function settings(exam){
  toggle(exam,'blockPaste','Empêcher le collage','Refus dans les champs de réponse.')+
  toggle(exam,'blockCopy','Limiter la copie du sujet','Ne bloque ni photo ni capture du système.')+
  toggle(exam,'trackVisibility','Suivre les sorties d’écran','Départ, retour et durée à partir de 2 secondes.')+
+ toggle(exam,'trackLive','Suivre la passation en direct','Progression, dernier contact et accès simultanés par numéro.')+
  toggle(exam,'warnStudent','Prévenir l’élève','Message après une sortie signalée ou un geste bloqué.')+
  toggle(exam,'watermarkCapture','Filigrane anti-partage / IA','Classe, numéro et avertissement aux IA sur les captures.')+'</div>'+
  '<div class="integrity-watermark-preview"><div><span class="integrity-kicker">APERÇU DU FILIGRANE</span><strong>'+esc(exam.title)+'</strong><small>CORTEX · 2MRC2 · N° 12 · AIDE IA INTERDITE</small></div><p>'+(c.enabled&&c.watermarkCapture?'Activé : le filigrane sera visible pendant le contrôle.':'Désactivé : cet aperçu montre l’effet possible.')+' Une IA peut ignorer ce message : il n’impose aucun refus et ne bloque pas les captures.</p></div>'+
@@ -49,6 +50,7 @@ const tools=[
  {key:'blockPaste',icon:'⇩',title:'Collage des réponses',desc:'Empêche le collage de texte dans les champs de réponse pendant le contrôle.',limit:'Ne repère pas un texte retapé à la main.'},
  {key:'blockCopy',icon:'▤',title:'Copie du sujet',desc:'Intercepte les commandes copier et couper sur la page du sujet.',limit:'La modification de ses propres réponses reste possible.'},
  {key:'trackVisibility',icon:'◷',title:'Sorties d’écran',desc:'Signale au retour une page masquée pendant au moins deux secondes.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page.'},
+ {key:'trackLive',icon:'◉',title:'Suivi en direct',desc:'Activité, progression et accès simultanés pour chaque numéro.',limit:'Retrouve un exemple de passation dans « En direct ».'},
  {key:'warnStudent',icon:'!',title:'Avertir l’élève',desc:'Indique la durée au retour ou explique pourquoi un geste est bloqué.',limit:'Le chronomètre continue.'},
  {key:'watermarkCapture',icon:'▧',title:'Filigrane anti-partage / IA',desc:'Ajoute la classe, le numéro de liste et un message « aide IA interdite ».',limit:'Une capture reste possible et une IA peut ignorer le message.'}
 ];

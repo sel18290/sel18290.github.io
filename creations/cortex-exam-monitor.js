@@ -4,7 +4,8 @@
   const kindLabels = {
     tab_hidden: 'Sortie d’écran',
     paste_blocked: 'Collage bloqué',
-    copy_blocked: 'Copie du sujet bloquée'
+    copy_blocked: 'Copie du sujet bloquée',
+    parallel_access: 'Accès simultanés'
   };
   const formatter = options => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', ...options });
   const day = formatter({ day: 'numeric', month: 'short', year: 'numeric' });
@@ -38,6 +39,7 @@
     const identity = event.studentNumber ? 'Élève n° ' + event.studentNumber : event.studentName || 'Élève';
     group.append(title, element('p', 'ce-event-identity', [identity, event.className || exam?.className, event.groupName].filter(Boolean).join(' · ')));
     if (exam?.title) group.append(element('p', 'ce-event-exam', exam.title));
+    if (event.kind === 'parallel_access') group.append(element('p', 'ce-event-identity', 'Deux pages actives pour le même numéro.'));
     row.append(group);
     if (event.kind === 'tab_hidden') {
       const measure = element('div', 'ce-event-measure');
@@ -79,9 +81,9 @@
     };
   }
 
-  function mount(host, { perExam = false, onExamChange, demo = false } = {}) {
+  function mount(host, { perExam = false, onExamChange, onViewChange, demo = false, live = null } = {}) {
     let exams = [], events = [], updatedAt = null, loading = false, failed = false;
-    let limit = PAGE_SIZE, lastList = '';
+    let limit = PAGE_SIZE, lastList = '', showingLive = false;
     host.classList.add('ce-monitor');
     const header = element('div', 'ce-monitor-heading');
     const intro = element('div', '');
@@ -125,10 +127,40 @@
     more.hidden = true;
     const footer = element('p', 'ce-monitor-note',
       'Heures de Paris. Les horaires et durées sont estimés par le navigateur. Le professeur examine chaque signalement dans son contexte.');
-    host.replaceChildren(header, filters, stats, caption, results, more, footer);
+    const log = element('div', 'ce-monitor-log');
+    log.append(stats, caption, results, more, footer);
+    const tabs = element('div', 'ce-monitor-views');
+    tabs.setAttribute('role', 'group');
+    tabs.setAttribute('aria-label', 'Vues du suivi');
+    const logButton = element('button', '', 'Journal');
+    const liveButton = element('button', '', 'En direct');
+    for (const button of [logButton, liveButton]) button.type = 'button';
+    tabs.append(logButton, liveButton);
+    host.replaceChildren(header, ...(live ? [tabs] : []), filters, ...(live ? [live.root] : []), log);
+
+    function chooseView(next) {
+      if (showingLive === next) return;
+      showingLive = next;
+      render();
+      onViewChange?.();
+    }
+    logButton.addEventListener('click', () => chooseView(false));
+    liveButton.addEventListener('click', () => chooseView(true));
 
     function render() {
       const currentExam = exams.find(exam => exam.id === examSelect.value);
+      if (live) {
+        logButton.setAttribute('aria-pressed', String(!showingLive));
+        liveButton.setAttribute('aria-pressed', String(showingLive));
+        header.hidden = showingLive;
+        log.hidden = showingLive;
+        kind.parentElement.hidden = showingLive;
+        live.root.hidden = !showingLive;
+        if (showingLive) {
+          live.setScope(currentExam, student.value, classSelect.value);
+          return;
+        }
+      }
       introText.textContent = demo ? 'Données locales de la démonstration.' :
         currentExam?.tracksExits === false ? 'Le signalement des sorties d’écran est désactivé pour ce contrôle.' :
         'Les sorties d’écran apparaissent au retour de l’élève.';
@@ -140,9 +172,10 @@
       const measured = exits.filter(validDuration);
       const total = measured.reduce((sum, event) => sum + event.durationMs, 0);
       const longest = measured.reduce((max, event) => Math.max(max, event.durationMs), 0);
+      const blocked = filtered.filter(event => event.kind === 'paste_blocked' || event.kind === 'copy_blocked').length;
       const known = !perExam || updatedAt !== null;
       const display = known ? [exits.length, total ? duration(total) : (exits.length ? '—' : '0 s'),
-        longest ? duration(longest) : '—', filtered.length - exits.length] : ['—', '—', '—', '—'];
+        longest ? duration(longest) : '—', blocked] : ['—', '—', '—', '—'];
       display.forEach((value, index) => { figures[index].textContent = value; });
       const missing = exits.length - measured.length;
       caption.textContent = missing ? missing + (missing === 1 ? ' sortie sans durée mesurée.' : ' sorties sans durée mesurée.') : '';
@@ -231,6 +264,8 @@
         pickExam(id);
       },
       examId: () => examSelect.value,
+      isLive: () => showingLive,
+      showJournal() { chooseView(false); },
       setEvents(next, at = null) {
         events = newestFirst(next);
         updatedAt = at;
@@ -245,6 +280,7 @@
         loading = false;
         failed = false;
         limit = PAGE_SIZE;
+        showingLive = false;
         student.value = '';
         kind.value = '';
         this.setExams([], '');

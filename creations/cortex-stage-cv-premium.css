@@ -550,3 +550,83 @@
   font-size: 13px;
   line-height: 1.45;
 }
+
+
+/* CORTEX PFMP — choix de la structure pour personnaliser CV et lettre */
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-picker {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  background: #f5f9fc;
+  border: 1px solid #d5e4ef;
+  border-radius: 11px;
+  color: #17324d;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-label {
+  display: grid;
+  gap: 7px;
+  color: #17324d;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-label > strong {
+  color: #17324d;
+  font-size: 14px;
+  font-weight: 740;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-label > small {
+  color: #5f7488;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-input {
+  display: block;
+  min-height: 46px;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 12px;
+  background: #fff;
+  color: #17324d;
+  color-scheme: light;
+  border: 1px solid #b9d1e3;
+  border-radius: 7px;
+  font: 560 14px/1.35 Inter, "Segoe UI", Arial, sans-serif;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-summary {
+  margin: 0;
+  color: #3e6683;
+  font-size: 12px;
+  font-weight: 530;
+  line-height: 1.5;
+}
+.cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-albert-context {
+  margin: 0;
+  padding: 10px 12px;
+  color: #25577c;
+  font-size: 12px;
+  font-weight: 640;
+  line-height: 1.45;
+  border: 1px solid #d0e2ee;
+  background: #edf5fb;
+  border-radius: 7px;
+}
+.cs-stage-search .cs-stage-nav button[data-stage-nav="board"] .cs-stage-nav-copy strong {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.26;
+  font-size: clamp(12px, 1.28vw, 14px);
+}
+.cs-stage-search .cs-stage-nav button[data-stage-nav="board"] {
+  min-width: 0;
+  height: auto;
+}
+@container cortex-stage (max-width: 590px) {
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-picker {
+    padding: 13px;
+  }
+  .cs-stage-search[data-stage-view="cv"] #cs-stage-cv-panel .cs-stage-cv-place-input {
+    font-size: 16px;
+  }
+  .cs-stage-search .cs-stage-nav button[data-stage-nav="board"] .cs-stage-nav-copy strong {
+    font-size: 12px;
+  }
+}

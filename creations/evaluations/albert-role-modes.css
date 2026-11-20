@@ -1,0 +1,263 @@
+/* CORTEX - Deux assistants flottants, même panneau - Modes élève et professeur */
+body.cortex-noctis #cortex-albert-quick {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(17px, env(safe-area-inset-bottom));
+  z-index: 58;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 17px;
+  min-height: 46px;
+  color: #f0fbff;
+  background: linear-gradient(125deg,#184d84,#246fab);
+  border: 1px solid #98d1fa;
+  border-radius: 99px;
+  box-shadow: 0 7px 24px #061b3f55,0 0 0 2px #b0e2ff20;
+  font: 780 13px/1.2 Inter,system-ui,sans-serif;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+body.cortex-noctis #cortex-albert-quick:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 27px #061b3f88,0 0 0 2px #b0e2ff44;
+}
+body.cortex-noctis #cortex-albert-quick:focus-visible {
+  outline: 3px solid #ffc980;
+  outline-offset: 3px;
+}
+body.cortex-noctis .cortex-albert-dialog {
+  width: min(650px,calc(100vw - 26px));
+  max-height: min(89dvh,850px);
+  overflow-y: auto;
+  color: #183753;
+  color-scheme: light;
+  background: #f8fbfe;
+  border: 1px solid #bdcfdf;
+  border-radius: 17px;
+  box-shadow: 0 24px 85px #041c38ba;
+  font-family: Inter,system-ui,"Segoe UI",sans-serif;
+}
+body.cortex-noctis .cortex-albert-dialog-content {
+  display: grid;
+  gap: 14px;
+  padding: clamp(16px,3vw,26px);
+}
+body.cortex-noctis .cortex-albert-dialog-header {
+  align-items: center;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #d7e5f0;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-kicker {
+  color: #316f9a;
+  font-size: 10px;
+  font-weight: 790;
+  letter-spacing: .11em;
+}
+body.cortex-noctis .cortex-albert-dialog h2 {
+  margin: 5px 0 0;
+  color: #173652;
+  font-size: clamp(22px,2.9vw,29px);
+  font-weight: 790;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-close {
+  background: #eef5fa;
+  color: #1e567e;
+  border: 1px solid #bfd3e2;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-close:hover {
+  background: #deebf5;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-hologram {
+  display: none;
+}
+body.cortex-noctis .cortex-albert-roles {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+body.cortex-noctis .cortex-albert-role {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 760;
+  color: #285572;
+  background: #fff;
+  border: 1px solid #c6d9e9;
+  border-radius: 11px;
+  cursor: pointer;
+}
+body.cortex-noctis .cortex-albert-role[aria-pressed="true"] {
+  color: #fff;
+  background: #1d659e;
+  border-color: #1d659e;
+  box-shadow: 0 3px 10px #276d9f28;
+}
+body.cortex-noctis .cortex-albert-role:hover:not([aria-pressed="true"]) {
+  background: #eaf3f9;
+  border-color: #82b4d5;
+}
+body.cortex-noctis .cortex-albert-role-info {
+  color: #59738a;
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-tabs {
+  display: flex;
+  gap: 14px;
+  border-bottom: 1px solid #d6e3ee;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-tabs button {
+  flex: 0 1 auto;
+  min-height: 40px;
+  color: #4a6d89;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px 5px 10px;
+  font-size: 12px;
+  font-weight: 730;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-tabs button[aria-selected="true"] {
+  color: #205e90;
+  background: transparent;
+  border-bottom-color: #2376b5;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-panel {
+  display: grid;
+  gap: 13px;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-panel[hidden] { display: none !important; }
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-muted {
+  color: #536d83;
+  font-size: 13px;
+  line-height: 1.55;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-examples {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-examples button {
+  flex: 0 1 auto;
+  padding: 8px 10px;
+  min-height: 34px;
+  color: #28618b;
+  background: #eaf3fa;
+  border: 1px solid #c4dceb;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 630;
+  line-height: 1.4;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-examples button:hover {
+  background: #dbeefb;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-panel textarea {
+  width: 100%;
+  min-height: 96px;
+  color: #203e59;
+  background: #fff;
+  color-scheme: light;
+  border: 1px solid #b8d0e1;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+body.cortex-noctis .cortex-albert-form-label {
+  color: #234b6a;
+  font-size: 13px;
+  font-weight: 750;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-send {
+  min-height: 44px;
+  color: #fff;
+  background: #1f6398;
+  border: 1px solid #175687;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 750;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-send:not(:disabled):hover {
+  background: #164f7f;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-open-space {
+  justify-self: start;
+  padding: 9px 12px;
+  color: #1f6193;
+  background: #fff;
+  border: 1px solid #b5d5e9;
+  border-radius: 8px;
+  min-height: 40px;
+  font-size: 12px;
+  font-weight: 710;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-answer,
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-result-paragraph {
+  color: #21435e;
+  line-height: 1.55;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-answer:not(:empty) {
+  background: #eef6fc;
+  border: 1px solid #d0e2ef;
+  border-radius: 11px;
+  padding: 12px;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-result-heading {
+  color: #236b9c;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-step {
+  background: #fff;
+  border: 1px solid #c8dce9;
+  border-radius: 9px;
+  box-shadow: none;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-step-number {
+  color: #fff;
+  background: #236fa8;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-step-body strong {
+  color: #173f60;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-step-body p {
+  color: #4c667c;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-note {
+  color: #254e6b;
+  background: #e3f0f8;
+  border-left-color: #3685b4;
+}
+body.cortex-noctis .cortex-albert-dialog .cortex-albert-warning {
+  color: #975220;
+}
+body.cortex-noctis .cortex-albert-dialog :is(button,textarea):focus-visible {
+  outline: 3px solid #1c78b2;
+  outline-offset: 2px;
+}
+@media(max-width:680px) {
+  body.cortex-noctis #cortex-albert-person { display: none; }
+  body.cortex-noctis #cortex-albert-quick {
+    bottom: max(15px,env(safe-area-inset-bottom));
+    right: max(9px,env(safe-area-inset-right));
+    min-height: 46px;
+  }
+  body.cortex-noctis .cortex-albert-dialog {
+    width: calc(100vw - 16px);
+    max-height: 90dvh;
+  }
+  body.cortex-noctis .cortex-albert-dialog-content { padding: 15px; }
+  body.cortex-noctis .cortex-albert-role { font-size: 12px; padding: 10px 7px; min-height: 50px; }
+  body.cortex-noctis .cortex-albert-dialog .cortex-albert-examples button { font-size: 11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  body.cortex-noctis #cortex-albert-quick {transition:none;}
+}

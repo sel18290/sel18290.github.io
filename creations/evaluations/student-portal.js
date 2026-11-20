@@ -177,7 +177,7 @@ window.CORTEX_PORTAL=(function(){
   const cards=all.slice().sort((a,b)=>(b.submittedAt||b.startedAt||0)-(a.submittedAt||a.startedAt||0)).map(at=>{
    const ex=(state.exams||[]).find(e=>e.id===at.examId),pub=eligible(at),open=at.status==='progress';
    const badge=pub?'<span class="portal-status ready">✓ Corrigé et publié</span>':open?'<span class="portal-status wait">En cours</span>':'<span class="portal-status wait">Correction en attente</span>';
-   return '<article class="portal-result"><div class="portal-result-icon" aria-hidden="true">'+(pub?'✓':open?'◷':'·')+'</div>'+
+   return '<article class="portal-result '+(pub?'is-published':open?'is-active':'is-awaiting')+'"><div class="portal-result-icon" aria-hidden="true">'+(pub?'✓':open?'◷':'·')+'</div>'+
     '<div class="portal-result-content"><strong>'+esc(ex?.title||'Évaluation')+'</strong><small>'+esc(date(at.submittedAt||at.startedAt))+' · '+esc(at.groupName||cl.name)+'</small>'+badge+'</div>'+
     '<div class="portal-result-end">'+(pub?'<div class="portal-grade">'+grade(at.grade)+'<span>/20</span></div><button class="portal-link" data-action="portal-copy" data-id="'+esc(at.id)+'">Voir ma correction ↗</button>'+
       (opts.preview?'<p class="portal-albert-hook">✦ Pour comprendre tes réussites et progresser, Albert peut relire ta correction.</p>'+

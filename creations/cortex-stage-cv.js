@@ -131,15 +131,14 @@
 
       const masthead = element('div','cs-stage-cv-masthead');
       const mastheadText = element('div','cs-stage-cv-masthead-copy');
-      mastheadText.append(badge('cs-stage-cv-eyebrow','CORTEX / ATELIER DE CANDIDATURE'),
-        element('h3','', 'Construis ta candidature.'),
-        element('p','', 'Un espace guidé pour rédiger, améliorer et finaliser tes documents de PFMP.'));
-      const mastheadStatus = element('div','cs-stage-cv-masthead-status');
-      mastheadStatus.append(badge('cs-stage-cv-status-dot','●'),element('span','', 'BROUILLONS ENREGISTRÉS SUR CET APPAREIL'));
-      masthead.append(mastheadText,mastheadStatus);
+      mastheadText.append(
+        badge('cs-stage-cv-eyebrow','ATELIER DE CANDIDATURE'),
+        element('p','', 'Rédige à ton rythme. Tes brouillons sont conservés sur cet appareil.')
+      );
+      masthead.append(mastheadText);
 
       const chooser = element('section','cs-stage-cv-chooser');
-      chooser.append(element('h4','cs-stage-cv-minititle','01 — Quel document veux-tu préparer ?'));
+      chooser.append(element('h4','cs-stage-cv-minititle','Choisis ton document'));
       const choices = element('div','cs-stage-cv-choices');
       for (const [type,number,title,subtitle] of [
         ['cv','01','Mon CV','Parcours, compétences, expériences'],
@@ -166,8 +165,8 @@
 
       const target = element('section','cs-stage-cv-target');
       const targetLabel = element('label','cs-stage-cv-target-label');
-      targetLabel.append(element('strong','', '02 — Pour quelle structure ?'),
-        element('small','', 'Tu peux commencer un brouillon général, sans entreprise.'));
+      targetLabel.append(element('strong','', 'Pour quelle structure ?'),
+        element('small','', 'Tu peux choisir une entreprise plus tard.'));
       const select = element('select','cs-stage-cv-company-select');
       select.setAttribute('aria-label','Choisir une structure pour ma candidature');
       select.replaceChildren(new Option('Brouillon général — pas encore de structure',''),
@@ -183,8 +182,8 @@
       const targetNote = element('div','cs-stage-cv-target-note');
       targetNote.append(badge('cs-stage-cv-target-icon','✧'),
         element('p','',entry.place.name
-          ? 'Document associé à « '+entry.place.name+' ». Tes autres brouillons restent séparés.'
-          : 'Choisis une structure plus tard pour personnaliser ton document.'));
+          ? 'Brouillon enregistré pour « '+entry.place.name+' ».'
+          : 'Brouillon général, à personnaliser ensuite.'));
       target.append(targetLabel,targetNote);
 
       const stages = element('nav','cs-stage-cv-phases');

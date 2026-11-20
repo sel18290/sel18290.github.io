@@ -285,7 +285,7 @@ function drawTeacherData(){
   const counts=el('span','class-card-bottom');
   counts.append(el('span','',myExams.filter(e=>e.class_id===c.id).length+' contrôle(s)'),el('span','','Numéros et demi-groupes dans « PIN élèves »'));
   const actions=el('div','acad-class-tile-actions');
-  const access=el('a','btn secondary small','Gérer les PIN →');access.href='#cw-persistent-classes';access.dataset.acadView='pins';
+  const access=el('a','btn secondary small','Gérer les PIN →');access.href='#cw-persistent-classes';access.dataset.acadView='pins';access.dataset.pinClass=c.id;
   const deleteButton=el('button','btn ghost small','Supprimer');deleteButton.type='button';deleteButton.addEventListener('click',()=>removeClass(c));
   actions.append(access,deleteButton);
   card.append(el('span','class-card-upper','CLASSE · PSE'),el('strong','',c.code),note,groupSummary,counts,actions);

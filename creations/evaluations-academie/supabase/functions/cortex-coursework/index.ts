@@ -102,9 +102,11 @@ async function classAccess(teacher,classId,size=30){
    const value=pin();
    return {row:{class_id:classId,student_number:n,pin_digest:await pinHash(classId,n,value),attempts:0,locked_until:null},credential:{number:n,pin:value}};
   }));
-  const {error:insertErr}=await admin.from('cortex_academy_class_roster').upsert(generated.map(p=>p.row),{onConflict:'class_id,student_number'});
+  const {data:inserted,error:insertErr}=await admin.from('cortex_academy_class_roster')
+   .upsert(generated.map(p=>p.row),{onConflict:'class_id,student_number',ignoreDuplicates:true}).select('student_number');
   if(insertErr)throw Error('Création des PIN de classe impossible.');
-  freshPins.push(...generated.map(p=>p.credential));
+  const insertedNumbers=new Set((inserted||[]).map(row=>row.student_number));
+  freshPins.push(...generated.map(p=>p.credential).filter(row=>insertedNumbers.has(row.number)));
  }
  if(access.roster_size!==total||!access.active){
   const {error:updateErr}=await admin.from('cortex_academy_class_access').update({roster_size:total,active:true}).eq('class_id',classId).eq('teacher_id',teacher.id);
@@ -135,7 +137,7 @@ async function verifyClassPin(access,n,p,requireActivated=true){
   throw Error('Classe, numéro ou PIN incorrect.');
  }
  if(requireActivated&&!cred.activated_at)
-  throw Error('Votre espace n’est pas encore activé. Utilisez le bouton « Première connexion » avec le PIN provisoire du professeur.');
+  throw Error('Le PIN de ce numéro reste à créer. Ouvre le lien d’inscription transmis par ton professeur.');
  const changes:Record<string,unknown>={attempts:0,locked_until:null};
  if(migrated){
   changes.pin_digest=expected;
@@ -144,6 +146,16 @@ async function verifyClassPin(access,n,p,requireActivated=true){
  const {data:verified,error:updateError}=await admin.from('cortex_academy_class_roster')
   .update(changes).eq('class_id',access.class_id).eq('student_number',n).eq('pin_digest',cred.pin_digest).select('student_number').maybeSingle();
  if(updateError||!verified)throw Error('Vérification du PIN impossible. Réessayez.');
+ return expected;
+}
+async function openClassStudentSession(access,number,plain,assessmentId=null){
+ const verified=await verifyClassPin(access,number,plain);
+ const token=random(32);
+ const {data,error}=await admin.rpc('cortex_issue_class_student_session',{
+  p_class:access.class_id,p_student:number,p_verified_pin:verified,p_session_digest:await digest(token),p_assessment:assessmentId
+ });
+ if(error||!data)throw Error('Impossible d’ouvrir ta session. Vérifie le PIN et le demi-groupe avec ton professeur.');
+ return token;
 }
 async function activeClassStudent(token){
  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))throw Error('Session expirée. Reconnectez-vous.');
@@ -233,6 +245,43 @@ async function input(req){
 }
 async function teacherAction(action,body,form,req){
  const teacher=await userFromRequest(req);
+ if(action==='teacher_pin_admin'||action==='teacher_pin_sessions'||action==='teacher_pin_action'){
+  const classId=String(body.class_id||'');
+  await classOwned(teacher,classId);
+  const scope={p_teacher:teacher.id,p_class:classId};
+  if(action==='teacher_pin_admin'||action==='teacher_pin_sessions'){
+   const sessions=action==='teacher_pin_sessions';
+   const number=body.student_number==null?null:Number(body.student_number);
+   const state=body.session_state||'active',offset=Number(body.offset||0);
+   if(sessions&&((number!==null&&(!Number.isInteger(number)||number<1||number>60))||
+     !['active','all','expired'].includes(state)||!Number.isSafeInteger(offset)||offset<0||offset>2147483647))
+    throw Error('Filtres de sessions invalides.');
+   const {data,error}=await admin.rpc(sessions?'cortex_class_pin_admin_sessions':'cortex_class_pin_admin_overview',
+    sessions?{...scope,p_student:number,p_state:state,p_offset:offset}:scope);
+   if(error||!data)throw Error('Impossible de charger les accès de cette classe.');
+   return ret({ok:true,...data});
+  }
+  const number=Number(body.student_number),op=body.operation,sessionId=body.session_id||null;
+  if(!Number.isInteger(number)||number<1||number>60||!['issue','release','unlock','disconnect'].includes(op)||
+    (sessionId!==null&&(op!=='disconnect'||!validUuid(sessionId))))throw Error('Action ou numéro invalide.');
+  let access=null,token=null;
+  if(op==='issue'){
+   const size=Number(body.roster_size||30);
+   if(!Number.isInteger(size)||size<number||size>60)throw Error('Le numéro doit être compris dans l’effectif préparé.');
+   access=(await classAccess(teacher,classId,size)).access;
+   token=random(20);
+  }
+  const {data,error}=await admin.rpc('cortex_class_pin_admin_action',{
+   ...scope,p_student:number,p_action:op,p_activated_at:body.activated_at||null,p_invited_at:body.invitation_issued_at||null,
+   p_new_digest:op==='issue'||op==='release'?await digest(random(32)):null,
+   p_token_digest:token?await digest(token):null,p_session:sessionId
+  });
+  if(error)throw Error('Impossible de modifier cet accès.');
+  if(data?.status==='changed')throw Error('Ce compte a changé depuis son affichage. Actualise la classe, puis réessaie.');
+  if(data?.status!=='ok')throw Error('Numéro ou fiche d’accès introuvable.');
+  return ret({ok:true,closed:data.closed||0,registration_token:token,portal_code:access?.portal_code||null,
+   invitation_issued_at:data.issued_at,invitation_expires_at:data.expires_at});
+ }
  if(action==='teacher_monitor'){
   const exam=await owned(teacher,body.assessment_id);
   const {data,error}=await admin.rpc('cortex_read_exam_presence',{p_exam:exam.id,p_teacher:teacher.id});
@@ -587,18 +636,27 @@ async function recordAttempt(id,number,action,params={}){
  if(error)throw Error('Impossible d’enregistrer la copie sur le serveur. Réessaie.');
  return data;
 }
+async function registrationContext(invitation){
+ const tokenDigest=await digest(invitation);
+ const {data:individual,error}=await admin.from('cortex_class_pin_invites')
+  .select('class_id,student_number,purpose,expires_at').eq('token_digest',tokenDigest).maybeSingle();
+ if(error)throw Error('Vérification du lien indisponible.');
+ if(individual&&Date.parse(individual.expires_at)<=Date.now())throw Error('Ce lien individuel a expiré. Demande un nouveau lien à ton professeur.');
+ let query=admin.from('cortex_academy_class_access').select('*').eq('active',true);
+ query=individual?query.eq('class_id',individual.class_id):query.eq('registration_token_hash',tokenDigest);
+ const result=await query.maybeSingle();
+ if(result.error)throw Error('Vérification du lien indisponible.');
+ return {access:result.data,individual,tokenDigest};
+}
 async function studentAction(action,body,form){
  if(action==='student_link_info'){
   // Le lien reçu de l'enseignant détermine la classe, jamais le numéro seul.
   // Ne renvoyer ici aucun état de PIN, copie ou identité d'élève.
   const invitation=String(body.registration_token||'').toLowerCase();
   const join=String(body.join_code||'').toLowerCase();
-  let access=null;
+  let access=null,individual=null;
   if(invitation&&/^[a-f0-9]{40}$/.test(invitation)){
-   const result=await admin.from('cortex_academy_class_access').select('class_id,portal_code,teacher_id,active,registration_open_until')
-    .eq('registration_token_hash',await digest(invitation)).eq('active',true).maybeSingle();
-   if(result.error)throw Error('Vérification du lien impossible.');
-   access=result.data;
+   ({access,individual}=await registrationContext(invitation));
   }else if(join&&/^[a-f0-9]{40}$/.test(join)){
    const exam=await admin.from('cortex_academy_access').select('assessment_id,active')
     .eq('join_code',join).eq('active',true).maybeSingle();
@@ -619,9 +677,13 @@ async function studentAction(action,body,form){
   const info=await admin.from('cortex_teacher_classes').select('code,display_name')
    .eq('id',access.class_id).eq('teacher_id',access.teacher_id).eq('archived',false).maybeSingle();
   if(info.error||!info.data)throw Error('Classe indisponible.');
+  const placement=individual?await admin.from('cortex_academy_class_roster').select('demi_groupe')
+   .eq('class_id',access.class_id).eq('student_number',individual.student_number).maybeSingle():null;
+  if(placement?.error)throw Error('Vérification du numéro indisponible.');
   return ret({ok:true,class_code:info.data.code,class_name:info.data.display_name,
-   portal_code:access.portal_code,registration_open:!!access.registration_open_until&&
-    Date.parse(access.registration_open_until)>Date.now(),source:invitation?'invitation':'qr'});
+   portal_code:access.portal_code,registration_open:!!individual||Date.parse(access.registration_open_until)>Date.now(),
+   student_number:individual?.student_number||null,demi_groupe:placement?.data?.demi_groupe||null,
+   invitation_purpose:individual?.purpose||null,source:invitation?'invitation':'qr'});
  }
  if(action==='student_classes'){
   // Le catalogue affiche aussi les classes préparées dans l'espace professeur,
@@ -656,15 +718,11 @@ async function studentAction(action,body,form){
      /^(\d)\1{5}$/.test(chosen))
    throw Error('Numéro invalide ou PIN trop simple. Choisis six chiffres, puis confirme-les.');
   const registrationToken=String(body.registration_token||'').toLowerCase();
-  let access=null;
+  let access=null,individual=null,tokenDigest=null;
   if(registrationToken){
    if(!/^[a-f0-9]{40}$/.test(registrationToken))
     throw Error('Lien temporaire invalide. Demande au professeur de rouvrir la création des PIN.');
-   const {data,error}=await admin.from('cortex_academy_class_access')
-    .select('*').eq('registration_token_hash',await digest(registrationToken))
-    .eq('active',true).maybeSingle();
-   if(error)throw Error('Vérification de l’inscription indisponible.');
-   access=data;
+   ({access,individual,tokenDigest}=await registrationContext(registrationToken));
   }else if(joinCode){
    // Un QR de contrôle est une invitation valide uniquement pendant
    // les 30 minutes d'inscription ouvertes par le professeur.
@@ -687,28 +745,22 @@ async function studentAction(action,body,form){
   if(access&&classCode&&classCode!==access.portal_code)
    throw Error('Le lien d’inscription ne correspond pas à la classe choisie.');
   if(!access)throw Error('Classe indisponible. Demande au professeur de préparer les accès.');
-  if(!access.registration_open_until||
-     new Date(access.registration_open_until).getTime()<=Date.now())
-   throw Error('Le QR code est bien reconnu, mais la création de PIN est fermée. Demande à ton professeur de cliquer sur « Ouvrir la création des PIN par ce QR · 30 min » depuis ce contrôle.');
+  if(individual&&individual.student_number!==number)throw Error('Ce lien individuel correspond à un autre numéro.');
   if(number>access.roster_size)throw Error('Numéro en dehors de la liste. Vérifie avec ton professeur.');
-  const {data:cred,error:readErr}=await admin.from('cortex_academy_class_roster')
-   .select('student_number,pin_digest,activated_at,locked_until,demi_groupe')
-   .eq('class_id',access.class_id).eq('student_number',number).maybeSingle();
-  if(readErr)throw Error('Vérification temporairement indisponible.');
-  if(!cred)throw Error('Numéro non préparé par le professeur.');
-  if(cred.activated_at){
-   const {data:cl}=await admin.from('cortex_teacher_classes').select('code').eq('id',access.class_id).maybeSingle();
-   throw Error('Le n°'+number+' possède déjà un compte dans '+(cl?.code||'cette classe')+'. Vérifie la classe du lien ou demande une réinitialisation du PIN à ton professeur.');
-  }
-  if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Réessaye plus tard ou contacte le professeur.');
-  const {data:result,error:changeErr}=await admin.from('cortex_academy_class_roster')
-   .update({pin_digest:await pinHash(access.class_id,number,chosen),
-     demi_groupe:group,activated_at:new Date().toISOString(),pin_origin_class_id:null,
-     attempts:0,locked_until:null,updated_at:new Date().toISOString()})
-   .eq('class_id',access.class_id).eq('student_number',number)
-   .eq('pin_digest',cred.pin_digest).is('activated_at',null)
-   .select('student_number').maybeSingle();
-  if(changeErr||!result)throw Error('Ce numéro vient d’être activé. Reconnecte-toi ou consulte ton professeur.');
+  const {data:result,error}=await admin.rpc('cortex_activate_class_student_pin',{
+   p_class:access.class_id,p_student:number,p_pin_digest:await pinHash(access.class_id,number,chosen),
+   p_group:group,p_token_digest:tokenDigest,p_individual:!!individual
+  });
+  if(error)throw Error('Création du PIN temporairement indisponible.');
+  const reasons={
+   active:'Ce numéro possède déjà un compte dans cette classe. Connecte-toi ou demande un nouveau lien à ton professeur.',
+   reserved:'Ce numéro a un lien individuel. Demande ce lien à ton professeur.',
+   invitation:'Lien individuel expiré ou déjà utilisé. Demande un nouveau lien à ton professeur.',
+   closed:'Les inscriptions de classe sont fermées. Utilise le lien transmis par ton professeur.',
+   group:'Ce numéro appartient à un autre demi-groupe. Vérifie avec ton professeur.',
+   locked:'Ce numéro est temporairement bloqué. Contacte ton professeur.'
+  };
+  if(result!=='ok')throw Error(reasons[result]||'Numéro indisponible dans cette classe.');
   return ret({ok:true,activated:true,student_number:number,demi_groupe:group});
  }
  if(action==='student_activate'){
@@ -754,10 +806,7 @@ async function studentAction(action,body,form){
   if(!/^[a-f0-9]{16}$/.test(portal)||!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(plain))throw Error('Classe, numéro ou PIN incorrect.');
   const {data:access}=await admin.from('cortex_academy_class_access').select('*').eq('portal_code',portal).eq('active',true).maybeSingle();
   if(!access)throw Error('Classe, numéro ou PIN incorrect.');
-  await verifyClassPin(access,number,plain);
-  const token=random(32);
-  const {error}=await admin.from('cortex_academy_class_sessions').insert({token_digest:await digest(token),class_id:access.class_id,student_number:number,expires_at:new Date(Date.now()+8*3600000).toISOString()});
-  if(error)throw Error('Impossible d’ouvrir votre espace élève.');
+  const token=await openClassStudentSession(access,number,plain);
   return ret({ok:true,session:token,student_number:number});
  }
  if(action==='student_class_list'){
@@ -789,28 +838,27 @@ async function studentAction(action,body,form){
   if(!/^[a-f0-9]{40}$/.test(code)||!Number.isInteger(number)||number<1||number>60||!/^\d{6}$/.test(plain))throw Error('Numéro ou PIN invalide.');
   const {data:access}=await admin.from('cortex_academy_access').select('assessment_id,roster_size,active').eq('join_code',code).eq('active',true).maybeSingle();
   if(!access)throw Error('Numéro ou PIN invalide.');
-  const {data:assessment}=await admin.from('cortex_teacher_assessments').select('id,published,class_id,content').eq('id',access.assessment_id).eq('published',true).maybeSingle();
+  const {data:assessment}=await admin.from('cortex_teacher_assessments').select('id,published,class_id,teacher_id,content').eq('id',access.assessment_id).eq('published',true).maybeSingle();
   if(!assessment)throw Error('Contrôle indisponible.');
-  const {data:classExam}=await admin.from('cortex_teacher_assessments').select('class_id,teacher_id').eq('id',access.assessment_id).maybeSingle();
-  let classVerified=false;
-  if(classExam?.class_id){
-   const {data:schoolClass}=await admin.from('cortex_academy_class_access').select('*').eq('class_id',classExam.class_id).eq('teacher_id',classExam.teacher_id).eq('active',true).maybeSingle();
+  if(assessment.class_id){
+   const {data:schoolClass,error}=await admin.from('cortex_academy_class_access').select('*')
+    .eq('class_id',assessment.class_id).eq('teacher_id',assessment.teacher_id).eq('active',true).maybeSingle();
+   if(error)throw Error('Vérification de la classe temporairement indisponible.');
    if(schoolClass){
-    await verifyClassPin(schoolClass,number,plain);
-    classVerified=true;
+    const token=await openClassStudentSession(schoolClass,number,plain,assessment.id);
+    return ret({ok:true,session:token,student_number:number});
    }
   }
-  const {data:cred}=classVerified?{data:null}:await admin.from('cortex_academy_roster').select('*').eq('assessment_id',access.assessment_id).eq('student_number',number).maybeSingle();
-  if(!classVerified&&number>access.roster_size)throw Error('Numéro ou PIN invalide.');
-  if(!cred&&!classVerified)throw Error('Numéro ou PIN invalide.');
-  if(!classVerified&&cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Trop de tentatives. Réessayez plus tard ou demandez un nouveau PIN au professeur.');
+  const {data:cred}=await admin.from('cortex_academy_roster').select('*').eq('assessment_id',access.assessment_id).eq('student_number',number).maybeSingle();
+  if(!cred||number>access.roster_size)throw Error('Numéro ou PIN invalide.');
+  if(cred.locked_until&&new Date(cred.locked_until)>new Date())throw Error('Trop de tentatives. Réessayez plus tard ou demandez un nouveau PIN au professeur.');
   const good=await pinHash(access.assessment_id,number,plain);
-  if(!classVerified&&cred.pin_digest!==good){
+  if(cred.pin_digest!==good){
    const tries=Number(cred.attempts||0)+1;
    await admin.from('cortex_academy_roster').update({attempts:tries>=5?0:tries,locked_until:tries>=5?new Date(Date.now()+900000).toISOString():null}).eq('assessment_id',access.assessment_id).eq('student_number',number);
    throw Error('Numéro ou PIN invalide.');
   }
-  if(!classVerified)await admin.from('cortex_academy_roster').update({attempts:0,locked_until:null}).eq('assessment_id',access.assessment_id).eq('student_number',number);
+  await admin.from('cortex_academy_roster').update({attempts:0,locked_until:null}).eq('assessment_id',access.assessment_id).eq('student_number',number);
   if(!(await studentInPublication(assessment,assessment.class_id,number)))
    throw Error('Cette évaluation n’est pas publiée pour ton demi-groupe.');
   const token=random(32);

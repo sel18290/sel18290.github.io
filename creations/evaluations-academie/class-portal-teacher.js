@@ -1,189 +1,505 @@
-/* CORTEX Académie — comptes élèves persistants par classe, gérés par le professeur. */
+/* Gestion des comptes et sessions de la classe sélectionnée. */
 import {api} from './coursework.js?v=2.13';
+
 const $=id=>document.getElementById(id);
-const E=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
-const B=()=>window.CORTEX_ACADEMY_BRIDGE;
-const pinInvitations=new Map();
-const pinJoinUrl=(portal,token)=>location.origin+location.pathname+'?classe='+encodeURIComponent(portal)+'&inscription='+encodeURIComponent(token);
-let access=[],enrollments=[],busy=false,pending=false;
-function notice(msg,error=false){const e=$('cw-class-status');if(!e)return;e.hidden=!msg;e.textContent=msg;e.classList.toggle('error',error)}
-function permanentUrl(code){return location.origin+location.pathname+'?classe='+encodeURIComponent(code)}
-async function refresh(){if(!B()?.teacher?.())return;if(busy){pending=true;return}busy=true;try{const result=await api('teacher_list',{},null,true);access=result.classAccess||[];
-  enrollments=result.enrollments||[];
-  render();
-  window.dispatchEvent(new CustomEvent('cortex:academy-roster-ready',{detail:{
-   summaries:(B()?.classes?.()||[]).map(c=>{
-    const students=enrollments.filter(e=>e.class_id===c.id&&e.activated_at);
-    return {classId:c.id,activated:students.length,group1:students.filter(e=>e.demi_groupe===1).length,
-      group2:students.filter(e=>e.demi_groupe===2).length,
-      whole:students.filter(e=>!e.demi_groupe).length};
-   })
-  }}))}catch(err){notice(err.message||'Impossible de charger les classes.',true)}finally{busy=false;if(pending){pending=false;queueMicrotask(refresh)}}}
-function button(label,className,fn){
- const el=E('button',className,label);el.type='button';
- el.addEventListener('click',async()=>{el.disabled=true;try{await fn()}catch(err){notice(err.message||'Erreur serveur.',true)}finally{el.disabled=false}});
- return el;
+const bridge=()=>window.CORTEX_ACADEMY_BRIDGE;
+const root=$('cw-class-cards');
+const classLinks=new Map();
+const individualLinks=new Map();
+const summaries=new Map();
+const paris=new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',dateStyle:'short',timeStyle:'short'});
+const parisSession=new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',dateStyle:'short',timeStyle:'medium'});
+const when=value=>value?paris.format(new Date(value)):'—';
+const sessionTime=value=>value?parisSession.format(new Date(value)):'—';
+const scopedView=()=>document.body.dataset.acadView==='pins'&&!document.hidden&&!!bridge()?.teacher?.();
+const classList=()=>(bridge()?.classes?.()||[]).filter(cl=>!cl.archived)
+ .sort((a,b)=>String(a.code).localeCompare(String(b.code),'fr',{numeric:true}));
+const numberValue=()=>Number(search.value)||null;
+let scope={id:''},tab='accounts',activeDialog=null,actionPending=false;
+let lastRows='',classSignature='';
+
+function el(tag,cls,text){
+ const node=document.createElement(tag);
+ if(cls)node.className=cls;
+ if(text!==undefined)node.textContent=text;
+ return node;
+}
+function button(label,cls,action){
+ const node=el('button',cls,label);
+ node.type='button';
+ node.addEventListener('click',action);
+ return node;
+}
+function notice(text,error=false){
+ const area=$('cw-class-status');
+ area.textContent=text||'';
+ area.hidden=!text;
+ area.classList.toggle('error',error);
+}
+function labeled(text,control){
+ const label=el('label','cpa-field');
+ label.append(el('span','',text),control);
+ return label;
+}
+function options(select,items,chosen=''){
+ select.replaceChildren(...items.map(([id,label])=>new Option(label,id)));
+ if(items.some(([id])=>id===chosen))select.value=chosen;
+}
+function joinUrl(portal,token=null,individual=false){
+ const url=new URL(location.pathname,location.origin);
+ url.searchParams.set('classe',portal);
+ if(token){
+  if(individual)url.hash='inscription='+token;
+  else url.searchParams.set('inscription',token);
+ }
+ return url.toString();
+}
+function linkBox(label,url,status){
+ const box=el('div','cpa-link-box');
+ const field=el('input');
+ field.readOnly=true;field.type='url';field.value=url;
+ field.spellcheck=false;field.setAttribute('aria-label',label);
+ const actions=el('div','cpa-actions');
+ actions.append(button('Copier le lien','cpa-button cpa-primary',async()=>{
+  try{await navigator.clipboard.writeText(url);status('Lien copié.');}
+  catch{field.focus();field.select();status('Lien sélectionné pour le copier.');}
+ }));
+ box.append(labeled(label,field),actions);
+ return box;
+}
+
+const toolbar=el('div','cpa-toolbar');
+const classes=el('select');
+const refreshButton=button('Actualiser','cpa-button',()=>{void refresh();});
+const classButton=button('Inscriptions et liens','cpa-button cpa-primary',showClassLinks);
+const toolbarActions=el('div','cpa-actions');
+toolbarActions.append(refreshButton,classButton);
+toolbar.append(labeled('Classe',classes),toolbarActions);
+const counts=el('div','cpa-stats');
+const figures=['Comptes actifs','Liens en attente','Sessions valides'].map(label=>{
+ const metric=el('div','cpa-stat');
+ const value=el('strong','','—');
+ metric.append(value,el('span','',label));
+ counts.append(metric);
+ return value;
+});
+const tabs=el('div','cpa-tabs');
+tabs.setAttribute('role','group');
+tabs.setAttribute('aria-label','Gestion des accès élèves');
+const accountsTab=button('Comptes et PIN','cpa-button',()=>chooseTab('accounts'));
+const sessionsTab=button('Sessions','cpa-button',()=>chooseTab('sessions'));
+tabs.append(accountsTab,sessionsTab);
+const filters=el('div','cpa-filters');
+const search=el('input');
+search.type='search';search.inputMode='numeric';search.maxLength=2;search.placeholder='Ex. 12';
+const accountState=el('select');
+options(accountState,[['all','Tous'],['active','Actifs'],['waiting','PIN à créer'],['locked','Bloqués'],['free','Libres']]);
+const accountFilter=labeled('État du compte',accountState);
+const sessionState=el('select');
+options(sessionState,[['active','Valides'],['all','Toutes'],['expired','Expirées']]);
+const sessionFilter=labeled('État de la session',sessionState);
+filters.append(labeled('Numéro sur la liste',search),accountFilter,sessionFilter);
+const results=el('div','cpa-results');
+const pagination=el('div','cpa-actions cpa-pages');
+const prev=button('Page précédente','cpa-button',()=>movePage(-1));
+const next=button('Page suivante','cpa-button',()=>movePage(1));
+const pageLabel=el('span');
+pagination.append(prev,pageLabel,next);
+root.replaceChildren(toolbar,counts,tabs,filters,results,pagination);
+
+function activeClass(){return classList().find(cl=>cl.id===scope.id);}
+function syncClasses(){
+ const choices=classList().map(cl=>[cl.id,cl.code+' · '+cl.display_name]);
+ const signature=JSON.stringify(choices);
+ const selected=choices.some(([id])=>id===scope.id)?scope.id:choices[0]?.[0]||'';
+ if(signature!==classSignature){
+  options(classes,choices.length?choices:[['','Aucune classe']],selected);
+  classSignature=signature;
+ }
+ if(selected!==scope.id){
+  scope={id:selected,page:0};
+  search.value='';
+ }
+ classes.disabled=!selected;
+ if(selected)classes.value=selected;
+}
+function accountRows(){
+ const records=scope.overview?.accounts||[];
+ const byNumber=new Map(records.map(row=>[row.student_number,row]));
+ const important=records.filter(row=>row.activated_at||row.invitation_issued_at||row.active_sessions);
+ const size=Math.max(scope.overview?.access?.roster_size||30,...important.map(row=>row.student_number));
+ return Array.from({length:size},(_,i)=>byNumber.get(i+1)||{student_number:i+1});
+}
+function activeLock(row){return Date.parse(row.locked_until)>Date.now();}
+function pendingInvite(row){return Date.parse(row.invitation_expires_at)>Date.now();}
+function accountStatus(row){
+ if(row.activated_at)return activeLock(row)?['Bloqué','warn']:['Actif','ok'];
+ if(row.invitation_issued_at){
+  if(!pendingInvite(row))return ['Lien expiré','warn'];
+  return [row.invitation_purpose==='reset'?'Nouveau PIN à créer':'Inscription en attente','wait'];
+ }
+ return ['Libre',''];
+}
+function badge([label,type]){
+ return el('span','cpa-badge'+(type?' cpa-'+type:''),label);
+}
+function studentLabel(n){return 'N° '+n;}
+function keyForSessions(){return [scope.id,numberValue(),sessionState.value,scope.page].join(':');}
+function chooseTab(value,student=null){
+ tab=value;
+ if(student!==null)search.value=String(student);
+ scope.page=0;
+ render();
+ if(tab==='sessions')void loadSessions();
+}
+function movePage(direction){
+ scope.page=Math.max(0,scope.page+direction);
+ render();
+ void loadSessions();
+}
+function showSessions(number){
+ activeDialog?.close();
+ sessionState.value=accountRows().find(row=>row.student_number===number)?.active_sessions?'active':'all';
+ chooseTab('sessions',number);
 }
 function render(){
- const target=$('cw-class-cards');if(!target)return;
- // Les nouvelles inscriptions actualisent les effectifs sans refermer les
- // groupes que le professeur est en train de consulter.
- const openRosters=new Set([...target.querySelectorAll('details.cw-group-roster[open]')].map(x=>x.dataset.classId));
- target.replaceChildren();
- const classes=B()?.classes?.()||[];
- if(!classes.length){target.append(E('p','empty','Créez d’abord une classe dans « Mes classes ».'));return}
- for(const cl of classes){
-  const record=access.find(a=>a.class_id===cl.id);
-  const card=E('article','cw-class-card'),head=E('div','cw-card-head'),title=E('div');
-  const registrationOpen=!!record?.registration_open_until&&new Date(record.registration_open_until)>new Date();
-  title.append(E('strong','',cl.code+' · '+cl.display_name),E('small','','Comme dans le Test : l’élève choisit son PIN personnel lors de sa première connexion. Les PIN personnels restent masqués.'));
-  head.append(title);
-  if(registrationOpen||record)head.append(E('span','cw-pill '+(registrationOpen?'cw-open':''),registrationOpen?'Création de PIN ouverte':'Connexion possible · créations fermées'));
-  card.append(head);
-  const controls=E('div','cw-publish-row'),selector=E('select','cw-roster-size');
-  selector.setAttribute('aria-label','Effectif pour la classe '+cl.code);
-  for(const n of [15,20,25,30,35,40,45,50,55,60]){
-   const option=E('option','',n+' numéros');option.value=String(n);option.selected=n===(record?.roster_size||30);selector.append(option);
-  }
-  controls.append(E('label','','Effectif'),selector,button(registrationOpen?'↻ Prolonger de 30 min':'✦ Ouvrir la création des PIN · 30 min','cw-accent',async()=>{
-   const response=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:Number(selector.value),enabled:true},null,true);
-   pinInvitations.set(cl.id,{portal:response.portal_code,token:response.registration_token});
-   const endTime=new Date(response.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-   notice('Création des PIN ouverte pour '+cl.code+' jusqu’à '+endTime+'. Les élèves entrent leur numéro et choisissent eux-mêmes leur PIN. Surveille la première inscription en classe.');
-   await refresh();
-  }));
-  if(registrationOpen){
-   controls.append(button('Fermer maintenant','cw-secondary',async()=>{
-    await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:Number(selector.value),enabled:false},null,true);
-    pinInvitations.delete(cl.id);
-    notice('Création des PIN fermée pour '+cl.code+'. Les élèves déjà inscrits peuvent toujours se connecter.');
-    await refresh();
-   }));
-  }
-  card.append(controls);
-  if(registrationOpen){
-   const info=E('section','cw-pin-invite');
-   const deadline=new Date(record.registration_open_until).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-   info.append(E('strong','','✦ Création de PIN ouverte jusqu’à '+deadline),
-     E('p','','Partage le lien temporaire : chaque élève choisit sa classe, son demi-groupe 1 ou 2 et son numéro, puis crée son PIN. Les nouvelles inscriptions seront classées ci-dessous automatiquement.'));
-   const invitation=pinInvitations.get(cl.id);
-   if(invitation?.token){
-    const url=pinJoinUrl(invitation.portal,invitation.token);
-    const field=E('input','cw-join-url');field.value=url;field.readOnly=true;
-    field.setAttribute('aria-label','Lien temporaire de création de PIN pour '+cl.code);
-    info.append(field);
-    const actions=E('div','cw-share-buttons');
-    actions.append(button('Copier le lien d’inscription','cw-accent',async()=>{
-     try{await navigator.clipboard.writeText(url);notice('Lien temporaire copié. Affiche-le aux élèves uniquement pendant la séance.')}
-     catch{field.focus();field.select();notice('Lien sélectionné : copie-le manuellement.')}
-    }));
-    const visit=E('a','cw-secondary','Ouvrir la page élève ↗');visit.href=url;visit.target='_blank';visit.rel='noopener';actions.append(visit);info.append(actions);
-   }else info.append(E('p','cw-pin-invite-tip','Pour afficher un nouveau lien temporaire, clique sur « Prolonger de 30 min ». Le précédent lien sera remplacé.'));
-   card.append(info);
-  }
-  const prepared=enrollments.filter(x=>x.class_id===cl.id);
-  const assigned=prepared.filter(x=>!!x.activated_at);
-  const group1=assigned.filter(x=>x.demi_groupe===1),group2=assigned.filter(x=>x.demi_groupe===2);
-  const stats=E('div','cw-group-stats');
-  stats.append(E('span','cw-group-stat-label','Comptes créés : '+assigned.length),
-   E('span','cw-group-stat-one','Groupe 1 · '+group1.length),
-   E('span','cw-group-stat-two','Groupe 2 · '+group2.length));
-  card.append(stats);
-  const details=E('details','cw-group-roster');
-  details.dataset.classId=cl.id;
-  details.open=openRosters.has(cl.id);
-  const size=record?.roster_size||30;
-  details.append(E('summary','','Tableau des PIN · '+assigned.length+' / '+size+' comptes créés'));
-  const scroll=E('div','cw-pin-table-scroll');
-  const table=E('table','cw-pin-table');
-  table.setAttribute('aria-label','Comptes élèves et PIN de '+cl.code);
-  const header=table.createTHead().insertRow(),rows=table.createTBody();
-  for(const column of ['N°','Compte','PIN','Demi-groupe','Actions']){
-   const cell=E('th','',column);cell.scope='col';header.append(cell);
-  }
-  const byNumber=new Map(prepared.map(row=>[row.student_number,row]));
-  for(let n=1;n<=size;n++){
-   const student=byNumber.get(n),active=!!student?.activated_at;
-   const row=rows.insertRow();
-   const number=E('th','',n);number.scope='row';row.append(number);
-   const account=row.insertCell();
-   account.append(E('span','cw-pill'+(active?' cw-open':''),active?'Créé':'Libre'));
-   if(active)account.append(E('small','',new Date(student.activated_at).toLocaleDateString('fr-FR')));
-   const pin=row.insertCell();
-   pin.textContent=active?'••••••':'—';
-   if(active)pin.setAttribute('aria-label','PIN personnel masqué');
-   const group=row.insertCell();
-   const actions=row.insertCell();
-   if(!active){group.textContent=student?.demi_groupe||'—';continue}
-   const select=E('select','cw-group-select');
-   select.setAttribute('aria-label','Demi-groupe du n°'+n+' en '+cl.code);
-   for(const [value,label] of [['0','Non renseigné'],['1','Groupe 1'],['2','Groupe 2']]){
-    const option=E('option','',label);option.value=value;option.selected=Number(value)===(student.demi_groupe||0);select.append(option);
-   }
-   select.addEventListener('change',async()=>{
-    select.disabled=true;
-    try{
-     await api('teacher_class_set_group',{class_id:cl.id,student_number:n,demi_groupe:Number(select.value)},null,true);
-     notice('Demi-groupe mis à jour pour le n°'+n+' en '+cl.code+'.');
-     await refresh();
-    }catch(err){notice(err.message,true);select.value=String(student.demi_groupe||0)}
-    finally{select.disabled=false}
-   });
-   group.append(select);
-   const buttons=E('div','cw-pin-table-actions');
-   buttons.append(button('Réinitialiser le PIN','cw-secondary',()=>confirmPinAction(false)),
-    button('Libérer le numéro','cw-secondary',()=>confirmPinAction(true)));
-   const prompt=E('div','cw-pin-confirm');prompt.hidden=true;
-   const promptText=E('p');prompt.append(promptText);
-   actions.append(buttons,prompt);
-   function confirmPinAction(remove){
-    buttons.hidden=true;
-    prompt.hidden=false;
-    promptText.textContent=remove?'Libérer le n°'+n+' ? Le PIN et le demi-groupe seront retirés. Les copies restent dans l’espace professeur.':
-     'Réinitialiser le PIN du n°'+n+' ? L’élève devra en choisir un nouveau.';
-    const confirm=button('Confirmer','cw-accent',async()=>{
-     await api(remove?'teacher_class_remove_assignment':'teacher_class_reset_pin',{class_id:cl.id,student_number:n},null,true);
-     if(!remove&&!(registrationOpen&&pinInvitations.has(cl.id))){
-      try{
-       const opened=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:size,enabled:true},null,true);
-       pinInvitations.set(cl.id,{portal:opened.portal_code,token:opened.registration_token});
-      }catch(err){
-       await refresh();
-       notice('PIN réinitialisé. Ouvre la création des PIN pour transmettre un lien à l’élève.',true);
-       return;
-      }
-     }
-     notice(remove?'Le n°'+n+' est libre en '+cl.code+'.':'Le n°'+n+' peut choisir un nouveau PIN avec le lien d’inscription de '+cl.code+'.');
-     await refresh();
-    });
-    const cancel=button('Annuler','cw-secondary',()=>{prompt.hidden=true;buttons.hidden=false});
-    prompt.replaceChildren(promptText,confirm,cancel);
-    confirm.focus();
-   }
-  }
-  scroll.append(table);details.append(scroll);card.append(details);
-  if(record?.portal_code){
-   const share=E('div','cw-class-share'),url=permanentUrl(record.portal_code);
-   const line=E('p','cw-explainer','Lien de la classe : l’élève saisit son numéro, puis son PIN. À la première visite, clique sur « Je crée mon PIN » lorsque tu as ouvert la création. Code de classe : '+record.portal_code.slice(-4).toUpperCase()+'.');
-   const field=E('input','cw-join-url');field.value=url;field.readOnly=true;field.setAttribute('aria-label','Lien permanent pour '+cl.code);
-   const controls=E('div','cw-share-buttons');
-   controls.append(button('Copier le lien de classe','cw-secondary',async()=>{
-    try{await navigator.clipboard.writeText(url);notice('Lien permanent copié pour '+cl.code+'.')}
-    catch{field.select();field.focus();notice('Lien sélectionné : copiez-le manuellement.')}
-   }));
-   const visit=E('a','cw-secondary','Tester le lien élève ↗');visit.href=url;visit.target='_blank';visit.rel='noopener';controls.append(visit);
-   share.append(line,field,controls);
-   card.append(share);
-  }
-  target.append(card);
- }
-}
-window.addEventListener('cortex:academy-data-ready',refresh);
-window.addEventListener('cortex:academy-class-updated',refresh);
-window.addEventListener('cortex:academy-logout',()=>{access=[];enrollments=[];pinInvitations.clear();$('cw-class-cards')?.replaceChildren()});
-// Forcer une lecture serveur quand le professeur ouvre « PIN élèves » :
- // ne jamais dépendre d'un état vide ou d'un événement déjà passé.
- window.addEventListener('hashchange',()=>{
-  if(location.hash==='#cw-persistent-classes'&&B()?.teacher?.())refresh();
+ const ready=!!scope.id;
+ const rows=scope.overview?accountRows():[];
+ const active=rows.filter(row=>row.activated_at).length;
+ const pending=rows.filter(pendingInvite).length;
+ [active,pending,scope.overview?.active_sessions||0].forEach((value,i)=>{
+  figures[i].textContent=scope.overview?value:'—';
  });
- queueMicrotask(()=>{if(B()?.teacher?.())refresh()});
+ refreshButton.disabled=!ready;
+ classButton.disabled=!ready||!scope.overview;
+ tabs.hidden=!ready;filters.hidden=!ready;counts.hidden=!ready;
+ accountFilter.hidden=tab!=='accounts';
+ sessionFilter.hidden=tab!=='sessions';
+ accountsTab.setAttribute('aria-pressed',String(tab==='accounts'));
+ sessionsTab.setAttribute('aria-pressed',String(tab==='sessions'));
+ pagination.hidden=true;
+ let view='', data=[];
+ if(!ready)view='Aucune classe disponible. Tu peux en ajouter dans « Mes classes ».';
+ else if(tab==='accounts'){
+  if(!scope.overview)view=scope.overviewError?'Impossible de charger les comptes. Utilise « Actualiser ».':'Chargement des comptes…';
+  else{
+   const selected=accountState.value;
+   data=rows.filter(row=>{
+    if(numberValue()&&row.student_number!==numberValue())return false;
+    if(selected==='active')return !!row.activated_at;
+    if(selected==='waiting')return !row.activated_at&&!!row.invitation_issued_at;
+    if(selected==='locked')return activeLock(row);
+    if(selected==='free')return !row.activated_at&&!row.invitation_issued_at;
+    return true;
+   });
+   if(!data.length)view='Aucun numéro pour ces filtres.';
+  }
+ }else{
+  const sessionPage=scope.sessionPage?.key===keyForSessions()?scope.sessionPage:null;
+  if(!sessionPage)view=scope.sessionError?'Impossible de charger les sessions. Utilise « Actualiser ».':'Chargement des sessions…';
+  else{
+   data=sessionPage.rows;
+   if(!data.length)view='Aucune session pour ces filtres.';
+   pagination.hidden=!scope.page&&!sessionPage.hasMore;
+   prev.disabled=!scope.page;
+   next.disabled=!sessionPage.hasMore;
+   pageLabel.textContent='Page '+(scope.page+1);
+  }
+ }
+ const signature=JSON.stringify([scope.id,tab,view,data,data.map(row=>tab==='accounts'?accountStatus(row):row.active)]);
+ if(signature===lastRows)return;
+ lastRows=signature;
+ results.replaceChildren(view?el('p','cpa-empty',view):makeTable(data,tab));
+}
+
+function makeTable(data,kind){
+ const table=el('table','cpa-table');
+ table.setAttribute('aria-label',kind==='accounts'?'Comptes élèves de la classe':'Sessions élèves de la classe');
+ table.setAttribute('role','table');
+ const body=table.createTBody();
+ const header=table.createTHead().insertRow();
+ const labels=kind==='accounts'?['N°','Compte et PIN','Demi-groupe','Sessions','Actions']:
+  ['N°','Accès','Créée le','Expiration','Actions'];
+ for(const label of labels){
+  const cell=el('th','',label);cell.scope='col';header.append(cell);
+ }
+ for(const dataRow of data){
+  const row=body.insertRow();row.setAttribute('role','row');
+  const heading=el('th','',studentLabel(dataRow.student_number));
+  heading.scope='row';row.append(heading);
+  const cells=labels.slice(1).map(label=>{
+   const cell=row.insertCell();cell.dataset.label=label;cell.setAttribute('role','cell');return cell;
+  });
+  if(kind==='accounts'){
+   const [account,group,sessions,actions]=cells;
+   account.append(badge(accountStatus(dataRow)));
+   if(dataRow.activated_at)account.append(el('small','','PIN créé le '+when(dataRow.activated_at)));
+   else if(dataRow.invitation_expires_at)account.append(el('small','',(pendingInvite(dataRow)?'Jusqu’au ':'Expiré le ')+when(dataRow.invitation_expires_at)));
+   group.textContent=dataRow.demi_groupe?'Groupe '+dataRow.demi_groupe:'—';
+   if(dataRow.active_sessions||dataRow.last_session_at){
+    const validCount=Number(dataRow.active_sessions||0);
+    sessions.append(button(validCount+(validCount>1?' valides':' valide'),'cpa-inline',()=>showSessions(dataRow.student_number)));
+    if(dataRow.last_session_at)sessions.append(el('small','','Dernière ouverture le '+when(dataRow.last_session_at)));
+   }else sessions.textContent='Aucune';
+   const manage=button('Gérer','cpa-button cpa-small',()=>showAccount(dataRow,manage));
+   manage.setAttribute('aria-label','Gérer le n° '+dataRow.student_number);
+   actions.append(manage);
+  }else{
+   const [access,created,expiry,actions]=cells;
+   access.append(el('strong','',dataRow.kind==='qr'?'QR du contrôle':'Portail de classe'));
+   if(dataRow.exam_title)access.append(el('small','',dataRow.exam_title));
+   access.append(badge(dataRow.active?['Valide','ok']:['Expirée','']));
+   created.textContent=sessionTime(dataRow.created_at);
+   expiry.textContent=sessionTime(dataRow.expires_at);
+   if(dataRow.active){
+    const close=button('Fermer','cpa-button cpa-small',()=>showSession(dataRow,close));
+    close.setAttribute('aria-label','Fermer la session du n° '+dataRow.student_number+' ouverte le '+sessionTime(dataRow.created_at));
+    actions.append(close);
+   }else actions.textContent='—';
+  }
+ }
+ return table;
+}
+
+function publishSummaries(){
+ window.dispatchEvent(new CustomEvent('cortex:academy-roster-ready',{detail:{summaries:[...summaries.values()]}}));
+}
+function summarize(id,rows){
+ const active=rows.filter(row=>row.activated_at);
+ summaries.set(id,{classId:id,activated:active.length,group1:active.filter(row=>row.demi_groupe===1).length,
+  group2:active.filter(row=>row.demi_groupe===2).length,whole:active.filter(row=>!row.demi_groupe).length});
+}
+async function loadAccounts(){
+ const current=scope,teacher=bridge()?.teacher?.();
+ if(!current.id||!teacher)return;
+ if(current.accountRequest)return current.accountRequest;
+ current.accountRequest=api('teacher_pin_admin',{class_id:current.id},null,true).then(data=>{
+  if(current!==scope||bridge()?.teacher?.()!==teacher)return;
+  current.overview=data;current.overviewError=false;
+  summarize(current.id,data.accounts||[]);
+  publishSummaries();
+  render();
+ }).catch(error=>{
+  if(current!==scope||bridge()?.teacher?.()!==teacher)return;
+  current.overviewError=true;
+  notice(error.message,true);
+  render();
+ }).finally(()=>{current.accountRequest=null;});
+ return current.accountRequest;
+}
+async function loadSessions(){
+ if(tab!=='sessions'||!scope.id)return;
+ const current=scope,teacher=bridge()?.teacher?.(),key=keyForSessions();
+ if(!teacher)return;
+ if(current.sessionRequest?.key===key)return current.sessionRequest.promise;
+ const request={key},params={class_id:current.id,student_number:numberValue(),session_state:sessionState.value,offset:current.page*30};
+ current.sessionRequest=request;
+ current.sessionError=false;
+ request.promise=api('teacher_pin_sessions',params,null,true).then(data=>{
+  if(current!==scope||request!==current.sessionRequest||key!==keyForSessions()||bridge()?.teacher?.()!==teacher)return;
+  current.sessionPage={key,rows:data.rows||[],hasMore:data.has_more};
+  render();
+ }).catch(error=>{
+  if(current!==scope||request!==current.sessionRequest||key!==keyForSessions()||bridge()?.teacher?.()!==teacher)return;
+  current.sessionError=true;notice(error.message,true);render();
+ }).finally(()=>{if(current.sessionRequest===request)current.sessionRequest=null;});
+ return request.promise;
+}
+async function refresh(){
+ if(!scopedView())return;
+ syncClasses();
+ render();
+ await Promise.all([loadAccounts(),loadSessions()]);
+}
+function selectClass(id){
+ if(!classList().some(cl=>cl.id===id)||scope.id===id)return;
+ scope={id,page:0};
+ classes.value=id;
+ search.value='';
+ notice('');
+ render();
+ void refresh();
+}
+
+function openDialog(title,trigger=document.activeElement){
+ activeDialog?.close();
+ const dialog=el('dialog','cpa-dialog');
+ dialog.setAttribute('aria-label',title);
+ const heading=el('div','cpa-dialog-head');
+ heading.append(el('h3','',title),button('Fermer','cpa-button',()=>dialog.close()));
+ const body=el('div','cpa-dialog-body');
+ const statusNode=el('p','cpa-dialog-status');
+ statusNode.setAttribute('role','status');
+ statusNode.hidden=true;
+ function status(value,error=false){
+  statusNode.textContent=value||'';statusNode.hidden=!value;statusNode.classList.toggle('error',error);
+ }
+ dialog.append(heading,statusNode,body);
+ root.append(dialog);
+ activeDialog=dialog;
+ dialog.addEventListener('cancel',event=>{if(actionPending)event.preventDefault();});
+ dialog.addEventListener('close',()=>{
+  dialog.remove();
+  if(activeDialog!==dialog)return;
+  activeDialog=null;
+  if(trigger?.isConnected)trigger.focus();else classes.focus();
+ });
+ dialog.showModal();
+ return {dialog,body,status};
+}
+async function perform(dialog,work){
+ if(actionPending)return;
+ actionPending=true;
+ const teacher=bridge()?.teacher?.();
+ const controls=[...dialog.dialog.querySelectorAll('button:enabled,select:enabled,input:enabled')];
+ controls.forEach(control=>{control.disabled=true;});
+ dialog.status('');
+ try{
+  await work(()=>dialog.dialog.open&&!!teacher&&teacher===bridge()?.teacher?.());
+ }catch(error){if(dialog.dialog.open)dialog.status(error.message||'Action indisponible.',true);}
+ finally{controls.forEach(control=>{control.disabled=false;});actionPending=false;}
+}
+function confirmAction(dialog,text,label,action){
+ dialog.body.querySelector('.cpa-confirm')?.remove();
+ const check=el('div','cpa-confirm');
+ const buttons=el('div','cpa-actions');
+ const accept=button(label,'cpa-button cpa-danger',action);
+ const cancel=button('Annuler','cpa-button',()=>{check.remove();});
+ buttons.append(cancel,accept);
+ check.append(el('p','',text),buttons);
+ dialog.body.append(check);
+ cancel.focus();
+}
+async function accountAction(dialog,classId,row,operation,sessionId=null){
+ await perform(dialog,async(isCurrent)=>{
+  const size=Math.max(scope.overview?.access?.roster_size||30,row.student_number);
+  const response=await api('teacher_pin_action',{
+   class_id:classId,student_number:row.student_number,operation,session_id:sessionId,
+   activated_at:row.activated_at||null,invitation_issued_at:row.invitation_issued_at||null,roster_size:size
+  },null,true);
+  if(!isCurrent())return;
+  if(operation==='issue'){
+   individualLinks.set(classId+':'+row.student_number,{url:joinUrl(response.portal_code,response.registration_token,true),
+    issued:response.invitation_issued_at});
+   dialog.body.replaceChildren(el('p','','Lien à usage unique pour ce numéro, valide jusqu’au '+when(response.invitation_expires_at)+'.'),
+    linkBox('Lien individuel',individualLinks.get(classId+':'+row.student_number).url,dialog.status));
+   dialog.status(row.activated_at?'PIN réinitialisé. Transmets le lien à l’élève.':'Transmets le lien à l’élève pour qu’il choisisse son PIN.');
+  }else{
+   if(operation==='release')individualLinks.delete(classId+':'+row.student_number);
+   notice(operation==='release'?studentLabel(row.student_number)+' est libre.':
+    operation==='unlock'?'Tentatives réinitialisées pour '+studentLabel(row.student_number)+'.':
+    response.closed?response.closed+' session(s) fermée(s).':'Cette session est déjà fermée.');
+   dialog.dialog.close();
+  }
+  if(scope.id===classId){
+   if(scope.accountRequest)await scope.accountRequest;
+   if(scope.sessionRequest)await scope.sessionRequest.promise;
+   await refresh();
+  }
+ });
+}
+function showAccount(row,trigger){
+ const cl=activeClass();if(!cl)return;
+ const dialog=openDialog(cl.code+' · '+studentLabel(row.student_number),trigger);
+ dialog.body.append(badge(accountStatus(row)));
+ if(row.activated_at)dialog.body.append(el('p','','PIN personnel défini le '+when(row.activated_at)+'.'));
+ else dialog.body.append(el('p','','L’élève choisit son PIN à six chiffres à partir d’un lien d’inscription.'));
+ if(activeLock(row))dialog.body.append(el('p','','Blocage des tentatives jusqu’au '+when(row.locked_until)+'.'));
+ const cached=individualLinks.get(cl.id+':'+row.student_number);
+ if(pendingInvite(row)&&cached?.issued===row.invitation_issued_at){
+  dialog.body.append(linkBox('Lien individuel valable jusqu’au '+when(row.invitation_expires_at),cached.url,dialog.status));
+ }
+ if(row.activated_at){
+  const group=el('select');
+  options(group,[['0','Non renseigné'],['1','Groupe 1'],['2','Groupe 2']],String(row.demi_groupe||0));
+  const editor=el('div','cpa-group-edit');
+  editor.append(labeled('Demi-groupe',group),button('Enregistrer le groupe','cpa-button',()=>perform(dialog,async(isCurrent)=>{
+   await api('teacher_class_set_group',{class_id:cl.id,student_number:row.student_number,demi_groupe:Number(group.value)},null,true);
+   if(isCurrent()){dialog.status('Demi-groupe enregistré.');await refresh();}
+  })));
+  dialog.body.append(editor);
+ }
+ const actions=el('div','cpa-actions');
+ const issueLabel=row.activated_at?'Réinitialiser le PIN':row.invitation_issued_at?'Générer un nouveau lien':'Créer un accès';
+ actions.append(button(issueLabel,'cpa-button cpa-primary',()=>{
+  const issue=()=>accountAction(dialog,cl.id,row,'issue');
+  if(row.activated_at)confirmAction(dialog,'Le PIN actuel et les sessions seront révoqués. L’élève choisira un nouveau PIN avec le lien individuel.','Réinitialiser et créer le lien',issue);
+  else if(pendingInvite(row))confirmAction(dialog,'Le lien individuel actuel sera remplacé.','Créer le nouveau lien',issue);
+  else void issue();
+ }));
+ if(activeLock(row))actions.append(button('Débloquer le numéro','cpa-button',()=>accountAction(dialog,cl.id,row,'unlock')));
+ if(row.active_sessions||row.last_session_at)actions.append(button('Voir les sessions','cpa-button',()=>showSessions(row.student_number)));
+ if(row.active_sessions)actions.append(button('Fermer toutes ses sessions','cpa-button',()=>confirmAction(dialog,
+  'Ce numéro devra se reconnecter avec son PIN.','Fermer les sessions',()=>accountAction(dialog,cl.id,row,'disconnect'))));
+ if(row.activated_at||row.invitation_issued_at)actions.append(button(row.activated_at?'Supprimer le compte':'Libérer le numéro','cpa-button cpa-danger',()=>confirmAction(dialog,
+  'Le numéro redevient libre et ses sessions se ferment. Les copies rendues restent dans l’espace professeur.',
+  row.activated_at?'Confirmer la suppression':'Confirmer la libération',()=>accountAction(dialog,cl.id,row,'release'))));
+ dialog.body.append(actions);
+}
+function showSession(row,trigger){
+ const cl=activeClass();if(!cl)return;
+ const dialog=openDialog(cl.code+' · '+studentLabel(row.student_number),trigger);
+ dialog.body.append(el('p','',(row.exam_title||'Portail de classe')+' · Session créée le '+when(row.created_at)));
+ confirmAction(dialog,'L’élève devra se reconnecter sur cet accès.','Fermer cette session',
+  ()=>accountAction(dialog,cl.id,row,'disconnect',row.session_id));
+}
+function showClassLinks(){
+ const cl=activeClass(),record=scope.overview?.access;
+ if(!cl||!scope.overview)return;
+ const dialog=openDialog('Inscriptions et liens · '+cl.code);
+ const minimum=record?.roster_size||1;
+ const size=el('input');
+ size.type='number';size.inputMode='numeric';size.required=true;size.min=String(minimum);size.max='60';size.value=String(record?.roster_size||30);
+ const registrationOpen=Date.parse(record?.registration_open_until)>Date.now();
+ if(registrationOpen)dialog.body.append(el('p','','Inscriptions de classe ouvertes jusqu’au '+when(record.registration_open_until)+'.'));
+ const actions=el('div','cpa-actions');
+ function updateEnrollment(enabled){
+  return perform(dialog,async(isCurrent)=>{
+   if(enabled&&!size.checkValidity())throw Error('Choisis un effectif de '+minimum+' à 60 numéros.');
+   const result=await api('teacher_pin_enrollment',{class_id:cl.id,roster_size:Number(size.value),enabled},null,true);
+   if(!isCurrent())return;
+   if(enabled)classLinks.set(cl.id,{url:joinUrl(result.portal_code,result.registration_token),expires:result.registration_open_until});
+   else classLinks.delete(cl.id);
+   if(scope.accountRequest)await scope.accountRequest;
+   await loadAccounts();
+   dialog.dialog.close();
+   showClassLinks();
+  });
+ }
+ actions.append(button(registrationOpen?'Renouveler le lien de classe':'Ouvrir les inscriptions · 30 min','cpa-button cpa-primary',()=>updateEnrollment(true)));
+ if(registrationOpen)actions.append(button('Fermer les inscriptions','cpa-button',()=>updateEnrollment(false)));
+ dialog.body.append(labeled('Nombre de numéros',size),actions);
+ const invitation=classLinks.get(cl.id);
+ if(registrationOpen&&Date.parse(invitation?.expires)===Date.parse(record.registration_open_until))
+  dialog.body.append(linkBox('Lien d’inscription de la classe',invitation.url,dialog.status));
+ if(record?.portal_code)dialog.body.append(linkBox('Lien permanent pour se connecter',joinUrl(record.portal_code),dialog.status));
+}
+classes.addEventListener('change',()=>selectClass(classes.value));
+search.addEventListener('input',()=>{
+ search.value=search.value.replace(/[^0-9]/g,'').slice(0,2);
+ scope.page=0;render();if(tab==='sessions')void loadSessions();
+});
+accountState.addEventListener('change',render);
+sessionState.addEventListener('change',()=>{scope.page=0;render();void loadSessions();});
+document.addEventListener('click',event=>{
+ const link=event.target.closest('[data-pin-class]');
+ if(link)selectClass(link.dataset.pinClass);
+},true);
+window.addEventListener('cortex:academy-data-ready',refresh);
+window.addEventListener('cortex:academy-view',event=>{if(event.detail==='pins')void refresh();});
+window.addEventListener('hashchange',()=>{if(location.hash==='#cw-persistent-classes')void refresh();});
+window.addEventListener('cortex:academy-live-snapshot',event=>{
+ const enrollment=event.detail?.enrollments||[];
+ summaries.clear();
+ for(const cl of classList())summarize(cl.id,enrollment.filter(row=>row.class_id===cl.id));
+ if(scope.overview)summarize(scope.id,scope.overview.accounts||[]);
+ publishSummaries();
+});
+window.addEventListener('cortex:academy-logout',()=>{
+ activeDialog?.close();classLinks.clear();individualLinks.clear();summaries.clear();
+ scope={id:''};tab='accounts';classSignature='';lastRows='';search.value='';
+ classes.replaceChildren();notice('');render();
+});
+document.addEventListener('visibilitychange',()=>{if(!activeDialog)void refresh();});
+setInterval(()=>{if(!activeDialog&&!actionPending)void refresh();},30000);
+queueMicrotask(refresh);

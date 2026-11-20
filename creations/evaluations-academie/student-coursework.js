@@ -7,7 +7,8 @@ import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.0';
 
 const params=new URLSearchParams(location.search);
-const qr=params.get('join'),classPrefill=params.get('classe'),registrationToken=params.get('inscription')||'';
+const qr=params.get('join'),classPrefill=params.get('classe');
+const registrationToken=params.get('inscription')||new URLSearchParams(location.hash.slice(1)).get('inscription')||'';
 const globalPortal=params.get('espace')==='eleve'||!!classPrefill||!!registrationToken;
 if(qr||globalPortal){
  const $=id=>document.getElementById(id);
@@ -16,6 +17,7 @@ if(qr||globalPortal){
  const mode=qr?'qr':'class';
  const storageKey='cortex-academie-eleve:'+mode+':'+(qr||classPrefill||'general');
  let token=null,current=null,currentId=null,classData=null,classList=[],busy=false;
+ let validatedLink=null,linkReady=!registrationToken;
  let countdownInterval=null;
  let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
@@ -64,7 +66,7 @@ if(qr||globalPortal){
   '<label for="cw-activation-group" class="cw-pin-group-choice">Mon demi-groupe <span class="cw-pin-group-required">(obligatoire)</span><select id="cw-activation-group" name="demi_groupe" required><option value="" selected disabled>Choisir mon demi-groupe…</option><option value="1">Demi-groupe 1</option><option value="2">Demi-groupe 2</option></select><small>Choisis le groupe indiqué par ton professeur. Il apparaîtra directement dans « PIN élèves ».</small></label>'+
   '<p class="cw-pin-privacy">🔒 Ton professeur ne voit pas ton PIN. Ne le partage avec personne.</p>'+
   '<button type="submit" class="cw-student-submit">✓ Créer mon PIN et entrer →</button></form>'+
-  '<p class="cw-student-help">PIN oublié ? Ton professeur peut le réinitialiser. Tu choisiras ensuite un nouveau PIN pendant la prochaine ouverture des inscriptions.</p></section>'+
+  '<p class="cw-student-help">PIN oublié ? Demande à ton professeur un lien individuel pour choisir un nouveau PIN.</p></section>'+
   '<section id="cw-student-work" hidden></section>'+
   '<footer>Accès personnel sécurisé · Ne communique jamais ton PIN · Les notes apparaissent seulement après publication par ton professeur.</footer></div>';
  document.body.insertBefore(main,document.querySelector('.layout'));
@@ -104,6 +106,17 @@ if(qr||globalPortal){
   b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await handler()}catch(err){message(err.message||String(err),true)}finally{b.disabled=false}});
   return b;
  }
+ function applyLinkedClass(){
+  const portal=validatedLink?.portal_code||classPrefill;
+  if(mode!=='class'||!portal||(!validatedLink&&!classList.some(cl=>cl.code===portal)))return;
+  for(const id of ['cw-student-class','cw-activation-class']){
+   const field=$(id);
+   if(validatedLink&&![...field.options].some(option=>option.value===portal))
+    field.add(new Option(validatedLink.class_code+' · '+validatedLink.class_name,portal));
+   field.value=portal;
+   field.disabled=true;
+  }
+ }
  async function getClasses(){
   if(mode!=='class')return;
   try{
@@ -124,17 +137,15 @@ if(qr||globalPortal){
     const empty=E('option','','Choisir ma classe');empty.value='';activationSelect.append(empty);
     for(const cl of classList){const status=cl.registration_open?' · PIN ouverts':cl.ready?' · Accès prêt':'';const option=E('option','',cl.label+' · '+cl.display_name+status);option.value=cl.code;activationSelect.append(option)}
    }
+   applyLinkedClass();
    if(classPrefill&&classList.some(x=>x.code===classPrefill)){
-    select.value=classPrefill;
-    if(activationSelect)activationSelect.value=classPrefill;
-    select.disabled=true;
-    if(activationSelect)activationSelect.disabled=true;
     const matching=classList[0];
     if(!registrationToken){
      const banner=$('cw-student-link-target');banner.hidden=false;
      banner.textContent='ACCÈS À '+matching.label+' · '+matching.display_name+'. Ce lien ne donne pas accès aux autres classes.';
     }
    }
+   if(registrationToken)return;
    if(!classList.length)message(classPrefill?'Lien de classe invalide : demande au professeur le bon lien.':'Aucune classe n’est enregistrée. Contacte ton professeur.',true);
    else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Demande au professeur d’ouvrir la création des PIN.',true);
    else if(classPrefill&&classList.some(x=>!x.ready))message('Cette classe existe mais ses accès ne sont pas préparés. Contacte ton professeur.',true);
@@ -738,9 +749,9 @@ if(qr||globalPortal){
   loginTab.classList.toggle('is-selected',!activated);createTab.classList.toggle('is-selected',activated);
   loginTab.setAttribute('aria-pressed',String(!activated));createTab.setAttribute('aria-pressed',String(activated));
   if(activated){
-   if(mode==='class')$('cw-activation-class').value=$('cw-student-class')?.value||'';
-   if($('cw-student-number').value)$('cw-activation-number').value=$('cw-student-number').value;
-   $('cw-activation-number').focus();
+   if(mode==='class'&&!validatedLink)$('cw-activation-class').value=$('cw-student-class')?.value||'';
+   if(!validatedLink?.student_number&&$('cw-student-number').value)$('cw-activation-number').value=$('cw-student-number').value;
+   if(!registrationToken)$('cw-activation-number').focus();
   }else{
    if(mode==='class')$('cw-student-class').value=$('cw-activation-class')?.value||'';
    if($('cw-activation-number').value)$('cw-student-number').value=$('cw-activation-number').value;
@@ -759,7 +770,7 @@ if(qr||globalPortal){
   });
  }
  activationForm.addEventListener('submit',async event=>{
-  event.preventDefault();if(busy)return;
+  event.preventDefault();if(busy||!linkReady)return;
   const submit=event.currentTarget.querySelector('[type="submit"]');
   const number=Number($('cw-activation-number').value);
   const pin=$('cw-activation-new-pin').value;
@@ -774,7 +785,7 @@ if(qr||globalPortal){
   }
   busy=true;submit.disabled=true;
   try{
-   const classCode=mode==='class'?$('cw-activation-class').value:'';
+   const classCode=mode==='class'?(validatedLink?.portal_code||$('cw-activation-class').value):'';
    await api('student_pin_setup',{class_code:classCode,join_code:qr||'',student_number:number,
     demi_groupe:group,pin,confirm_pin:confirmPin,registration_token:registrationToken});
    const result=mode==='qr'
@@ -784,6 +795,7 @@ if(qr||globalPortal){
    token=result.session;sessionStorage.setItem(storageKey,token);
    if(registrationToken){
     const cleanUrl=new URL(location.href);cleanUrl.searchParams.delete('inscription');
+    if(new URLSearchParams(cleanUrl.hash.slice(1)).has('inscription'))cleanUrl.hash='';
     history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
    }
    if(mode==='qr')await loadExam();else await loadClass();
@@ -805,25 +817,43 @@ if(qr||globalPortal){
   }catch(err){message(err.message||'Identification impossible. Tu n’as pas encore de PIN ? Clique sur « Je crée mon PIN ».',true)}
   finally{busy=false;submit.disabled=false}
  });
- if(registrationToken)toggleActivation(true);
+ const activationSubmit=activationForm.querySelector('[type="submit"]');
+ if(registrationToken){toggleActivation(true);activationSubmit.disabled=true;}
  // Présentation explicite de la classe portée par le QR ou l'invitation.
  // La réponse du serveur valide le code opaque et empêche les confusions entre classes.
  if(qr||registrationToken){
   api('student_link_info',{join_code:qr||'',registration_token:registrationToken}).then(info=>{
    const banner=$('cw-student-link-target');
    banner.hidden=false;
-   banner.textContent='CLASSE ASSOCIÉE À CE '+(qr?'QR CODE':'LIEN D’INSCRIPTION')+' : '+info.class_code+
-    ' · '+info.class_name+'. Vérifie que c’est bien ta classe avant de saisir ton numéro.';
    if(registrationToken&&classPrefill&&info.portal_code!==classPrefill){
+    banner.textContent='Invitation de classe incohérente.';
     message('Lien incohérent : la classe sélectionnée ne correspond pas à l’invitation. Demande un nouveau lien au professeur.',true);
-    $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
-   }else if(!info.registration_open){
-    banner.textContent+=' La création de nouveaux PIN est actuellement fermée ; les élèves déjà inscrits peuvent se connecter.';
-    $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
+    activationSubmit.disabled=true;
+    return;
    }
+   validatedLink=info;
+   linkReady=!!info.registration_open;
+   applyLinkedClass();
+   banner.textContent=info.class_code+' · '+info.class_name+
+    (info.student_number?' · Lien individuel pour le n° '+info.student_number:' · Classe du '+(qr?'QR code':'lien'));
+   if(info.student_number){
+    for(const id of ['cw-activation-number','cw-student-number']){
+     $(id).value=String(info.student_number);
+     $(id).readOnly=true;
+    }
+    if([1,2].includes(info.demi_groupe)){
+     $('cw-activation-group').value=String(info.demi_groupe);
+     $('cw-activation-group').disabled=true;
+    }
+    const heading=activationForm.querySelector('.cw-activation-heading');
+    heading.querySelector('h2').textContent=info.invitation_purpose==='reset'?'Je choisis un nouveau PIN.':'Je crée mon PIN.';
+    heading.querySelector('p').textContent='Choisis six chiffres et confirme ton PIN pour accéder à ton espace élève.';
+   }
+   if(!linkReady)banner.textContent+=' · Création des PIN fermée';
+   activationSubmit.disabled=!linkReady;
   }).catch(err=>{
    message('Impossible de vérifier la classe du lien : '+String(err.message||err),true);
-   $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
+   activationSubmit.disabled=true;
   });
  }
  const restored=sessionStorage.getItem(storageKey);

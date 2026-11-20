@@ -320,19 +320,13 @@ async function validStudent(token){
   return Boolean(await studentSession(token,database()));
  }catch{return false;}
 }
-async function stageAlbertAccess(token,demo,quota="cortex_albert_demo_claim_slot"){
- if(demo){
-  // La démonstration est publique : quota partagé déjà présent dans CORTEX,
-  // avec plafond quotidien et intervalle de sécurité entre appels.
-  const u=Deno.env.get("SUPABASE_URL"),secret=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if(!u||!secret)return "Albert est momentanément indisponible en démonstration.";
-  try{
-   const db=createClient(u,secret,{auth:{persistSession:false}});
-   const {data:admitted,error}=await db.rpc(quota);
-   if(error)return "Albert est momentanément indisponible en démonstration.";
-   if(admitted!==true)return "Albert est temporairement limité en démonstration. Réessaie dans un instant.";
-  }catch{return "Albert est momentanément indisponible en démonstration.";}
- }else if(!(await validStudent(token)))
+async function stageAlbertAccess(token,demo){
+ // Albert PFMP uniquement : aucun quota partagé ni délai entre les appels
+ // dans la démonstration. Les protections de taille/format et les limites du
+ // fournisseur Albert sont indépendantes et restent actives.
+ // L'espace réel continue à exiger une session élève valide.
+ if(demo===true)return "";
+ if(!(await validStudent(token)))
   return "Reconnecte-toi à ton espace élève pour utiliser Albert.";
  return "";
 }
@@ -588,7 +582,7 @@ async function chatPfmp(sector,option,niveau,body,origin){
   return respond({ok:false,error:"Écris un message de 800 caractères maximum."},400,origin);
  const key=Deno.env.get("ALBERT_API_KEY");
  if(!key)return respond({ok:false,error:"Albert est momentanément indisponible."},503,origin);
- const denied=await stageAlbertAccess(clean(body.session,256),body.demo===true,"cortex_albert_guide_claim_slot");
+ const denied=await stageAlbertAccess(clean(body.session,256),body.demo===true);
  if(denied)return respond({ok:false,error:denied},body.demo===true?429:403,origin);
  const chosen=categoryIds(sector,Array.isArray(body.types)?body.types:[],option);
  const types=chosen.map(id=>sectors[sector].types[id].label);

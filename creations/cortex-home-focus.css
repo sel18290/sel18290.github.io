@@ -73,9 +73,6 @@ body:not(.academy-authenticated) .layout:has(.cortex-focus-real)>.access{align-s
 /* La navigation reste disponible dans les espaces, mais le premier écran
    ne multiplie pas les portes qui répètent les deux choix du héros. */
 body:has(.cortex-focus-home) .demo-notice,
-body:has(.cortex-focus-home) #ct-command-launch,
-body:has(.cortex-focus-home) #ct-tour-launch,
-body:has(.cortex-focus-home) #ct-tour-launch-mobile,
 body:has(.cortex-focus-home) .top-actions .top-link{display:none!important}
 body:not(.academy-authenticated):has(.cortex-focus-real) .academy-header-actions .academy-student-entry,
 body:not(.academy-authenticated):has(.cortex-focus-real) .academy-header-actions .academy-professor-entry{display:none!important}

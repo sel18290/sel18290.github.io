@@ -35,6 +35,7 @@ if(qr||globalPortal){
   '<div class="cw-student-brand">CORTEX <span>ACADÉMIE · ESPACE ÉLÈVE</span></div>'+
   '<div class="cw-student-hero"><span>STATION NOCTIS · ESPACE ÉLÈVE</span><h1>'+(qr?'Rejoindre mon contrôle.':'Bienvenue dans mon CORTEX.')+'</h1>'+
   '<p>'+(qr?'Le QR code t’a envoyé vers le contrôle attribué à ta classe.':'Choisis ta classe, indique ton numéro sur la liste et confirme ton PIN pour retrouver tes contrôles et corrections.')+'</p></div>'+
+  '<div id="cw-student-link-target" class="cw-pin-intro" role="status" aria-live="polite" hidden></div>'+
   '<div id="cw-student-status" role="status" aria-live="polite" class="cw-status" hidden></div>'+
   '<section id="cw-student-login" class="cw-pin-entry">'+
   '<a class="cw-student-home" href="./">Retour à CORTEX Académie</a>'+
@@ -99,7 +100,10 @@ if(qr||globalPortal){
   if(mode!=='class')return;
   try{
    const list=await api('student_classes');
-   classList=list.classes||[];
+   // Un lien de classe fixe le destinataire : impossible de sélectionner
+   // accidentellement 1AGORA2 avec une invitation destinée à 1AGORA1.
+   const allClasses=list.classes||[];
+   classList=classPrefill?allClasses.filter(cl=>cl.code===classPrefill):allClasses;
    const select=$('cw-student-class');select.replaceChildren();
    const blank=E('option','','Choisir ma classe');blank.value='';select.append(blank);
    for(const cl of classList){
@@ -112,11 +116,20 @@ if(qr||globalPortal){
     const empty=E('option','','Choisir ma classe');empty.value='';activationSelect.append(empty);
     for(const cl of classList){const status=cl.registration_open?' · PIN ouverts':cl.ready?' · Accès prêt':'';const option=E('option','',cl.label+' · '+cl.display_name+status);option.value=cl.code;activationSelect.append(option)}
    }
-   if(classPrefill&&classList.some(x=>x.code===classPrefill)){select.value=classPrefill;if(activationSelect)activationSelect.value=classPrefill}
-   if(!classList.length)message('Aucune classe n’est enregistrée. Contacte ton professeur.',true);
+   if(classPrefill&&classList.some(x=>x.code===classPrefill)){
+    select.value=classPrefill;
+    if(activationSelect)activationSelect.value=classPrefill;
+    select.disabled=true;
+    if(activationSelect)activationSelect.disabled=true;
+    const matching=classList[0];
+    if(!registrationToken){
+     const banner=$('cw-student-link-target');banner.hidden=false;
+     banner.textContent='ACCÈS À '+matching.label+' · '+matching.display_name+'. Ce lien ne donne pas accès aux autres classes.';
+    }
+   }
+   if(!classList.length)message(classPrefill?'Lien de classe invalide : demande au professeur le bon lien.':'Aucune classe n’est enregistrée. Contacte ton professeur.',true);
    else if(!classList.some(cl=>cl.ready))message('Les classes sont disponibles. Demande au professeur d’ouvrir la création des PIN.',true);
-   else if(classPrefill&&!classList.some(x=>x.code===classPrefill))message('Ce lien de classe est indisponible. Choisis une classe dans la liste.',true);
-   else if(classPrefill&&classList.some(x=>x.code===classPrefill&&!x.ready))message('Cette classe existe. Demande au professeur d’ouvrir la création des PIN pour cette classe.',true);
+   else if(classPrefill&&classList.some(x=>!x.ready))message('Cette classe existe mais ses accès ne sont pas préparés. Contacte ton professeur.',true);
   }catch(err){message('Chargement des classes impossible : '+String(err.message||err),true)}
  }
  async function loadClass(){
@@ -538,6 +551,26 @@ if(qr||globalPortal){
   finally{busy=false;submit.disabled=false}
  });
  if(registrationToken)toggleActivation(true);
+ // Présentation explicite de la classe portée par le QR ou l'invitation.
+ // La réponse du serveur valide le code opaque et empêche les confusions entre classes.
+ if(qr||registrationToken){
+  api('student_link_info',{join_code:qr||'',registration_token:registrationToken}).then(info=>{
+   const banner=$('cw-student-link-target');
+   banner.hidden=false;
+   banner.textContent='CLASSE ASSOCIÉE À CE '+(qr?'QR CODE':'LIEN D’INSCRIPTION')+' : '+info.class_code+
+    ' · '+info.class_name+'. Vérifie que c’est bien ta classe avant de saisir ton numéro.';
+   if(registrationToken&&classPrefill&&info.portal_code!==classPrefill){
+    message('Lien incohérent : la classe sélectionnée ne correspond pas à l’invitation. Demande un nouveau lien au professeur.',true);
+    $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
+   }else if(!info.registration_open){
+    banner.textContent+=' La création de nouveaux PIN est actuellement fermée ; les élèves déjà inscrits peuvent se connecter.';
+    $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
+   }
+  }).catch(err=>{
+   message('Impossible de vérifier la classe du lien : '+String(err.message||err),true);
+   $('cw-student-activation-form').querySelector('[type="submit"]').disabled=true;
+  });
+ }
  const restored=sessionStorage.getItem(storageKey);
  if(mode==='class')getClasses();
  if(restored){

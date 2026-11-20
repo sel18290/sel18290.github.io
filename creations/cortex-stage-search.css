@@ -1099,7 +1099,7 @@ body:has(.cs-stage-search[aria-labelledby="cs-stage-title"]) #cortex-albert-pers
 .cs-stage-search .cs-stage-step-link {
   min-height: 2.8rem; padding: .65rem .85rem; border: 1px solid #a9e2d4;
   border-radius: .65rem; color: #15342f; background: #c7f5e8;
-  font: 750 .86rem/1.25 inherit; cursor: pointer; text-align: center;
+  font-family: inherit; font-size: .86rem; font-weight: 750; line-height: 1.25; cursor: pointer; text-align: center;
 }
 .cs-stage-search .cs-stage-step-link:hover { background: #eafff7; }
 .cs-stage-search .cs-stage-step-link:focus-visible, .cs-stage-search [data-stage-go]:focus-visible { outline: 3px solid #fcbf75; outline-offset: 3px; }

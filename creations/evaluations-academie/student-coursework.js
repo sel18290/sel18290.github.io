@@ -448,30 +448,115 @@ if(qr||globalPortal){
   const upload=E('label','cw-student-attachment'),file=E('input');file.type='file';file.accept='.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp';
   upload.append(E('strong','','Joindre ma copie (facultatif)'),file,E('small','','PDF, Word, TXT ou image, 8 Mo maximum. Tu peux envoyer une réponse écrite et/ou un fichier.'));
   form.append(upload);
-  const submit=E('button','cw-student-submit','Remettre définitivement mon contrôle →');submit.type='submit';form.append(submit);
-  form.addEventListener('submit',async event=>{
-   event.preventDefault();if(busy)return;
-   const confirmation=mobileController?
-    'Tu as répondu à '+mobileController.answeredCount()+' question(s) sur '+questions.length+'. Confirmer la remise définitive de ta copie ? Tu ne pourras plus la modifier.':
-    'Confirmer la remise définitive de ton contrôle ? Tu ne pourras plus modifier cette copie.';
-   if(!confirm(confirmation))return;
-   stopIntegrity();
-   busy=true;submit.disabled=true;message('Envoi de ta copie en cours…');
-   let sent=false;
+  // La boîte native confirm() est peu fiable dans certains webviews/iPhone.
+  // Une étape de validation visible empêche le faux « bouton qui ne fait rien ».
+  // Les réponses et le brouillon restent conservés jusqu'à réception serveur.
+  form.noValidate=true;
+  const submit=E('button','cw-student-submit','Remettre définitivement mon contrôle →');
+  submit.type='button';
+  const confirmBox=E('section','cw-submit-confirmation');
+  confirmBox.hidden=true;
+  confirmBox.setAttribute('role','group');
+  confirmBox.setAttribute('aria-label','Confirmation définitive de la copie');
+  const confirmTitle=E('strong','','Dernière vérification avant remise');
+  const confirmDetails=E('p','','');
+  const confirmActions=E('div','cw-submit-actions');
+  const confirmSend=E('button','cw-student-submit','Oui, envoyer définitivement ma copie');
+  confirmSend.type='button';
+  const cancelSend=E('button','cw-outline','Annuler — garder ma copie');
+  cancelSend.type='button';
+  confirmActions.append(confirmSend,cancelSend);
+  confirmBox.append(confirmTitle,confirmDetails,confirmActions);
+  const submissionStatus=E('p','cw-submit-local-status');
+  submissionStatus.setAttribute('role','status');
+  submissionStatus.setAttribute('aria-live','polite');
+  submissionStatus.hidden=true;
+  form.append(submit,confirmBox,submissionStatus);
+  function submissionMessage(value,error=false){
+   submissionStatus.textContent=value||'';
+   submissionStatus.hidden=!value;
+   submissionStatus.classList.toggle('error',!!error);
+   if(value)submissionStatus.scrollIntoView({block:'nearest',behavior:'auto'});
+  }
+  function collectAnswers(){
+   if(mobileController)return mobileController.getAnswers();
+   const wrappers=new Map([...form.querySelectorAll('[data-cortex-q]')]
+    .map(w=>[w.dataset.cortexQ,w]));
+   return Object.fromEntries(questions.map(q=>[q.id,
+    String(wrappers.has(q.id)?window.CORTEX_QUESTION_TYPES.readAnswer(wrappers.get(q.id),q):'')]));
+  }
+  function openConfirmation(){
+   if(busy)return;
    try{
-    const answers=mobileController?mobileController.getAnswers():(()=>{
-     const wrappers=new Map([...form.querySelectorAll('[data-cortex-q]')].map(w=>[w.dataset.cortexQ,w]));
-     return Object.fromEntries(questions.map(q=>[q.id,wrappers.has(q.id)?window.CORTEX_QUESTION_TYPES.readAnswer(wrappers.get(q.id),q):'']));
-    })();
-    await api('student_submit',{session:token,assessment_id:currentId,answers:JSON.stringify(answers)},file.files?.[0]||null);
+    const answers=collectAnswers(),attached=file.files?.[0]||null;
+    const completed=Object.values(answers).filter(v=>String(v??'').trim()).length;
+    if(!completed&&!attached){
+     submissionMessage('Aucune réponse à envoyer. Réponds à au moins une question ou joins un fichier.',true);
+     return;
+    }
+    if(attached&&attached.size>8*1024*1024){
+     submissionMessage('Le fichier dépasse 8 Mo. Choisis un document plus petit.',true);return;
+    }
+    submissionMessage('');
+    confirmDetails.textContent='Tu as répondu à '+completed+' question(s) sur '+questions.length+
+     (attached?' et joint un fichier.':'.')+
+     ' Après envoi, tu ne pourras plus modifier ta copie. Confirmer ?';
+    submit.hidden=true;
+    confirmBox.hidden=false;
+    confirmBox.scrollIntoView({block:'center',behavior:'auto'});
+    confirmSend.focus({preventScroll:true});
+   }catch(error){
+    submissionMessage('Impossible de préparer la remise : '+String(error?.message||error),true);
+   }
+  }
+  submit.addEventListener('click',openConfirmation);
+  form.addEventListener('submit',event=>{event.preventDefault();openConfirmation()});
+  cancelSend.addEventListener('click',()=>{
+   if(busy)return;
+   confirmBox.hidden=true;submit.hidden=false;
+   submissionMessage('Remise annulée. Tes réponses sont conservées.');
+  });
+  confirmSend.addEventListener('click',async()=>{
+   if(busy)return;
+   busy=true;
+   confirmSend.disabled=true;cancelSend.disabled=true;submit.disabled=true;
+   confirmBox.hidden=true;submit.hidden=false;
+   submit.textContent='Enregistrement de la copie en cours…';
+   submissionMessage('Envoi sécurisé en cours. Ne ferme pas cette page.');
+   let sent=false;
+   const examId=currentId;
+   try{
+    const answers=collectAnswers();
+    if(!Object.values(answers).some(v=>String(v??'').trim())&&!file.files?.[0])
+     throw Error('La copie est vide : réponds à une question avant de l’envoyer.');
+    // Arrêter la surveillance uniquement lorsque l'envoi commence, pas au clic initial.
+    stopIntegrity();
+    await api('student_submit',{session:token,assessment_id:examId,answers:JSON.stringify(answers)},file.files?.[0]||null);
     sent=true;
     mobileController?.clearDraft();
-    await loadExam(currentId);message('Copie bien reçue par le professeur.');
-   }catch(err){
-    if(!sent)guard.setActive(examGuard);
-    message(err.message||'Impossible de remettre la copie.',true);
+    submissionMessage('✓ Copie bien enregistrée. Ouverture du reçu…');
+    try{
+     await loadExam(examId);
+     message('✓ Copie bien reçue par le professeur.');
+    }catch(refreshError){
+     submissionMessage('✓ Ta copie est enregistrée, mais le reçu n’a pas pu se recharger. Actualise la page puis reconnecte-toi pour le consulter.');
+     message('La copie a été enregistrée. Recharge ton espace pour voir le reçu.');
+    }
+   }catch(error){
+    guard.setActive(examGuard);
+    const detail=String(error?.message||error||'Erreur inconnue');
+    submissionMessage('Envoi impossible : '+detail+' Tes réponses sont conservées. Tu peux réessayer.',true);
+   }finally{
+    busy=false;
+    confirmSend.disabled=false;cancelSend.disabled=false;
+    if(!sent){
+     submit.disabled=false;
+     submit.textContent='Réessayer de remettre ma copie →';
+    }else{
+     submit.disabled=true;
+     submit.textContent='✓ Copie enregistrée';
+    }
    }
-   finally{busy=false;submit.disabled=false}
   });
   work.append(form);
   if(settings.enabled&&settings.watermarkCapture){

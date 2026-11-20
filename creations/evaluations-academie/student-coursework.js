@@ -306,6 +306,42 @@ if(qr||globalPortal){
    }
   }
  }
+ // Récupération ciblée du brouillon n°12 du contrôle IST ouvert avant
+ // le reclassement 1AGORA2 -> 1AGORA1, sur CE navigateur uniquement.
+ // Aucune copie n'est devinée ni extraite d'un appareil distant.
+ function findLegacyAgora12Draft(exam){
+  if(current?.student_number!==12||
+     exam?.id!=='f2632ea7-8ed2-47db-9bb9-528d63f4412a')return null;
+  const sourceId='00c7a0cf-da1d-4bd7-b34b-93b7ae1d3938';
+  const prefix='cortex-student-draft:v2:'+sourceId+':12:';
+  const exact='cortex-student-draft:v1:'+sourceId+':12';
+  const possible=[];
+  try{
+   for(let i=0;i<sessionStorage.length;i++){
+    const key=sessionStorage.key(i);
+    if(key!==exact&&!key?.startsWith(prefix))continue;
+    const stored=JSON.parse(sessionStorage.getItem(key)||'null');
+    if(!stored||typeof stored.answers!=='object'||Array.isArray(stored.answers))continue;
+    const validIds=new Set((exam.questions||[]).map(q=>q.id));
+    const answers={};
+    let total=0;
+    for(const [id,value] of Object.entries(stored.answers)){
+     if(!validIds.has(id)||typeof value!=='string'||value.length>18000)continue;
+     total+=value.length;
+     if(total>65000)break;
+     answers[id]=value;
+    }
+    const filled=Object.values(answers).filter(x=>x.trim()&&x!=='[]').length;
+    const when=Number(stored.updated)||Date.parse(key.slice(prefix.length));
+    if(!filled||!Number.isFinite(when)||
+       when<Date.parse('2026-11-20T08:00:00Z')||
+       when>Date.parse('2026-11-21T02:00:00Z'))continue;
+    possible.push({key,answers,filled,when});
+   }
+  }catch{}
+  possible.sort((a,b)=>b.filled-a.filled||b.when-a.when);
+  return possible[0]||null;
+ }
  function renderExam(){
   closeStageView();
   releaseEditor();
@@ -328,6 +364,47 @@ if(qr||globalPortal){
    subject.append(button('Renouveler le lien du document','cw-outline',()=>loadExam(currentId)));
   }
   work.append(subject);
+  // La sauvegarde historique n'a pas été envoyée au serveur : elle peut
+  // encore être disponible dans l'onglet de l'élève, même après changement de classe.
+  if(!submitted&&exam.id==='f2632ea7-8ed2-47db-9bb9-528d63f4412a'
+     &&Number(current.student_number)===12){
+   const recovery=E('section','cw-student-timer-start');
+   recovery.append(E('strong','','Récupérer ma copie du 20 novembre · élève n°12'));
+   const recoveryText=E('p','',
+    'Recherche d’un brouillon sur cet appareil, dans l’onglet où tu as répondu entre 9 h et 12 h. Aucune copie ne sera remise sans ton accord.');
+   recovery.append(recoveryText);
+   const recovered=findLegacyAgora12Draft(exam);
+   if(recovered){
+    recovery.append(E('p','','✓ '+recovered.filled+' réponse(s) anciennes retrouvées sur cet appareil.'));
+    recovery.append(button('↻ Restaurer mes réponses dans 1AGORA1','cw-student-submit',async()=>{
+     const oldSession=token,previous=current,examId=exam.id;
+     let attempt=previous.attempt;
+     if(!attempt){
+      const started=await api('student_start',{session:oldSession,assessment_id:examId});
+      if(current!==previous||token!==oldSession||currentId!==examId)return;
+      if(started.status==='submitted'){await loadExam(examId);return}
+      if(started.status!=='open')throw Error('Le contrôle ne peut plus être rouvert pour récupérer la copie.');
+      attempt=started;current.attempt=started;current.server_now=started.server_now;
+     }
+     const answers={...recovered.answers};
+     for(const [id,value] of Object.entries(attempt.answers||{}))
+      if(typeof value==='string'&&value.trim())answers[id]=value;
+     const newKey='cortex-student-draft:v2:'+examId+':12:'+attempt.started_at;
+     try{
+      sessionStorage.setItem(newKey,JSON.stringify({
+       revision:attempt.revision,pending:true,answers,
+       base:attempt.answers||{},sending:null
+      }));
+     }catch{throw Error('Stockage local indisponible. N’efface pas l’onglet contenant tes anciennes réponses.')}
+     renderExam();
+     draftEditor?.update(true);
+     message('Réponses retrouvées. Vérifie chaque question, puis clique sur « Remettre définitivement ».');
+    }));
+   }else{
+    recovery.append(E('p','','Aucune ancienne copie détectée dans cet onglet. Essaie le navigateur et l’onglet utilisés le jour du contrôle ; ne vide pas leur historique ni leurs données.'));
+   }
+   work.append(recovery);
+  }
   if(submitted){
    stopIntegrity();
    const receipt=E('section','cw-student-receipt');

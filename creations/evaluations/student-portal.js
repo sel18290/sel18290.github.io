@@ -93,7 +93,7 @@ window.CORTEX_PORTAL=(function(){
   const levels=[['3e','Troisième'],['seconde','Seconde'],['première','Première'],['terminale','Terminale'],['autre','Autre']];
   return '<div class="portal-root portal-login">'+
    '<header class="portal-login-visual"><p class="portal-kicker">CORTEX ÉVALUATIONS</p>'+
-   '<h1>Ton espace élève</h1><p>Passe un contrôle, consulte tes copies ou prépare ton stage.</p></header>'+
+   '<h1>Ton espace élève</h1><p>Passe un contrôle, prépare une PFMP ou explore ton orientation après le bac.</p></header>'+
    '<section class="portal-entry-options" aria-label="Que veux-tu faire ?">'+
    '<article class="portal-entry-option"><h2>Voir un carnet élève</h2>'+
    '<p>Explore 13 copies fictives, leurs corrections et les conseils d’Albert.</p>'+
@@ -101,6 +101,9 @@ window.CORTEX_PORTAL=(function(){
    '<article class="portal-entry-option"><h2>Trouver un stage</h2>'+
    '<p>Recherche un lieu de PFMP et organise tes candidatures.</p>'+
    '<button type="button" class="portal-entry-button" data-action="student-stages">Recherche de PFMP</button></article>'+
+    '<article class="portal-entry-option"><h2>Préparer mon orientation <span class="co-inline-beta">BÊTA</span></h2>'+
+    '<p>Compare les formations Parcoursup, élargis tes vœux et retrouve tes pistes sauvegardées sur cet appareil.</p>'+
+    '<button type="button" class="portal-entry-button" data-action="student-orientation">Mon orientation ↗</button></article>'+
    '<article class="portal-entry-option"><h2>Essayer un contrôle</h2>'+
    '<p>Teste une évaluation de PSE sur le sommeil : 20 questions, 60 minutes.</p>'+
    '<button type="button" class="portal-entry-button" data-action="demo-pse-open">Tester le contrôle PSE</button></article></section>'+
@@ -202,7 +205,7 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div>'+
    '<h1>Mes évaluations</h1><p>Retrouve tes copies, les corrections et les conseils pour progresser.</p>'+
-   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles</button><button data-action="portal-show-revision">Mes révisions</button><button data-action="student-stages">Recherche de PFMP</button></div></div>'+
+   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles</button><button data-action="portal-show-revision">Mes révisions</button><button data-action="student-stages">Recherche de PFMP</button><button data-action="student-orientation">Orientation <span class="co-inline-beta">BÊTA</span></button></div></div>'+
    '</section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
    '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><h2>Copies et corrections</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
@@ -225,6 +228,7 @@ window.CORTEX_PORTAL=(function(){
       '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p></div></div>'+
      '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p>':
     '<p class="portal-empty">L’analyse IA des copies réelles est désactivée en attente des autorisations nécessaires. Consulte la correction et les observations de ton professeur.</p>')+'</section>'+
+    '<section class="portal-section co-portal-feature" aria-label="Préparer mon orientation"><div class="portal-section-head"><div><h2>Mon orientation après le bac <span class="co-inline-beta">BÊTA</span></h2><p>Prépare tes choix Parcoursup, découvre des BTS et compare les statistiques officielles.</p></div></div><button type="button" class="portal-main-button" data-action="student-orientation">Explorer mon orientation ↗</button><p class="co-portal-privacy">Projet sauvegardé uniquement dans ce navigateur. Aucune synchronisation avec un serveur.</p></section>'+ 
     '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver une PFMP"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ta<br><em>prochaine PFMP.</em></h2>'+
     '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+

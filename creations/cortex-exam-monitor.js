@@ -106,11 +106,14 @@
     student.placeholder = 'Ex. 12';
     const examSelect = field('Contrôle', element('select'), true);
     const kind = field('Événement', element('select'), true);
+    const priority = field('Afficher', element('select'));
     const options = (select, choices, selected) => {
       select.replaceChildren(...choices.map(([id, label]) => new Option(label, id)));
       if (choices.some(([id]) => id === selected)) select.value = selected;
     };
     options(kind, [['', 'Tous les événements'], ...Object.entries(kindLabels)], '');
+    options(priority, [['', 'Tous les signalements'], ['long', 'Sorties de 10 s ou plus'],
+      ['blocked', 'Gestes bloqués']], '');
     const stats = element('div', 'ce-monitor-stats');
     stats.setAttribute('aria-label', 'Bilan de la sélection');
     const figures = ['Sorties d’écran', 'Durée cumulée', 'Plus longue sortie', 'Gestes bloqués'].map(label => {
@@ -125,10 +128,14 @@
     const more = element('button', 'btn secondary small ce-more', 'Afficher plus d’événements');
     more.type = 'button';
     more.hidden = true;
+    const download = element('button', 'btn secondary small ce-monitor-export',
+      '⇩ Télécharger ce journal (CSV)');
+    download.type = 'button';
+    download.title = 'Exporte uniquement les événements correspondant aux filtres. Ne contient pas les réponses ni les copies.';
     const footer = element('p', 'ce-monitor-note',
-      'Heures de Paris. Les horaires et durées sont estimés par le navigateur. Le professeur examine chaque signalement dans son contexte.');
+      'Heures de Paris. Durées estimées par le navigateur. Une sortie longue ou un geste bloqué demande une vérification humaine : ce n’est pas une preuve de triche.');
     const log = element('div', 'ce-monitor-log');
-    log.append(stats, caption, results, more, footer);
+    log.append(stats, caption, results, more, download, footer);
     const tabs = element('div', 'ce-monitor-views');
     tabs.setAttribute('role', 'group');
     tabs.setAttribute('aria-label', 'Vues du suivi');
@@ -147,6 +154,17 @@
     logButton.addEventListener('click', () => chooseView(false));
     liveButton.addEventListener('click', () => chooseView(true));
 
+    function visibleEvents() {
+      return events.filter(event =>
+        (!classSelect.value || classSelect.value === event.classId) &&
+        (!examSelect.value || examSelect.value === event.examId) &&
+        (!student.value || Number(student.value) === Number(event.studentNumber)) &&
+        (!kind.value || kind.value === event.kind) &&
+        (!priority.value || (priority.value === 'long'
+          ? event.kind === 'tab_hidden' && validDuration(event) && event.durationMs >= 10000
+          : event.kind === 'paste_blocked' || event.kind === 'copy_blocked')));
+    }
+
     function render() {
       const currentExam = exams.find(exam => exam.id === examSelect.value);
       if (live) {
@@ -164,10 +182,10 @@
       introText.textContent = demo ? 'Données locales de la démonstration.' :
         currentExam?.tracksExits === false ? 'Le signalement des sorties d’écran est désactivé pour ce contrôle.' :
         'Les sorties d’écran apparaissent au retour de l’élève.';
-      const filtered = events.filter(event => (!classSelect.value || classSelect.value === event.classId) &&
-        (!examSelect.value || examSelect.value === event.examId) &&
-        (!student.value || Number(student.value) === Number(event.studentNumber)) &&
-        (!kind.value || kind.value === event.kind));
+      const filtered = visibleEvents();
+      download.disabled = !filtered.length;
+      download.setAttribute('aria-label',
+        'Télécharger ' + filtered.length + ' événements filtrés en CSV');
       const exits = filtered.filter(event => event.kind === 'tab_hidden');
       const measured = exits.filter(validDuration);
       const total = measured.reduce((sum, event) => sum + event.durationMs, 0);
@@ -237,6 +255,37 @@
       render();
     });
     kind.addEventListener('change', () => { limit = PAGE_SIZE; render(); });
+    priority.addEventListener('change', () => { limit = PAGE_SIZE; render(); });
+    download.addEventListener('click', () => {
+      const selected = visibleEvents();
+      if (!selected.length) return;
+      const quote = value => '"' + String(value ?? '').replace(/"/g, '""')
+        .replace(/[\r\n]/g, ' ') + '"';
+      const lines = [
+        ['Date','Heure (Paris)','Classe','N° élève','Contrôle','Événement','Durée (secondes)']
+          .map(quote).join(';')
+      ];
+      const formatDay = formatter({year:'numeric',month:'2-digit',day:'2-digit'});
+      for (const event of selected) {
+        const exam = exams.find(e => e.id === event.examId);
+        const date = Number.isFinite(event.at) ? new Date(event.at) : null;
+        lines.push([
+          date ? formatDay.format(date) : '',date ? clock.format(date) : '',
+          event.className || '',event.studentNumber || '', exam?.title || '',
+          kindLabels[event.kind] || event.kind,
+          validDuration(event) ? (event.durationMs / 1000).toFixed(1).replace('.', ',') : ''
+        ].map(quote).join(';'));
+      }
+      const blob = new Blob(['\ufeff' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const link = element('a');
+      link.href = url;
+      link.download = 'cortex-journal-integrite-' + new Date().toISOString().slice(0,10) + '.csv';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
     more.addEventListener('click', () => {
       const oldLimit = limit;
       limit += PAGE_SIZE;
@@ -283,6 +332,7 @@
         showingLive = false;
         student.value = '';
         kind.value = '';
+        priority.value = '';
         this.setExams([], '');
       }
     };

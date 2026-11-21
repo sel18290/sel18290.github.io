@@ -117,7 +117,7 @@ function renderBase(){
   '<div class="co-intro"><div><span class="co-eyebrow">DÉMONSTRATION / MON AVENIR</span><h1>Mon orientation <em>βêta</em></h1>'+
   '<p>Construis ton projet après le bac, compare les formations et prépare plusieurs pistes Parcoursup. Ton travail reste enregistré sur cet appareil.</p></div>'+
   '<div class="co-year"><strong>2025</strong><small>Statistiques historiques Parcoursup · hors apprentissage</small></div></div>'+
-  '<div class="co-top-nav"><button type="button" class="co-btn" data-action="student">← Retour à l’espace élève</button><span>Mode démonstration · Sans compte · Sauvegarde locale</span></div>'+
+  '<div class="co-top-nav"><button type="button" class="co-btn" data-action="student-orientation-back">← Retour à l’espace élève</button><span>Mode démonstration · Sans compte · Sauvegarde locale</span></div>'+
   '<div class="co-layout"><section class="co-panel co-profile"><h2>01 · Mon projet après le bac</h2>'+
   '<div class="co-fields">'+
   '<label>Filière d’origine<select id="co-bac">'+pathways.map(p=>'<option value="'+p[0]+'">'+esc(p[1])+'</option>').join('')+'</select></label>'+
@@ -141,8 +141,6 @@ function renderBase(){
   '<article><h3>Bourse CROUS et logement</h3><p>Simulateur de bourse, Dossier social étudiant (DSE), logement CROUS et autres aides selon la situation familiale, à vérifier sur les services officiels.</p><a href="'+sources.aides+'" target="_blank" rel="noopener noreferrer">Simuler une bourse / DSE ↗</a></article>'+
   '<article><h3>Mobilité et garanties</h3><p>Aide à la mobilité Parcoursup selon les conditions de l’année, garantie Visale et aides au logement. Vérifier les droits au moment de la demande.</p><a href="'+sources.mobilite+'" target="_blank" rel="noopener noreferrer">Aide à la mobilité ↗</a> <a href="'+sources.visale+'" target="_blank" rel="noopener noreferrer">Visale ↗</a></article></div>'+
   '<p class="co-disclaimer">βêta · Outil personnel d’aide à l’orientation. Aucun vœu n’est transmis à Parcoursup. Les admissions, la réussite et l’emploi dépendent de facteurs que les statistiques de 2025 ne peuvent pas prédire individuellement.</p></section>';
- $('co-class').addEventListener('change',()=>chooseClass($('co-class').value));
- $('co-student').addEventListener('change',()=>{currentStudent=Number($('co-student').value)||1;applyProfile();});
  $('co-save').addEventListener('click',()=>save());
  $('co-search').addEventListener('click',()=>search());
  root.addEventListener('input',event=>{if(event.target.closest('.co-fields'))scheduleSave();});

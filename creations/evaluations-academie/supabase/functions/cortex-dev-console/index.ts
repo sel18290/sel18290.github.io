@@ -31,7 +31,7 @@ const hexToBytes=(value:string)=>Uint8Array.from(value.match(/.{2}/g)??[],x=>par
 const toHex=(bytes:Uint8Array)=>Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');
 function safeLabel(value:unknown){
  const name=String(value??'').trim().replace(/\s+/g,' ');
- if(name.length<3||name.length>65||!/^[-\p{L}\p{M}0-9 .()'’/&]+$/u.test(name))return '';
+ if(name.length<3||name.length>65||!/^[-\p{L}\p{M}0-9 .,()'’/&]+$/u.test(name))return '';
  if(/[\w.+-]+@[\w.-]+\.|(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/i.test(name))return '';
  return name;
 }

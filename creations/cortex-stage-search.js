@@ -462,6 +462,8 @@
     const calibrationScores = new Map();
 
     const metric = (kind,category) => {
+      // Ni historique PFMP ni métadonnées d'usage PFMP enregistrés sur le serveur.
+      if (settings.demo === true) return;
       try{window.CORTEX_DEV_METRICS?.track?.(kind,category,mode)}catch{/* Statistiques facultatives */}
     };
     // Une seule ouverture PFMP par session d'onglet et par environnement.
@@ -518,12 +520,14 @@
     const boardNotice = text => { $('board-notice').textContent = text; };
 
     function persist() {
-      return save(key, {
+      const ok = save(key, {
         preferences: { sector, option, city: $('city').value, radius: Number($('radius').value),
           albert: $('albert').checked, confirmed: $('confirmed').checked, types: selections },
         prep: { start: prep.start || '', end: prep.end || '', done: [...checks] },
         board: [...board.values()], identity, drafts, hooks, customSectors
       });
+      if (!ok) status('Sauvegarde locale impossible (stockage du navigateur bloqué ou saturé). Exporte tes documents et libère de l’espace avant de continuer.', true);
+      return ok;
     }
 
     function needsFollowUp(entry) {

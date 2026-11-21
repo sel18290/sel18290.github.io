@@ -223,7 +223,7 @@ async function saveAntiCheat(exam,key,checked){
 
 const directTools=[
  {key:'blockPaste',icon:'⇩',name:'Blocage du collage',detail:'Empêche les collages dans les réponses texte, courtes, tableaux et cases à compléter, y compris sur téléphone.',limit:'N’empêche pas un texte saisi ou dicté manuellement ; les cases à cocher et photos restent utilisables.'},
- {key:'blockCopy',icon:'▤',name:'Copie du sujet',detail:'Limite copier/couper, le glisser-déposer de passages et le menu de copie de certaines images du sujet.',limit:'Le brouillon de l’élève reste modifiable ; les captures système et les photos externes restent possibles.'},
+ {key:'blockCopy',icon:'▤',name:'Copie et surlignage du sujet',detail:'Empêche la sélection/surlignage des documents et limite copier/couper. Le PDF est lu en pages images dans CORTEX.',limit:'Les réponses restent modifiables. Les captures, photos et l’accès technique aux ressources restent possibles. Prévoir un aménagement si l’élève a besoin de sélectionner le texte.'},
  {key:'trackVisibility',icon:'◷',name:'Sorties d’écran',detail:'Enregistre au retour les pages masquées pendant au moins 2 secondes : heure du départ, retour et durée.',limit:'Ne surveille pas les autres applications : appel, document ou changement d’onglet peuvent produire le même signal.'},
  {key:'trackLive',icon:'◉',name:'Suivi en direct',detail:'Affiche la progression du brouillon, l’état de la page et le dernier contact par numéro. Les accès simultanés apparaissent dans le journal.',limit:'Active ce suivi avant la passation pour que les élèves voient la règle au démarrage.'},
  {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message après une sortie signalée ou une action bloquée.',limit:'Le chronomètre continue.'},

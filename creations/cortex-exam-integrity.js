@@ -205,7 +205,7 @@
     function blockCopy(event) {
       if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
       // L'élève garde le droit de corriger et de copier son propre brouillon.
-      if (event.target.closest?.(editable) && !isSubjectSelection()) return;
+      if (event.target.closest?.(editable)) return;
       if (isSubjectSelection()) block(event, 'copy_blocked');
     }
 

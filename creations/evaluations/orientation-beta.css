@@ -104,3 +104,275 @@ body.cortex-noctis .co-portal-feature{border:1px solid #749cb0;background:linear
 body.cortex-noctis .co-portal-feature .portal-main-button{width:auto;max-width:100%;padding:13px 19px}
 body.cortex-noctis .co-portal-privacy{font-size:11px;line-height:1.65;color:#355469;margin-top:11px}
 @media(max-width:720px){body.cortex-noctis .portal-entry-options{grid-template-columns:1fr}body.cortex-noctis .co-portal-feature{padding:15px}}
+
+/* CORTEX ORIENTATION 2.0 — identité Orbit, lisibilité prioritaire.
+ * Scoped styles pour ne jamais dégrader PFMP ou les évaluations.
+ */
+#cortex-demo-orientation{max-width:1520px!important;width:100%;padding:8px 14px 40px!important}
+#cortex-orientation.co-v2{
+ --v2-ink:#eef8ff;--v2-muted:#b9d0e0;--v2-line:#365e78;--v2-surface:#0e2237;
+ --v2-main:#a1eaff;--v2-elevated:#122b43;
+ display:block;max-width:1450px;min-width:0;margin:0 auto;padding:10px 0 36px;
+ color:var(--v2-ink);background:transparent;font-family:inherit
+}
+#cortex-orientation.co-v2 *{box-sizing:border-box}
+#cortex-orientation.co-v2 p,#cortex-orientation.co-v2 small{overflow-wrap:anywhere}
+#cortex-orientation.co-v2 .co-head{
+ position:relative;overflow:hidden;display:flex;align-items:stretch;justify-content:space-between;
+ gap:25px;padding:clamp(23px,4.5vw,54px);
+ background:
+ radial-gradient(circle at 80% 35%,rgba(103,181,243,.20),transparent 35%),
+ radial-gradient(circle at 36% -28%,rgba(151,236,249,.10),transparent 35%),
+ linear-gradient(128deg,#06172a,#0e2840 53%,#122d45);
+ border:1px solid #426f8f;border-radius:26px;box-shadow:0 20px 70px #030a1840
+}
+#cortex-orientation.co-v2 .co-head:before{
+ content:"";position:absolute;inset:-70px -65px auto auto;height:375px;width:375px;
+ border-radius:50%;border:1px solid #8ab2d124;box-shadow:0 0 0 32px #8ab2d108,0 0 0 72px #8ab2d107;pointer-events:none
+}
+#cortex-orientation.co-v2 .co-head:after{content:"";position:absolute;right:11%;top:24%;width:7px;height:7px;border-radius:50%;background:#b8e6ff;box-shadow:15px 55px 0 -2px #93dafe,67px -16px 0 -2px #6db1ec,-118px 145px 0 -2px #9ecbf0;pointer-events:none}
+#cortex-orientation.co-v2 .co-headline{max-width:740px;position:relative;z-index:1;flex:1 1 auto;min-width:0}
+#cortex-orientation.co-v2 .co-orbit-label{display:flex;align-items:center;gap:9px;color:#9cd8fa;font-size:10px;letter-spacing:.18em;font-weight:850}
+#cortex-orientation.co-v2 .co-pulse{display:inline-block;background:#93fff5;border-radius:50%;width:7px;height:7px;box-shadow:0 0 0 4px #81d9ea19,0 0 14px #81d9eab0}
+#cortex-orientation.co-v2 .co-head h1{color:#f6fbff;font-size:clamp(33px,5.3vw,70px);line-height:1.07;letter-spacing:-.053em;margin:20px 0 18px;font-weight:900}
+#cortex-orientation.co-v2 .co-head h1 em{font-style:normal;color:#a6edff}
+#cortex-orientation.co-v2 .co-headline>p{color:#d3e6f4;line-height:1.75;font-size:clamp(13px,1.3vw,16px);max-width:560px;margin:0}
+#cortex-orientation.co-v2 .co-head-actions{display:flex;align-items:center;flex-wrap:wrap;gap:15px;margin-top:26px}
+#cortex-orientation.co-v2 .co-local-pill{display:inline-flex;border:1px solid #6fa1bd;background:#0e37527a;border-radius:30px;padding:9px 13px;font-size:11px;font-weight:750;color:#baf8e9}
+#cortex-orientation.co-v2 .co-head-aside{align-self:center;display:flex;flex-direction:column;gap:9px;align-items:flex-start;justify-content:center;min-height:180px;max-width:248px;min-width:220px;padding:24px;position:relative;z-index:1;background:#11283eb8;border:1px solid #5d87a0;border-radius:18px;box-shadow:inset 0 1px #ffffff16}
+#cortex-orientation.co-v2 .co-aside-symbol{font-size:38px;color:#a3edff;line-height:1}
+#cortex-orientation.co-v2 .co-head-aside strong{font-size:10px;letter-spacing:.19em;color:#8ccbdc}
+#cortex-orientation.co-v2 .co-head-aside #co-progress{font-weight:850;font-size:14px;color:white;line-height:1.4}
+#cortex-orientation.co-v2 .co-head-aside small{font-size:11px;line-height:1.65;color:#b9cddc}
+#cortex-orientation.co-v2 .co-step-navigation{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+ margin:18px 0 10px;
+}
+#cortex-orientation.co-v2 .co-step-navigation button{
+ display:flex;align-items:center;gap:12px;padding:15px 17px;min-width:0;
+ color:#e8f5ff;background:#10263a;border:1px solid #456c81;border-radius:13px;
+ font-size:13px;font-weight:820;text-align:left;
+}
+#cortex-orientation.co-v2 .co-step-navigation button span{color:#92c8e7;font-size:11px;letter-spacing:.1em}
+#cortex-orientation.co-v2 .co-step-navigation button.active{background:linear-gradient(115deg,#d9f4ff,#9bddee);border-color:#d2f2fc;color:#11374e;box-shadow:0 8px 28px #09203940}
+#cortex-orientation.co-v2 .co-step-navigation button.active span{color:#22536b}
+#cortex-orientation.co-v2 .co-step-navigation button b{min-width:22px;display:grid;place-items:center;margin-left:auto;font-size:11px;color:inherit;border:1px solid currentColor;border-radius:20px}
+#cortex-orientation.co-v2 .co-sticky-message{padding:8px 12px;margin:0 0 12px;color:#b3e9d7;font-size:11px;line-height:1.6;min-height:34px}
+#cortex-orientation.co-v2 .co-sticky-message.co-error{color:#ffbdc4}
+#cortex-orientation.co-v2 .co-page[hidden]{display:none!important}
+#cortex-orientation.co-v2 .co-two-col{display:grid;grid-template-columns:minmax(0,1.17fr) minmax(0,.83fr);gap:16px}
+#cortex-orientation.co-v2 .co-guide-panels{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px;margin-top:16px}
+#cortex-orientation.co-v2 .co-pane{min-width:0;background:linear-gradient(145deg,#122a41,#0b1d30 90%);border:1px solid #355c74;border-radius:20px;padding:clamp(18px,2.5vw,28px);box-shadow:0 9px 30px #06101d24}
+#cortex-orientation.co-v2 .co-section-top{margin-bottom:19px}
+#cortex-orientation.co-v2 .co-step{display:block;color:#8ccddd;letter-spacing:.15em;font-size:10px;font-weight:840;margin-bottom:8px}
+#cortex-orientation.co-v2 .co-section-top h2{font-size:clamp(21px,2.4vw,29px);line-height:1.25;color:#f3fbff;margin:0 0 10px;letter-spacing:-.035em;font-weight:870}
+#cortex-orientation.co-v2 .co-section-top p{font-size:12px;line-height:1.75;color:#bed1dd;margin:0}
+#cortex-orientation.co-v2 .co-sector-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#cortex-orientation.co-v2 .co-sector{
+ position:relative;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+ text-align:left;gap:10px;padding:18px 15px 16px;
+ border:1px solid #486d80;border-radius:14px;background:#0a1c2d;color:#f0f9ff;
+ transition:transform .15s,border-color .15s,box-shadow .15s;
+}
+#cortex-orientation.co-v2 .co-sector:hover,#cortex-orientation.co-v2 .co-suggestion:hover{transform:translateY(-2px);border-color:#7cc9e4}
+#cortex-orientation.co-v2 .co-sector.active{background:linear-gradient(155deg,#173e54,#102d3e);border:2px solid #8cdbea;box-shadow:0 0 0 3px #6ccae51e;padding:17px 14px 15px}
+#cortex-orientation.co-v2 .co-sector-icon{font-size:27px;color:#83dbea;line-height:1}
+#cortex-orientation.co-v2 .co-sector strong{font-size:12px;line-height:1.35;font-weight:850}
+#cortex-orientation.co-v2 .co-sector small{font-size:10px;font-weight:520;line-height:1.6;color:#adbfcc}
+#cortex-orientation.co-v2 .co-tick{display:none;position:absolute;right:10px;top:10px;color:#a1eece;font-weight:900}
+#cortex-orientation.co-v2 .co-sector.active .co-tick{display:block}
+#cortex-orientation.co-v2 .co-profile-form{display:grid;gap:10px;margin-top:21px}
+#cortex-orientation.co-v2 .co-profile-form label,#cortex-orientation.co-v2 .co-explore-controls label{color:#e6f3ff;font-size:12px;font-weight:800;line-height:1.6;display:block}
+#cortex-orientation.co-v2 .co-field-optional{font-weight:500;color:#a4bdd0;font-size:10px}
+#cortex-orientation.co-v2 .co-field-hint{color:#9fbace;margin:0 0 7px;font-size:11px;line-height:1.5}
+#cortex-orientation.co-v2 .co-grid-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:3px 0 6px}
+#cortex-orientation.co-v2 .co-grid-fields>div{display:grid;gap:7px}
+#cortex-orientation.co-v2 select,#cortex-orientation.co-v2 input[type=text],#cortex-orientation.co-v2 input:not([type]),#cortex-orientation.co-v2 textarea{
+ width:100%;min-width:0;max-width:100%;border:1px solid #537c94;background:#071a2b;color:#f5faff;
+ border-radius:11px;padding:11px 12px;min-height:44px;font-family:inherit;font-size:12px;line-height:1.6;
+}
+#cortex-orientation.co-v2 select{cursor:pointer}
+#cortex-orientation.co-v2 textarea{resize:vertical;min-height:89px}
+#cortex-orientation.co-v2 textarea::placeholder,#cortex-orientation.co-v2 input::placeholder{color:#8aafc4}
+#cortex-orientation.co-v2 .co-check-row{display:flex;flex-direction:row;align-items:center;gap:10px;background:#0d2638;border:1px solid #355b75;padding:11px 14px;border-radius:11px;font-size:12px;line-height:1.5;cursor:pointer}
+#cortex-orientation.co-v2 .co-check-row input{flex:none;accent-color:#80e8f1;width:17px;height:17px}
+#cortex-orientation.co-v2 .co-interest-tags{display:flex;flex-wrap:wrap;gap:9px}
+#cortex-orientation.co-v2 .co-interest{
+ display:inline-flex;align-items:center;gap:5px;max-width:100%;
+ background:#0a1e30;color:#d8ecf8;border:1px solid #456b80;padding:10px 13px;
+ border-radius:30px;font-size:11px;font-weight:750;line-height:1.3;white-space:normal;text-align:left
+}
+#cortex-orientation.co-v2 .co-interest.active{background:#d6f2f8;color:#11405a;border-color:#c0ecfa}
+#cortex-orientation.co-v2 .co-interest-star{color:#84d2e8;font-size:10px}
+#cortex-orientation.co-v2 .co-interest.active .co-interest-star{color:#246c89}
+#cortex-orientation.co-v2 .co-panel-tint{display:flex;align-items:flex-start;gap:15px;background:linear-gradient(110deg,#183b4b,#12303e);border:1px solid #3d7588;border-radius:14px;padding:17px;margin-top:22px}
+#cortex-orientation.co-v2 .co-tint-icon{font-size:23px;color:#a6eaf4;line-height:1}
+#cortex-orientation.co-v2 .co-panel-tint strong{font-size:13px;font-weight:850}
+#cortex-orientation.co-v2 .co-panel-tint p{font-size:11px;color:#c4dce7;line-height:1.65;margin:7px 0 0}
+#cortex-orientation.co-v2 .co-next-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+#cortex-orientation.co-v2 .co-btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:42px;padding:11px 15px;border:1px solid #658aa2;border-radius:11px;background:#17334a;color:#f1fcff;white-space:normal;font-size:12px;font-weight:800;transition:background .15s,transform .15s}
+#cortex-orientation.co-v2 .co-btn:hover:not(:disabled){background:#28516a;transform:translateY(-1px)}
+#cortex-orientation.co-v2 .co-btn.co-primary{background:linear-gradient(125deg,#d5f5fc,#9ae4f4);color:#10334d;border-color:#dcf4f7}
+#cortex-orientation.co-v2 .co-btn.co-primary:hover:not(:disabled){background:linear-gradient(125deg,#edfdff,#b1e9f7)}
+#cortex-orientation.co-v2 .co-btn.co-ghost{background:#123147b8;border-color:#5b869f}
+#cortex-orientation.co-v2 .co-btn.co-soft{background:#123347}
+#cortex-orientation.co-v2 .co-btn.co-small{font-size:10px;padding:9px 11px;min-height:35px}
+#cortex-orientation.co-v2 .co-btn.co-danger{background:#442a3a;border-color:#8e526a;color:#ffe4ee}
+#cortex-orientation.co-v2 .co-help{display:inline-grid!important;place-items:center!important;width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;padding:0!important;border-radius:50%!important;border:1px solid #8bbdd5!important;background:#194e67!important;color:#dffaff!important;font-size:11px!important;font-weight:900!important;line-height:1!important;vertical-align:middle;cursor:pointer;box-shadow:0 2px 8px #041c2b44}
+#cortex-orientation.co-v2 .co-help:hover{background:#247794!important}
+#cortex-orientation.co-v2 .co-suggestion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#cortex-orientation.co-v2 .co-suggestion{display:flex;flex-direction:column;justify-content:space-between;min-width:0;min-height:141px;padding:14px;background:#081e31;border:1px solid #41677b;border-radius:13px;transition:transform .15s,border-color .15s}
+#cortex-orientation.co-v2 .co-suggestion h3{font-size:12px;line-height:1.4;color:#f2fbff;font-weight:820;margin:7px 0 10px}
+#cortex-orientation.co-v2 .co-course-type{font-size:9px;color:#94dbe5;font-weight:850;letter-spacing:.1em}
+#cortex-orientation.co-v2 .co-sug-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+#cortex-orientation.co-v2 .co-kept{font-size:10px;color:#aef2dc;font-weight:760}
+#cortex-orientation.co-v2 .co-alert{color:#dcf7ff;background:#143b4c;padding:12px 15px;font-size:11px;line-height:1.7;border:1px solid #43859b;border-radius:11px;margin:0 0 12px}
+#cortex-orientation.co-v2 .co-ai-pane{background:radial-gradient(circle at 95% 0,rgba(76,130,203,.18),transparent 35%),linear-gradient(155deg,#152c46,#0c2138)}
+#cortex-orientation.co-v2 .co-ai-placeholder{min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:19px;border:1px dashed #477a9d;border-radius:13px;background:#0d253b}
+#cortex-orientation.co-v2 .co-ai-placeholder span{color:#8ce7f1;font-size:31px}
+#cortex-orientation.co-v2 .co-ai-placeholder p{font-size:12px;line-height:1.7;max-width:300px;margin:0;color:#d1e5f5}
+#cortex-orientation.co-v2 .co-ai-placeholder small{color:#9db6c5;font-size:10px}
+#cortex-orientation.co-v2 .co-ai-actions{margin-top:14px}
+#cortex-orientation.co-v2 .co-ai-actions .co-btn{width:100%}
+#cortex-orientation.co-v2 .co-data-policy{font-size:10px;line-height:1.7;color:#a9c5d5;margin:13px 0 0}
+#cortex-orientation.co-v2 .co-ai-intro{font-size:12px;color:#d7eff9;line-height:1.8;padding:12px 0}
+#cortex-orientation.co-v2 .co-ai-suggestions{display:grid;gap:9px}
+#cortex-orientation.co-v2 .co-ai-suggestions article{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;justify-content:space-between;background:#0b2338;border:1px solid #426a87;border-radius:11px;padding:13px}
+#cortex-orientation.co-v2 .co-ai-suggestions article>div{flex:1 1 180px}
+#cortex-orientation.co-v2 .co-ai-suggestions strong{font-size:12px;color:#f4fbff;line-height:1.4}
+#cortex-orientation.co-v2 .co-ai-suggestions p{font-size:11px;line-height:1.6;color:#c1d7e4;margin:6px 0}
+#cortex-orientation.co-v2 .co-ai-suggestions small{font-size:10px;line-height:1.6;color:#a8e9dc}
+#cortex-orientation.co-v2 .co-ai-content h3{font-size:13px;color:white;margin:17px 0 8px}
+#cortex-orientation.co-v2 .co-ai-content ol,#cortex-orientation.co-v2 .co-ai-content ul{padding-left:20px;font-size:11px;line-height:1.75;color:#c5d9eb}
+#cortex-orientation.co-v2 .co-ai-caution{color:#adc8d9;font-size:10px;line-height:1.6;margin-top:12px}
+#cortex-orientation.co-v2 .co-explorer-pane,#cortex-orientation.co-v2 .co-wishes-pane,#cortex-orientation.co-v2 .co-aid-pane{padding:clamp(18px,3.5vw,38px)}
+#cortex-orientation.co-v2 .co-explore-controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:11px;background:#0a1d31;padding:18px;border:1px solid #39637b;border-radius:14px}
+#cortex-orientation.co-v2 .co-explore-controls>label{flex-basis:100%}
+#cortex-orientation.co-v2 .co-explore-controls select{flex:1 1 270px}
+#cortex-orientation.co-v2 .co-explore-controls button{flex:0 1 auto}
+#cortex-orientation.co-v2 .co-explore-explain{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:16px 0 20px}
+#cortex-orientation.co-v2 .co-explore-explain>div{padding:16px;border:1px solid #3f6883;border-radius:12px;background:#102b40}
+#cortex-orientation.co-v2 .co-explore-explain strong{color:#e5f9ff;font-size:11px;line-height:1.6}
+#cortex-orientation.co-v2 .co-explore-explain p{font-size:10px;color:#b5cddd;line-height:1.7;margin:8px 0 0}
+#cortex-orientation.co-v2 .co-result-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#cortex-orientation.co-v2 .co-data-card{display:flex;flex-direction:column;justify-content:space-between;min-width:0;gap:13px;background:#0b2136;border:1px solid #477086;border-radius:15px;padding:18px}
+#cortex-orientation.co-v2 .co-data-head{display:flex;gap:9px;justify-content:space-between;flex-wrap:wrap}
+#cortex-orientation.co-v2 .co-data-head>div{flex:1 1 160px;min-width:0}
+#cortex-orientation.co-v2 .co-data-head h3{font-size:15px;font-weight:850;color:white;line-height:1.4;margin:8px 0}
+#cortex-orientation.co-v2 .co-data-head p{font-size:11px;color:#c6d9e5;line-height:1.5;margin:0}
+#cortex-orientation.co-v2 .co-data-head a{font-size:10px;white-space:normal}
+#cortex-orientation.co-v2 .co-data-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#a4e9f2;font-weight:850}
+#cortex-orientation.co-v2 .co-indicator-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#cortex-orientation.co-v2 .co-indicator-list>div{display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:12px 9px;border-radius:10px;background:#133449;border:1px solid #35687e;min-width:0}
+#cortex-orientation.co-v2 .co-indicator-list small{font-size:10px;font-weight:700;color:#d0e4ef;line-height:1.6}
+#cortex-orientation.co-v2 .co-indicator-list strong{font-size:clamp(12px,1.5vw,20px);font-weight:900;color:#d5f8ff;line-height:1.3;overflow-wrap:anywhere}
+#cortex-orientation.co-v2 .co-result-footer{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+#cortex-orientation.co-v2 .co-result-footer>span{color:#aecad8;font-size:10px;line-height:1.6}
+#cortex-orientation.co-v2 .co-results-info{font-size:12px;line-height:1.6;color:#a5dce6;margin:0 0 14px}
+#cortex-orientation.co-v2 .co-source-note{margin:17px 0 0;padding:12px 14px;border-top:1px solid #335a73;color:#afc9d8;font-size:11px;line-height:1.7}
+#cortex-orientation.co-v2 .co-source-note a{color:#a9effc}
+#cortex-orientation.co-v2 .co-empty-state{text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:235px;gap:10px;padding:28px;background:#0c2336;border:1px dashed #537a95;border-radius:14px}
+#cortex-orientation.co-v2 .co-empty-state>span{font-size:38px;color:#88dce8}
+#cortex-orientation.co-v2 .co-empty-state h3{font-size:17px;font-weight:850;color:#e8fbff;margin:0}
+#cortex-orientation.co-v2 .co-empty-state p{font-size:12px;color:#b6cfde;line-height:1.7;max-width:390px;margin:0}
+#cortex-orientation.co-v2 .co-loading{padding:28px;border-radius:14px;background:#14394d;color:#d4f6ff;font-size:13px}
+#cortex-orientation.co-v2 .co-loading span{display:inline-block;margin-right:10px;font-size:23px}
+#cortex-orientation.co-v2 .co-plan-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:17px 0}
+#cortex-orientation.co-v2 .co-plan-stats>span{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:14px;border-radius:12px;background:#123347;border:1px solid #4b7487;color:#c0d9e5;font-size:11px}
+#cortex-orientation.co-v2 .co-plan-stats strong{font-size:16px;color:#d6f6ff;white-space:nowrap}
+#cortex-orientation.co-v2 .co-wish-list{display:grid;gap:10px}
+#cortex-orientation.co-v2 .co-wish-guidance{background:#14344b;padding:13px 15px;border:1px solid #4e8095;border-radius:11px;color:#dcf3fd;font-size:12px;line-height:1.8;margin-bottom:15px}
+#cortex-orientation.co-v2 .co-wish-card{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:15px 17px;background:#0b2135;border:1px solid #467085;border-radius:12px}
+#cortex-orientation.co-v2 .co-wish-index{flex:none;display:grid;place-items:center;color:#9cdbf1;border-radius:9px;background:#163a54;font-size:13px;font-weight:850;width:37px;height:37px}
+#cortex-orientation.co-v2 .co-wish-card>div:nth-child(2){flex:1 1 180px;min-width:0}
+#cortex-orientation.co-v2 .co-wish-card strong{display:block;color:#f2fbff;font-size:13px;line-height:1.5;font-weight:830}
+#cortex-orientation.co-v2 .co-wish-card small{display:block;color:#afc6d4;margin-top:6px;font-size:11px}
+#cortex-orientation.co-v2 .co-wish-stat{display:block;font-size:11px;color:#aadfe9;margin-top:7px}
+#cortex-orientation.co-v2 .co-wish-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#cortex-orientation.co-v2 .co-wish-actions a{font-size:11px;text-decoration:none}
+#cortex-orientation.co-v2 .co-wish-actions button{color:#ffcad1;font-size:11px;background:transparent;border:0;padding:8px}
+#cortex-orientation.co-v2 .co-planning{margin-top:24px;border-top:1px solid #355b70;padding-top:20px}
+#cortex-orientation.co-v2 .co-planning h3{font-size:16px;color:white;margin:0 0 14px}
+#cortex-orientation.co-v2 .co-task{display:flex;align-items:center;gap:12px;background:#0c2438;border:1px solid #385c78;padding:12px 15px;margin-bottom:8px;border-radius:10px;cursor:pointer}
+#cortex-orientation.co-v2 .co-task input{accent-color:#80eadc;min-width:17px;width:17px;height:17px}
+#cortex-orientation.co-v2 .co-task span{font-size:12px;line-height:1.4;font-weight:600;color:#dbeff5}
+#cortex-orientation.co-v2 .co-task:has(input:checked){background:#153b45;border-color:#498985}
+#cortex-orientation.co-v2 .co-export-tools{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+#cortex-orientation.co-v2 .co-export-tools label{cursor:pointer}
+#cortex-orientation.co-v2 .co-aid-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+#cortex-orientation.co-v2 .co-aid-grid article{display:flex;flex-direction:column;align-items:flex-start;gap:11px;min-width:0;padding:21px;border-radius:14px;background:#0e283d;border:1px solid #436d85}
+#cortex-orientation.co-v2 .co-aid-index{font-size:10px;font-weight:850;color:#8ce0f0;letter-spacing:.1em}
+#cortex-orientation.co-v2 .co-aid-grid h3{font-size:15px;line-height:1.4;color:white;margin:0;font-weight:850}
+#cortex-orientation.co-v2 .co-aid-grid p{font-size:12px;line-height:1.75;color:#b8d0dd;margin:0;flex:1}
+#cortex-orientation.co-v2 .co-aid-grid a{font-size:11px;line-height:1.5;text-decoration:none;font-weight:790}
+#cortex-orientation.co-v2 .co-aid-note{border:1px solid #426f89;border-radius:12px;margin-top:17px;background:#12374d;color:#b7e8f5;padding:14px;font-size:11px;line-height:1.75}
+#cortex-orientation.co-v2 .co-aid-bottom{margin-top:16px;border:1px solid #395c75;border-radius:12px;padding:17px;background:#0b2439}
+#cortex-orientation.co-v2 .co-aid-bottom strong{font-size:13px;color:#f5fbff}
+#cortex-orientation.co-v2 .co-aid-bottom p{font-size:12px;line-height:1.7;color:#bbd1e0;margin:8px 0 0}
+#cortex-orientation.co-v2 .co-definition{
+ inset:0;position:fixed;width:min(440px,calc(100vw - 28px));max-width:440px;max-height:calc(100vh - 40px);
+ border-radius:21px;border:1px solid #88bad2;background:linear-gradient(155deg,#13354b,#0b2237);
+ color:#eaf9ff;padding:31px;box-shadow:0 18px 65px #00101ac9;overflow-y:auto
+}
+#cortex-orientation.co-v2 .co-definition::backdrop{background:#000d1ecb;backdrop-filter:blur(3px)}
+#cortex-orientation.co-v2 .co-def-kicker{font-size:10px;letter-spacing:.15em;color:#8ed7ed;font-weight:850}
+#cortex-orientation.co-v2 .co-definition h2{font-size:23px;color:#f8ffff;line-height:1.3;margin:13px 0}
+#cortex-orientation.co-v2 .co-definition p{font-size:14px;line-height:1.8;color:#d7e9f4;margin:0}
+#cortex-orientation.co-v2 .co-dialog-close{position:absolute;right:12px;top:12px;border:1px solid #6892a5;background:#173f54;color:white;border-radius:10px;width:35px;height:35px;font-size:23px;cursor:pointer}
+#cortex-orientation.co-v2 .co-def-footer{display:flex;justify-content:flex-end;margin-top:22px}
+#cortex-orientation.co-v2 button:focus-visible,#cortex-orientation.co-v2 input:focus-visible,#cortex-orientation.co-v2 select:focus-visible,#cortex-orientation.co-v2 a:focus-visible,#cortex-orientation.co-v2 textarea:focus-visible{outline:3px solid #a8f2fb;outline-offset:3px}
+#cortex-orientation.co-v2 a{color:#9be7ff}
+#cortex-orientation.co-v2 a:hover{text-decoration:underline}
+#cortex-orientation.co-v2 button{cursor:pointer;font-family:inherit}
+#cortex-orientation.co-v2 button:disabled{cursor:wait;opacity:.68}
+@media(max-width:1150px){
+ #cortex-orientation.co-v2 .co-head-aside{min-width:195px;max-width:210px}
+ #cortex-orientation.co-v2 .co-sector-cards{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-sector{display:grid;grid-template-columns:28px 1fr 20px;gap:7px 12px;min-height:0;align-items:start}
+ #cortex-orientation.co-v2 .co-sector small{grid-column:2;grid-row:2}
+ #cortex-orientation.co-v2 .co-sector-icon{grid-row:1 / span 2}
+ #cortex-orientation.co-v2 .co-tick{position:static;grid-column:3;grid-row:1}
+ #cortex-orientation.co-v2 .co-aid-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:780px){
+ #cortex-demo-orientation{padding:0 6px 25px!important}
+ #cortex-orientation.co-v2 .co-head{padding:25px 22px;border-radius:19px}
+ #cortex-orientation.co-v2 .co-head-aside{display:none}
+ #cortex-orientation.co-v2 .co-head h1{font-size:clamp(31px,8vw,47px)}
+ #cortex-orientation.co-v2 .co-two-col,#cortex-orientation.co-v2 .co-guide-panels{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-sector-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #cortex-orientation.co-v2 .co-sector{display:flex;min-height:142px;gap:7px;padding:12px}
+ #cortex-orientation.co-v2 .co-sector-icon{font-size:24px}
+ #cortex-orientation.co-v2 .co-sector strong{font-size:11px}
+ #cortex-orientation.co-v2 .co-sector small{font-size:10px}
+ #cortex-orientation.co-v2 .co-tick{position:absolute;right:7px;top:6px}
+ #cortex-orientation.co-v2 .co-step-navigation{gap:6px}
+ #cortex-orientation.co-v2 .co-step-navigation button{padding:12px 9px;gap:5px;flex-direction:column;justify-content:center;font-size:11px;min-height:63px;text-align:center}
+ #cortex-orientation.co-v2 .co-step-navigation button b{margin:0}
+ #cortex-orientation.co-v2 .co-explore-explain{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-result-list{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-plan-stats{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+ #cortex-orientation.co-v2 .co-head h1{font-size:clamp(30px,8vw,40px)}
+ #cortex-orientation.co-v2 .co-head-actions .co-btn{width:100%}
+ #cortex-orientation.co-v2 .co-head-actions{gap:12px}
+ #cortex-orientation.co-v2 .co-grid-fields{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-sector-cards{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-sector{min-height:0;display:grid;grid-template-columns:28px 1fr 20px;gap:5px 10px}
+ #cortex-orientation.co-v2 .co-sector-icon{grid-row:1 / span 2}
+ #cortex-orientation.co-v2 .co-sector small{grid-column:2;grid-row:2}
+ #cortex-orientation.co-v2 .co-sector.active{padding:11px}
+ #cortex-orientation.co-v2 .co-tick{position:static;grid-column:3;grid-row:1}
+ #cortex-orientation.co-v2 .co-pane{padding:18px 14px;border-radius:15px}
+ #cortex-orientation.co-v2 .co-suggestion-grid{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-suggestion{min-height:0}
+ #cortex-orientation.co-v2 .co-explore-controls button{width:100%}
+ #cortex-orientation.co-v2 .co-aid-grid{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-indicator-list{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-indicator-list>div{flex-direction:row;align-items:center}
+ #cortex-orientation.co-v2 .co-wish-card{align-items:flex-start}
+ #cortex-orientation.co-v2 .co-wish-actions{width:100%;justify-content:space-between}
+ #cortex-orientation.co-v2 .co-export-tools .co-btn{flex:1 1 100%}
+}
+@media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 *{scroll-behavior:auto!important;transition:none!important}}

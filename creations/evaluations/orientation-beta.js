@@ -491,7 +491,11 @@ function renderLetter(){
   profile:()=>profile,
   courses:()=>COURSES.slice(),
   defaultCourses:()=>FITS[profile.bac_origin].direct.map(i=>COURSES[i]),
-  bacLabel:id=>FILIERES[id]?.label||FILIERES.accueil.label,
+  bacLabel:id=>({
+   accueil:"Métiers de l’accueil",
+   commerce:"Métiers du commerce et de la vente option A (animation et gestion de l’espace commercial)",
+   agora:"Assistance à la gestion des organisations et de leurs activités (AGOrA)"
+  }[id]||"Métiers de l’accueil"),
   courseOptions:(selected,placeholder)=>courseOptions(selected,placeholder),
   courseGuidance:course=>aboutCourse(course),
   save:()=>persist(true)

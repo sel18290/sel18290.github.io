@@ -235,7 +235,7 @@ function read(){
    const a=x.career_result;
    if(typeof a.career==='string'&&typeof a.bac==='string'&&a.data&&typeof a.data==='object'&&
       JSON.stringify(a).length<26000&&['proche','passerelle','long'].includes(a.data?.assessment?.level)){
-    p.career_result={career:a.career.slice(0,90),bac:a.bac,data:a.data,date:String(a.date||'').slice(0,35)};
+    p.career_result={career:a.career.slice(0,90),bac:a.bac,interests:Array.isArray(a.interests)?a.interests.filter(v=>Object.hasOwn(INTERESTS,v)).slice(0,5):[],data:a.data,date:String(a.date||'').slice(0,35)};
    }
   }catch{}
  }

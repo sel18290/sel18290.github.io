@@ -98,16 +98,17 @@ window.CORTEX_PORTAL=(function(){
    '<article class="portal-entry-option"><h2>Voir un carnet élève</h2>'+
    '<p>Explore 13 copies fictives, leurs corrections et les conseils d’Albert.</p>'+
    '<button type="button" class="portal-entry-button is-primary" data-action="portal-demo">Ouvrir le carnet de démo</button></article>'+
-   '<article class="portal-entry-option"><h2>Trouver un stage</h2>'+
-   '<p>Recherche un lieu de PFMP et organise tes candidatures.</p>'+
+   '<article class="portal-entry-option"><h2>Trouver une PFMP</h2><span class="cs-demo-local-tag">Sauvegardé en local</span>'+
+   '<p>Recherche un lieu de PFMP et organise tes candidatures sur cet appareil.</p>'+
    '<button type="button" class="portal-entry-button" data-action="student-stages">Recherche de PFMP</button></article>'+
-    '<article class="portal-entry-option"><h2>Préparer mon orientation <span class="co-inline-beta">BÊTA</span></h2>'+
+    '<article class="portal-entry-option"><h2>Préparer mon orientation <span class="co-inline-beta">BÊTA</span></h2><span class="cs-demo-local-tag">Sauvegardé en local</span>'+
     '<p>Compare les formations Parcoursup, élargis tes vœux et retrouve tes pistes sauvegardées sur cet appareil.</p>'+
     '<button type="button" class="portal-entry-button" data-action="student-orientation">Mon orientation ↗</button></article>'+
    '<article class="portal-entry-option"><h2>Essayer un contrôle</h2>'+
    '<p>Teste une évaluation de PSE sur le sommeil : 20 questions, 60 minutes.</p>'+
    '<button type="button" class="portal-entry-button" data-action="demo-pse-open">Tester le contrôle PSE</button></article></section>'+
-   '<section class="portal-login-form" aria-labelledby="portal-login-title">'+
+   '<div class="cs-demo-storage-note" role="note"><strong>PFMP et Orientation :</strong> tes recherches suivies, candidatures, brouillons et projets sont enregistrés uniquement dans ce navigateur. Rien n’est synchronisé dans un dossier serveur CORTEX. Les recherches et demandes adressées à Albert utilisent des services en ligne.</div>'+
+    '<section class="portal-login-form" aria-labelledby="portal-login-title">'+
    '<h2 id="portal-login-title">Accéder à mes copies</h2>'+
    '<p class="portal-muted">Utilise ton numéro sur la liste, ton PIN et le code donné par ton professeur.</p>'+
    '<div class="portal-form-grid"><div class="field"><label for="portal-level">Mon niveau</label><select id="portal-level"><option value="">Choisir un niveau</option>'+
@@ -205,7 +206,8 @@ window.CORTEX_PORTAL=(function(){
    '<div class="portal-actions"><span class="portal-class-indicator">'+esc(cl.name)+' · n° '+esc(number)+'</span><button data-action="portal-logout" class="portal-signout">Déconnexion</button></div></header>'+
    '<div class="portal-main"><section class="portal-welcome"><div>'+
    '<h1>Mes évaluations</h1><p>Retrouve tes copies, les corrections et les conseils pour progresser.</p>'+
-   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles</button><button data-action="portal-show-revision">Mes révisions</button><button data-action="student-stages">Recherche de PFMP</button><button data-action="student-orientation">Orientation <span class="co-inline-beta">BÊTA</span></button></div></div>'+
+   '<div class="portal-welcome-buttons"><button data-action="portal-show-results">Mes contrôles</button><button data-action="portal-show-revision">Mes révisions</button><button data-action="student-stages">Recherche de PFMP</button><button data-action="student-orientation">Orientation <span class="co-inline-beta">BÊTA</span></button></div>'+
+    '<p class="cs-demo-storage-note" role="note"><strong>PFMP et Orientation :</strong> suivi et projets sauvegardés localement dans ce navigateur, sans synchronisation serveur.</p></div>'+
    '</section>'+
    '<section aria-label="Indicateurs de réussite" class="portal-stats">'+stats+'</section>'+
    '<section class="portal-section" id="portal-results"><div class="portal-section-head"><div><h2>Copies et corrections</h2><p>Consulte tes réponses, les points obtenus et les conseils de ton professeur.</p></div>'+
@@ -232,7 +234,7 @@ window.CORTEX_PORTAL=(function(){
     '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver une PFMP"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ta<br><em>prochaine PFMP.</em></h2>'+
     '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+
-    '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de PFMP</strong><small>Recherche par filière · Carnet de candidatures</small></span></button></section>'+
+    '<button type="button" class="cs-stage-featured-button" data-action="student-stages"><span class="cs-stage-featured-icon" aria-hidden="true">⌖</span><span class="cs-stage-featured-button-copy"><strong>Ouvrir la recherche de PFMP</strong><small>Recherche par filière · Carnet local sur cet appareil</small></span></button></section>'+
    '<div class="portal-footer-tools"><button data-action="portal-export" class="portal-secondary-button">↓ Exporter mon bilan (CSV)</button>'+
    '<button data-action="portal-print" class="portal-secondary-button">▤ Imprimer mon bilan</button></div>'+
    '<p class="portal-demo-warning">Prototype GitHub : aucune synchronisation ni confidentialité réelle entre comptes. Les notes et PIN sont conservés localement et l’espace professeur reste public. Ne pas utiliser avec de véritables élèves.</p>'+

@@ -24,7 +24,7 @@ if(qr||globalPortal){
  let countdownInterval=null;
  let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
  const isPhoneExam=mobileExam();
- let mobileController=null, draftEditor=null, clearDraftListeners=null, photoManager=null;
+ let mobileController=null, draftEditor=null, clearDraftListeners=null, photoManager=null, examWatermark=null;
  const integrity=window.CORTEX_EXAM_INTEGRITY;
  const guard=integrity.create({storageKey:storageKey+':sortie',onEvent:queueEvent,onNotice:showIntegrityNotice});
  const presence=window.CORTEX_EXAM_LIVE.createReporter(({session,assessmentId},signal)=>
@@ -37,6 +37,7 @@ if(qr||globalPortal){
  }catch{}
  let sendingEvents=false,eventRetry=null,noticeTimeout=null;
  function releaseEditor(){
+  examWatermark?.remove();examWatermark=null;
   photoManager?.dispose();photoManager=null;
   draftEditor?.dispose();draftEditor=null;
   clearDraftListeners?.();clearDraftListeners=null;
@@ -101,6 +102,7 @@ if(qr||globalPortal){
   $('cw-student-work').hidden=true;$('cw-student-login').hidden=false;main.classList.remove('is-identified');
  }
  function stopIntegrity(){
+  examWatermark?.remove();examWatermark=null;
   guard.setActive();
   presence.setActive();
   integrityNotice.hidden=true;
@@ -785,7 +787,9 @@ if(qr||globalPortal){
    // Un marquage répété dissuade et permet d'identifier une copie partagée,
    // mais ne bloque ni une capture du système ni une photo externe.
    for(let i=0;i<48;i++)mark.append(E('span','',i%4===0?warning:candidate+' · AIDE IA INTERDITE'));
-   work.append(mark);
+   // Le calque est monté directement sur <body> pour éviter les zones découpées
+   // par un conteneur à overflow:hidden ou un ancêtre positionné/transformé.
+   document.body.append(mark);examWatermark=mark;
   }
   startIntegrity();
   refreshTimer();

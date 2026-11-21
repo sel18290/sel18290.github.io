@@ -3,6 +3,7 @@
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
 import {requestAiDraft,formatDraftFeedback,testAlbertConnection} from './ai-correction.js?v=3';
 import {renderCopyOrganizer,resetCopyOrganizerFilters} from './copy-organizer.js?v=1.4';
+import {compareCopyTexts} from './copy-similarities.js?v=1.0';
 import {openTeacherAlbertProgress} from './teacher-albert-progress.js?v=1.1';
 import {createTeacherChatGPTButton} from './student-chatgpt.js?v=1.2';
 import {openAlbertProgress} from './albert-progress-real.js?v=1.0';
@@ -140,6 +141,94 @@ function drawQr(node,code){
  },{rootMargin:'300px 0px'});
  qrObservers.add(observer);observer.observe(node);
 }
+/* Comparaison strictement locale des copies déjà accessibles au professeur.
+ * Aucune copie, texte ou suspicion n'est envoyée à un nouveau service.
+ */
+function renderSimilarities(exams,copies,inbox){
+ get('cw-similarity-panel')?.remove();
+ const byId=new Map(exams.map(e=>[e.id,e]));
+ const groups=new Map();
+ for(const copy of copies){
+  if(!byId.has(copy.assessment_id))continue;
+  groups.set(copy.assessment_id,(groups.get(copy.assessment_id)||0)+1);
+ }
+ const choices=exams.filter(e=>(groups.get(e.id)||0)>=2);
+ const section=make('section','cw-similarity-panel');
+ section.id='cw-similarity-panel';
+ const top=make('div','cw-similarity-heading');
+ const text=make('div');
+ text.append(make('small','','CORTEX · OUTIL D’ANALYSE PÉDAGOGIQUE'),
+  make('h4','','Comparer les réponses des élèves'),
+  make('p','','Repère des formulations très proches dans les réponses rédigées à une même question. Ce signal ne constitue jamais une preuve de triche.'));
+ top.append(text,make('span','cw-similarity-private','Analyse locale · Professeur uniquement'));
+ section.append(top);
+ const controls=make('div','cw-similarity-controls');
+ const select=make('select');
+ select.setAttribute('aria-label','Choisir le contrôle dont comparer les copies');
+ for(const exam of choices){
+  const o=make('option','',String(exam.title||'Contrôle')+' · '+groups.get(exam.id)+' copies');
+  o.value=exam.id;select.append(o);
+ }
+ const button=make('button','cw-similarity-start','⌕ Analyser les ressemblances');
+ button.type='button';
+ button.disabled=!choices.length;
+ controls.append(select,button);
+ section.append(controls);
+ const message=make('p','cw-similarity-info',
+  choices.length?'Choisis un contrôle et lance la comparaison. Seuls les textes rédigés sont étudiés.':
+   'Il faut au moins deux copies du même contrôle pour lancer une comparaison.');
+ section.append(message);
+ const result=make('div','cw-similarity-results');
+ result.setAttribute('role','status');
+ result.setAttribute('aria-live','polite');
+ section.append(result);
+ button.onclick=()=>{
+  const exam=byId.get(select.value);
+  if(!exam)return;
+  button.disabled=true;
+  result.replaceChildren();
+  try{
+   const data=compareCopyTexts(exam,copies);
+   if(data.eligible<2){
+    result.append(make('p','cw-similarity-empty',
+      'Pas assez de réponses rédigées assez longues pour une comparaison fiable. Les QCM et photos manuscrites ne sont pas analysés.'));
+    return;
+   }
+   const heading=make('div','cw-similarity-summary');
+   heading.append(make('strong','',data.pairs.length+' binôme(s) à examiner'),
+    make('small','','Sur '+data.eligible+' copies avec réponses textuelles suffisantes · '+data.tested+' comparaison(s) de questions'));
+   result.append(heading);
+   if(!data.pairs.length){
+    result.append(make('p','cw-similarity-empty',
+      'Aucune similitude inhabituelle détectée par ce calcul. Cela n’exclut pas une collaboration ou une copie.'));
+    return;
+   }
+   const list=make('div','cw-similarity-list');
+   for(const pair of data.pairs.slice(0,30)){
+    const item=make('article','cw-similarity-match');
+    const header=make('div','cw-similarity-pair');
+    header.append(make('strong','',
+     'Élèves n°'+pair.a+' et n°'+pair.b),
+      make('span','cw-similarity-score',pair.score+' % de proximité maximale'));
+    item.append(header);
+    for(const hit of pair.questions.slice(0,4)){
+     const row=make('div','cw-similarity-question');
+     row.append(make('span','',hit.title),
+       make('small','',hit.score+' % · '+(hit.level==='forte'?'Ressemblance élevée':'À examiner avec le contexte')));
+     item.append(row);
+    }
+    list.append(item);
+   }
+   result.append(list);
+   if(data.pairs.length>30)result.append(make('p','cw-similarity-info',
+     'Affichage des 30 paires les plus proches. Réduis le groupe ou consulte les copies pour les autres cas.'));
+  }catch(error){
+   result.append(make('p','cw-similarity-empty','Analyse impossible : '+String(error?.message||error)));
+  }finally{button.disabled=!choices.length}
+ };
+ if(inbox?.parentElement)inbox.parentElement.insertBefore(section,inbox);
+}
+
 function display(){
  const boxes=get('cw-assessment-cards'),inbox=get('cw-copy-list');
  if(!boxes||!inbox||!bridge()?.teacher?.())return;
@@ -243,6 +332,7 @@ function display(){
   boxes.append(card);
  }
  get('cw-copy-count').textContent=state.copies.length+' copie(s)';
+ renderSimilarities(exams,state.copies,inbox);
  renderCopyOrganizer({
   target:inbox,copies:state.copies,exams,classes:bridge()?.classes?.()||[],
   renderCopy:renderCopyCard,

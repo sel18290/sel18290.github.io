@@ -236,7 +236,7 @@ return `<div class="home cortex-focus-home">
   <div class="cortex-focus-copy">
    <span class="cortex-focus-kicker">CORTEX · STATION NOCTIS</span>
    <h1 id="cortex-focus-title" class="cortex-home-new-headline">Moins de tâches répétitives.<br><em>Plus de temps pour apprendre.</em></h1>
-   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, obtenir un retour rapide après les contrôles, faciliter les corrections et accompagner chaque élève dans sa recherche de PFMP.</p>
+   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, obtenir un retour rapide après les contrôles, faciliter les corrections, accompagner la recherche de PFMP et construire une orientation en partant d’un métier ou d’une formation.</p>
    <div class="cortex-focus-actions">
     ${btn('Je suis élève <span aria-hidden="true">↗</span>','student','')}
     ${btn('Je suis professeur <span aria-hidden="true">↗</span>','teacher','secondary')}
@@ -260,9 +260,9 @@ return `<div class="home cortex-focus-home">
  </section>
  <section class="cortex-home-strengths" aria-labelledby="cortex-home-strengths-title">
   <div class="cortex-home-strengths-head">
-   <div><span class="cortex-home-strengths-kicker">SIX ATOUTS POUR APPRENDRE ET ENSEIGNER</span>
+   <div><span class="cortex-home-strengths-kicker">SEPT ATOUTS POUR APPRENDRE ET ENSEIGNER</span>
    <h2 id="cortex-home-strengths-title">Moins d’attente. <em>Plus d’accompagnement.</em></h2></div>
-   <p>CORTEX relie la préparation des évaluations, les réponses des élèves et les retours pédagogiques, dans un même espace.</p>
+   <p>CORTEX réunit les évaluations, la recherche de PFMP et l’orientation après le bac, dans un même espace.</p>
   </div>
   <div class="cortex-home-strengths-grid">
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">01 · ÉLÈVE</span><h3>Une estimation dès la fin du contrôle</h3><p>L’IA propose rapidement une note indicative et des conseils personnalisés. L’enseignant reste responsable de la correction et de la note définitive.</p></article>
@@ -270,7 +270,20 @@ return `<div class="home cortex-focus-home">
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">03 · ENSEIGNANT</span><h3>Une correction assistée par IA</h3><p>Obtiens des propositions de notation et des commentaires question par question pour corriger plus vite, tout en gardant le dernier mot.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">04 · ÉLÈVE</span><h3>Le manuscrit rejoint le numérique</h3><p>Quand l’évaluation le permet, photographie tes réponses écrites à la main : elles rejoignent la copie numérique et facilitent la correction.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>8 dispositifs d’intégrité : 6 protections configurables et 2 compléments</h3><p>Six protections paramétrables (collage, copie et surlignage, sorties d’écran, suivi en direct, avertissements et filigranes), complétées par le chronomètre et la comparaison des ressemblances entre copies. Les alertes nécessitent toujours une vérification humaine : aucune détection totale de la triche ne peut être garantie.</p></article>
-   <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · ÉLÈVE</span><h3>PFMP et Orientation : projets en local</h3><p>Recherche une PFMP, organise tes candidatures ou construis ton orientation en partant d’un métier comme d’une formation. Albert explique les étapes à suivre. Tes suivis et tes projets sont sauvegardés dans ce navigateur, sans synchronisation serveur. Les recherches et l’assistance IA nécessitent une connexion.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · ÉLÈVE</span><h3>Recherche de PFMP et candidatures</h3><p>Trouve des lieux de PFMP adaptés à ta filière, organise tes démarches et prépare ton CV ou ta lettre avec l’aide d’Albert. Tes projets restent sur cet appareil.</p></article>
+   <article class="cortex-home-strength cortex-home-strength-orientation" aria-labelledby="cortex-home-orientation-title">
+    <div class="cortex-home-orientation-copy">
+     <span class="cortex-home-strength-num">07 · ÉLÈVE · ORIENTATION</span>
+     <h3 id="cortex-home-orientation-title">Orientation en 2 parcours</h3>
+     <p>Deux points de départ pour construire ton avenir après le bac pro. Albert explique les chemins possibles, les formations à comparer et les étapes à prévoir.</p>
+     <p class="cortex-home-orientation-storage">Projet, choix et brouillons sauvegardés sur cet appareil · Conseils Albert sur demande</p>
+    </div>
+    <div class="cortex-home-orientation-choices" role="group" aria-label="Les deux parcours d’orientation">
+     <div class="cortex-home-orientation-choice"><span aria-hidden="true">✦</span><div><strong>Je pars d’un métier</strong><small>Je choisis le métier que je vise, puis Albert m’explique comment y arriver depuis mon bac.</small></div></div>
+     <div class="cortex-home-orientation-choice"><span aria-hidden="true">▤</span><div><strong>Je pars d’une formation</strong><small>J’explore les BTS, BUT et autres études possibles après Accueil, Commerce A ou AGOrA.</small></div></div>
+     <button type="button" data-action="student-orientation" class="cortex-home-orientation-launch" aria-label="Découvrir l'orientation en deux parcours">Découvrir les deux parcours <span aria-hidden="true">↗</span></button>
+    </div>
+   </article>
   </div>
  </section>
  <section class="cortex-feature-request" aria-label="Demander une fonctionnalité">

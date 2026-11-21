@@ -124,6 +124,7 @@ function render(){
 header();
 const stages=view==='student'&&tab==='stages';
 if(stages&&stageWorkspace&&document.getElementById('cortex-demo-stages'))return;
+window.CORTEX_ORIENTATION?.dispose?.();
 stageWorkspace?.dispose();
 stageWorkspace=null;
 handwriting?.dispose();
@@ -131,6 +132,7 @@ handwriting=null;
 if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
+if(view==='student'&&tab==='orientation')window.CORTEX_ORIENTATION?.mount(document.getElementById('cortex-orientation'));
 const monitoredAttempt=view==='student'&&tab==='examen'?activeAttempt():null;
 const examGuard=monitoredAttempt?.status==='progress'&&authorizedAttempt(monitoredAttempt)?{
  key:monitoredAttempt.id,startedAt:monitoredAttempt.startedAt,root,subjectSelector:'.exam-question',
@@ -550,6 +552,7 @@ function prepareDemoPse(start=false){
  }else nav('student','pret/'+encodeURIComponent(ass.id)+'/'+encodeURIComponent(ass.token));
 }
 function studentShell(){
+ if(tab==='orientation')return '<div class="student-shell" id="cortex-demo-orientation"><section id="cortex-orientation"></section></div>';
  if(tab==='stages')return '<div class="student-shell"><section id="cortex-demo-stages"></section></div>';
  if(tab==='decouverte')return studentPseDiscovery();
  if(tab==='accueil')return window.CORTEX_PORTAL.studentLogin(state);
@@ -1316,6 +1319,8 @@ if(a==='home'){nav('home');return;}
 if(a==='teacher'){nav('teacher');return;}
 if(a==='student'){nav('student');return;}
 if(a==='student-stages'){nav('student','stages');return;}
+if(a==='student-orientation'){nav('student','orientation');return;}
+if(a==='student-orientation-back'){nav('student',portalAuthorized()?'espace':'accueil');return;}
 if(a==='about'){notifyAbout();return;}
 if(a==='integrity-scroll-controls'){document.getElementById('integrity-controls')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
 if(a==='integrity-scroll-journal'){monitorExamId=id||'';nav('teacher','suivi');return;}

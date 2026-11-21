@@ -697,7 +697,8 @@ function studentDocuments(e,q,a,answered){
   const original=window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered);
   return attached?original.replace('<div class="doc-question-response">',attached+'<div class="doc-question-response">'):original;
  }
- const lockOriginal=e.sourceId&&window.CORTEX_INTEGRITY.config(e).enabled===true&&window.CORTEX_INTEGRITY.config(e).blockCopy===true;
+ const lockOriginal=e.sourceId&&window.CORTEX_INTEGRITY.config(e).enabled===true&&
+  (window.CORTEX_INTEGRITY.config(e).blockCopy===true||window.CORTEX_INTEGRITY.config(e).watermarkCapture===true);
  const personalPdf=e.sourceId&&e.sourceType==='pdf'&&
   window.CORTEX_INTEGRITY.config(e).enabled===true&&window.CORTEX_INTEGRITY.config(e).watermarkCapture===true;
  const source=e.sourceId?'<div class="doc-ribbon"><span class="chip blue">Document importé</span>'+
@@ -1400,7 +1401,8 @@ if(a==='editor-doc-tab'){editorDocTab=el.dataset.tab==='documents'?'documents':'
 if(a==='show-exam-original'){
  const e=examBy(id),at=activeAttempt();
  if(view==='student'&&tab==='examen'&&at?.status==='progress'&&at.examId===id&&
-    window.CORTEX_INTEGRITY.config(e).enabled&&window.CORTEX_INTEGRITY.config(e).blockCopy){
+    window.CORTEX_INTEGRITY.config(e).enabled&&
+   (window.CORTEX_INTEGRITY.config(e).blockCopy||window.CORTEX_INTEGRITY.config(e).watermarkCapture)){
   showToast('L’original est indisponible pendant ce contrôle protégé. Consulte les documents affichés dans la question.');
   return;
  }

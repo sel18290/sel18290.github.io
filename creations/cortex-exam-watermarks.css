@@ -1,0 +1,107 @@
+/* CORTEX | Filigranes de dissuasion sur évaluations uniquement.
+ * Ne prétend ni empêcher ni détecter les captures d'écran OS.
+ * Garde le texte pédagogique lisible et ne bloque aucune interaction.
+ */
+
+/* Un quadrillage dense de 48 marques couvre l'écran complet :
+   non seulement le centre du sujet mais aussi les marges et le bas. */
+body.cortex-noctis .integrity-watermark,
+body.cortex-noctis .cw-student-watermark {
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  z-index:2147482000 !important;
+  display:grid !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(8,minmax(0,1fr)) !important;
+  align-content:stretch;
+  justify-content:stretch;
+  overflow:hidden !important;
+  pointer-events:none !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+  isolation:isolate;
+  contain:none;
+  background-image:repeating-linear-gradient(
+    135deg,transparent 0,transparent 146px,rgba(65,103,146,.034) 147px,transparent 149px
+  );
+}
+body.cortex-noctis .integrity-watermark > span,
+body.cortex-noctis .cw-student-watermark > span {
+  display:block !important;
+  place-self:center !important;
+  max-width:none !important;
+  width:max-content;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  color:#ad3955 !important;
+  opacity:.45 !important;
+  font-size:clamp(9px,.87vw,13px) !important;
+  font-weight:850 !important;
+  letter-spacing:.035em !important;
+  line-height:1.3 !important;
+  text-align:center;
+  transform:rotate(-19deg) !important;
+  text-shadow:0 1px 1px #fafdffdf,0 -1px 1px #06172d52 !important;
+  background:none !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+body.cortex-noctis .integrity-watermark > span:nth-of-type(4n+2),
+body.cortex-noctis .cw-student-watermark > span:nth-of-type(4n+2) {
+  color:#175a7c !important;
+  transform:rotate(-13deg) !important;
+}
+body.cortex-noctis .integrity-watermark .integrity-watermark-alert {
+  z-index:3;
+  max-width:min(94vw,760px);
+  background:rgba(36,50,81,.92) !important;
+  border:1px solid #c4e8ff !important;
+  color:#fff !important;
+  box-shadow:0 4px 12px rgba(4,13,31,.27);
+}
+/* Une visionneuse dialog est dans la couche modale "top layer" :
+   elle doit recevoir sa propre copie du filigrane. */
+body.cortex-noctis dialog.cw-source-dialog {
+  isolation:isolate;
+}
+body.cortex-noctis dialog.cw-source-dialog > .cw-student-watermark.cw-watermark-dialog {
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  z-index:20 !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(8,minmax(0,1fr)) !important;
+}
+@media(max-width:760px) {
+  body.cortex-noctis .integrity-watermark,
+  body.cortex-noctis .cw-student-watermark {
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(16,minmax(0,1fr)) !important;
+  }
+  body.cortex-noctis .integrity-watermark > span,
+  body.cortex-noctis .cw-student-watermark > span {
+    font-size:9px !important;
+    letter-spacing:0 !important;
+    opacity:.48 !important;
+  }
+  body.cortex-noctis dialog.cw-source-dialog > .cw-student-watermark.cw-watermark-dialog {
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(16,minmax(0,1fr)) !important;
+  }
+}
+@media print {
+  body.cortex-noctis .integrity-watermark,
+  body.cortex-noctis .cw-student-watermark {
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+  body.cortex-noctis .integrity-watermark > span,
+  body.cortex-noctis .cw-student-watermark > span {
+    color:#676f7e !important;
+    opacity:.55 !important;
+  }
+}

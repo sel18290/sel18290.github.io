@@ -358,3 +358,14 @@
  #cortex-orientation.co-v2 .co-letter-counter{width:100%}
 }
 @media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 .co-letter-workshop *{transition:none!important}}
+
+#cortex-orientation.co-v2 .co-wish-actions button[data-co-letter-wish]{
+ display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ border:1px solid #8dbcae;border-radius:8px;padding:8px 11px;
+ color:#0d665b;background:#e8f6ef;font-size:11px;font-weight:820
+}
+#cortex-orientation.co-v2 .co-wish-actions button[data-co-letter-wish]:hover{background:#d8f1e4}
+#cortex-orientation.co-v2 .co-wish-actions button[data-co-remove]{color:#a63b57}
+#cortex-orientation.co-v2 .co-letter-workshop :is(button,input,select,textarea):focus-visible{
+ outline:3px solid #287aa4;outline-offset:3px
+}

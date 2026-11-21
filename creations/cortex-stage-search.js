@@ -451,7 +451,15 @@
     const metric = (kind,category) => {
       try{window.CORTEX_DEV_METRICS?.track?.(kind,category,mode)}catch{/* Statistiques facultatives */}
     };
-    metric('pfmp_open','ouverture');
+    // Une seule ouverture PFMP par session d'onglet et par environnement.
+    // Aucun identifiant ou historique de navigation n'est envoyé au serveur.
+    try {
+      const openedKey='cortex_dev_pfmp_open_v1:'+mode;
+      if(sessionStorage.getItem(openedKey)!=='1'){
+        sessionStorage.setItem(openedKey,'1');
+        metric('pfmp_open','ouverture');
+      }
+    }catch{metric('pfmp_open','ouverture');}
     const section = node('section', 'cs-stage-search');
     section.setAttribute('aria-labelledby', 'cs-stage-title');
     section.innerHTML = screen;

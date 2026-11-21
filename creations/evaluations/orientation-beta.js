@@ -298,7 +298,8 @@ function renderWishes(){
  $('co-pistes-count').textContent=String(profile.wishes.length);
  const saved=profile.wishes;
  const callout=saved.length===0?'Ajoute une première formation depuis « Mon projet » ou « Explorer ».':saved.length===1?'Tu as une seule piste. Essaie d’en ajouter deux autres pour diversifier ton projet.':'Tu as déjà plusieurs pistes. Compare leurs critères et les établissements.';
- wrap.innerHTML='<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+'</div>'+
+ wrap.innerHTML='<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+
+  '<p class="co-wish-caution">Ce carnet sert à préparer tes choix. Il ne crée aucun vœu sur Parcoursup et ne transmet aucune candidature. '+help('voeu')+'</p></div>'+
  (saved.length?'<div class="co-wish-list">'+saved.map((w,i)=>
  '<article class="co-wish-card"><div class="co-wish-index">'+String(i+1).padStart(2,'0')+'</div><div><strong>'+esc(w.title)+'</strong>'+
  '<small>'+esc(w.school||'Établissement à préciser')+(w.city?' · '+esc(w.city):'')+'</small>'+
@@ -362,7 +363,7 @@ function renderSearch(){
  box.innerHTML='<p class="co-results-info">'+limited.length+' résultat(s) affiché(s) · '+(local.length&&profile.mobility==='ville'?'établissements de '+esc(profile.city):'recherche élargie')+' · 2025, hors apprentissage</p>'+
  '<div class="co-result-list">'+limited.map((r,i)=>{
  const f=formatRecord(r);
- const found=profile.wishes.some(w=>w.code&&w.code===r.cod_aff_form);
+ const found=profile.wishes.some(w=>w.code&&w.code===String(r.cod_aff_form||''));
  return '<article class="co-data-card"><div class="co-data-head"><div><span class="co-data-label">'+esc(r.fili||'Formation')+'</span><h3>'+esc(f.title)+'</h3>'+
  '<p>⌖ '+esc(f.place)+' · '+esc(f.city)+'</p></div>'+anchor(sourceUrl(r.lien_form_psup),'Fiche officielle')+'</div>'+
  '<div class="co-indicator-list"><div><small>Taux d’accès '+help('admission')+'</small><strong>'+formatPct(f.rate)+'</strong></div>'+

@@ -259,8 +259,13 @@
     download.addEventListener('click', () => {
       const selected = visibleEvents();
       if (!selected.length) return;
-      const quote = value => '"' + String(value ?? '').replace(/"/g, '""')
-        .replace(/[\r\n]/g, ' ') + '"';
+      const quote = value => {
+        let text = String(value ?? '').replace(/[\r\n\t\u0000-\u001f]/g, ' ').trim();
+        // Le CSV peut être ouvert dans Excel : empêcher l'évaluation de
+        // formules provenant d'un nom de classe ou d'un titre de contrôle.
+        if (/^[=+\-@]/.test(text)) text = "'" + text;
+        return '"' + text.replace(/"/g, '""') + '"';
+      };
       const lines = [
         ['Date','Heure (Paris)','Classe','N° élève','Contrôle','Événement','Durée (secondes)']
           .map(quote).join(';')

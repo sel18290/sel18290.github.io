@@ -411,7 +411,7 @@ function layout(){
  '<select id="co-goal">'+courseOptions()+'</select><div id="co-goal-info" aria-live="polite"></div></div>'+
  '<details class="co-optional"><summary>Affiner selon mes centres d’intérêt</summary><p>Choisis jusqu’à cinq domaines.</p><div class="co-interest-tags" id="co-interests"></div></details>'+
  '<div class="co-ai-actions"><button type="button" class="co-btn co-primary" id="co-albert-button">Demander conseil à Albert</button>'+
- '<small>Albert utilise la filière, la formation, les centres d’intérêt choisis et la zone d’études (ville, région ou France).</small></div>'+
+ '<small>Conseils Albert à volonté, sans quota fixé par CORTEX. Seules la filière, la formation, les centres d’intérêt et la zone d’études sont transmis. Le service Albert peut appliquer ses propres limites.</small></div>'+
  '<div class="co-ai-content" id="co-albert" aria-live="polite"></div></section>'+
  '<section class="co-pane co-suggestions-pane"><div class="co-section-top"><h2>Des idées après ton bac pro</h2><p>Les catégories décrivent le lien entre les programmes et ton bac. '+help('classement')+'</p></div><div id="co-alternatives"></div></section>'+
  '</div></section>'+

@@ -1,0 +1,94 @@
+/* CORTEX · Comparaison locale des textes des copies, interface professeur. */
+body.cortex-noctis .cw-similarity-panel {
+ margin:18px 0;
+ padding:clamp(16px,2.3vw,23px);
+ border:1px solid #b9d4e6;
+ border-radius:14px;
+ background:linear-gradient(132deg,#f5fbff,#e8f3fb);
+ color:#183b58;
+ box-shadow:0 10px 24px rgba(5,27,50,.12);
+ color-scheme:light;
+}
+body.cortex-noctis .cw-similarity-heading {
+ display:flex;gap:14px;align-items:start;justify-content:space-between;flex-wrap:wrap;
+}
+body.cortex-noctis .cw-similarity-heading small {
+ display:block;color:#286994;font-size:10px;letter-spacing:.1em;font-weight:800;margin-bottom:6px;
+}
+body.cortex-noctis .cw-similarity-heading h4 {
+ margin:0;color:#164065;font-size:clamp(18px,2vw,22px);font-weight:800;
+}
+body.cortex-noctis .cw-similarity-heading p {
+ margin:8px 0 0;color:#4b6980;font-size:13px;max-width:770px;line-height:1.55;
+}
+body.cortex-noctis .cw-similarity-private {
+ flex:none;display:inline-flex;align-items:center;padding:7px 11px;
+ background:#e4f4ef;color:#225f55;border:1px solid #acd8c5;
+ border-radius:99px;font-size:11px;font-weight:740;
+}
+body.cortex-noctis .cw-similarity-controls {
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px;
+}
+body.cortex-noctis .cw-similarity-controls select {
+ flex:1 1 260px;min-width:0;max-width:600px;min-height:45px;padding:10px 12px;
+ border:1px solid #adcadd;border-radius:9px;background:#fff;color:#173b57;
+ font-size:13px;line-height:1.4;
+}
+body.cortex-noctis .cw-similarity-start {
+ min-height:45px;padding:10px 16px;border:1px solid #1d669c;border-radius:9px;
+ background:#206eaa;color:#fff;font-weight:780;font-size:13px;
+ cursor:pointer;white-space:normal;
+}
+body.cortex-noctis .cw-similarity-start:hover:not(:disabled) {background:#155987}
+body.cortex-noctis .cw-similarity-start:disabled {opacity:.5;cursor:not-allowed}
+body.cortex-noctis .cw-similarity-panel :is(button,select):focus-visible {
+ outline:3px solid #2589c7;outline-offset:2px;
+}
+body.cortex-noctis .cw-similarity-info {
+ color:#647f92;font-size:12px;line-height:1.5;margin:11px 0 0;
+}
+body.cortex-noctis .cw-similarity-results {
+ display:grid;gap:13px;margin-top:17px;
+}
+body.cortex-noctis .cw-similarity-results:empty {display:none}
+body.cortex-noctis .cw-similarity-summary {
+ display:flex;align-items:baseline;justify-content:space-between;gap:9px;flex-wrap:wrap;
+ padding:12px 14px;background:#fff;border:1px solid #c7ddea;border-radius:10px;
+}
+body.cortex-noctis .cw-similarity-summary strong {color:#184d73;font-size:16px}
+body.cortex-noctis .cw-similarity-summary small {color:#56768a;font-size:12px}
+body.cortex-noctis .cw-similarity-empty {
+ margin:0;color:#496e84;background:#fff;padding:14px;border:1px solid #d0e0ec;border-radius:10px;
+ font-size:13px;line-height:1.55;
+}
+body.cortex-noctis .cw-similarity-list {display:grid;gap:10px}
+body.cortex-noctis .cw-similarity-match {
+ padding:13px 15px;border:1px solid #d0e0ec;border-radius:10px;background:#fff;
+}
+body.cortex-noctis .cw-similarity-pair {
+ display:flex;align-items:center;justify-content:space-between;gap:11px;flex-wrap:wrap;
+ padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid #e6eff5;
+}
+body.cortex-noctis .cw-similarity-pair strong {color:#183c5d;font-size:14px}
+body.cortex-noctis .cw-similarity-score {
+ padding:5px 9px;border-radius:99px;background:#e9f4fc;
+ border:1px solid #b9d7eb;color:#1b6795;font-size:11px;font-weight:790;
+}
+body.cortex-noctis .cw-similarity-question {
+ display:flex;gap:10px;align-items:start;justify-content:space-between;
+ padding:6px 0;
+}
+body.cortex-noctis .cw-similarity-question span {
+ color:#294d68;font-size:13px;overflow-wrap:anywhere;
+}
+body.cortex-noctis .cw-similarity-question small {
+ color:#53738b;flex:0 0 150px;font-size:11px;text-align:right;
+}
+@media(max-width:650px) {
+ body.cortex-noctis .cw-similarity-panel {padding:14px;margin:12px 0}
+ body.cortex-noctis .cw-similarity-private {font-size:10px}
+ body.cortex-noctis .cw-similarity-controls {flex-direction:column;align-items:stretch}
+ body.cortex-noctis .cw-similarity-controls select {flex:1 1 auto;width:100%}
+ body.cortex-noctis .cw-similarity-question {flex-direction:column;gap:3px}
+ body.cortex-noctis .cw-similarity-question small {flex:0 0 auto;text-align:left}
+}

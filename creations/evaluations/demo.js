@@ -691,7 +691,10 @@ function studentDocuments(e,q,a,answered){
   const original=window.CORTEX_DOCS.renderSample(e,q,currentQuestion,String(a.answers[q.id]||''),answered);
   return attached?original.replace('<div class="doc-question-response">',attached+'<div class="doc-question-response">'):original;
  }
- const source=e.sourceId?'<div class="doc-ribbon"><span class="chip blue">Document importé</span><button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Ouvrir le fichier original ↗</button></div>':'';
+ const lockOriginal=e.sourceId&&window.CORTEX_INTEGRITY.config(e).enabled===true&&window.CORTEX_INTEGRITY.config(e).blockCopy===true;
+ const source=e.sourceId?'<div class="doc-ribbon"><span class="chip blue">Document importé</span>'+
+  (lockOriginal?'<small>Document protégé · Lecture sur cette page, sans ouverture du fichier source.</small>':
+   '<button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Ouvrir le fichier original ↗</button>')+'</div>':'';
  const fallback=e.sourceId&&!attached?(e.sourceType==='pdf'?'<div id="import-original-canvas" class="import-original-canvas"><p class="small muted">Chargement du PDF original…</p></div>':
  '<div id="import-word-canvas" class="import-original-canvas"><p class="small muted">Chargement du document Word…</p></div>'):'';
  const manual=e.doc&&!e.sourceId?'<div class="question-doc">'+esc(q.doc||e.doc)+'</div>':'';
@@ -1345,7 +1348,16 @@ if(a==='visual-paste-image'){
 if(a==='visual-copy-source'){visualCopySource(false);return;}
 if(a==='visual-download-source'){visualCopySource(true);return;}
 if(a==='editor-doc-tab'){editorDocTab=el.dataset.tab==='documents'?'documents':'source';render();return;}
-if(a==='show-exam-original'){const e=examBy(id);if(e?.sourceId)openSavedOriginal(e.sourceId);return;}
+if(a==='show-exam-original'){
+ const e=examBy(id),at=activeAttempt();
+ if(view==='student'&&tab==='examen'&&at?.status==='progress'&&at.examId===id&&
+    window.CORTEX_INTEGRITY.config(e).enabled&&window.CORTEX_INTEGRITY.config(e).blockCopy){
+  showToast('L’original est indisponible pendant ce contrôle protégé. Consulte les documents affichés dans la question.');
+  return;
+ }
+ if(e?.sourceId)openSavedOriginal(e.sourceId);
+ return;
+}
 if(a==='dashboard-preview'){const exam=examBy(id);if(exam)examPreviewModal(exam);return;}
 if(a==='preview-try-exam'){
  const exam=examBy(id);if(!exam)return;

@@ -331,3 +331,43 @@
  #cortex-orientation.co-v2 .co-v4-submit .co-v4-primary{width:100%}
  #cortex-orientation.co-v2 .co-indicator-list{grid-template-columns:1fr}
 }
+
+#cortex-orientation.co-v2 .co-wish-plan{
+ margin:0 0 18px;padding:clamp(16px,3vw,24px);border:1px solid #a9cfc3;border-radius:14px;
+ background:#edf8f3;color:#244755
+}
+#cortex-orientation.co-v2 .co-wish-plan h3{margin:0 0 10px;color:#164d45;font-size:clamp(1.25rem,2.4vw,1.65rem)}
+#cortex-orientation.co-v2 .co-wish-plan p{margin:0 0 10px;font-size:.9375rem;line-height:1.5}
+#cortex-orientation.co-v2 .co-wish-main{display:grid;gap:5px;font-size:.875rem;font-weight:650}
+#cortex-orientation.co-v2 .co-wish-main strong{font-size:1.0625rem;color:#194d4b}
+#cortex-orientation.co-v2 .co-wish-main select{
+ color:#173448;background:#fff;border:1px solid #93bfb5;border-radius:9px;
+ font:inherit;font-size:1rem;min-height:46px;padding:8px 12px;width:100%;min-width:0
+}
+#cortex-orientation.co-v2 .co-wish-job{padding-top:6px}
+#cortex-orientation.co-v2 .co-wish-plan-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px 14px;margin:12px 0}
+#cortex-orientation.co-v2 .co-wish-plan-actions .co-btn{min-height:44px}
+#cortex-orientation.co-v2 .co-wish-plan-actions small,
+#cortex-orientation.co-v2 .co-wish-privacy,
+#cortex-orientation.co-v2 p.co-wish-plan-source{color:#466372;font-size:.8125rem}
+#cortex-orientation.co-v2 .co-wish-message:empty{display:none}
+#cortex-orientation.co-v2 .co-wish-plan-results{padding-top:8px}
+#cortex-orientation.co-v2 .co-wish-plan-results h4{margin:0 0 10px;font-size:1.125rem;color:#154d49}
+#cortex-orientation.co-v2 .co-wish-proposals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#cortex-orientation.co-v2 .co-wish-proposal{
+ display:flex;min-width:0;flex-direction:column;overflow-wrap:anywhere;
+ padding:13px;border:1px solid #c6dfd7;border-radius:10px;background:#fff
+}
+#cortex-orientation.co-v2 .co-wish-proposal h5{margin:0 0 5px;color:#1b5052;font-size:1rem;line-height:1.35}
+#cortex-orientation.co-v2 .co-wish-proposal p{font-size:.875rem}
+#cortex-orientation.co-v2 .co-wish-school{font-weight:750}
+#cortex-orientation.co-v2 .co-wish-proposal-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;margin-top:auto}
+#cortex-orientation.co-v2 .co-wish-proposal-actions a{color:#156459;font-size:.875rem;font-weight:750}
+#cortex-orientation.co-v2 .co-wish-proposal-actions button{min-height:40px}
+#cortex-orientation.co-v2 p.co-wish-plan-source{margin:9px 0}
+#cortex-orientation.co-v2 .co-wish-privacy{margin-top:10px}
+#cortex-orientation.co-v2 .co-wish-privacy summary{cursor:pointer;font-weight:700}
+#cortex-orientation.co-v2 .co-wish-privacy p{margin:5px 0 0;font-size:.8125rem}
+@media(max-width:660px){
+ #cortex-orientation.co-v2 .co-wish-proposals{grid-template-columns:1fr}
+}

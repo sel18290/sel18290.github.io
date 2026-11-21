@@ -185,19 +185,48 @@ const norm=v=>clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCa
 const pct=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(',','.').replace('%',''));return Number.isFinite(n)&&n>=0&&n<=100?n:null;};
 const formatPct=v=>{const n=pct(v);return n===null?'Non publié':new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';};
 const sourceUrl=v=>{try{const u=new URL(String(v));return u.protocol==='https:'&&/(\.|^)parcoursup\.(gouv\.fr|fr)$/.test(u.hostname)?u.href:SOURCES.carte;}catch{return SOURCES.carte;}};
-const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:'',letters:{},entry_mode:'metier',career:'',career_result:null});
+const safeCareer=value=>{
+ const job=clean(value);
+ return job.length<=90&&!/[^\p{L}\p{M}0-9 '’().,‐‑–-]|\d{4,}|www\./iu.test(job)?job:'';
+};
+const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:'',letters:{},entry_mode:'metier',career:'',career_result:null,wish_plan:null});
 let root=null,profile=dflt(),tab='projet',records=[],aiBusy=false,autoTimer=0,tabData=null,aiResult=null,showAllSuggestions=false,letterStudio=null,careerStudio=null,searchState='idle',searchTotal=0,searchPage=1,searchRequest=null,aiRequest=null,compared=new Set();
+let wishMain='',wishRequest=null,wishMessage='',searchCareer='';
 const PAGE_SIZE=12;
 const $=id=>root?.querySelector('#'+id);
 const help=(id)=>'<button type="button" class="co-help" data-co-define="'+esc(id)+'" aria-label="Comprendre : '+esc(DEFINITIONS[id]?.[0]||id)+'" title="Explication en mots simples">?</button>';
 const anchor=(url,text)=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(text)+'</a>';
+function readWish(w){
+ const title=clean(w?.title).slice(0,160);
+ const pathway=COURSES.includes(w?.pathway)?w.pathway:
+  COURSES.find(c=>norm(title).replace(/^(bts|but)\s*[-–]\s*/,'$1 ').includes(norm(c)))||'';
+ return {
+  title,pathway,school:clean(w?.school).slice(0,150),city:clean(w?.city).slice(0,80),
+  url:sourceUrl(w?.url),year:Number(w?.year)===2025?2025:null,code:clean(w?.code).slice(0,110),
+  region:clean(w?.region).slice(0,100),career:safeCareer(w?.career),
+  taux:pct(w?.taux),part:pct(w?.part),pctbp:pct(w?.pctbp)
+ };
+}
+function readWishPlan(plan,wishes){
+ if(!plan||!['albert','guide'].includes(plan.provider)||typeof plan.context!=='string'||plan.context.length>600||
+    !wishes.some(w=>w.code===plan.main&&completeWish(w))||
+    !Array.isArray(plan.suggestions)||plan.suggestions.length!==4)return null;
+ const suggestions=plan.suggestions.map(item=>{
+  const course=item?.course,why=clean(item?.why).slice(0,190);
+  const choice=item?.choice?readWish(item.choice):null;
+  return {course,why,choice:completeWish(choice)&&choice.pathway===course?choice:null};
+ });
+ if(new Set(suggestions.map(x=>x.course)).size!==4||
+    suggestions.some(x=>!COURSES.includes(x.course)||!x.why))return null;
+ return {main:plan.main,context:plan.context,provider:plan.provider,suggestions};
+}
 function read(){
  try{
  const raw=localStorage.getItem(KEY);if(!raw||raw.length>450000)return dflt();
  const x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x))return dflt();
  const old=x.bac_origin==='mcv'?'commerce':x.bac_origin;
  const p={...dflt(),...x,bac_origin:old};
- if(!FILIERES[p.bac_origin])p.bac_origin='accueil';
+ if(!Object.hasOwn(FILIERES,p.bac_origin))p.bac_origin='accueil';
  const oldGoal=clean(p.goal).slice(0,180);
  const names={
   'bts mco':COURSES[2],'mco':COURSES[2],
@@ -213,11 +242,8 @@ function read(){
  // Migrer les anciens champs d'intérêt libres en mots-clés locaux ; ne jamais les envoyer à Albert.
  p.interests=Array.isArray(x.interests)?x.interests.filter(v=>Object.hasOwn(INTERESTS,v)).slice(0,5):[];
  p.apprenticeship=!!p.apprenticeship;
- p.wishes=Array.isArray(x.wishes)?x.wishes.slice(0,30).map(w=>({
-  title:clean(w?.title).slice(0,160),school:clean(w?.school).slice(0,150),city:clean(w?.city).slice(0,80),
-  url:sourceUrl(w?.url),year:Number(w?.year)===2025?2025:null,code:clean(w?.code).slice(0,110),pathway:COURSES.includes(w?.pathway)?w.pathway:COURSES.find(c=>norm(w?.title).replace(/^(bts|but)\s*[-–]\s*/,'$1 ').includes(norm(c)))||'',taux:w?.taux??null,
-  part:w?.part??null,pctbp:w?.pctbp??null
- })).filter(w=>w.title):[];
+ p.wishes=Array.isArray(x.wishes)?x.wishes.slice(0,30).map(readWish).filter(w=>w.title):[];
+ p.wish_plan=readWishPlan(x.wish_plan,p.wishes);
  p.tasks=Array.isArray(x.tasks)?x.tasks.filter(v=>['fiches','parler','bourse','alternance','comparaison'].includes(v)):[];
  p.letters={};
  if(x.letters&&typeof x.letters==='object'&&!Array.isArray(x.letters)){
@@ -265,13 +291,14 @@ function updateCounters(){
 }
 function changeBac(bac){
  if(!Object.hasOwn(FILIERES,bac)||bac===profile.bac_origin)return;
+ cancelWishRequest();
  profile.bac_origin=bac;aiResult=null;showAllSuggestions=false;persist(true);
  renderSectors();renderInterests();renderSuggestions();renderAlbert();renderSearch();renderWishes();
  careerStudio?.refresh();
 }
-function exploreCourse(course){
+function exploreCourse(course,career=''){
  resetSearch();
- tabData=course;
+ tabData=course;searchCareer=safeCareer(career);
  openTab('explorer',true);
 }
 function renderEntry(){
@@ -295,15 +322,15 @@ function renderEntry(){
    profile:()=>profile,save:()=>persist(true),courses:()=>COURSES.slice(),
    courseFit:course=>COURSES.includes(course)?aboutCourse(course):null,
    syncInterests:()=>{
-    aiResult=null;
+    cancelWishRequest();aiResult=null;
     renderInterests();renderGoalInfo();renderSuggestions();renderAlbert();
    },
    openCourse:course=>{
     if(!COURSES.includes(course))return;
-    exploreCourse(course);
+    exploreCourse(course,profile.career);
    },
    saveCourse:course=>{
-    if(COURSES.includes(course))keepCourse(course);
+    if(COURSES.includes(course))keepCourse(course,null,profile.career);
    }
   });
   else careerStudio.refresh();
@@ -400,6 +427,7 @@ function layout(){
  '<section data-co-panel="pistes" class="co-page" aria-label="Mes choix" tabindex="-1" hidden><div class="co-pane co-wishes-pane"><div class="co-section-top"><span class="co-step">MES POSSIBILITÉS</span><h2>Construis plusieurs pistes.</h2>'+
  '<p>Un seul choix peut être un bon début. Tu peux aussi garder des formations proches pour comparer leurs établissements et leurs critères.</p></div>'+
  '<div class="co-plan-stats"><span>Formations gardées <strong id="co-pistes-count">0</strong></span><span>Étapes terminées <strong id="co-count-tasks">0</strong></span><span>Stockage <strong>Mon appareil</strong></span></div>'+
+ '<section id="co-wish-plan" class="co-wish-plan" aria-labelledby="co-wish-plan-title"></section>'+
  '<div id="co-wishes"></div><div class="co-planning"><h3>Ma petite feuille de route</h3><div id="co-tasks"></div></div>'+
  '<details class="co-optional co-project-storage"><summary>Notes et sauvegarde du projet</summary><label for="co-notes">Mes notes personnelles</label><textarea id="co-notes" maxlength="1200" rows="3"></textarea>'+
  '<div class="co-export-tools"><button type="button" class="co-btn co-soft" data-co-export>↓ Exporter mon projet</button><label class="co-btn co-soft" for="co-import-file">↑ Importer un projet</label><input type="file" accept=".json,application/json" id="co-import-file" hidden>'+
@@ -499,25 +527,186 @@ async function askAlbert(){
   if(aiRequest===controller){aiRequest=null;aiBusy=false;btn.disabled=false;btn.textContent='Demander conseil à Albert';}
  }
 }
-function keepCourse(course,rec){
- if(!COURSES.includes(course)&&!rec)return;
- const item=rec?{
-  title:clean(rec.lib_for_voe_ins||course).slice(0,160),
-  school:clean(rec.g_ea_lib_vx).slice(0,150),
-  city:clean(rec.ville_etab).replace(/\s+/g,' ').slice(0,80),
-  url:sourceUrl(rec.lien_form_psup),
-  code:clean(rec.cod_aff_form).slice(0,110),pathway:COURSES.includes(course)?course:'',
-  year:2025,taux:pct(rec.taux_acces_ens),part:pct(rec.part_acces_pro),pctbp:pct(rec.pct_bp)
- }:{title:course,school:'',city:'',url:SOURCES.carte,code:'',pathway:course,taux:null,part:null,pctbp:null};
- if(profile.wishes.some(w=>(w.code&&item.code&&w.code===item.code)||(!item.code&&!w.code&&norm(w.title)===norm(item.title)))){
-  status('Cette piste est déjà dans tes choix.');return;
+function wishForRecord(course,rec,career){
+ return readWish({
+  title:rec.lib_for_voe_ins||course,school:rec.g_ea_lib_vx,
+  city:clean(rec.ville_etab).replace(/\s+/g,' '),region:rec.region_etab_aff,career,
+  url:rec.lien_form_psup,code:rec.cod_aff_form,pathway:course,
+  year:2025,taux:rec.taux_acces_ens,part:rec.part_acces_pro,pctbp:rec.pct_bp
+ });
+}
+function keepCourse(course,rec,career=''){
+ if(!COURSES.includes(course))return false;
+ return keepWish(rec?wishForRecord(course,rec,career):readWish({title:course,pathway:course,career}));
+}
+function keepWish(item){
+ if(profile.wishes.some(w=>item.code?w.code===item.code:!w.code&&norm(w.title)===norm(item.title))){
+  status('Cette piste est déjà dans tes choix.');return false;
  }
- if(profile.wishes.length>=30){status('Tu peux conserver jusqu’à 30 pistes : retire-en une avant de continuer.',true);return;}
+ if(profile.wishes.length>=30){status('Tu peux conserver jusqu’à 30 pistes : retire-en une avant de continuer.',true);return false;}
  profile.wishes.push(item);persist(true);renderSuggestions();renderAlbert();renderWishes();
  status('Piste ajoutée : '+item.title+'. Tu peux la retrouver dans « Mes choix ».');
+ return true;
+}
+function completeWish(w){
+ return Boolean(w?.code&&w.school&&COURSES.includes(w.pathway));
+}
+function mainWish(){
+ return profile.wishes.find(w=>w.code===wishMain&&completeWish(w))||profile.wishes.find(completeWish);
+}
+function wishContext(w){
+ return JSON.stringify([w.code,w.pathway,w.career,profile.bac_origin,profile.interests,profile.mobility]);
+}
+function currentWishPlan(){
+ const main=mainWish(),plan=profile.wish_plan;
+ return main&&plan?.context===wishContext(main)?plan:null;
+}
+function cancelWishRequest(){
+ wishRequest?.abort();wishRequest=null;wishMessage='';
+}
+function renderWishPlan(){
+ const box=$('co-wish-plan');
+ if(!box)return;
+ const complete=profile.wishes.filter(completeWish),main=mainWish(),plan=currentWishPlan();
+ const title='<h3 id="co-wish-plan-title">Mes vœux Parcoursup</h3>';
+ if(!main){
+  box.innerHTML=title+'<p>Garde une formation avec un établissement. Albert pourra te proposer quatre autres vœux à partir de ce choix.</p>'+
+   '<button type="button" class="co-btn co-soft" data-co-tab="explorer">Trouver un établissement</button>';
+  return;
+ }
+ const busy=Boolean(wishRequest);
+ const items=plan?.suggestions||[];
+ box.innerHTML=title+
+  (complete.length>1?'<label class="co-wish-main" for="co-wish-main">Vœu de départ<select id="co-wish-main"'+(busy?' disabled':'')+'>'+
+  complete.map(w=>'<option value="'+esc(w.code)+'"'+(w.code===main.code?' selected':'')+'>'+esc(w.pathway+' · '+w.school)+'</option>').join('')+'</select></label>':
+  '<p class="co-wish-main">Vœu de départ <strong>'+esc(main.pathway)+' · '+esc(main.school)+'</strong></p>')+
+  (main.career?'<p class="co-wish-job">Métier visé <strong>'+esc(main.career)+'</strong></p>':'')+
+  '<div class="co-wish-plan-actions"><button type="button" class="co-btn co-primary" data-co-build-wishes'+(busy?' disabled':'')+'>'+
+  (busy?'Albert prépare tes vœux…':plan?.provider==='guide'?'Réessayer avec Albert':plan?'Actualiser avec Albert':'Proposer 4 vœux avec Albert')+'</button>'+
+  '<small>Quatre formations différentes. Plusieurs lycées pour un même BTS peuvent compter comme des sous-vœux. '+help('sousvoeu')+'</small></div>'+
+  '<p class="co-wish-message" role="status">'+esc(wishMessage)+'</p>'+
+  (items.length?'<div class="co-wish-plan-results"><h4 tabindex="-1">'+(plan.provider==='albert'?'Les 4 propositions d’Albert':'4 pistes du guide CORTEX')+'</h4>'+
+  '<div class="co-wish-proposals">'+items.map((item,index)=>{
+   const {course,why,choice}=item;
+   const kept=choice&&profile.wishes.some(w=>w.code===choice.code);
+   return '<article class="co-wish-proposal"><h5>'+esc(course)+'</h5>'+
+    (choice?'<p class="co-wish-school">'+esc(choice.school+(choice.city?' · '+choice.city:''))+'</p>':
+     '<p class="co-wish-school">Établissement à vérifier dans ta zone</p>')+
+    '<p>'+esc(why)+'</p><div class="co-wish-proposal-actions">'+
+    (choice&&choice.url!==SOURCES.carte?anchor(choice.url,'Fiche Parcoursup'):anchor(SOURCES.carte,'Carte Parcoursup'))+
+    (kept?'<span class="co-kept">Dans mes choix</span>':
+     choice?'<button type="button" class="co-btn co-small co-soft" data-co-keep-proposal="'+index+'">Garder ce vœu</button>':
+      '<button type="button" class="co-btn co-small co-soft" data-co-explore-course="'+esc(course)+'" data-co-career="'+esc(main.career)+'">Chercher un établissement</button>')+
+    '</div></article>';
+  }).join('')+'</div><p class="co-wish-plan-source">Établissements repérés dans les données 2025. Vérifie les fiches pour la session en cours. Les vœux se saisissent sur Parcoursup.</p></div>':'')+
+  '<details class="co-wish-privacy"><summary>Qu’est-ce qu’Albert reçoit ?</summary><p>Il utilise ton bac, ta formation de départ, le métier associé s’il y en a un, les centres d’intérêt et la zone générale de recherche. La recherche des établissements utilise les données publiques de Parcoursup.</p></details>';
+}
+function wishCandidates(main){
+ const baseTags=COURSE_DETAILS[COURSES.indexOf(main.pathway)].tags;
+ const saved=new Set(profile.wishes.filter(completeWish).map(w=>w.pathway));
+ const fitWeight={direct:4,bridge:2,prepare:0};
+ return COURSES.map((course,index)=>{
+  const tags=COURSE_DETAILS[index].tags;
+  const shared=tags.filter(tag=>baseTags.includes(tag)).length;
+  const matched=tags.filter(tag=>profile.interests.includes(tag)).length;
+  return {course,score:shared*5+matched*3+fitWeight[familyFor(profile.bac_origin,course)]};
+ }).filter(x=>!saved.has(x.course)).sort((a,b)=>b.score-a.score).slice(0,9).map(x=>x.course);
+}
+async function albertWishAdvice(main,candidates,signal){
+ const response=await fetch(ALBERT,{method:'POST',headers:{'content-type':'application/json'},signal,
+  body:JSON.stringify({action:'wish_alternatives',filiere:profile.bac_origin,goal:main.pathway,
+   career:main.career||'',interests:profile.interests.slice(0,5),mobility:profile.mobility,candidates})});
+ const body=await response.json();
+ const proposals=body.suggestions;
+ if(!response.ok||!body.ok||body.provider!=='Albert'||!Array.isArray(proposals)||proposals.length!==4||
+    new Set(proposals.map(x=>x?.course)).size!==4||
+    proposals.some(x=>!candidates.includes(x?.course)||typeof x.why!=='string'||!x.why.trim())){
+  throw Error('Suggestions indisponibles');
+ }
+ return proposals.map(x=>({course:x.course,why:x.why.trim().slice(0,190)}));
+}
+async function wishZones(main,mobility,signal){
+ if(mobility==='france')return [''];
+ const city=main.city.replace(/ \d+(?:er|e) arrondissement$/i,'');
+ const lookup=scope=>resolveZone(city,scope,signal).catch(()=>null);
+ const region=main.region?' AND region_etab_aff='+quoted(main.region):lookup('region');
+ if(mobility==='region')return [await region];
+ const zones=await Promise.all([lookup('ville'),region]);
+ return zones.filter(zone=>zone!==null);
+}
+async function coursesInZone(courses,zone,signal){
+ if(zone===null)return [];
+ const {results}=await fetchRecords({
+  select:'fili,fil_lib_voe_acc',group_by:'fili,fil_lib_voe_acc',
+  where:'session=2025 AND ('+courses.map(courseQuery).map(q=>'('+q.conditions+')').join(' OR ')+')'+zone,limit:100
+ },signal);
+ return courses.filter(course=>{
+  const {types,label,partial}=courseQuery(course);
+  return results.some(row=>types.includes(row.fili)&&(partial?clean(row.fil_lib_voe_acc).startsWith(label):row.fil_lib_voe_acc===label));
+ });
+}
+async function wishAvailability(main,candidates,mobility,signal){
+ const zones=await wishZones(main,mobility,signal);
+ const availability=await Promise.all(zones.map(async zone=>({
+  zone,courses:await coursesInZone(candidates,zone,signal).catch(()=>[])
+ })));
+ const located=candidates.filter(course=>availability.some(entry=>entry.courses.includes(course)));
+ return {candidates:located.length>=4?located:candidates,zones,availability};
+}
+async function wishEstablishment(course,career,locations,signal){
+ const known=locations.availability.filter(entry=>entry.courses.includes(course)).map(entry=>entry.zone);
+ for(const zone of new Set([...known,...locations.zones])){
+  if(zone===null||signal.aborted)continue;
+  const data=await fetchCourseRecords(course,zone,3,0,signal).catch(()=>null);
+  const choice=data?.results.map(r=>wishForRecord(course,r,career)).find(completeWish);
+  if(choice)return choice;
+ }
+ return null;
+}
+async function buildWishPlan(){
+ const main=mainWish();
+ if(!main||wishRequest)return;
+ const candidates=wishCandidates(main);
+ if(candidates.length<4){
+  wishMessage='Tu as déjà gardé la plupart des formations du guide. Consulte la carte Parcoursup pour élargir tes choix.';
+  renderWishPlan();$('co-wish-plan').querySelector('[data-co-build-wishes]')?.focus();return;
+ }
+ wishMain=main.code;
+ const controller=new AbortController(),context=wishContext(main);
+ const mobility=profile.mobility;
+ wishRequest=controller;wishMessage='';renderWishPlan();
+ const zoneSignal=AbortSignal.any([controller.signal,AbortSignal.timeout(16000)]);
+ const locations=await wishAvailability(main,candidates,mobility,zoneSignal)
+  .catch(()=>({candidates,zones:[],availability:[]}));
+ if(wishRequest!==controller)return;
+ const albertSignal=AbortSignal.any([controller.signal,AbortSignal.timeout(35000)]);
+ let provider='albert',proposals;
+ try{
+  proposals=await albertWishAdvice(main,locations.candidates,albertSignal);
+ }catch{
+  provider='guide';
+  proposals=locations.candidates.slice(0,4).map(course=>({course,why:aboutCourse(course).detail.about}));
+ }
+ if(wishRequest!==controller)return;
+ const schoolSignal=AbortSignal.any([controller.signal,AbortSignal.timeout(22000)]);
+ const suggestions=await Promise.all(proposals.map(async p=>({...p,
+  choice:await wishEstablishment(p.course,main.career,locations,schoolSignal).catch(()=>null)
+ })));
+ if(wishRequest!==controller)return;
+ wishRequest=null;
+ if(!mainWish()||wishContext(mainWish())!==context){
+  wishMessage='Ton projet a changé. Relance la recherche pour tes nouveaux choix.';
+  renderWishPlan();return;
+ }
+ profile.wish_plan={main:main.code,context,provider,suggestions};
+ wishMessage=provider==='guide'?'Albert est indisponible. Voici quatre pistes du guide liées à ton projet.':'';
+ persist(true);renderWishPlan();
+ const heading=$('co-wish-plan').querySelector('.co-wish-plan-results h4');
+ if(tab==='pistes')heading?.focus();
 }
 function renderWishes(){
  const wrap=$('co-wishes');if(!wrap)return;
+ renderWishPlan();
  $('co-pistes-count').textContent=String(profile.wishes.length);
  const saved=profile.wishes;
  const callout=saved.length===0?'Tu peux garder une formation ou un établissement pour y revenir.':'Ouvre les fiches pour vérifier les enseignements, les attendus et les trajets.';
@@ -533,7 +722,7 @@ function renderWishes(){
  (w.year===2025&&pct(w.taux)!==null?'<span class="co-wish-stat">Taux d’accès 2025 '+help('admission')+' '+formatPct(w.taux)+'</span>':'')+
  (saved.length>=2?'<label class="co-compare-check"><input type="checkbox" data-co-compare="'+i+'"'+(compared.has(w)?' checked':'')+'> Comparer cette piste</label>':'')+'</div>'+
  '<div class="co-wish-actions">'+(w.code?anchor(sourceUrl(w.url),'Fiche Parcoursup'):
-  (w.pathway?'<button type="button" data-co-explore-course="'+esc(w.pathway)+'">Trouver un établissement</button>':anchor(SOURCES.carte,'Carte Parcoursup')))+
+  (w.pathway?'<button type="button" data-co-explore-course="'+esc(w.pathway)+'" data-co-career="'+esc(w.career)+'">Trouver un établissement</button>':anchor(SOURCES.carte,'Carte Parcoursup')))+
   ((w.pathway&&COURSES.includes(w.pathway))?'<button type="button" data-co-letter-wish="'+i+'">✍ Préparer ma lettre</button>':'')+
   '<button type="button" data-co-remove="'+i+'">Retirer</button></div></article>').join('')+'</div>':
  '<div class="co-empty-state"><h3>Aucune piste sauvegardée</h3><button type="button" class="co-btn co-primary" data-co-tab="projet">Découvrir des formations</button></div>')+
@@ -614,6 +803,22 @@ const SEARCH_LABELS=[
 ];
 const quoted=value=>JSON.stringify(value);
 const asCity=value=>norm(value).replace(/[’']/g,"'").replace(/[-\s]+/g,' ');
+const RECORD_FIELDS='lib_for_voe_ins,fil_lib_voe_acc,g_ea_lib_vx,ville_etab,region_etab_aff,lien_form_psup,cod_aff_form,taux_acces_ens,part_acces_pro,pct_bp';
+function courseQuery(course){
+ const index=COURSES.indexOf(course),label=SEARCH_LABELS[index],partial=index===13;
+ const types=course.startsWith('BTS')?['BTS']:course.startsWith('BUT')?['BUT']:
+  course.startsWith('Licence')?['Licence','Licence_Las']:['Autre formation'];
+ const type='('+types.map(value=>'fili='+quoted(value)).join(' OR ')+')';
+ const filter=partial?'search(fil_lib_voe_acc, '+quoted(label)+')':'fil_lib_voe_acc='+quoted(label);
+ return {types,label,partial,conditions:type+' AND '+filter};
+}
+async function fetchCourseRecords(course,zone,limit,offset,signal){
+ if(zone===null)return {results:[],total_count:0};
+ return fetchRecords({
+  select:RECORD_FIELDS,where:'session=2025 AND '+courseQuery(course).conditions+zone,
+  order_by:'ville_etab, g_ea_lib_vx, cod_aff_form',limit,offset
+ },signal);
+}
 
 function resetSearch(){
  searchRequest?.abort();
@@ -657,7 +862,7 @@ function renderSearch(){
   return '<article class="co-data-card" tabindex="-1"><div class="co-data-head"><div><h3>'+esc(f.place)+'</h3><p>'+esc(f.city)+' · '+esc(f.title)+'</p></div>'+
    anchor(sourceUrl(r.lien_form_psup),'Fiche Parcoursup')+'</div>'+
    '<div class="co-result-footer"><span>Taux d’accès 2025 '+help('admission')+' <strong>'+formatPct(f.rate)+'</strong></span>'+
-   (found?'<span class="co-kept">Dans mes choix</span>':'<button type="button" class="co-btn co-small co-primary" data-co-add-result="'+i+'">Garder</button>')+'</div>'+
+   (found?'<button type="button" class="co-btn co-small co-soft" data-co-wish-from="'+i+'">Préparer mes vœux</button>':'<button type="button" class="co-btn co-small co-primary" data-co-add-result="'+i+'">Garder</button>')+'</div>'+
    '<details class="co-optional"><summary>Les chiffres en détail</summary><div class="co-indicator-list">'+
    metrics.map(([label,id,metric])=>'<div><small>'+label+' '+help(id)+'</small><strong>'+formatPct(metric)+'</strong></div>').join('')+'</div></details></article>';
  }).join('')+'</div>'+
@@ -702,15 +907,7 @@ async function search(event,more=false){
  searchRequest=controller;
  try{
   const zone=await resolveZone(city,scope,controller.signal);
-  const type=term.startsWith('BTS')?'fili="BTS"':term.startsWith('BUT')?'fili="BUT"':
-   term.startsWith('Licence')?'(fili="Licence" OR fili="Licence_Las")':'fili="Autre formation"';
-  const label=quoted(SEARCH_LABELS[index]);
-  const filter=index===13?'search(fil_lib_voe_acc, '+label+')':'fil_lib_voe_acc='+label;
-  const result=zone===null?{results:[],total_count:0}:await fetchRecords({
-   select:'lib_for_voe_ins,fil_lib_voe_acc,g_ea_lib_vx,ville_etab,lien_form_psup,cod_aff_form,taux_acces_ens,part_acces_pro,pct_bp',
-   where:'session=2025 AND '+type+' AND '+filter+zone,
-   order_by:'ville_etab, g_ea_lib_vx, cod_aff_form',limit:PAGE_SIZE,offset:(searchPage-1)*PAGE_SIZE
-  },controller.signal);
+  const result=await fetchCourseRecords(term,zone,PAGE_SIZE,(searchPage-1)*PAGE_SIZE,controller.signal);
   if(searchRequest!==controller)return;
   const previous=records.length;
   records.push(...result.results);
@@ -755,7 +952,7 @@ async function importFile(file){
   localStorage.setItem(KEY,JSON.stringify(obj.project));
   letterStudio?.dispose();letterStudio=null;
   careerStudio?.dispose();careerStudio=null;
-  resetSearch();aiRequest?.abort();profile=read();compared.clear();aiResult=null;tabData=null;
+  resetSearch();cancelWishRequest();searchCareer='';aiRequest?.abort();profile=read();wishMain=profile.wish_plan?.main||'';compared.clear();aiResult=null;tabData=null;
   refresh();status('Projet importé et enregistré dans ce navigateur.');
  }catch(e){status('Import impossible : '+(e?.message||'fichier invalide'),true);}
 }
@@ -765,7 +962,7 @@ function erase(){
  try{localStorage.removeItem(KEY);}catch{}
  letterStudio?.dispose();letterStudio=null;
  careerStudio?.dispose();careerStudio=null;
- resetSearch();aiRequest?.abort();profile=dflt();compared.clear();aiResult=null;tabData=null;
+ resetSearch();cancelWishRequest();wishMain='';searchCareer='';aiRequest?.abort();profile=dflt();compared.clear();aiResult=null;tabData=null;
  refresh();status('Le projet local a été effacé.');
 }
 function refresh(){
@@ -792,7 +989,7 @@ function click(event){
   if(profile.interests.includes(k))profile.interests=profile.interests.filter(x=>x!==k);
   else if(profile.interests.length<5)profile.interests.push(k);
   else{status('Choisis cinq centres d’intérêt maximum.',true);return;}
-  aiResult=null;persist();renderInterests();renderGoalInfo();renderSuggestions();renderAlbert();return;
+  cancelWishRequest();aiResult=null;persist(true);renderInterests();renderGoalInfo();renderSuggestions();renderAlbert();return;
  }
  const tabButton=el.closest('[data-co-tab]');
  if(tabButton){openTab(tabButton.dataset.coTab,!tabButton.closest('.co-step-navigation'));return;}
@@ -800,11 +997,38 @@ function click(event){
  const course=el.closest('[data-co-keep-course]');
  if(course){keepCourse(course.dataset.coKeepCourse);return;}
  const explore=el.closest('[data-co-explore-course]');
- if(explore){exploreCourse(explore.dataset.coExploreCourse);return;}
+ if(explore){exploreCourse(explore.dataset.coExploreCourse,explore.dataset.coCareer);return;}
  const row=el.closest('[data-co-add-result]');
- if(row){const n=Number(row.dataset.coAddResult),rec=records[n];if(rec){keepCourse(tabData,rec);renderSearch();$('co-results').querySelectorAll('.co-data-card')[n]?.focus({preventScroll:true});}return;}
+ if(row){
+  const n=Number(row.dataset.coAddResult),rec=records[n];
+  if(rec&&keepCourse(tabData,rec,searchCareer)){
+   if(!currentWishPlan()&&!wishMain&&completeWish(wishForRecord(tabData,rec,searchCareer)))wishMain=clean(rec.cod_aff_form);
+   renderSearch();$('co-results').querySelectorAll('.co-data-card')[n]?.focus({preventScroll:true});
+  }
+  return;
+ }
+ const from=el.closest('[data-co-wish-from]');
+ if(from){
+  const code=clean(records[Number(from.dataset.coWishFrom)]?.cod_aff_form);
+  if(code){
+   if(wishMain!==code)cancelWishRequest();
+   wishMain=code;openTab('pistes',true);
+   if(!currentWishPlan())buildWishPlan();
+  }
+  return;
+ }
+ if(el.closest('[data-co-build-wishes]')){buildWishPlan();return;}
+ const proposal=el.closest('[data-co-keep-proposal]');
+ if(proposal){
+  const index=Number(proposal.dataset.coKeepProposal);
+  const choice=currentWishPlan()?.suggestions[index]?.choice;
+  if(choice&&keepWish(choice)){
+   $('co-wish-plan').querySelectorAll('.co-wish-proposal')[index]?.querySelector('a')?.focus({preventScroll:true});
+  }
+  return;
+ }
  if(el.closest('[data-co-more-results]')){search(null,true);return;}
- if(el.closest('[data-co-wide-search]')){$('co-mobility').value='france';profile.mobility='france';aiResult=null;renderAlbert();resetSearch();persist(true);search();return;}
+ if(el.closest('[data-co-wide-search]')){cancelWishRequest();$('co-mobility').value='france';profile.mobility='france';aiResult=null;renderAlbert();resetSearch();persist(true);search();return;}
  if(el.closest('[data-co-career-return]')){profile.entry_mode='metier';persist(true);openTab('projet');return;}
  const letterWish=el.closest('[data-co-letter-wish]');
  if(letterWish){
@@ -826,11 +1050,14 @@ function input(e){
 }
 function change(e){
  const t=e.target;
+ if(t?.id==='co-wish-main'){
+  cancelWishRequest();wishMain=t.value;renderWishPlan();$('co-wish-main')?.focus();return;
+ }
  if(t?.id==='co-bac'){changeBac(t.value);return;}
- if(t?.id==='co-goal'){resetSearch();profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;aiResult=null;persist(true);renderGoalInfo();renderSuggestions();renderAlbert();}
+ if(t?.id==='co-goal'){resetSearch();profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;searchCareer='';aiResult=null;persist(true);renderGoalInfo();renderSuggestions();renderAlbert();}
  if(t?.id==='co-city')persist(true);
- if(t?.id==='co-mobility'){profile.mobility=t.value;aiResult=null;renderAlbert();resetSearch();persist(true);renderSearch();}
- if(t?.id==='co-search-course'){tabData=t.value;resetSearch();renderSearch();}
+ if(t?.id==='co-mobility'){cancelWishRequest();profile.mobility=t.value;aiResult=null;renderAlbert();resetSearch();persist(true);renderSearch();}
+ if(t?.id==='co-search-course'){tabData=t.value;searchCareer='';resetSearch();renderSearch();}
  if(t?.hasAttribute('data-co-compare')){
   const wish=profile.wishes[Number(t.dataset.coCompare)];
   if(!wish)return;
@@ -848,7 +1075,7 @@ function change(e){
 function mount(el,entry){
  if(!el)return;
  dispose();
- root=el;profile=read();compared.clear();
+ root=el;profile=read();wishMain=profile.wish_plan?.main||'';compared.clear();
  if(entry==='metier'||entry==='formation')profile.entry_mode=entry;
 tab='projet';records=[];tabData=null;aiResult=null;showAllSuggestions=false;
  root.classList.add('co-v2');
@@ -867,8 +1094,8 @@ function dispose(){
  letterStudio?.dispose();letterStudio=null;
  careerStudio?.dispose();careerStudio=null;
  if(root){root.removeEventListener('click',click);root.removeEventListener('input',input);root.removeEventListener('change',change);}
- resetSearch();aiRequest?.abort();aiRequest=null;aiBusy=false;root=null;
+ resetSearch();cancelWishRequest();wishMain='';searchCareer='';aiRequest?.abort();aiRequest=null;aiBusy=false;root=null;
 }
 window.addEventListener('pagehide',()=>{if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}});
-window.CORTEX_ORIENTATION={mount,dispose,version:'5.0'};
+window.CORTEX_ORIENTATION={mount,dispose,version:'5.1'};
 })();

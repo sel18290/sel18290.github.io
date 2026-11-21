@@ -70,3 +70,7 @@ body.cortex-noctis .cs-demo-storage-note {
  .cs-stage-local-banner,.cs-local-mode-note,.cs-stage-real-unavailable{padding:12px}
  .cs-local-mode-note a,.cs-stage-real-unavailable a{width:100%}
 }
+
+/* Les deux cartes locales comportent une étiquette supplémentaire. */
+body.cortex-noctis .portal-entry-option:has(.cs-demo-local-tag){grid-template-rows:auto auto 1fr auto}
+body.cortex-noctis .portal-entry-option .cs-demo-local-tag{justify-self:start;align-self:start}

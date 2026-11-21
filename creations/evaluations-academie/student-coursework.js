@@ -363,8 +363,34 @@ if(qr||globalPortal){
   if(exam.doc)subject.append(E('div','cw-student-common-doc',exam.doc));
   if(exam.duration)subject.append(E('p','cw-student-rules','Durée : '+exam.duration+' minutes.'));
   if(current.subject){
-   const file=E('a','cw-student-document','📄 Consulter le document : '+current.subject.name);
-   file.href=current.subject.url;file.target='_blank';file.rel='noopener';subject.append(file);
+   const subjectName=String(current.subject.name||'Document du contrôle');
+   subject.append(button('📄 Consulter le document dans CORTEX : '+subjectName,
+    'cw-student-document cw-protected-subject-open',()=>{
+     // La visionneuse intégrée conserve le filigrane ; un onglet PDF externe
+     // échappe au contrôle de la page et peut afficher le document sans marque.
+     const modal=E('dialog','cw-protected-subject-dialog');
+     modal.setAttribute('aria-label','Document de l’évaluation : '+subjectName);
+     const head=E('header','cw-protected-subject-header');
+     head.append(E('strong','',subjectName));
+     const original=E('a','','Ouvrir l’original si nécessaire');
+     original.href=current.subject.url;
+     original.target='_blank';original.rel='noopener noreferrer';
+     original.title='Le document externe peut être affiché sans filigrane.';
+     const close=E('button','','Fermer');
+     close.type='button';
+     close.addEventListener('click',()=>modal.close());
+     head.append(original,close);
+     const viewer=E('iframe','cw-protected-subject-viewer');
+     viewer.src=current.subject.url;
+     viewer.title='Document pédagogique : '+subjectName;
+     viewer.referrerPolicy='no-referrer';
+     const note=E('p','cw-protected-subject-note',
+      'Le filigrane reste visible dans cette visionneuse. Les lecteurs externes ou téléchargements ne permettent pas de garantir le marquage.');
+     modal.append(head,viewer,note);
+     document.body.append(modal);
+     modal.addEventListener('close',()=>modal.remove(),{once:true});
+     modal.showModal();
+    }));
    subject.append(button('Renouveler le lien du document','cw-outline',()=>loadExam(currentId)));
   }
   work.append(subject);

@@ -19,7 +19,7 @@ pane.innerHTML=[
 '<div class="cortex-dev-kpis">',
 '<article><small>Sessions cumulées</small><strong data-dev-stat="visits">—</strong><span>Depuis le premier comptage</span></article>',
 '<article><small>En ligne (2 min)</small><strong data-dev-stat="online">—</strong><span>Sessions récemment actives</span></article>',
-'<article><small>Ouvertures PFMP</small><strong data-dev-stat="pfmp">—</strong><span>Sur la période</span></article>',
+'<article><small>Sessions PFMP</small><strong data-dev-stat="pfmp">—</strong><span>Sur la période</span></article>',
 '<article><small>Questions Albert suivies</small><strong data-dev-stat="albert">—</strong><span>Thèmes anonymisés</span></article>',
 '</div><div class="cortex-dev-panels">',
 '<section class="cortex-dev-card cortex-dev-wide"><div class="cortex-dev-card-head"><h3>Évolution quotidienne</h3><small>PFMP et questions Albert</small></div><div class="cortex-dev-bars" data-dev-bars role="img" aria-label="Histogramme quotidien des usages"></div></section>',
@@ -123,7 +123,7 @@ function draw(stats){
  list('[data-dev-questions]',group(rows,x=>['albert_help_eleve','albert_help_prof','pfmp_albert'].includes(x.kind),x=>display(x.category)),'Les thèmes fréquents apparaîtront après les premières questions.');
  list('[data-dev-custom]',group(rows,x=>x.kind==='custom_sector',x=>x.category),'Aucune filière supplémentaire ajoutée depuis le début du suivi.');
  list('[data-dev-features]',group(rows,x=>['pfmp_open','pfmp_cv','pfmp_contact','pfmp_albert'].includes(x.kind),x=>({
-  pfmp_open:'Ouvrir PFMP',pfmp_cv:'Atelier CV et lettre',
+  pfmp_open:'Sessions PFMP',pfmp_cv:'Atelier CV et lettre',
   pfmp_contact:'Prendre contact',pfmp_albert:'Albert PFMP'}[x.kind])),'Aucun usage enregistré.');
  list('[data-dev-sources]',group(rows,x=>x.kind.startsWith('pfmp_'),x=>x.source==='demo'?'Démonstration':'Espace réel'),'Aucun événement PFMP enregistré.');
  chart(rows);

@@ -133,7 +133,7 @@ Deno.serve(async(req:Request)=>{
    reference:String(row.id).slice(0,8),
    status:delivered?'sent':'pending',
    note:delivered?'Message envoyé par e-mail après validation Albert.':
-     'Message approuvé par Albert et conservé dans la boîte CORTEX. Envoi automatique par e-mail non configuré ou temporairement indisponible.'
+     'Message approuvé par Albert et conservé dans la boîte CORTEX. Transmission automatique vers cortexgenesis1@gmail.com en attente de confirmation.'
   });
  }catch(e){
   console.error('cortex-feedback.error',String(e).slice(0,120));

@@ -1,6 +1,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 import {validRealEntry} from '../_shared/real-entry-ticket.ts';
+import {PDFDocument, StandardFonts, degrees, rgb} from 'npm:pdf-lib@1.17.1';
 
 const URL=Deno.env.get('SUPABASE_URL')||'';
 const SECRET=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
@@ -221,6 +222,71 @@ async function signed(path,expiry=90){
  const {data,error}=await admin.storage.from(BUCKET).createSignedUrl(path,expiry);
  if(error)throw Error('Impossible de préparer le téléchargement du document.');
  return data?.signedUrl||null;
+}
+// PDF marqué dans son contenu. Le chemin original de stockage n'est jamais
+// envoyé au navigateur lorsque le filigrane d'épreuve est activé.
+function isPdfSubject(access){
+ return String(access?.subject_mime||'').toLowerCase()==='application/pdf'
+  || /\.pdf$/i.test(String(access?.subject_name||''));
+}
+function mustMarkSubject(assessment,access){
+ const c=assessment?.content?.antiCheat||{};
+ return c.enabled===true&&c.watermarkCapture===true&&isPdfSubject(access);
+}
+async function generatePersonalSubject(assessment,access,studentNumber){
+ const path=String(access?.subject_path||'');
+ // Le chemin vient exclusivement du contrôle authentifié (jamais du client).
+ if(!path||!path.startsWith('subjects/'+assessment.teacher_id+'/'+assessment.id+'/')||!path.toLowerCase().endsWith('.pdf'))
+  throw Error('Le sujet PDF sécurisé est indisponible.');
+ const {data:file,error}=await admin.storage.from(BUCKET).download(path);
+ if(error||!file)throw Error('Impossible de récupérer ce document PDF.');
+ if(file.size>8388608)throw Error('Document trop volumineux pour le marquage.');
+ const original=new Uint8Array(await file.arrayBuffer());
+ if(original.length<5||!new TextDecoder().decode(original.slice(0,5)).startsWith('%PDF-'))
+  throw Error('Fichier PDF non valide.');
+ let pdf;
+ try{pdf=await PDFDocument.load(original,{updateMetadata:false})}
+ catch{throw Error('Ce PDF ne peut pas être marqué. Contacte le professeur pour fournir un PDF non chiffré.');}
+ const pages=pdf.getPages();
+ if(!pages.length||pages.length>50)throw Error('Le document doit comporter entre 1 et 50 pages.');
+ const {data:classRow}=assessment.class_id
+  ?await admin.from('cortex_teacher_classes').select('code').eq('id',assessment.class_id).eq('teacher_id',assessment.teacher_id).maybeSingle()
+  :{data:null};
+ const cls=String(classRow?.code||'CLASSE').normalize('NFD')
+  .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9_-]/gi,'_').slice(0,24).toUpperCase();
+ const number=String(studentNumber).padStart(2,'0');
+ const text='CORTEX  '+cls+'  ELEVE N '+number;
+ const label='CORTEX | '+cls+' | ELEVE N '+number;
+ const font=await pdf.embedFont(StandardFonts.HelveticaBold);
+ for(const page of pages){
+  const {width,height}=page.getSize();
+  const size=Math.max(9,Math.min(14,width/40));
+  const spacing=Math.max(155,width/3);
+  for(let y=-40;y<height+100;y+=110){
+   for(let x=-120;x<width+100;x+=spacing){
+    page.drawText(text,{
+     x,y,size,font,rotate:degrees(24),
+     color:rgb(.5,.12,.19),opacity:.23
+    });
+   }
+  }
+  page.drawRectangle({x:0,y:0,width,height:27,color:rgb(.94,.97,.99),opacity:.94});
+  page.drawText(label,{x:15,y:9,size:Math.min(10,size),font,color:rgb(.13,.33,.48)});
+ }
+ pdf.setSubject('Document CORTEX attribue a '+cls+' / numero '+number);
+ pdf.setProducer('CORTEX - version filigranee par eleve');
+ const output=await pdf.save({useObjectStreams:true});
+ if(output.length>14000000)throw Error('Document marqué trop volumineux pour le téléchargement.');
+ return new Response(output,{
+  status:200,headers:{
+   'Content-Type':'application/pdf',
+   'Content-Disposition':'inline; filename="CORTEX_sujet_'+cls+'_N'+number+'.pdf"',
+   'Cache-Control':'private, no-store, max-age=0',
+   'X-Content-Type-Options':'nosniff',
+   'Access-Control-Allow-Origin':ORIGIN,
+   'Vary':'Origin'
+  }
+ });
 }
 async function upload(file,path){
  const meta=checkedFile(file);
@@ -896,6 +962,10 @@ async function studentAction(action,body,form){
   return ret({ok:true,session:token,student_number:number});
  }
  const {session,access,assessment}=await activeStudent(String(body.session||''),String(body.assessment_id||''));
+ if(action==='student_subject_pdf'){
+  if(!mustMarkSubject(assessment,access))throw Error('Aucune version PDF filigranée prévue pour ce contrôle.');
+  return await generatePersonalSubject(assessment,access,session.student_number);
+ }
  if(action==='student_presence'){
   const cfg=assessment.content?.antiCheat;
   if(cfg?.enabled!==true||cfg.trackLive!==true||!access.active)return ret({ok:true,recorded:false});
@@ -967,7 +1037,11 @@ async function studentAction(action,body,form){
       if(type==='fill')visible.blanks=Array.isArray(q.blanks)?q.blanks.slice(0,10).map(x=>String(x).slice(0,120)):[];
       return visible;
      }),assets,antiCheat:raw.antiCheat||{},doc:String(raw.doc||'').slice(0,12000),duration:Math.max(5,Math.min(240,Number(raw.duration)||60))},
-    student_number:session.student_number,attempt,reassigned_number:reassignedNumber,server_now:Date.now(),subject:access.subject_path?{name:access.subject_name,url:await signed(access.subject_path,600)}:null,
+    student_number:session.student_number,attempt,reassigned_number:reassignedNumber,server_now:Date.now(),subject:access.subject_path?{
+     name:access.subject_name,mime_type:access.subject_mime||null,
+     watermarked:mustMarkSubject(assessment,access),
+     url:mustMarkSubject(assessment,access)?null:await signed(access.subject_path,600)
+    }:null,
     submission:submission?{submitted_at:submission.submitted_at,auto_submitted:submission.auto_submitted,answers:submission.answers,file_name:submission.file_name,
       file_url:submission.file_path?await signed(submission.file_path,600).catch(()=>null):null,
       graded:show,grade:show?submission.grade:null,feedback:show?submission.feedback:null}:null});

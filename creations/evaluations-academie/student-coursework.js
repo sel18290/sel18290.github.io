@@ -5,7 +5,7 @@ import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.8-no-drag';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.2-no-drag';
-import {openProtectedPdf} from './student-protected-pdf.js?v=1.1-canvas';
+import {openProtectedPdf} from './student-protected-pdf.js?v=1.2-pdf-watermark';
 import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 
 const params=new URLSearchParams(location.search);
@@ -368,14 +368,25 @@ if(qr||globalPortal){
   if(current.subject){
    const subjectName=String(current.subject.name||'Document du contrôle');
    subject.append(button('📄 Consulter le document dans CORTEX : '+subjectName,
-    'cw-student-document cw-protected-subject-open',()=>{
+    'cw-student-document cw-protected-subject-open',async()=>{
      // La visionneuse PDF rasterise les pages : le lecteur natif ne peut plus
      // sélectionner et copier le texte lorsque le mode anti-copie est actif.
      // Le contenu accessible dans le navigateur n'est toutefois jamais secret.
      const protectedMode=settings.enabled===true&&settings.blockCopy===true;
-     if(/\.pdf(?:$|\?)/i.test(subjectName)||/\.pdf(?:$|\?)/i.test(current.subject.url)||
+     if(/\.pdf(?:$|\?)/i.test(subjectName)||/\.pdf(?:$|\?)/i.test(String(current.subject.url||''))||
         /application\/pdf/i.test(String(current.subject.mime_type||current.subject.content_type||current.subject.type||''))){
-       openProtectedPdf({url:current.subject.url,name:subjectName,protectedMode});
+       if(current.subject.watermarked===true){
+        // Le serveur vérifie la session et ajoute le filigrane dans le PDF.
+        // Le document original ne figure plus dans la réponse student_get.
+        const response=await api('student_subject_pdf',{session:token,assessment_id:exam.id});
+        const url=URL.createObjectURL(response.blob);
+        try{
+         openProtectedPdf({url,name:subjectName,protectedMode,watermarked:true,
+          onClose:()=>URL.revokeObjectURL(url)});
+        }catch(error){URL.revokeObjectURL(url);throw error}
+       }else{
+        openProtectedPdf({url:current.subject.url,name:subjectName,protectedMode});
+       }
        return;
      }
      // Les documents non-PDF ne sont pas rasterisés. Pour ne pas faire croire

@@ -11,6 +11,7 @@ export function sourceFigure(asset) {
  const figure=element('figure','cw-student-source-figure');
  const image=element('img');
  image.src=asset.url;
+ image.draggable=false;
  image.alt='Extrait pédagogique : '+title;
  image.loading='lazy';
  image.decoding='async';
@@ -45,6 +46,7 @@ function openSource(figure, url, title) {
  const image=element('img');
  image.alt=title;
  image.src=url;
+ image.draggable=false;
  image.addEventListener('error',()=>{
   view.replaceChildren(element('p','','Cette capture est inaccessible. Ouvre le sujet original depuis le contrôle.'));
   zoom.disabled=true;

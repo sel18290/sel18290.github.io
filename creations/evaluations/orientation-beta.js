@@ -491,6 +491,7 @@ function renderLetter(){
   defaultCourses:()=>FITS[profile.bac_origin].direct.map(i=>COURSES[i]),
   bacLabel:id=>FILIERES[id]?.label||FILIERES.accueil.label,
   courseOptions:(selected,placeholder)=>courseOptions(selected,placeholder),
+  courseGuidance:course=>aboutCourse(course),
   save:()=>persist(true)
  });
  else letterStudio.refresh();

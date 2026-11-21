@@ -1,0 +1,217 @@
+/* CORTEX Orientation V4 : deux points de départ complémentaires, direction artistique PFMP.
+ * Privilégier des étapes compréhensibles et des chemins de formation factuels,
+ * jamais un jugement du potentiel de l'élève.
+ */
+#cortex-orientation.co-v2 .co-v4-path[hidden]{display:none!important}
+#cortex-orientation.co-v2 .co-v4-entry{
+ margin:0 0 18px;padding:clamp(18px,3vw,30px);border:1px solid #5f7e90;border-radius:20px;
+ background:linear-gradient(125deg,#0d1c2b,#142b3b 68%,#133b3a);box-shadow:0 12px 35px #030b172d;
+ color:#f0fbff;display:grid;gap:21px
+}
+#cortex-orientation.co-v2 .co-v4-entry-heading span{
+ display:block;color:#a2edda;font:700 11px/1.5 'IBM Plex Mono',Consolas,monospace;letter-spacing:.12em;margin-bottom:8px
+}
+#cortex-orientation.co-v2 .co-v4-entry-heading h2{
+ color:#f4fcff;font-size:clamp(23px,2.8vw,32px);line-height:1.18;letter-spacing:-.04em;margin:0 0 10px;font-weight:810
+}
+#cortex-orientation.co-v2 .co-v4-entry-heading p{
+ color:#c8dae0;font-size:13px;line-height:1.75;margin:0;max-width:760px
+}
+#cortex-orientation.co-v2 .co-v4-entry-heading b{color:#e4fcf4}
+#cortex-orientation.co-v2 .co-v4-entry-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#cortex-orientation.co-v2 .co-v4-entry-choice button{
+ min-width:0;display:flex;align-items:flex-start;gap:16px;min-height:115px;
+ background:#102538;border:1px solid #47697e;color:#edf8fc;border-radius:14px;
+ padding:19px 19px;text-align:left;cursor:pointer;transition:background .16s,border-color .16s
+}
+#cortex-orientation.co-v2 .co-v4-entry-choice button:hover{background:#19364b;border-color:#83b4ad}
+#cortex-orientation.co-v2 .co-v4-entry-choice button.active{
+ background:linear-gradient(135deg,#173f40,#1d4c48);border:2px solid #9be9d5;
+ padding:18px 18px;box-shadow:inset 0 -3px #9be9d5,0 0 0 3px #a7eede17
+}
+#cortex-orientation.co-v2 .co-v4-entry-choice button>span:nth-child(2){display:grid;gap:8px;flex:1;min-width:0}
+#cortex-orientation.co-v2 .co-v4-entry-choice strong{font-size:16px;color:#fff;line-height:1.35;font-weight:825}
+#cortex-orientation.co-v2 .co-v4-entry-choice small{font-size:12px;line-height:1.65;color:#c6d9e1}
+#cortex-orientation.co-v2 .co-v4-entry-icon{
+ display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;
+ font-size:22px;color:#b5f5df;background:#1b4747;border:1px solid #4b9485;border-radius:12px
+}
+#cortex-orientation.co-v2 .co-v4-entry-choice button>b{font-size:11px;color:#b4d8d7;font-weight:800}
+#cortex-orientation.co-v2 .co-v4-layout{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:16px;align-items:start}
+#cortex-orientation.co-v2 .co-v4-card,#cortex-orientation.co-v2 .co-v4-output{
+ border:1px solid #bacfdb;border-radius:19px;background:linear-gradient(135deg,#fff,#f0f5f8);
+ color:#18384a;box-shadow:0 10px 32px #06162635;min-width:0;overflow:hidden
+}
+#cortex-orientation.co-v2 .co-v4-mast{
+ padding:25px 24px 22px;background:linear-gradient(127deg,#0e2133,#1a3a47);color:white;border-radius:16px 16px 0 0
+}
+#cortex-orientation.co-v2 .co-v4-mast>span{
+ font:700 10px/1.5 'IBM Plex Mono',Consolas,monospace;letter-spacing:.09em;color:#abeadb
+}
+#cortex-orientation.co-v2 .co-v4-mast h2{
+ font-size:clamp(24px,3.2vw,39px);font-weight:830;line-height:1.12;letter-spacing:-.054em;
+ color:#f7fcff;margin:9px 0 11px
+}
+#cortex-orientation.co-v2 .co-v4-mast h2 em{font-style:normal;color:#b9f5e4;font-family:Georgia,serif;font-weight:400}
+#cortex-orientation.co-v2 .co-v4-mast p{color:#d9e9f0;font-size:12px;line-height:1.75;margin:0}
+#cortex-orientation.co-v2 .co-v4-form{padding:22px 22px 24px;display:grid;gap:17px}
+#cortex-orientation.co-v2 .co-v4-step-heading{display:flex;align-items:start;gap:13px}
+#cortex-orientation.co-v2 .co-v4-step-num{
+ display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;border-radius:9px;
+ background:#deefe9;color:#176553;border:1px solid #a2d5c3;font-weight:870;font-size:13px
+}
+#cortex-orientation.co-v2 .co-v4-step-heading h3{font-size:16px;color:#1e4657;margin:0 0 6px;line-height:1.35;font-weight:820}
+#cortex-orientation.co-v2 .co-v4-step-heading p{font-size:11px;line-height:1.7;color:#627989;margin:0}
+#cortex-orientation.co-v2 .co-v4-second{margin-top:4px}
+#cortex-orientation.co-v2 .co-v4-job-label{display:block;color:#1f5060;font-weight:820;font-size:12px;margin-bottom:-10px}
+#cortex-orientation.co-v2 .co-v4-job-input{display:flex;min-width:0;gap:8px}
+#cortex-orientation.co-v2 .co-v4-job-input input{
+ min-width:0;flex:1;height:51px;padding:12px 14px;border:1px solid #a7c3ce;
+ background:#fff;border-radius:10px;color:#183b4d;font:650 14px/1.4 inherit
+}
+#cortex-orientation.co-v2 .co-v4-job-input input::placeholder{color:#8198a7;font-weight:500}
+#cortex-orientation.co-v2 .co-v4-job-input>button{
+ flex:0 0 49px;background:#1e625d;color:#fff;border:1px solid #2a786c;
+ border-radius:10px;font-size:23px;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-v4-job-picker{display:grid;gap:13px}
+#cortex-orientation.co-v2 .co-v4-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#cortex-orientation.co-v2 .co-v4-categories button{
+ padding:10px;border:1px solid #c4d5df;border-radius:9px;background:#f4f8fa;color:#2f566a;
+ font-size:11px;font-weight:750;text-align:left;line-height:1.55;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-v4-categories button.active{background:#dff2eb;border-color:#72b9a2;color:#185e51}
+#cortex-orientation.co-v2 .co-v4-job-chips{display:flex;flex-wrap:wrap;gap:8px}
+#cortex-orientation.co-v2 .co-v4-job-chips button{
+ font-size:11px;line-height:1.45;font-weight:730;border-radius:99px;padding:9px 12px;
+ background:#fff;border:1px solid #bed3dd;color:#24566a;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-v4-job-chips button:hover{background:#eff9f4;border-color:#79baa6}
+#cortex-orientation.co-v2 .co-v4-job-chips button.active{background:#d7f0e5;border-color:#4b9f84;color:#155945}
+#cortex-orientation.co-v2 .co-v4-nojob{font-size:11px;color:#5f798a;margin:0}
+#cortex-orientation.co-v2 .co-v4-bacs{display:grid;gap:9px}
+#cortex-orientation.co-v2 .co-v4-bacs button{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;padding:12px 15px;
+ text-align:left;background:#fff;border:1px solid #c2d6dc;border-radius:10px;cursor:pointer;
+}
+#cortex-orientation.co-v2 .co-v4-bacs button strong{font-size:12px;color:#274b61;line-height:1.35;font-weight:850}
+#cortex-orientation.co-v2 .co-v4-bacs button small{font-size:11px;color:#637b87;grid-column:1}
+#cortex-orientation.co-v2 .co-v4-bacs button span{font-size:14px;grid-column:2;grid-row:1 / span 2;color:#16735e}
+#cortex-orientation.co-v2 .co-v4-bacs button.active{background:#e4f5ed;border:2px solid #58a690;padding:11px 14px}
+#cortex-orientation.co-v2 .co-v4-bacs button.active strong{color:#155b4c}
+#cortex-orientation.co-v2 .co-v4-interests{padding:13px 15px;background:#f3f8fa;border:1px solid #d0e0e6;border-radius:10px}
+#cortex-orientation.co-v2 .co-v4-interests summary{font-weight:800;font-size:12px;color:#2a5f70;cursor:pointer}
+#cortex-orientation.co-v2 .co-v4-interests summary span{color:#708798;font-weight:520}
+#cortex-orientation.co-v2 .co-v4-interests p{color:#667f8b;font-size:11px;line-height:1.65}
+#cortex-orientation.co-v2 .co-v4-interests-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+#cortex-orientation.co-v2 .co-v4-interests-tags button{
+ background:#fff;border:1px solid #c3d7e0;border-radius:8px;padding:8px 11px;
+ font-size:11px;font-weight:750;color:#315b6f
+}
+#cortex-orientation.co-v2 .co-v4-interests-tags button.active{color:#115949;background:#dbf2e9;border-color:#7ab9a6}
+#cortex-orientation.co-v2 .co-v4-submit{display:grid;gap:10px;margin-top:4px}
+#cortex-orientation.co-v2 .co-v4-submit .co-v4-primary{
+ width:100%;min-height:53px;padding:12px 15px;background:#115f55;color:#f2fffa;
+ border:1px solid #0e5c54;border-radius:11px;font-weight:850;font-size:12px;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-v4-submit .co-v4-primary:hover:not(:disabled){background:#197568}
+#cortex-orientation.co-v2 .co-v4-submit .co-v4-primary:disabled{opacity:.6;cursor:wait}
+#cortex-orientation.co-v2 .co-v4-submit p{font-size:10px;line-height:1.7;color:#657c88;margin:0}
+#cortex-orientation.co-v2 .co-v4-placeholder{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:17px;min-height:430px;padding:42px 22px;background:#f9fcfd;color:#24495b;text-align:center
+}
+#cortex-orientation.co-v2 .co-v4-placeholder-mark{
+ font-size:37px;color:#2d907d;display:grid;place-items:center;background:#e4f6ee;
+ border:1px solid #a2cfc0;border-radius:50%;width:80px;height:80px
+}
+#cortex-orientation.co-v2 .co-v4-placeholder strong{font-size:19px;line-height:1.4;color:#1d465a}
+#cortex-orientation.co-v2 .co-v4-placeholder p{font-size:12px;color:#668190;line-height:1.8;max-width:330px;margin:0}
+#cortex-orientation.co-v2 .co-v4-placeholder .co-v4-stale{color:#976b42;background:#fff7e9;padding:10px;border-radius:9px}
+#cortex-orientation.co-v2 .co-v4-promise{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;margin-top:9px;color:#54717f;font-size:10px;line-height:1.5}
+#cortex-orientation.co-v2 .co-v4-promise span{color:#147766;font-weight:870}
+#cortex-orientation.co-v2 .co-v4-report{display:grid;gap:0}
+#cortex-orientation.co-v2 .co-v4-report-hero{padding:23px 25px 22px;background:#e6f4f0;color:#1f514a;border-bottom:1px solid #c5dcd5}
+#cortex-orientation.co-v2 .co-v4-report-hero span{
+ font:750 10px/1.5 'IBM Plex Mono',Consolas,monospace;letter-spacing:.08em;color:#257361
+}
+#cortex-orientation.co-v2 .co-v4-report-hero h3{font-size:clamp(21px,2.5vw,31px);letter-spacing:-.035em;color:#164e45;margin:8px 0}
+#cortex-orientation.co-v2 .co-v4-report-hero p{font-size:12px;color:#44695f;line-height:1.75;margin:0}
+#cortex-orientation.co-v2 .co-v4-verdict{padding:24px;border-bottom:1px solid #d6e3e6;display:grid;gap:12px}
+#cortex-orientation.co-v2 .co-v4-verdict-header{display:flex;gap:13px;align-items:center}
+#cortex-orientation.co-v2 .co-v4-verdict-symbol{display:grid;place-items:center;width:47px;height:47px;flex:0 0 47px;border-radius:12px;font-size:20px;font-weight:900;background:#dff2e7;color:#196a58}
+#cortex-orientation.co-v2 .co-v4-verdict-header small{font-size:10px;letter-spacing:.1em;color:#56788a}
+#cortex-orientation.co-v2 .co-v4-verdict h4{color:#174b55;font-size:18px;line-height:1.3;margin:5px 0 0}
+#cortex-orientation.co-v2 .co-v4-verdict>p{font-size:12px;line-height:1.8;color:#456779;margin:0}
+#cortex-orientation.co-v2 .co-v4-verdict p.co-v4-level-note{color:#285f55;font-size:11px;background:#eff8f5;padding:10px 12px;border-radius:9px}
+#cortex-orientation.co-v2 .co-v4-verdict.co-v4-bridge .co-v4-verdict-symbol{background:#e4eefb;color:#3b6992}
+#cortex-orientation.co-v2 .co-v4-verdict.co-v4-long .co-v4-verdict-symbol{background:#f9ebda;color:#89613a}
+#cortex-orientation.co-v2 .co-v4-check-lists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#cortex-orientation.co-v2 .co-v4-check-lists>div{background:#f5f9fa;padding:12px;border:1px solid #d7e3e7;border-radius:9px;min-width:0}
+#cortex-orientation.co-v2 .co-v4-check-lists strong{font-size:11px;color:#29566a}
+#cortex-orientation.co-v2 .co-v4-check-lists ul{margin:8px 0 0;padding-left:16px;color:#61798b;font-size:11px;line-height:1.7}
+#cortex-orientation.co-v2 .co-v4-routes-header{padding:21px 24px 8px}
+#cortex-orientation.co-v2 .co-v4-routes-header h4{font-size:18px;color:#1d4860;margin:0 0 6px}
+#cortex-orientation.co-v2 .co-v4-routes-header p{font-size:11px;line-height:1.7;color:#668190;margin:0}
+#cortex-orientation.co-v2 .co-v4-route-list{display:grid;gap:13px;padding:13px 20px 22px}
+#cortex-orientation.co-v2 .co-v4-route{display:grid;gap:12px;padding:18px;background:#fff;border:1px solid #c7dae1;border-radius:13px}
+#cortex-orientation.co-v2 .co-v4-route-top{display:grid;gap:6px}
+#cortex-orientation.co-v2 .co-v4-route-top span{color:#21816e;font-size:10px;letter-spacing:.09em;font-weight:850}
+#cortex-orientation.co-v2 .co-v4-route-top strong{color:#1e495d;font-size:15px;line-height:1.5}
+#cortex-orientation.co-v2 .co-v4-course{font-size:11px;line-height:1.65;background:#eaf6f2;border:1px solid #cae6db;color:#2e675f;padding:10px;border-radius:8px;margin:0}
+#cortex-orientation.co-v2 .co-v4-route-why{font-size:11px;line-height:1.7;color:#5c7786;margin:0}
+#cortex-orientation.co-v2 .co-v4-milestones{list-style:none;display:grid;gap:10px;margin:0;padding:0;counter-reset:milestone}
+#cortex-orientation.co-v2 .co-v4-milestones li{counter-increment:milestone;position:relative;display:grid;gap:4px;padding-left:30px}
+#cortex-orientation.co-v2 .co-v4-milestones li:before{content:counter(milestone);position:absolute;left:0;top:0;display:grid;place-items:center;width:22px;height:22px;background:#dcefe8;color:#1e7661;border-radius:7px;font-size:11px;font-weight:870}
+#cortex-orientation.co-v2 .co-v4-milestones li strong{color:#254d60;font-size:12px}
+#cortex-orientation.co-v2 .co-v4-milestones li span{color:#647d8c;font-size:11px;line-height:1.7}
+#cortex-orientation.co-v2 .co-v4-route-first{font-size:11px;color:#355d67;line-height:1.7;background:#f2f7f9;padding:10px 12px;border-radius:8px}
+#cortex-orientation.co-v2 .co-v4-route-buttons{display:flex;flex-wrap:wrap;gap:8px}
+#cortex-orientation.co-v2 .co-v4-route-buttons :is(button,a){display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid #91c3b4;border-radius:8px;background:#e5f5ee;color:#195d50;font-size:11px;font-weight:820;text-decoration:none;cursor:pointer}
+#cortex-orientation.co-v2 .co-v4-route-buttons :is(button,a):hover{background:#cdefdf}
+#cortex-orientation.co-v2 .co-v4-actions{border-top:1px solid #d2e3e6;padding:22px;display:grid;gap:13px}
+#cortex-orientation.co-v2 .co-v4-actions h4{font-size:15px;color:#224c60;margin:0 0 9px}
+#cortex-orientation.co-v2 .co-v4-actions ol{margin:0;padding-left:20px;font-size:12px;line-height:1.8;color:#567080}
+#cortex-orientation.co-v2 .co-v4-links{display:flex;flex-wrap:wrap;gap:8px}
+#cortex-orientation.co-v2 .co-v4-links a{padding:9px 12px;background:#e6f2f8;border:1px solid #bcdae8;border-radius:8px;color:#23638b;font-size:11px;text-decoration:none;font-weight:850}
+#cortex-orientation.co-v2 .co-v4-warning{font-size:11px;color:#876237;background:#fff5e6;border-top:1px solid #e6d1b5;padding:15px 23px;margin:0;line-height:1.7}
+#cortex-orientation.co-v2 .co-v4-disclaimer{font-size:10px;color:#63808c;background:#f2f8fa;padding:15px 23px;line-height:1.75;margin:0}
+#cortex-orientation.co-v2 .co-v4-local-note{margin:12px 0 0;border:1px solid #537e70;background:#112f2f;color:#cfebdf;padding:12px 16px;border-radius:10px;font-size:11px;line-height:1.6}
+#cortex-orientation.co-v2 .co-v4-local-note.is-error{background:#3f2933;border-color:#b26c81;color:#ffe0e5}
+#cortex-orientation.co-v2 .co-v4-wish-career{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#e8f4f1;border:1px solid #beddd1;border-radius:13px;padding:17px 20px;margin:0 0 14px}
+#cortex-orientation.co-v2 .co-v4-wish-career>div{display:grid;gap:6px;flex:1}
+#cortex-orientation.co-v2 .co-v4-wish-career span{color:#217462;font-size:10px;font-weight:850;letter-spacing:.08em}
+#cortex-orientation.co-v2 .co-v4-wish-career strong{font-size:17px;line-height:1.5;color:#234e4b}
+#cortex-orientation.co-v2 .co-v4-wish-career small{color:#5e7b76;font-size:11px}
+#cortex-orientation.co-v2 :is(.co-v4-entry,.co-v4-card,.co-v4-output) :is(button,input,summary,a):focus-visible{outline:3px solid #64bfae;outline-offset:3px}
+@media(max-width:1060px){
+ #cortex-orientation.co-v2 .co-v4-layout{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-v4-output{min-height:280px}
+ #cortex-orientation.co-v2 .co-v4-placeholder{min-height:250px}
+ #cortex-orientation.co-v2 .co-v4-card{max-width:none}
+}
+@media(max-width:660px){
+ #cortex-orientation.co-v2 .co-v4-entry-choice{grid-template-columns:1fr;gap:9px}
+ #cortex-orientation.co-v2 .co-v4-entry-choice button{min-height:90px;padding:14px;gap:12px}
+ #cortex-orientation.co-v2 .co-v4-entry-choice button.active{padding:13px}
+ #cortex-orientation.co-v2 .co-v4-entry-icon{width:35px;height:35px;flex-basis:35px;font-size:18px}
+ #cortex-orientation.co-v2 .co-v4-entry-choice strong{font-size:13px}
+ #cortex-orientation.co-v2 .co-v4-entry-choice small{font-size:11px}
+ #cortex-orientation.co-v2 .co-v4-categories{grid-template-columns:1fr 1fr}
+ #cortex-orientation.co-v2 .co-v4-check-lists{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-v4-form{padding:17px 14px}
+ #cortex-orientation.co-v2 .co-v4-mast{padding:20px 17px}
+ #cortex-orientation.co-v2 .co-v4-verdict{padding:16px}
+ #cortex-orientation.co-v2 .co-v4-report-hero{padding:20px 17px}
+ #cortex-orientation.co-v2 .co-v4-route-list{padding:12px}
+ #cortex-orientation.co-v2 .co-v4-route{padding:14px}
+ #cortex-orientation.co-v2 .co-v4-actions{padding:16px}
+}
+@media(max-width:420px){
+ #cortex-orientation.co-v2 .co-v4-entry{padding:15px 13px}
+ #cortex-orientation.co-v2 .co-v4-categories{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-v4-job-input input{font-size:12px}
+ #cortex-orientation.co-v2 .co-v4-bacs button{padding:11px}
+ #cortex-orientation.co-v2 .co-v4-promise{gap:7px}
+}
+@media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 .co-v4-entry-choice button{transition:none}}

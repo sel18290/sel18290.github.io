@@ -468,7 +468,9 @@ function renderWishes(){
  '<small>'+esc(w.school||'Établissement à préciser')+(w.city?' · '+esc(w.city):'')+'</small>'+
   ((COURSES.includes(w.pathway)||COURSES.includes(w.title))?'<span class="co-wish-classification">'+esc(FAMILIES[familyFor(profile.bac_origin,w.pathway||w.title)].short)+'</span>':'')+
  (pct(w.taux)!==null?'<span class="co-wish-stat">Accès 2025 : '+formatPct(w.taux)+' '+help('admission')+'</span>':'')+'</div>'+
- '<div class="co-wish-actions">'+anchor(sourceUrl(w.url),'Fiche Parcoursup')+'<button type="button" data-co-remove="'+i+'">Retirer</button></div></article>').join('')+'</div>':
+ '<div class="co-wish-actions">'+anchor(sourceUrl(w.url),'Fiche Parcoursup')+
+  ((w.pathway&&COURSES.includes(w.pathway))?'<button type="button" data-co-letter-wish="'+i+'">✍ Préparer ma lettre</button>':'')+
+  '<button type="button" data-co-remove="'+i+'">Retirer</button></div></article>').join('')+'</div>':
  '<div class="co-empty-state"><span>✦</span><h3>Tes possibilités commencent ici</h3><p>Tu peux ajouter des idées sans remplir de dossier Parcoursup.</p><button type="button" class="co-btn co-primary" data-co-tab="projet">Découvrir des idées →</button></div>');
  const tasks=[
  ['fiches','Lire les attendus de deux formations', 'attendus'],
@@ -675,6 +677,15 @@ function click(event){
  if(explore){tabData=explore.dataset.coExploreCourse;records=[];openTab('explorer');return;}
  const row=el.closest('[data-co-add-result]');
  if(row){const n=Number(row.dataset.coAddResult),rec=root._orientationShown?.[n];if(rec){keepCourse(tabData||profile.goal,rec);renderSearch();}return;}
+ const letterWish=el.closest('[data-co-letter-wish]');
+ if(letterWish){
+  const w=profile.wishes[Number(letterWish.dataset.coLetterWish)];
+  if(w&&COURSES.includes(w.pathway)){
+   profile.goal=w.pathway;persist(true);
+   openTab('lettre');letterStudio?.selectWish(w);
+  }
+  return;
+ }
  const remove=el.closest('[data-co-remove]');
  if(remove){const n=Number(remove.dataset.coRemove);if(n>=0&&n<profile.wishes.length){profile.wishes.splice(n,1);persist();renderWishes();renderSuggestions();}return;}
  if(el.closest('[data-co-export]')){download();return;}

@@ -8,6 +8,19 @@ const fail=(error:string,status=400)=>send({ok:false,error},status);
 const clean=(s:unknown,n:number)=>String(s??'').replace(/[\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().slice(0,n);
 const pii=(s:string)=>/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(s)||/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/.test(s)||/sk-[a-z0-9]{14,}/i.test(s);
 const screens=['accueil','tableau-prof','classes','mes-controles','creer','import','copies','publication','qr','eleve','carnet','correction','autre'];
+// Classement de thèmes uniquement : aucun texte de question n'est conservé.
+function questionTheme(raw:string):string{
+ const q=raw.toLowerCase();
+ if(/pfmp|stage|entreprise|lieu|recherche de (stage|pfmp)/.test(q))return 'PFMP';
+ if(/cv|lettre de motivation|candidature/.test(q))return 'CV';
+ if(/pin\b|qr.?code|identifiant|compte/.test(q))return 'PIN';
+ if(/trich|surveill|sortie d'écran|sortie d.ecran|incident/.test(q))return 'Sécurité';
+ if(/pdf|image|schéma|document|import/.test(q))return 'Documents';
+ if(/correc|copie|remettre|rendre/.test(q))return 'Copies';
+ if(/note|estimation|résultat|resultat/.test(q))return 'Notes';
+ if(/contrôle|controle|évaluation|evaluation|question|barème|bareme/.test(q))return 'Contrôles';
+ return 'Autres';
+}
 const site=[
  'CORTEX est un site de démonstration avec des données fictives, distinct de CORTEX Académie réel.',
  'Professeur : Mes classes, Mes contrôles, Créer un contrôle, Importer PDF / Word, Copies & notes, anti-triche, QR codes et publication.',
@@ -251,6 +264,14 @@ Deno.serve(async(req:Request)=>{
   if(guided&&(!screens.includes(screen)||message.length<5||message.length>500))
    return fail('Pose une question de 5 à 500 caractères sur le site.',422);
   if(guided&&pii(message))return fail('N’envoie aucune donnée personnelle à Albert.',422);
+  if(guided){
+   try{
+    await db.rpc('cortex_dev_event_increment',{
+     p_kind:body.action==='student_help'?'albert_help_eleve':'albert_help_prof',
+     p_category:questionTheme(message),p_source:'demo'
+    });
+   }catch{/* Telemetry never blocks guidance */}
+  }
   if(!Deno.env.get('ALBERT_API_KEY'))return fail('La clé Albert est absente du serveur.',503);
   // Le quota quotidien et le délai sont désactivés UNIQUEMENT pour les deux
   // modes du guide flottant. Les analyses de copies conservent leur quota.

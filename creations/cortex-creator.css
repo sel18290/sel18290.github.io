@@ -174,3 +174,28 @@ body.cortex-noctis .cortex-creator-credit .cortex-creator-contact:focus-visible 
 body.cortex-noctis .cortex-creator-credit .cortex-creator-separator {
   margin: 0 5px;
 }
+
+/* Identité professionnelle : toujours sous le nom, y compris sur téléphone. */
+body.cortex-noctis .cortex-creator-credit .cortex-creator-identity{
+ display:block!important;
+ font-weight:650;
+}
+body.cortex-noctis .cortex-creator-credit .cortex-creator-role{
+ display:block!important;
+ margin-top:2px;
+ color:#d9f4fb!important;
+ font-size:12px;
+ font-weight:680;
+ line-height:1.45;
+}
+body.cortex-noctis .cortex-creator-credit .cortex-creator-contact{
+ display:inline-block;
+ margin-top:3px;
+}
+@media(max-width:760px){
+ body.cortex-noctis .cortex-creator-credit .cortex-creator-role{
+  font-size:11px;
+  white-space:normal;
+  overflow-wrap:break-word;
+ }
+}

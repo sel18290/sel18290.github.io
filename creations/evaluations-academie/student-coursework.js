@@ -23,7 +23,7 @@ if(qr||globalPortal){
  let token=null,current=null,currentId=null,classData=null,classList=[],busy=false;
  let validatedLink=null,linkReady=!registrationToken;
  let countdownInterval=null;
- let stageWorkspace=null,openStagesAfterLogin=params.get('rubrique')==='stages';
+ let stageWorkspace=null; // PFMP et Orientation sont uniquement accessibles en démonstration locale.
  const isPhoneExam=mobileExam();
  let mobileController=null, draftEditor=null, clearDraftListeners=null, photoManager=null, examWatermark=null;
  const integrity=window.CORTEX_EXAM_INTEGRITY;
@@ -164,10 +164,7 @@ if(qr||globalPortal){
   stopIntegrity();
   current=null;currentId=null;
   showWork();message('');
-  if(openStagesAfterLogin){
-   openStagesAfterLogin=false;
-   renderStageView();
-  }else renderClass();
+  renderClass();
  }
  async function loadExam(id){
   current=await api('student_get',{session:token,assessment_id:id||undefined});
@@ -179,34 +176,16 @@ if(qr||globalPortal){
   const nav=E('nav','cs-stage-student-tabs');
   nav.setAttribute('aria-label','Rubriques de mon espace élève');
   const controls=button('▤ Mes évaluations','cs-stage-tab'+(active==='controls'?' is-active':''),()=>renderClass());
-  const stages=button('🎓 Recherche de PFMP','cs-stage-tab'+(active==='stages'?' is-active':''),renderStageView);
-  controls.setAttribute('aria-current',active==='controls'?'page':'false');
-  stages.setAttribute('aria-current',active==='stages'?'page':'false');
-  nav.append(controls,stages);
+  const stages=E('span','cs-stage-tab cs-disabled-tool','PFMP · Démonstration uniquement');
+  const orientation=E('span','cs-stage-tab cs-disabled-tool','Orientation · Démonstration uniquement');
+  stages.setAttribute('aria-label','PFMP non disponible dans l’espace réel');
+  orientation.setAttribute('aria-label','Orientation non disponible dans l’espace réel');
+  controls.setAttribute('aria-current','page');
+  nav.append(controls,stages,orientation);
   return nav;
  }
- function renderStageView(){
-  if(stageWorkspace)return;
-  stopIntegrity();
-  releaseEditor();
-  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
-  showWork();message('');
-  const work=$('cw-student-work');work.replaceChildren();
-  work.append(studentTabs('stages'));
-  const stageHost=E('div','cs-stage-host');work.append(stageHost);
-  if(!window.CORTEX_STAGE?.mount){
-   work.append(E('p','cw-student-empty','Recherche de PFMP indisponible. Recharge la page.'));
-   return;
-  }
-  main.classList.add('cs-stage-academy-active');
-  stageWorkspace=window.CORTEX_STAGE.mount(stageHost,{
-   className:classData?.class?.code||'',
-   storageScope:classData?.class?.code&&classData?.student_number?classData.class.code+':'+classData.student_number:'',
-   session:token,demo:false,
-   back:()=>{if(mode==='class')renderClass();else renderExam()}
-  });
-  stageHost.querySelector('h1')?.focus();
- }
+ // Désactivation préventive : aucun montage de PFMP associé à une session réelle.
+ function renderStageView(){ renderClass(); }
  function renderClass(){
   closeStageView();
   stopIntegrity();
@@ -223,11 +202,17 @@ if(qr||globalPortal){
   controls.append(button('Actualiser mes résultats','cw-secondary',loadClass),
    button('Changer de compte','cw-outline',async()=>{reset();await getClasses()}));
   header.append(controls);work.append(header);
-  const stageCard=E('section','cw-student-stage-link');
-  const stageIntro=E('div');
-  stageIntro.append(E('h3','','Préparer ma PFMP'),
-   E('p','','Trouve un lieu de stage, prépare tes messages et suis tes candidatures.'));
-  stageCard.append(stageIntro,button('Recherche de PFMP','cw-secondary',renderStageView));
+  const stageCard=E('section','cw-student-stage-link cs-local-mode-note');
+  stageCard.setAttribute('role','note');
+  stageCard.append(
+   E('strong','','PFMP et Orientation · Non disponibles dans l’espace réel'),
+   E('p','','Dans la démonstration, les projets, candidatures et brouillons sont sauvegardés uniquement dans le navigateur. L’espace réel utilise un stockage sur serveur pour les contrôles et les copies : ces deux modules ne sont donc pas activés ici.'),
+   E('p','','Tu peux les essayer librement en démonstration, sans les associer à ton compte réel.')
+  );
+  const demoLink=E('a','','Ouvrir PFMP et Orientation en démonstration ↗');
+  demoLink.href='../evaluations/#eleve/accueil';
+  demoLink.target='_blank';demoLink.rel='noopener noreferrer';
+  stageCard.append(demoLink);
   const cards=E('div','cw-student-assessment-list'),assessments=classData.assessments||[];
   if(!assessments.length){
    cards.append(E('div','cw-student-empty','Aucun contrôle n’est encore ouvert pour ta classe. Les prochaines évaluations apparaîtront ici.'));

@@ -1,6 +1,6 @@
 /* CORTEX Académie — tableau de bord exactement dans la navigation de la démo,
    rempli UNIQUEMENT avec les tables Supabase du compte connecté. */
-import {api} from './coursework.js?v=2.14-handwriting';
+import {api} from './coursework.js?v=2.15-similarities-pdf';
 
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=String(txt);return n};

@@ -125,6 +125,8 @@ function read(){
  })).filter(w=>w.title):[];
  p.tasks=Array.isArray(x.tasks)?x.tasks.filter(v=>['fiches','parler','bourse','alternance','comparaison'].includes(v)):[];
  p.notes=clean(p.notes).slice(0,1200);
+ const previousInterests=typeof x.interests==='string'?clean(x.interests).slice(0,360):'';
+ if(previousInterests&&!norm(p.notes).includes(norm(previousInterests)))p.notes=('Mes anciens centres d’intérêt : '+previousInterests+'\n'+p.notes).slice(0,1200);
  if(oldGoal&&!p.goal&&!norm(p.notes).includes(norm(oldGoal)))p.notes=('Ancien projet : '+oldGoal+'\n'+p.notes).slice(0,1200);
  return p;
  }catch{return dflt();}

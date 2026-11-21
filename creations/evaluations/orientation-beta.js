@@ -320,6 +320,7 @@ function layout(){
  '<p>Recherche des établissements proposant une formation. Les chiffres décrivent des candidatures passées, pas tes chances personnelles.</p></div>'+
  '<div class="co-explore-controls"><label for="co-search-course">Formation recherchée</label><select id="co-search-course"></select>'+
  '<button type="button" class="co-btn co-primary" id="co-search">Rechercher près de moi ↗</button></div>'+
+  '<div id="co-explore-description"></div>'+
  '<div class="co-explore-explain"><div><strong>Taux d’accès '+help('admission')+'</strong><p>Un indicateur global de la session 2025.</p></div>'+
  '<div><strong>Part des candidats de bac pro '+help('bacpro')+'</strong><p>Parmi ceux susceptibles de recevoir une proposition, et non une chance personnelle.</p></div>'+
  '<div><strong>Admis venant du bac pro '+help('admispro')+'</strong><p>Parmi ceux qui ont finalement accepté.</p></div></div>'+
@@ -402,7 +403,8 @@ function renderAlbert(){
  '<small>Tu gardes toujours le dernier mot sur tes choix.</small></div>';return;}
  box.innerHTML='<div class="co-ai-intro">'+esc(aiResult.intro||'Voici quelques pistes à vérifier ensemble.')+'</div>'+
  '<div class="co-ai-suggestions">'+(aiResult.suggestions||[]).map(x=>
- '<article><div><strong>'+esc(x.course)+'</strong><p>'+esc(x.why)+'</p><small>'+esc(x.preparation)+'</small></div>'+
+ '<article><div><span class="co-ai-family co-group-'+familyFor(profile.bac_origin,x.course)+'">'+esc(FAMILIES[familyFor(profile.bac_origin,x.course)].short)+'</span>'+
+  '<strong>'+esc(x.course)+'</strong><p>'+esc(x.why)+'</p><p class="co-ai-context"><b>Repère pédagogique :</b> '+esc(aboutCourse(x.course).why)+'</p><small>'+esc(x.preparation)+'</small></div>'+
  '<button type="button" class="co-btn co-small" data-co-keep-course="'+esc(x.course)+'">+ Garder</button></article>').join('')+'</div>'+
  (aiResult.plan?.length?'<h3>Ce que tu peux faire ensuite</h3><ol>'+aiResult.plan.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>':'')+
  (aiResult.questions?.length?'<h3>Questions à poser</h3><ul>'+aiResult.questions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'')+
@@ -452,6 +454,7 @@ function renderWishes(){
  (saved.length?'<div class="co-wish-list">'+saved.map((w,i)=>
  '<article class="co-wish-card"><div class="co-wish-index">'+String(i+1).padStart(2,'0')+'</div><div><strong>'+esc(w.title)+'</strong>'+
  '<small>'+esc(w.school||'Établissement à préciser')+(w.city?' · '+esc(w.city):'')+'</small>'+
+  (COURSES.includes(w.title)?'<span class="co-wish-classification">'+esc(FAMILIES[familyFor(profile.bac_origin,w.title)].short)+'</span>':'')+
  (pct(w.taux)!==null?'<span class="co-wish-stat">Accès 2025 : '+formatPct(w.taux)+' '+help('admission')+'</span>':'')+'</div>'+
  '<div class="co-wish-actions">'+anchor(sourceUrl(w.url),'Fiche Parcoursup')+'<button type="button" data-co-remove="'+i+'">Retirer</button></div></article>').join('')+'</div>':
  '<div class="co-empty-state"><span>✦</span><h3>Tes possibilités commencent ici</h3><p>Tu peux ajouter des idées sans remplir de dossier Parcoursup.</p><button type="button" class="co-btn co-primary" data-co-tab="projet">Découvrir des idées →</button></div>');
@@ -494,6 +497,17 @@ function recordScore(r,term){
  return match+(city===wanted?10:city.includes(wanted)?5:0)+((pct(r.part_acces_pro)??0)/100);
 }
 function renderSearch(){
+ const selected=tabData||profile.goal;
+ const info=$('co-explore-description');
+ if(info){
+  if(!COURSES.includes(selected))info.innerHTML='<p class="co-explore-hint">Tu peux rechercher toutes les formations de la liste, quelle que soit leur catégorie. '+help('classement')+'</p>';
+  else {
+   const explanation=aboutCourse(selected),group=FAMILIES[explanation.family];
+   info.innerHTML='<div class="co-explore-classification co-group-'+explanation.family+'"><span>'+esc(group.short)+'</span>'+
+    '<p><b>'+esc(selected)+'</b> · '+esc(explanation.why)+' '+help('classement')+'</p>'+
+    '<p><b>À vérifier :</b> '+esc(explanation.detail.focus)+'</p></div>';
+  }
+ }
  const sel=$('co-search-course');if(sel)sel.innerHTML=courseOptions(tabData||profile.goal,'Choisir une formation');
  const box=$('co-results');if(!box)return;
  if(!records.length){box.innerHTML='<div class="co-empty-state"><span>⌖</span><h3>À toi de trouver des établissements.</h3><p>Choisis une formation puis lance une recherche. Les chiffres disponibles sont issus de la session 2025.</p></div>';return;}

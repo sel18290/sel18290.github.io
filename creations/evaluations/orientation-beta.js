@@ -184,8 +184,8 @@ const norm=v=>clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCa
 const pct=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(',','.').replace('%',''));return Number.isFinite(n)&&n>=0&&n<=100?n:null;};
 const formatPct=v=>{const n=pct(v);return n===null?'Non publié':new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';};
 const sourceUrl=v=>{try{const u=new URL(String(v));return u.protocol==='https:'&&/(\.|^)parcoursup\.(gouv\.fr|fr)$/.test(u.hostname)?u.href:SOURCES.parcoursup;}catch{return SOURCES.parcoursup;}};
-const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:'',letters:{}});
-let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0,showAllSuggestions=false,letterStudio=null;
+const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:'',letters:{},entry_mode:'metier',career:'',career_result:null});
+let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0,showAllSuggestions=false,letterStudio=null,careerStudio=null;
 const $=id=>root?.querySelector('#'+id);
 const help=(id)=>'<button type="button" class="co-help" data-co-define="'+esc(id)+'" aria-label="Comprendre : '+esc(DEFINITIONS[id]?.[0]||id)+'" title="Explication en mots simples">?</button>';
 const anchor=(url,text)=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(text)+' ↗</a>';
@@ -227,6 +227,18 @@ function read(){
     final:String(d.final||'').slice(0,5000),limit:d.limit===4500?4500:1500};
   }
  }
+ p.entry_mode=['metier','formation'].includes(x.entry_mode)?x.entry_mode:(p.goal?'formation':'metier');
+ p.career=String(x.career||'').slice(0,90);
+ p.career_result=null;
+ if(x.career_result&&typeof x.career_result==='object'&&!Array.isArray(x.career_result)){
+  try{
+   const a=x.career_result;
+   if(typeof a.career==='string'&&typeof a.bac==='string'&&a.data&&typeof a.data==='object'&&
+      JSON.stringify(a).length<26000&&['proche','passerelle','long'].includes(a.data?.assessment?.level)){
+    p.career_result={career:a.career.slice(0,90),bac:a.bac,data:a.data,date:String(a.date||'').slice(0,35)};
+   }
+  }catch{}
+ }
  p.notes=clean(p.notes).slice(0,1200);
  const previousInterests=typeof x.interests==='string'?clean(x.interests).slice(0,360):'';
  if(previousInterests&&!norm(p.notes).includes(norm(previousInterests)))p.notes=('Mes anciens centres d’intérêt : '+previousInterests+'\n'+p.notes).slice(0,1200);
@@ -246,15 +258,50 @@ function schedule(){clearTimeout(autoTimer);autoTimer=setTimeout(()=>{autoTimer=
 function status(text,bad=false){const el=$('co-message');if(!el)return;el.textContent=text;el.classList.toggle('co-error',bad);}
 function updateCounters(){
  const a=$('co-count-wishes'),b=$('co-count-tasks');if(a)a.textContent=String(profile.wishes.length);if(b)b.textContent=String(profile.tasks.length);
- const c=$('co-progress');if(c)c.textContent=(profile.goal?'Projet défini':'Projet à explorer')+' · '+profile.wishes.length+' piste'+(profile.wishes.length>1?'s':'')+' sauvegardée'+(profile.wishes.length>1?'s':'');
+ const c=$('co-progress');if(c)c.textContent=(profile.entry_mode==='metier'&&profile.career?'Métier : '+profile.career.slice(0,55):profile.goal?'Formation choisie':'Projet à explorer')+' · '+profile.wishes.length+' piste'+(profile.wishes.length>1?'s':'')+' sauvegardée'+(profile.wishes.length>1?'s':'');
 }
+function renderEntry(){
+ const mode=profile.entry_mode==='formation'?'formation':'metier';
+ root.querySelectorAll('[data-co-entry]').forEach(el=>{
+  const active=el.dataset.coEntry===mode;
+  el.classList.toggle('active',active);
+  el.setAttribute('aria-pressed',String(active));
+ });
+ const metier=$('co-v4-metier-panel'),formation=$('co-v4-formation-panel');
+ if(metier)metier.hidden=mode!=='metier';
+ if(formation)formation.hidden=mode!=='formation';
+ if(mode==='metier'){
+  const host=$('co-v4-metier-root'),mod=window.CORTEX_ORIENTATION_CAREERS;
+  if(!host)return;
+  if(!mod?.mount){
+   host.innerHTML='<div class="co-pane"><h2>Voie métier momentanément indisponible</h2><p>Actualise la page ou utilise la voie « Je pars d’une formation ».</p></div>';return;
+  }
+  if(!careerStudio)careerStudio=mod.mount(host,{
+   profile:()=>profile,save:()=>persist(true),courses:()=>COURSES.slice(),
+   changeBac:bac=>{
+    if(!FILIERES[bac])return;
+    profile.bac_origin=bac;persist(true);
+    renderSectors();renderInterests();renderSuggestions();renderAlbert();renderSearch();
+   },
+   openCourse:course=>{
+    if(!COURSES.includes(course))return;
+    profile.goal=course;tabData=course;persist(true);openTab('explorer');
+   },
+   saveCourse:course=>{
+    if(COURSES.includes(course))keepCourse(course);
+   }
+  });
+  else careerStudio.refresh();
+ }
+}
+
 function openTab(next){
  tab=['projet','explorer','pistes','lettre','aides'].includes(next)?next:'projet';
  root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
  root.querySelectorAll('[data-co-panel]').forEach(el=>{el.hidden=el.dataset.coPanel!==tab;});
- if(tab==='projet'){renderSectors();renderInterests();renderSuggestions();renderAlbert();}
+ if(tab==='projet'){renderSectors();renderInterests();renderSuggestions();renderAlbert();renderEntry();}
  if(tab==='pistes'){renderWishes();}
  if(tab==='lettre'){renderLetter();}
  if(tab==='aides'){renderAid();}
@@ -291,7 +338,7 @@ function renderGoalInfo(){
 }
 function titleBar(){
  return '<div class="co-head"><div class="co-headline"><span class="co-orbit-label"><span class="co-pulse"></span> CORTEX / ORIENTATION · DÉMONSTRATION</span>'+
- '<h1>Un avenir.<br><em>Plusieurs chemins.</em></h1>'+
+ '<h1>Ton avenir.<br><em>Plusieurs chemins.</em></h1>'+
  '<p>Tu n’as pas besoin de tout savoir aujourd’hui. On construit ton projet, une étape après l’autre, avec des mots simples.</p>'+
  '<div class="co-head-actions"><button class="co-btn co-ghost" type="button" data-action="student-orientation-back">← Retour à mon espace</button>'+
  '<span class="co-local-pill">✧ Sauvegarde locale · Sans compte</span></div></div>'+
@@ -305,7 +352,14 @@ function layout(){
  '<button type="button" role="tab" data-co-tab="'+id+'" aria-selected="false"><span>'+n+'</span>'+label+(id==='pistes'?'<b id="co-count-wishes">0</b>':'')+'</button>').join('')+'</div>'+
  '<p class="co-sticky-message" role="status" id="co-message" aria-live="polite">Sauvegarde automatique sur cet appareil.</p>'+
  '<div class="co-stage-panels">'+
- '<section data-co-panel="projet" class="co-page"><div class="co-two-col"><div class="co-pane co-profile-pane">'+
+ '<section data-co-panel="projet" class="co-page">'+
+ '<div class="co-v4-entry"><div class="co-v4-entry-heading"><span>TON POINT DE DÉPART</span><h2>Deux façons de construire ton avenir.</h2><p>Tu peux commencer par un métier ou par une formation. <b>Les deux voies restent accessibles</b> et partagent le carnet, les recherches et l’atelier Parcoursup.</p></div>'+
+ '<div class="co-v4-entry-choice" role="group" aria-label="Choisir mon point de départ">'+
+ '<button type="button" data-co-entry="metier" aria-pressed="false"><span class="co-v4-entry-icon">✦</span><span><strong>Je pars d’un métier</strong><small>Albert me montre comment atteindre le métier que je vise.</small></span><b>01</b></button>'+
+ '<button type="button" data-co-entry="formation" aria-pressed="false"><span class="co-v4-entry-icon">▤</span><span><strong>Je pars d’une formation</strong><small>Je compare les BTS, BUT et autres poursuites d’études.</small></span><b>02</b></button>'+
+ '</div></div>'+
+ '<div id="co-v4-metier-panel" class="co-v4-path" hidden><div id="co-v4-metier-root"></div></div>'+
+ '<div id="co-v4-formation-panel" class="co-v4-path" hidden><div class="co-two-col"><div class="co-pane co-profile-pane">'+
  '<div class="co-section-top"><span class="co-step">01 / MA SITUATION</span><h2>Quel est ton bac pro ?</h2><p>Choisis ta formation actuelle pour recevoir des pistes adaptées.</p></div>'+
  '<div class="co-sector-cards" role="group" aria-label="Choisir ma filière">'+Object.entries(FILIERES).map(([id,f])=>
  '<button type="button" data-co-sector="'+id+'" class="co-sector" aria-pressed="false"><span class="co-sector-icon">'+f.icon+'</span><strong>'+esc(f.label)+'</strong><small>'+esc(f.explain)+'</small><span class="co-tick">✓</span></button>').join('')+'</div>'+
@@ -326,7 +380,7 @@ function layout(){
  '<div class="co-guide-panels"><section class="co-pane co-suggestions-pane"><div class="co-section-top"><span class="co-step">DES IDÉES POUR MON BAC</span><h2>Des pistes qui te correspondent</h2><p>Des propositions indicatives selon ta filière. Elles ne remplacent pas les attendus des formations.</p></div><div id="co-alternatives"></div></section>'+
  '<section class="co-pane co-ai-pane"><div class="co-section-top"><span class="co-step">✦ ASSISTANCE ALBERT</span><h2>Albert prépare ton parcours</h2><p>Des idées expliquées simplement, adaptées à tes goûts et à ton bac pro.</p></div>'+
  '<div class="co-ai-content" id="co-albert"></div><div class="co-ai-actions"><button type="button" class="co-btn co-primary" id="co-albert-button">✦ Demander conseil à Albert</button></div>'+
- '<p class="co-data-policy">Albert reçoit seulement ta filière, la formation choisie et tes centres d’intérêt prédéfinis. Ni nom, ni ville, ni notes personnelles, ni dossier sauvegardé.</p></section></div></section>'+
+ '<p class="co-data-policy">Albert reçoit seulement ta filière, la formation choisie et tes centres d’intérêt prédéfinis. Ni nom, ni ville, ni notes personnelles, ni dossier sauvegardé.</p></section></div></div></section>'+
  '<section data-co-panel="explorer" class="co-page" hidden><div class="co-pane co-explorer-pane"><div class="co-section-top"><span class="co-step">LES DONNÉES OFFICIELLES / SESSION 2025</span><h2>Compare les formations, sans te perdre dans les chiffres.</h2>'+
  '<p>Recherche des établissements proposant une formation. Les chiffres décrivent des candidatures passées, pas tes chances personnelles.</p></div>'+
  '<div class="co-explore-controls"><label for="co-search-course">Formation recherchée</label><select id="co-search-course"></select>'+
@@ -461,7 +515,10 @@ function renderWishes(){
  $('co-pistes-count').textContent=String(profile.wishes.length);
  const saved=profile.wishes;
  const callout=saved.length===0?'Ajoute une première formation depuis « Mon projet » ou « Explorer ».':saved.length===1?'Tu as une seule piste. Essaie d’en ajouter deux autres pour diversifier ton projet.':'Tu as déjà plusieurs pistes. Compare leurs critères et les établissements.';
- wrap.innerHTML='<div class="co-letter-invite"><div><span>✦ NOUVEL ATELIER</span><strong>Rédige ta lettre Parcoursup</strong><p>À partir de ton bac et de la formation visée, construis une motivation personnelle et relis-la avec Albert.</p></div><button type="button" class="co-btn co-primary" data-co-tab="lettre">Ouvrir l’atelier de lettre →</button></div>'+ '<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+
+ wrap.innerHTML=(profile.career?'<div class="co-v4-wish-career"><div><span>MON MÉTIER OBJECTIF</span><strong>'+esc(profile.career)+'</strong><small>'+
+  (profile.career_result?.career&&norm(profile.career_result.career)===norm(profile.career)?'Parcours Albert conservé dans ce navigateur.':'Métier à analyser avec Albert.')+
+  '</small></div><button type="button" class="co-btn co-soft" data-co-career-return>Revoir mon parcours métier →</button></div>':'')+
+  '<div class="co-letter-invite"><div><span>✦ NOUVEL ATELIER</span><strong>Rédige ta lettre Parcoursup</strong><p>À partir de ton bac et de la formation visée, construis une motivation personnelle et relis-la avec Albert.</p></div><button type="button" class="co-btn co-primary" data-co-tab="lettre">Ouvrir l’atelier de lettre →</button></div>'+ '<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+
   '<p class="co-wish-caution">Ce carnet sert à préparer tes choix. Il ne crée aucun vœu sur Parcoursup et ne transmet aucune candidature. '+help('voeu')+'</p></div>'+
  (saved.length?'<div class="co-wish-list">'+saved.map((w,i)=>
  '<article class="co-wish-card"><div class="co-wish-index">'+String(i+1).padStart(2,'0')+'</div><div><strong>'+esc(w.title)+'</strong>'+
@@ -633,6 +690,7 @@ async function importFile(file){
   if(!window.confirm('Remplacer ton projet d’orientation actuel par le fichier importé ?'))return;
   localStorage.setItem(KEY,JSON.stringify(obj.project));
   letterStudio?.dispose();letterStudio=null;
+  careerStudio?.dispose();careerStudio=null;
   profile=read();aiResult=null;tabData=null;records=[];
   refresh();status('Projet importé et enregistré dans ce navigateur.');
  }catch(e){status('Import impossible : '+(e?.message||'fichier invalide'),true);}
@@ -642,6 +700,7 @@ function erase(){
  clearTimeout(autoTimer);
  try{localStorage.removeItem(KEY);}catch{}
  letterStudio?.dispose();letterStudio=null;
+ careerStudio?.dispose();careerStudio=null;
  profile=dflt();records=[];aiResult=null;tabData=null;
  refresh();status('Le projet local a été effacé.');
 }
@@ -652,7 +711,7 @@ function refresh(){
  $('co-mobility').value=profile.mobility;
  $('co-apprenticeship').checked=profile.apprenticeship;
  $('co-notes').value=profile.notes;
- renderInterests();renderSuggestions();renderAlbert();renderWishes();renderAid();renderSearch();if(tab==='lettre')renderLetter();updateCounters();
+ renderInterests();renderSuggestions();renderAlbert();renderWishes();renderAid();renderSearch();if(tab==='lettre')renderLetter();if(tab==='projet')renderEntry();updateCounters();
  root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
@@ -662,6 +721,8 @@ function click(event){
  const el=event.target;
  if(el.closest('[data-co-define]')){event.preventDefault();openDefinition(el.closest('[data-co-define]').dataset.coDefine);return;}
  if(el.closest('[data-co-close]')){$('co-dialog').close();return;}
+ const entry=el.closest('[data-co-entry]');
+ if(entry){const next=entry.dataset.coEntry;if(next==='metier'||next==='formation'){profile.entry_mode=next;persist();renderEntry();}return;}
  const sector=el.closest('[data-co-sector]');
  if(sector){reqId++;profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;showAllSuggestions=false;persist();refresh();return;}
  const interest=el.closest('[data-co-interest]');
@@ -681,6 +742,7 @@ function click(event){
  if(explore){tabData=explore.dataset.coExploreCourse;records=[];openTab('explorer');return;}
  const row=el.closest('[data-co-add-result]');
  if(row){const n=Number(row.dataset.coAddResult),rec=root._orientationShown?.[n];if(rec){keepCourse(tabData||profile.goal,rec);renderSearch();}return;}
+ if(el.closest('[data-co-career-return]')){profile.entry_mode='metier';persist(true);openTab('projet');return;}
  const letterWish=el.closest('[data-co-letter-wish]');
  if(letterWish){
   const w=profile.wishes[Number(letterWish.dataset.coLetterWish)];
@@ -728,8 +790,9 @@ function mount(el){
 function dispose(){
  if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}else clearTimeout(autoTimer);
  letterStudio?.dispose();letterStudio=null;
+ careerStudio?.dispose();careerStudio=null;
  root=null;records=[];reqId++;loading=false;aiBusy=false;
 }
 window.addEventListener('pagehide',()=>{if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}});
-window.CORTEX_ORIENTATION={mount,dispose,version:'2.0'};
+window.CORTEX_ORIENTATION={mount,dispose,version:'4.0-deux-voies'};
 })();

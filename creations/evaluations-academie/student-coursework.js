@@ -4,7 +4,7 @@ import { api } from './coursework.js?v=2.14-handwriting';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.7-watermark';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
-import { sourceFigure } from './student-source-view.js?v=1.1-watermark';
+import { sourceFigure } from './student-source-view.js?v=1.2-no-drag';
 import {openProtectedPdf} from './student-protected-pdf.js?v=1.0';
 import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 

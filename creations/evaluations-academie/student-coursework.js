@@ -750,8 +750,15 @@ if(qr||globalPortal){
    onCameraClose:()=>{if(!expiryNotified&&Date.now()<deadline)startIntegrity()}
   });
   if(settings.enabled&&settings.watermarkCapture){
-   const mark=E('div','cw-student-watermark');mark.setAttribute('aria-hidden','true');
-   for(let i=0;i<6;i++)mark.append(E('span','','CORTEX · N°'+current.student_number+' · AIDE IA INTERDITE'));
+   const mark=E('div','cw-student-watermark');
+   mark.setAttribute('aria-hidden','true');
+   const classCode=String(classData?.class?.code||current.class_code||'CLASSE').slice(0,22);
+   const candidate='CORTEX · '+classCode+' · N°'+String(current.student_number||'—').slice(0,4);
+   const warning='CONTRÔLE EN COURS · AIDE IA INTERDITE';
+   // 48 marques réparties sur le viewport : plus de grands rectangles sans trace.
+   // Un marquage répété dissuade et permet d'identifier une copie partagée,
+   // mais ne bloque ni une capture du système ni une photo externe.
+   for(let i=0;i<48;i++)mark.append(E('span','',i%4===0?warning:candidate+' · AIDE IA INTERDITE'));
    work.append(mark);
   }
   startIntegrity();

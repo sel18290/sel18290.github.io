@@ -68,7 +68,7 @@ function mount(host,opts){
    ).join('')+'</div>'+
    '<aside class="co-letter-assist"><div><span>MON BAC PRO</span><strong>'+esc(opts.bacLabel(bac()))+'</strong><p>Une expérience réelle, même modeste, vaut mieux qu’une compétence inventée.</p></div>'+
    '<div><span>MA FORMATION</span><strong>'+esc(course)+'</strong><p>'+esc(guide?.detail?.about||'Découvre les enseignements de ce diplôme sur Parcoursup.')+'</p><p><b>À vérifier :</b> '+esc(guide?.detail?.focus||'Les attendus de la formation.')+'</p></div>'+
-   '<div><strong>✧ Albert, sur demande</strong><p>Parcoursup déconseille de faire rédiger sa lettre par IA. Ici, Albert sert uniquement à relire un de tes passages, si tu le souhaites. Tu restes l’auteur du texte.</p></div></aside></div>'+
+   '<div><strong>✧ Albert, sur demande</strong><p>Parcoursup déconseille de faire rédiger sa lettre par IA. Ici, Albert relit un de tes passages à la demande, autant de fois que tu le souhaites, sans quota fixé par CORTEX (le service Albert peut avoir ses propres limites). Tu restes l’auteur du texte.</p></div></aside></div>'+
    '<div id="co-letter-ai-result" aria-live="polite"></div>'+
    '<div class="co-letter-actions"><button type="button" class="co-letter-secondary" data-letter-step="0">← Changer de formation</button>'+
    '<button type="button" class="co-letter-primary" data-letter-step="2"'+(!progress()?' disabled':'')+'>Relire ma lettre →</button></div>';

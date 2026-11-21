@@ -5,6 +5,7 @@ import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.7-watermark';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.1-watermark';
+import {openProtectedPdf} from './student-protected-pdf.js?v=1.0';
 import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 
 const params=new URLSearchParams(location.search);
@@ -368,30 +369,24 @@ if(qr||globalPortal){
    const subjectName=String(current.subject.name||'Document du contrôle');
    subject.append(button('📄 Consulter le document dans CORTEX : '+subjectName,
     'cw-student-document cw-protected-subject-open',()=>{
-     // La visionneuse intégrée conserve le filigrane ; un onglet PDF externe
-     // échappe au contrôle de la page et peut afficher le document sans marque.
-     const modal=E('dialog','cw-protected-subject-dialog');
-     modal.setAttribute('aria-label','Document de l’évaluation : '+subjectName);
-     const head=E('header','cw-protected-subject-header');
-     head.append(E('strong','',subjectName));
-     const original=E('a','','Ouvrir l’original si nécessaire');
-     original.href=current.subject.url;
-     original.target='_blank';original.rel='noopener noreferrer';
-     original.title='Le document externe peut être affiché sans filigrane.';
-     const close=E('button','','Fermer');
-     close.type='button';
-     close.addEventListener('click',()=>modal.close());
-     head.append(original,close);
-     const viewer=E('iframe','cw-protected-subject-viewer');
-     viewer.src=current.subject.url;
-     viewer.title='Document pédagogique : '+subjectName;
-     viewer.referrerPolicy='no-referrer';
-     const note=E('p','cw-protected-subject-note',
-      'Le filigrane reste visible dans cette visionneuse. Les lecteurs externes ou téléchargements ne permettent pas de garantir le marquage.');
-     modal.append(head,viewer,note);
-     document.body.append(modal);
-     modal.addEventListener('close',()=>modal.remove(),{once:true});
-     modal.showModal();
+     // La visionneuse PDF rasterise les pages : le lecteur natif ne peut plus
+     // sélectionner et copier le texte lorsque le mode anti-copie est actif.
+     // Le contenu accessible dans le navigateur n'est toutefois jamais secret.
+     const protectedMode=settings.enabled===true&&settings.blockCopy===true;
+     if(/\.pdf(?:$|\?)/i.test(subjectName)||/\.pdf(?:$|\?)/i.test(current.subject.url)){
+       openProtectedPdf({url:current.subject.url,name:subjectName,protectedMode});
+       return;
+     }
+     // Les documents non-PDF ne sont pas rasterisés. Pour ne pas faire croire
+     // à une protection native de fichiers Word, demander un PDF au professeur.
+     if(protectedMode){
+       const warning=E('p','cw-student-rules',
+        'Ce document ne peut pas être ouvert avec le lecteur protégé. Demande à ton professeur de le publier au format PDF.');
+       warning.setAttribute('role','status');
+       subject.append(warning);
+       return;
+     }
+     window.open(current.subject.url,'_blank','noopener,noreferrer');
     }));
    subject.append(button('Renouveler le lien du document','cw-outline',()=>loadExam(currentId)));
   }

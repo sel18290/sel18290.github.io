@@ -185,7 +185,7 @@ const pct=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;cons
 const formatPct=v=>{const n=pct(v);return n===null?'Non publié':new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';};
 const sourceUrl=v=>{try{const u=new URL(String(v));return u.protocol==='https:'&&/(\.|^)parcoursup\.(gouv\.fr|fr)$/.test(u.hostname)?u.href:SOURCES.parcoursup;}catch{return SOURCES.parcoursup;}};
 const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:''});
-let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0;
+let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0,showAllSuggestions=false;
 const $=id=>root?.querySelector('#'+id);
 const help=(id)=>'<button type="button" class="co-help" data-co-define="'+esc(id)+'" aria-label="Comprendre : '+esc(DEFINITIONS[id]?.[0]||id)+'" title="Explication en mots simples">?</button>';
 const anchor=(url,text)=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(text)+' ↗</a>';
@@ -356,16 +356,45 @@ function renderInterests(){
 }
 function renderSuggestions(){
  const wrap=$('co-alternatives');if(!wrap)return;
- const f=FILIERES[profile.bac_origin];
  const chosen=new Set(profile.wishes.map(w=>norm(w.title)));
- const candidates=f.courses.map(i=>COURSES[i]).filter(Boolean).filter(c=>c!==profile.goal).slice(0,7);
- const head=profile.wishes.length<=1?'<p class="co-alert"><strong>Une idée, c’est un début.</strong> Découvre au moins deux autres possibilités cohérentes avec ton bac.</p>':'';
- wrap.innerHTML=head+'<div class="co-suggestion-grid">'+candidates.map(course=>{
- const saved=chosen.has(norm(course));
- return '<article class="co-suggestion"><div><span class="co-course-type">'+(course.startsWith('BTS')?'BAC + 2':course.startsWith('BUT')?'BAC + 3':'AUTRE PARCOURS')+'</span>'+
- '<h3>'+esc(course)+'</h3></div><div class="co-sug-actions">'+(saved?'<span class="co-kept">✓ Dans mes choix</span>':'<button class="co-btn co-small" data-co-keep-course="'+esc(course)+'">+ Garder</button>')+
- '<button class="co-btn co-small co-soft" data-co-explore-course="'+esc(course)+'">Voir les établissements</button></div></article>';
- }).join('')+'</div>';
+ const caps={direct:3,bridge:2,prepare:1};
+ const advice={direct:'Prolonger des compétences déjà travaillées.',bridge:'Changer de spécialité en réutilisant certaines bases.',prepare:'Découvrir d’autres matières ou un rythme d’études différent.'};
+ const groups=FITS[profile.bac_origin]||FITS.accueil;
+ const sorter=(a,b)=>{
+  const n=i=>COURSE_DETAILS[i].tags.filter(t=>profile.interests.includes(t)).length;
+  return n(b)-n(a);
+ };
+ const show=(family)=>{
+  const indices=groups[family].filter(i=>COURSES[i]!==profile.goal).sort(sorter);
+  const visible=showAllSuggestions?indices:indices.slice(0,caps[family]);
+  const info=FAMILIES[family];
+  return '<section class="co-family-section co-family-'+family+'"><div class="co-family-heading"><div><span class="co-family-indicator">'+esc(info.short)+'</span>'+
+   '<h3>'+esc(info.title)+' '+help(family==='direct'?'classement':family==='bridge'?'passerelle':'transition')+'</h3>'+
+   '<p>'+esc(info.subtitle)+'</p></div><span class="co-family-count">'+indices.length+' formation'+(indices.length>1?'s':'')+'</span></div>'+
+   '<div class="co-suggestion-grid">'+visible.map(index=>{
+    const course=COURSES[index];
+    const {detail,why,matched}=aboutCourse(course);
+    const saved=chosen.has(norm(course));
+    return '<article class="co-suggestion co-suggestion-'+family+'"><div><span class="co-course-type">'+esc(course.startsWith('BTS')?'BTS · BAC + 2':course.startsWith('BUT')?'BUT · BAC + 3':course.startsWith('Licence')?'LICENCE · BAC + 3':'CERTIFICAT DE SPÉCIALISATION')+'</span>'+
+     '<h3>'+esc(course)+'</h3>'+
+     '<p class="co-suggestion-about">'+esc(detail.about)+'</p>'+
+     '<p class="co-suggestion-why"><b>Le lien avec ton bac :</b> '+esc(why)+'</p>'+
+     (matched.length?'<p class="co-suggestion-match">✦ Correspond à : '+matched.map(esc).join(', ')+'</p>':'')+
+     '<details class="co-suggestion-details"><summary>Les points à vérifier</summary><p>'+esc(detail.focus)+'</p></details></div>'+
+     '<div class="co-sug-actions">'+(saved?'<span class="co-kept">✓ Déjà dans mes choix</span>':'<button type="button" class="co-btn co-small" data-co-keep-course="'+esc(course)+'">+ Garder</button>')+
+     '<button type="button" class="co-btn co-small co-soft" data-co-explore-course="'+esc(course)+'">Établissements ↗</button></div></article>';
+   }).join('')+'</div>'+
+   '<p class="co-family-caution">'+esc(info.caution)+'</p></section>';
+ };
+ const intro=profile.wishes.length<=1?'<p class="co-alert"><strong>Tu peux garder plusieurs pistes.</strong> Avoir une idée précise est un excellent début, mais comparer des formations proches et d’autres possibilités peut t’aider à décider.</p>':'';
+ wrap.innerHTML='<div class="co-guide-explainer"><strong>Important : aucune formation n’est « déconseillée » ou interdite ici.</strong>'+
+  '<p>Nous classons les programmes selon leur proximité pédagogique avec ton bac professionnel, <b>pas selon tes notes ni une prétendue probabilité d’admission</b>. Les établissements fixent leurs attendus et sélectionnent les dossiers selon leurs critères. '+help('classement')+'</p>'+
+  '<p>Les BTS bénéficient de places priorisées pour les bacheliers professionnels. Cela ne garantit pas de place. '+help('btspriorite')+' '+
+  anchor('https://www.parcoursup.gouv.fr/decouvrir-parcoursup/quels-dispositifs-pour-renforcer-l-egalite-d-acces-dans-l-enseignement-1358','Règles officielles')+'</p></div>'+
+  intro+
+  Object.keys(FAMILIES).map(show).join('')+
+  '<div class="co-suggestion-footer"><span>'+(!showAllSuggestions?'Quelques pistes affichées parmi les 18 formations classées pour ton bac.':'Les 18 formations de notre sélection sont accessibles dans le menu « Mon projet ».')+'</span>'+
+  '<button type="button" class="co-btn co-soft" data-co-show-all>'+(!showAllSuggestions?'Voir toutes les possibilités (+)':'Afficher moins de formations')+'</button></div>';
 }
 function renderAlbert(){
  const box=$('co-albert');if(!box)return;
@@ -583,17 +612,18 @@ function click(event){
  if(el.closest('[data-co-define]')){event.preventDefault();openDefinition(el.closest('[data-co-define]').dataset.coDefine);return;}
  if(el.closest('[data-co-close]')){$('co-dialog').close();return;}
  const sector=el.closest('[data-co-sector]');
- if(sector){reqId++;profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;persist();refresh();return;}
+ if(sector){reqId++;profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;showAllSuggestions=false;persist();refresh();return;}
  const interest=el.closest('[data-co-interest]');
  if(interest){
   const k=interest.dataset.coInterest;
   if(profile.interests.includes(k))profile.interests=profile.interests.filter(x=>x!==k);
   else if(profile.interests.length<5)profile.interests.push(k);
   else{status('Choisis cinq centres d’intérêt maximum.',true);return;}
-  aiResult=null;persist();renderInterests();renderAlbert();return;
+  aiResult=null;persist();renderInterests();renderGoalInfo();renderSuggestions();renderAlbert();return;
  }
  const tabButton=el.closest('[data-co-tab]');
  if(tabButton){openTab(tabButton.dataset.coTab);return;}
+ if(el.closest('[data-co-show-all]')){showAllSuggestions=!showAllSuggestions;renderSuggestions();return;}
  const course=el.closest('[data-co-keep-course]');
  if(course){keepCourse(course.dataset.coKeepCourse);return;}
  const explore=el.closest('[data-co-explore-course]');
@@ -627,7 +657,7 @@ function change(e){
 function mount(el){
  if(!el)return;
  dispose();
- root=el;profile=read();tab='projet';records=[];tabData=null;aiResult=null;
+ root=el;profile=read();tab='projet';records=[];tabData=null;aiResult=null;showAllSuggestions=false;
  root.classList.add('co-v2');
  layout();refresh();
  $('co-albert-button').addEventListener('click',askAlbert);

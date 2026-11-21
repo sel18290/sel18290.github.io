@@ -39,8 +39,8 @@ function settings(exam){
  '<div class="integrity-primary">'+toggle(exam,'enabled','Activer le mode intégrité','Informe l’élève avant le début du contrôle.')+'</div>'+
  '<div class="integrity-modal-label">PROTECTIONS DISPONIBLES</div>'+
  '<div class="integrity-toggle-panel'+(c.enabled?'':' integrity-disabled')+'">'+
- toggle(exam,'blockPaste','Empêcher le collage','Refus dans les champs de réponse.')+
- toggle(exam,'blockCopy','Limiter la copie du sujet','Ne bloque ni photo ni capture du système.')+
+ toggle(exam,'blockPaste','Empêcher le collage','Réponses texte, tableaux et champs à compléter, y compris sur mobile.')+
+ toggle(exam,'blockCopy','Limiter la copie du sujet','Copie/coupe et certains glisser-déposer ou menus d’image. Ne bloque pas les captures système.')+
  toggle(exam,'trackVisibility','Suivre les sorties d’écran','Départ, retour et durée à partir de 2 secondes.')+
  toggle(exam,'trackLive','Suivre la passation en direct','Progression, dernier contact et accès simultanés par numéro.')+
  toggle(exam,'warnStudent','Prévenir l’élève','Message après une sortie signalée ou un geste bloqué.')+
@@ -49,9 +49,9 @@ function settings(exam){
  '<p class="integrity-caution"><strong>Important :</strong> Android, iOS et Windows gardent le contrôle des captures d’écran. Un site ne peut pas les bloquer ni les détecter fiablement. Les alertes de navigation peuvent avoir des causes légitimes ; aucune sanction automatique.</p></div>';
 }
 const tools=[
- {key:'blockPaste',icon:'⇩',title:'Collage des réponses',desc:'Empêche le collage de texte dans les champs de réponse pendant le contrôle.',limit:'Ne repère pas un texte retapé à la main.'},
- {key:'blockCopy',icon:'▤',title:'Copie du sujet',desc:'Intercepte les commandes copier et couper sur la page du sujet.',limit:'La modification de ses propres réponses reste possible.'},
- {key:'trackVisibility',icon:'◷',title:'Sorties d’écran',desc:'Signale au retour une page masquée pendant au moins deux secondes.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page.'},
+ {key:'blockPaste',icon:'⇩',title:'Collage des réponses',desc:'Intercepte les collages dans les réponses texte, les tableaux et les cases à compléter, aussi sur mobile.',limit:'Ne repère pas une réponse retapée, dictée ou cochée manuellement.'},
+ {key:'blockCopy',icon:'▤',title:'Copie du sujet',desc:'Intercepte copier/couper et limite les déplacements d’extraits ou certains menus d’images.',limit:'L’élève peut modifier ses réponses ; aucune capture système n’est bloquée.'},
+ {key:'trackVisibility',icon:'◷',title:'Sorties d’écran',desc:'Au retour sur le contrôle, indique le départ et la durée d’une page masquée au moins deux secondes.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page ; vérifier le contexte.'},
  {key:'trackLive',icon:'◉',title:'Suivi en direct',desc:'Activité, progression et accès simultanés pour chaque numéro.',limit:'Retrouve un exemple de passation dans « En direct ».'},
  {key:'warnStudent',icon:'!',title:'Avertir l’élève',desc:'Indique la durée au retour ou explique pourquoi un geste est bloqué.',limit:'Le chronomètre continue.'},
  {key:'watermarkCapture',icon:'▧',title:'Filigrane anti-partage / IA',desc:'Répète la classe et le numéro de liste sur toute la surface visible, avec un avertissement contre l’aide IA.',limit:'Une capture reste possible et une IA peut ignorer le message.'}

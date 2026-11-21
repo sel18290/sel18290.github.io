@@ -227,7 +227,7 @@ const directTools=[
  {key:'trackVisibility',icon:'◷',name:'Sorties d’écran',detail:'Au retour après au moins deux secondes, inscrit le départ, le retour et la durée dans Suivi des épreuves.',limit:'Un appel ou l’ouverture d’un document peut aussi masquer la page.'},
  {key:'trackLive',icon:'◉',name:'Suivi en direct',detail:'Affiche la progression du brouillon, l’état de la page et le dernier contact par numéro. Les accès simultanés apparaissent dans le journal.',limit:'Active ce suivi avant la passation pour que les élèves voient la règle au démarrage.'},
  {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message après une sortie signalée ou une action bloquée.',limit:'Le chronomètre continue.'},
- {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Affiche classe, numéro et message « aide IA interdite ».',limit:'N’empêche pas les captures ; une IA peut ignorer le texte.'}
+ {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Répète la classe, le numéro et l’avertissement sur tout l’écran et les documents ouverts dans CORTEX.',limit:'Actif pendant le contrôle si le mode intégrité est activé. Un fichier ouvert à l’extérieur et une capture système ne peuvent pas être protégés avec certitude.'}
 ];
 function drawAcademyTools(){
  const selector=$('acad-tools-exam'),panel=$('acad-tools-panel');

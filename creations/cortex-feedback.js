@@ -6,7 +6,6 @@
  */
 (()=>{
  'use strict';
- const TARGET='cortexgenesis1@gmail.com';
  let activeDialog=null;
  const e=(tag,cls,text)=>{
   const node=document.createElement(tag);
@@ -144,15 +143,8 @@
     if(result.emailed){
      feedback('✓ Demande validée par Albert et envoyée par e-mail au responsable de CORTEX. Référence : '+ref,'success');
     }else{
-     feedback('✓ Demande jugée pertinente par Albert et enregistrée sous la référence '+ref+
-      '. L’envoi automatique par e-mail n’est pas encore confirmé. Tu peux l’envoyer maintenant depuis ta messagerie.','pending');
-     const compose=e('a','cortex-feedback-compose','Ouvrir ma messagerie pour envoyer maintenant');
-     const bodyText='Message vérifié par Albert. Référence CORTEX : '+ref+
-      '\n\n'+body+'\n\nAdresse de réponse : '+(email||'Non précisée');
-     compose.href='mailto:'+TARGET+'?subject='+encodeURIComponent('[CORTEX] '+title)+
-      '&body='+encodeURIComponent(bodyText);
-     compose.rel='nofollow';
-     status.append(compose);
+     feedback('✓ Demande validée par Albert et enregistrée sous la référence '+ref+
+      '. Elle sera transmise automatiquement à cortexgenesis1@gmail.com par la relève régulière des messages (environ une fois par heure). Aucun envoi par messagerie n’est nécessaire.','pending');
     }
     send.hidden=true;
     dismiss.textContent='Fermer';

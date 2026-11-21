@@ -13,7 +13,7 @@ const SOURCES={
  parcoursup:'https://www.parcoursup.gouv.fr/',
  data:SOURCE,
  dse:'https://www.etudiant.gouv.fr/fr/bourse-et-logement-constituez-votre-dossier-social-etudiant-dse-409',
- simulateur:'https://simulateur.lescrous.fr/',
+ simulateur:'https://www.lescrous.fr/nos-services/simulateur-de-bourse/',
  services:'https://messervices.etudiant.gouv.fr/',
  mobilite:'https://www.parcoursup.gouv.fr/preparer-sa-vie-etudiante/l-aide-la-mobilite-parcoursup-1667',
  logement:'https://trouverunlogement.lescrous.fr/',
@@ -139,7 +139,7 @@ function openTab(next){
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
  root.querySelectorAll('[data-co-panel]').forEach(el=>{el.hidden=el.dataset.coPanel!==tab;});
- if(tab==='projet'){renderSuggestions();renderAlbert();}
+ if(tab==='projet'){renderSectors();renderInterests();renderSuggestions();renderAlbert();}
  if(tab==='pistes'){renderWishes();}
  if(tab==='aides'){renderAid();}
  if(tab==='explorer'){renderSearch();}
@@ -320,7 +320,6 @@ function renderAid(){
  '<div class="co-aid-bottom"><strong>Besoin d’aide pour choisir ?</strong><p>Ton professeur principal, le ou la psychologue de l’Éducation nationale et un CIO peuvent t’aider à construire plusieurs possibilités.</p></div>';
 }
 function formatRecord(r){
- const p=FILIERES[profile.bac_origin];
  const title=clean(r.lib_for_voe_ins||r.fil_lib_voe_acc||'Formation');
  const place=clean(r.g_ea_lib_vx||'Établissement non renseigné');
  const city=clean(r.ville_etab||'Ville non renseignée');
@@ -343,7 +342,13 @@ function renderSearch(){
  const city=norm(profile.city);
  const local=sorted.filter(r=>norm(r.ville_etab).includes(city));
  const shown=profile.mobility==='ville'&&local.length?local:sorted;
- const limited=shown.slice(0,35);
+ const selectedNorm=norm(term).replace(/^bts /,'').replace(/^but /,'').replace(/^certificat de specialisation /,'');
+ const matchWords=selectedNorm.split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!['management','gestion','professionnel','entreprises','activites'].includes(w));
+ const relevant=shown.filter(r=>{
+  const title=norm(r.lib_for_voe_ins)+' '+norm(r.fil_lib_voe_acc);
+  return matchWords.some(w=>title.includes(w));
+ });
+ const limited=(relevant.length?relevant:shown).slice(0,35);
  box.innerHTML='<p class="co-results-info">'+limited.length+' résultat(s) affiché(s) · '+(local.length&&profile.mobility==='ville'?'établissements de '+esc(profile.city):'recherche élargie')+' · 2025, hors apprentissage</p>'+
  '<div class="co-result-list">'+limited.map((r,i)=>{
  const f=formatRecord(r);

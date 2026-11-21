@@ -23,7 +23,7 @@ const element=(tag,cls,text)=>{
  if(text!==undefined)out.textContent=String(text);
  return out;
 };
-export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=false}){
+export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=false,watermarked=false,onClose=null}){
  const dialog=element('dialog','cw-protected-subject-dialog cw-protected-pdf');
  dialog.setAttribute('aria-label','Lire le document : '+name);
  const head=element('header','cw-protected-subject-header');
@@ -54,12 +54,20 @@ export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=fa
   canvas.addEventListener('selectstart',e=>e.preventDefault());
  }
  viewport.append(status,canvas);
- const note=element('p','cw-protected-subject-note',protectedMode
-  ? 'Mode anti-copie actif : document consultable, mais surlignage et copie de texte désactivés. La capture d’écran reste possible.'
-  : 'Document affiché dans CORTEX. Utilise les flèches pour changer de page et les boutons + / − pour zoomer.');
+ const note=element('p','cw-protected-subject-note',watermarked
+  ? 'Chaque page contient ton numéro et ta classe : le filigrane restera présent sur le PDF téléchargé. Les captures et photos restent possibles.'
+  : protectedMode
+    ? 'Mode anti-copie actif : document consultable sans sélection ni copie de texte. Les captures d’écran restent possibles.'
+    : 'Document affiché dans CORTEX. Utilise les flèches pour changer de page et les boutons + / − pour zoomer.');
  const footer=element('div','cw-protected-pdf-footer');
  footer.append(note);
- if(!protectedMode){
+ if(watermarked){
+  const download=element('a','','⇩ Télécharger mon PDF filigrané');
+  download.href=url;
+  download.download='CORTEX_Sujet_filigrane.pdf';
+  download.title='Ce PDF conserve les filigranes sur chaque page, même après téléchargement.';
+  footer.append(download);
+ }else if(!protectedMode){
   const original=element('a','','Ouvrir dans le lecteur PDF');
   original.href=url;
   original.target='_blank';original.rel='noopener noreferrer';
@@ -120,6 +128,7 @@ export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=fa
   try{task?.cancel()}catch{}
   try{pdf?.destroy()}catch{}
   dialog.remove();
+  try{onClose?.()}catch{}
  },{once:true});
  dialog.showModal();
  (async()=>{

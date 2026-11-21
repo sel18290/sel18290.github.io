@@ -60,6 +60,16 @@ function openSource(figure, url, title) {
  reset.addEventListener('click',()=>{scale=1;apply();view.scrollTo(0,0);});
  apply();
  dialog.append(head,view);
+ // Les dialogues natifs passent au-dessus des calques ordinaires :
+ // dupliquer le filigrane actif dans la visionneuse des documents.
+ const activeWatermark=document.querySelector('.cw-student-watermark:not(.cw-watermark-dialog)');
+ if(activeWatermark){
+  const copy=activeWatermark.cloneNode(true);
+  copy.classList.add('cw-watermark-dialog');
+  copy.removeAttribute('id');
+  copy.setAttribute('aria-hidden','true');
+  dialog.append(copy);
+ }
  figure.append(dialog);
  dialog.addEventListener('close',()=>dialog.remove(),{once:true});
  dialog.showModal();

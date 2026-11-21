@@ -40,7 +40,7 @@ function settings(exam){
  '<div class="integrity-modal-label">PROTECTIONS DISPONIBLES</div>'+
  '<div class="integrity-toggle-panel'+(c.enabled?'':' integrity-disabled')+'">'+
  toggle(exam,'blockPaste','Empêcher le collage','Réponses texte, tableaux et champs à compléter, y compris sur mobile.')+
- toggle(exam,'blockCopy','Limiter la copie du sujet','Copie/coupe et certains glisser-déposer ou menus d’image. Ne bloque pas les captures système.')+
+ toggle(exam,'blockCopy','Limiter copie et surlignage du sujet','Documents non sélectionnables et lecture PDF en images. Les réponses restent éditables ; captures toujours possibles.')+
  toggle(exam,'trackVisibility','Suivre les sorties d’écran','Départ, retour et durée à partir de 2 secondes.')+
  toggle(exam,'trackLive','Suivre la passation en direct','Progression, dernier contact et accès simultanés par numéro.')+
  toggle(exam,'warnStudent','Prévenir l’élève','Message après une sortie signalée ou un geste bloqué.')+

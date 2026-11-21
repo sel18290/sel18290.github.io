@@ -186,3 +186,43 @@ body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-footer p {
     padding:9px 11px;
   }
 }
+
+
+/* Dans les contrôles documentaires de démonstration, le document est parfois
+   dessiné sous forme de tableaux, texte HTML ou cartes sans .question-doc. */
+body.cortex-noctis .cortex-exam-subject-locked .exam-question :is(
+  .doc-ribbon,
+  .doc-exam-ribbon,
+  .doc-question-response > h2,
+  .doc-question-response > .question-number,
+  .doc-question-response > p,
+  .doc-student-document,
+  .doc-science-source,
+  .doc-science-figure,
+  .document-student-source,
+  .visual-student-docs,
+  .visual-student-figure,
+  .import-original-canvas,
+  .question-doc,
+  .cw-student-source-figure
+) {
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  -webkit-touch-callout:none;
+}
+body.cortex-noctis .cortex-exam-subject-locked .exam-question :is(
+  .doc-question-response [data-cortex-q],
+  .doc-question-response input,
+  .doc-question-response textarea,
+  .doc-question-response select,
+  .doc-question-response [contenteditable="true"]
+) {
+  user-select:text!important;
+  -webkit-user-select:text!important;
+  -webkit-touch-callout:default;
+}
+/* Pas de menu natif "Enregistrer l'image" sur un canvas du lecteur protégé. */
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-canvas {
+  -webkit-touch-callout:none;
+  -webkit-user-drag:none;
+}

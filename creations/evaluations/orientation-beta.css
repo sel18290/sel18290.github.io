@@ -94,3 +94,13 @@
 #cortex-orientation .co-btn.co-danger{color:#ffcacd;background:#432838;border-color:#885365}
 #cortex-orientation .co-btn.co-danger:hover{background:#5b3141}
 @media(max-width:760px){#cortex-demo-orientation{padding:0 6px 20px}#cortex-orientation .co-top-nav{align-items:flex-start}#cortex-orientation .co-local-actions .co-btn{flex:1 1 100%}}
+
+/* Quatre parcours bien alignés, sans carte isolée sur ordinateur. */
+body.cortex-noctis .portal-entry-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.cortex-noctis .portal-entry-option:has([data-action="student-orientation"]){border-color:#6b9fb3;background:linear-gradient(145deg,#edf9ff,#dcecf6)}
+body.cortex-noctis .portal-entry-option:has([data-action="student-orientation"]) .portal-entry-button{border-color:#7aacc1}
+body.cortex-noctis .co-inline-beta{display:inline-block;font-size:9px;font-weight:850;color:#195a76;background:#bfe9f7;border:1px solid #8cc6df;padding:3px 6px;border-radius:7px;vertical-align:middle;letter-spacing:.04em}
+body.cortex-noctis .co-portal-feature{border:1px solid #749cb0;background:linear-gradient(110deg,#e3f5ff,#d5eaf5);border-radius:15px;padding:18px;margin:16px 0}
+body.cortex-noctis .co-portal-feature .portal-main-button{width:auto;max-width:100%;padding:13px 19px}
+body.cortex-noctis .co-portal-privacy{font-size:11px;line-height:1.65;color:#355469;margin-top:11px}
+@media(max-width:720px){body.cortex-noctis .portal-entry-options{grid-template-columns:1fr}body.cortex-noctis .co-portal-feature{padding:15px}}

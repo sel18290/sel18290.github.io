@@ -267,9 +267,17 @@ return `<div class="home cortex-focus-home">
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">02 · ENSEIGNANT</span><h3>Du PDF au contrôle numérique</h3><p>Importe un sujet et transforme-le avec l’aide de l’IA en questions numériques, en conservant les documents à vérifier avant publication.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">03 · ENSEIGNANT</span><h3>Une correction assistée par IA</h3><p>Obtiens des propositions de notation et des commentaires question par question pour corriger plus vite, tout en gardant le dernier mot.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">04 · ÉLÈVE</span><h3>Le manuscrit rejoint le numérique</h3><p>Quand l’évaluation le permet, photographie tes réponses écrites à la main : elles rejoignent la copie numérique et facilitent la correction.</p></article>
-   <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>Un suivi anti-triche intégré</h3><p>Chronomètre, suivi des sorties d’écran et journal des événements selon les réglages. Une alerte invite à vérifier : elle ne prouve pas une triche.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>Six protections anti-triche complémentaires</h3><p>Chronomètre, sorties d’écran horodatées, blocage de copie et collage, filigranes nominatifs sur les PDF, suivi de passation et comparaison des réponses. Ces indicateurs renforcent les contrôles, mais la détection de 100 % des triches ne peut pas être garantie : chaque alerte demande une vérification humaine.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · PFMP</span><h3>La recherche de PFMP simplifiée</h3><p>Recherche des lieux adaptés à ta filière et à ta zone, suis les entreprises choisies et prépare CV, lettre et prise de contact avec Albert.</p></article>
   </div>
+ </section>
+ <section class="cortex-feature-request" aria-label="Demander une fonctionnalité">
+  <div class="cortex-feature-request-copy">
+   <span class="cortex-feature-kicker">PARTICIPE À L’ÉVOLUTION DE CORTEX</span>
+   <h3>Envie d’une nouvelle fonctionnalité ?</h3>
+   <p>Décris ce dont tu as besoin. Albert vérifie la pertinence de ta demande avant sa transmission au créateur.</p>
+  </div>
+  <button type="button" class="cortex-feature-request-button" data-cortex-feedback-open="fonctionnalite">Demander une fonctionnalité</button>
  </section>
  <div class="cortex-focus-trust"><span class="cortex-focus-trust-mark" aria-hidden="true">◈</span><strong>L’IA accompagne, l’humain décide.</strong><span>Estimation indicative, vérification des documents et validation des corrections par l’enseignant.</span><span class="cortex-focus-separator" aria-hidden="true"></span><small>Visite libre · Données fictives</small></div>
  <section class="cortex-focus-vista" aria-labelledby="cortex-focus-vista-title">

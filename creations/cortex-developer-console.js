@@ -98,7 +98,8 @@ function chart(rows){
  const dates=group(rows,r=>r.kind==='pfmp_open'||r.kind==='pfmp_search'||r.kind.startsWith('albert_'),r=>r.day);
  const counts=new Map(dates),max=Math.max(1,...counts.values()),count=Math.min(days,24);
  for(let i=count-1;i>=0;i--){
-  const date=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+  const date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'})
+    .format(new Date(Date.now()-i*86400000));
   const value=counts.get(date)||0;
   const col=D.createElement('div');col.className='cortex-dev-barcol';
   col.title=date+' : '+fmt(value)+' interactions';
@@ -119,7 +120,7 @@ function draw(stats){
  $('[data-dev-stat="pfmp"]').textContent=fmt(sum('pfmp_open'));
  $('[data-dev-stat="albert"]').textContent=fmt(rows.filter(x=>x.kind.startsWith('albert_')).reduce((a,x)=>a+(Number(x.hits)||0),0));
  list('[data-dev-sectors]',group(rows,x=>x.kind==='pfmp_search',x=>display(x.category)),'Aucune recherche PFMP enregistrée.');
- list('[data-dev-questions]',group(rows,x=>['albert_help_eleve','albert_help_prof'].includes(x.kind),x=>display(x.category)),'Les thèmes fréquents apparaîtront après les premières questions.');
+ list('[data-dev-questions]',group(rows,x=>['albert_help_eleve','albert_help_prof','pfmp_albert'].includes(x.kind),x=>display(x.category)),'Les thèmes fréquents apparaîtront après les premières questions.');
  list('[data-dev-custom]',group(rows,x=>x.kind==='custom_sector',x=>x.category),'Aucune filière supplémentaire ajoutée depuis le début du suivi.');
  list('[data-dev-features]',group(rows,x=>['pfmp_open','pfmp_cv','pfmp_contact','pfmp_albert'].includes(x.kind),x=>({
   pfmp_open:'Ouvrir PFMP',pfmp_cv:'Atelier CV et lettre',

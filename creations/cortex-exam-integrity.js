@@ -40,7 +40,7 @@
     if (settings.trackLive === true) rules.push('Ton professeur voit la progression de ton brouillon, l’état de la page et les accès simultanés pour ton numéro.');
     if (settings.blockPaste === true) rules.push('Le collage dans les réponses est bloqué.');
     if (settings.blockCopy === true) rules.push('La copie du sujet est limitée.');
-    if (settings.watermarkCapture === true) rules.push('Le sujet porte un filigrane.');
+    if (settings.watermarkCapture === true) rules.push('Un filigrane visible identifie les écrans du contrôle et les documents affichés dans CORTEX. Une capture système reste possible.');
     return rules.join(' ');
   }
 

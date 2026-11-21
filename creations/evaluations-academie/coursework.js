@@ -32,6 +32,17 @@ export async function api(action,payload={},file=null,teacher=false){
   typeof body==='string'&&new TextEncoder().encode(body).length<60000;
  try{response=await fetch(ENDPOINT,{method:'POST',headers,body,cache:'no-store',keepalive})}
  catch{throw Error('Le service des évaluations est inaccessible.')}
+ if(action==='student_subject_pdf'){
+  if(!response.ok){
+   const error=await response.json().catch(()=>null);
+   throw Error(error?.error||'Impossible de produire le document PDF filigrané.');
+  }
+  if(!String(response.headers.get('content-type')||'').includes('application/pdf'))
+   throw Error('Le serveur n’a pas retourné un PDF.');
+  const blob=await response.blob();
+  if(blob.size<100||blob.size>14000000)throw Error('PDF filigrané invalide ou trop volumineux.');
+  return {ok:true,blob};
+ }
  const out=await response.json().catch(()=>null);
  if(!response.ok||!out?.ok)throw Error(out?.error||'Action refusée par le serveur.');
  return out;

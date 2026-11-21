@@ -102,7 +102,7 @@ window.CORTEX_PORTAL=(function(){
    '<p>Recherche un lieu de PFMP et organise tes candidatures sur cet appareil.</p>'+
    '<button type="button" class="portal-entry-button" data-action="student-stages">Recherche de PFMP</button></article>'+
     '<article class="portal-entry-option"><h2>Préparer mon orientation <span class="co-inline-beta">BÊTA</span></h2><span class="cs-demo-local-tag">Sauvegardé en local</span>'+
-    '<p>Compare les formations Parcoursup, élargis tes vœux et retrouve tes pistes sauvegardées sur cet appareil.</p>'+
+    '<p>Compare les formations Parcoursup, prépare plusieurs pistes et construis ta lettre de motivation avec un atelier guidé inspiré du module PFMP. Tout reste sauvegardé sur cet appareil.</p>'+
     '<button type="button" class="portal-entry-button" data-action="student-orientation">Mon orientation ↗</button></article>'+
    '<article class="portal-entry-option"><h2>Essayer un contrôle</h2>'+
    '<p>Teste une évaluation de PSE sur le sommeil : 20 questions, 60 minutes.</p>'+
@@ -230,7 +230,7 @@ window.CORTEX_PORTAL=(function(){
       '<p class="portal-empty">Albert examine les 13 copies corrigées de la démonstration pour proposer un bilan fondé sur leurs notes, annotations et compétences.</p></div></div>'+
      '<p class="portal-revision-note">Ces aides portent uniquement sur les contrôles fictifs du carnet, sans transmettre de véritable copie. Aucune note ni correction du professeur n’est modifiée.</p>':
     '<p class="portal-empty">L’analyse IA des copies réelles est désactivée en attente des autorisations nécessaires. Consulte la correction et les observations de ton professeur.</p>')+'</section>'+
-    '<section class="portal-section co-portal-feature" aria-label="Préparer mon orientation"><div class="portal-section-head"><div><h2>Mon orientation après le bac <span class="co-inline-beta">BÊTA</span></h2><p>Prépare tes choix Parcoursup, découvre des BTS et compare les statistiques officielles.</p></div></div><button type="button" class="portal-main-button" data-action="student-orientation">Explorer mon orientation ↗</button><p class="co-portal-privacy">Projet sauvegardé uniquement dans ce navigateur. Aucune synchronisation avec un serveur.</p></section>'+ 
+    '<section class="portal-section co-portal-feature" aria-label="Préparer mon orientation"><div class="portal-section-head"><div><h2>Mon orientation après le bac <span class="co-inline-beta">BÊTA</span></h2><p>Compare les formations et leurs attendus, prépare tes choix Parcoursup et rédige ta lettre de motivation grâce à l’atelier guidé.</p></div></div><button type="button" class="portal-main-button" data-action="student-orientation">Explorer mon orientation ↗</button><p class="co-portal-privacy">Projet sauvegardé uniquement dans ce navigateur. Aucune synchronisation avec un serveur.</p></section>'+ 
     '<section class="cs-stage-featured cs-stage-featured-dashboard" aria-label="Trouver une PFMP"><div class="cs-stage-featured-top"><span class="cs-stage-featured-label">PARCOURS PROFESSIONNEL</span></div>'+
    '<div class="cs-stage-featured-main"><div class="cs-stage-featured-content"><span class="cs-stage-featured-kicker">PFMP · RECHERCHE ASSISTÉE</span><h2>Trouve ta<br><em>prochaine PFMP.</em></h2>'+
     '<p>Explore les lieux autour de toi, prépare ta candidature et organise tes relances.</p></div></div>'+

@@ -11,7 +11,7 @@ let busy=false;
 let recoveringPassword=false;
 const redirectUrl=location.origin+location.pathname;
 const acadRoutes={
- overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',
+ overview:'prof-overview',classes:'prof-classes',pins:'cw-persistent-classes',orientation:'acad-orientation',
  assessments:'prof-assessments',copies:'cw-copies-head',suivi:'acad-live-monitoring',
  integrity:'acad-integrity',analyses:'acad-live-analytics',
  import:'acad-import-workspace',creer:'exam-form',qr:'cw-assessment-cards'

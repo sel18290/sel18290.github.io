@@ -1,5 +1,5 @@
 /* Espace réel : éditeur pédagogique question par question, inspiré de la démonstration. */
-import {api} from './coursework.js?v=2.14-handwriting';
+import {api} from './coursework.js?v=2.15-similarities-pdf';
 const $=id=>document.getElementById(id);
 const QT=()=>window.CORTEX_QUESTION_TYPES;
 const h=x=>QT().h(x);

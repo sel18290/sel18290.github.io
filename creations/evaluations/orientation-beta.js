@@ -169,6 +169,10 @@ const DEFINITIONS={
  dse:['DSE',"Dossier social étudiant : dossier de demande de bourse et, selon les règles, de logement universitaire."],
  attendus:['Attendus',"Compétences et connaissances jugées utiles pour réussir une formation. Tu peux les lire sur chaque fiche Parcoursup."],
  mobilite:['Mobilité',"Jusqu’où tu es prêt à aller pour étudier : ta ville, les villes proches ou toute la France. Élargir la zone peut aider à découvrir d’autres établissements."],
+ classement:['Pourquoi ces trois catégories ?',"Ce classement pédagogique indique seulement si le programme prolonge directement ton bac, s'il constitue une passerelle, ou s'il comporte davantage de nouvelles matières. Toutes les formations de la liste peuvent être explorées. Les règles d'admission dépendent de chaque établissement et de ton dossier."],
+ passerelle:['Passerelle possible',"Des compétences acquises au lycée peuvent t'aider, mais tu devras aussi découvrir de nouvelles matières. Une passerelle n'est ni une interdiction ni une promesse d'admission."],
+ transition:['Nouvelle direction à préparer',"Une formation plus éloignée de ton bac peut être envisageable. Lis attentivement les attendus, renseigne-toi sur le niveau de travail demandé et demande conseil à ton professeur principal."],
+ btspriorite:['Pourquoi les BTS occupent une place importante ?',"Les bacheliers professionnels bénéficient de places priorisées dans les BTS selon les règles de Parcoursup. Cela n'assure pas une admission individuelle. En BUT, les places priorisées concernent particulièrement les bacheliers technologiques."],
  parcours:['Parcours alternatif',"Une autre formation qui correspond à des compétences ou centres d’intérêt proches de ton projet. Ce n’est pas nécessairement un second choix moins bon."],
  diversite:['Diversifier ses vœux',"Construire plusieurs pistes cohérentes, dans différents établissements ou formations, pour ne pas dépendre d’une seule possibilité. Vérifie les règles de regroupement des vœux."],
  historique:['Données 2025',"Les chiffres présentés décrivent la session Parcoursup 2025, hors apprentissage. Ils ne prédisent pas la sélection des dossiers en 2027."],
@@ -246,10 +250,33 @@ function openTab(next){
  if(tab==='explorer'){renderSearch();}
  root.querySelector('.co-stage-panels')?.scrollIntoView?.({behavior:'smooth',block:'start'});
 }
-function courseOptions(){
- const fav=new Set(FILIERES[profile.bac_origin].courses);
- return '<option value="">Je découvre encore mes possibilités</option>'+
- COURSES.map((s,i)=>'<option value="'+esc(s)+'"'+(profile.goal===s?' selected':'')+'>'+esc(s)+(fav.has(i)?' · conseillé pour ton bac':'')+'</option>').join('');
+function courseOptions(selected=profile.goal,placeholder='Je découvre encore mes possibilités'){
+ const groups=FITS[profile.bac_origin]||FITS.accueil;
+ return '<option value="">'+esc(placeholder)+'</option>'+
+  Object.entries(FAMILIES).map(([family,info])=>
+   '<optgroup label="'+esc(info.title)+'">'+groups[family].map(index=>{
+    const course=COURSES[index];
+    return '<option value="'+esc(course)+'"'+(selected===course?' selected':'')+'>'+esc(course)+'</option>';
+   }).join('')+'</optgroup>'
+  ).join('');
+}
+function renderGoalInfo(){
+ const box=$('co-goal-info');if(!box)return;
+ const course=profile.goal;
+ if(!course){
+  box.innerHTML='<div class="co-goal-empty"><strong>Et les autres formations ?</strong> Elles ne sont pas déconseillées : elles sont classées selon les matières à apprendre et la proximité avec ton bac, pas selon ton niveau ou tes chances. '+help('classement')+'</div>';
+  return;
+ }
+ const {family,detail,why,matched}=aboutCourse(course),info=FAMILIES[family];
+ const level=course.startsWith('BTS')?'BTS · BAC + 2':course.startsWith('BUT')?'BUT · BAC + 3':course.startsWith('Licence')?'LICENCE · BAC + 3':'CERTIFICAT DE SPÉCIALISATION';
+ box.innerHTML='<article class="co-goal-detail co-group-'+family+'"><div class="co-goal-detail-top"><span class="co-classification">'+esc(info.short)+'</span><span class="co-course-type">'+esc(level)+'</span></div>'+
+  '<strong>'+esc(course)+'</strong>'+
+  '<p><b>Pourquoi cette catégorie ?</b> '+esc(why)+' '+help(family==='direct'?'classement':family==='bridge'?'passerelle':'transition')+'</p>'+
+  '<p><b>Tu y apprendras :</b> '+esc(detail.about)+'</p>'+
+  '<p><b>Ce qu’il faut vérifier :</b> '+esc(detail.focus)+'</p>'+
+  (matched.length?'<p class="co-match"><b>Un lien avec tes centres d’intérêt :</b> '+matched.map(esc).join(' · ')+'</p>':'')+
+  '<div class="co-goal-detail-actions"><button type="button" class="co-btn co-small co-soft" data-co-explore-course="'+esc(course)+'">Chercher des établissements →</button>'+
+  '<button type="button" class="co-btn co-small" data-co-keep-course="'+esc(course)+'">+ Ajouter à mes choix</button></div></article>';
 }
 function titleBar(){
  return '<div class="co-head"><div class="co-headline"><span class="co-orbit-label"><span class="co-pulse"></span> CORTEX / ORIENTATION · DÉMONSTRATION</span>'+
@@ -272,7 +299,9 @@ function layout(){
  '<div class="co-sector-cards" role="group" aria-label="Choisir ma filière">'+Object.entries(FILIERES).map(([id,f])=>
  '<button type="button" data-co-sector="'+id+'" class="co-sector" aria-pressed="false"><span class="co-sector-icon">'+f.icon+'</span><strong>'+esc(f.label)+'</strong><small>'+esc(f.explain)+'</small><span class="co-tick">✓</span></button>').join('')+'</div>'+
  '<div class="co-profile-form"><label for="co-goal">Quelle formation t’intéresse déjà ? '+help('voeu')+'</label>'+
- '<select id="co-goal">'+courseOptions()+'</select><p class="co-field-hint">Pas encore d’idée ? Aucun problème : Albert et les suggestions t’aideront.</p>'+
+ '<select id="co-goal">'+courseOptions()+'</select>'+
+  '<p class="co-field-hint">Toutes les formations restent envisageables : ces groupes expliquent seulement la proximité avec ton bac. '+help('classement')+'</p>'+
+  '<div id="co-goal-info" role="status" aria-live="polite"></div>'+
  '<div class="co-grid-fields"><div><label for="co-city">Dans quelle ville veux-tu étudier ?</label><input id="co-city" maxlength="100" placeholder="Ex. Paris, Lille, Lyon" autocomplete="address-level2"></div>'+
  '<div><label for="co-mobility">Jusqu’où peux-tu aller ? '+help('mobilite')+'</label><select id="co-mobility"><option value="ville">Ma ville en priorité</option><option value="region">Ma ville et d’autres villes</option><option value="france">Partout en France</option></select></div></div>'+
  '<label class="co-check-row"><input type="checkbox" id="co-apprenticeship"> Je veux aussi découvrir l’alternance '+help('apprentissage')+'</label>'+
@@ -316,7 +345,7 @@ function renderSectors(){
   const active=el.dataset.coSector===profile.bac_origin;
   el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active));
  });
- const sel=$('co-goal');if(sel)sel.innerHTML=courseOptions();
+ const sel=$('co-goal');if(sel)sel.innerHTML=courseOptions();renderGoalInfo();
 }
 function renderInterests(){
  const wrap=$('co-interests');if(!wrap)return;
@@ -436,7 +465,7 @@ function recordScore(r,term){
  return match+(city===wanted?10:city.includes(wanted)?5:0)+((pct(r.part_acces_pro)??0)/100);
 }
 function renderSearch(){
- const sel=$('co-search-course');if(sel)sel.innerHTML='<option value="">Choisir une formation</option>'+COURSES.map(c=>'<option value="'+esc(c)+'"'+(c===(tabData||profile.goal)?' selected':'')+'>'+esc(c)+'</option>').join('');
+ const sel=$('co-search-course');if(sel)sel.innerHTML=courseOptions(tabData||profile.goal,'Choisir une formation');
  const box=$('co-results');if(!box)return;
  if(!records.length){box.innerHTML='<div class="co-empty-state"><span>⌖</span><h3>À toi de trouver des établissements.</h3><p>Choisis une formation puis lance une recherche. Les chiffres disponibles sont issus de la session 2025.</p></div>';return;}
  const term=tabData||profile.goal;
@@ -583,7 +612,7 @@ function input(e){
 }
 function change(e){
  const t=e.target;
- if(t?.id==='co-goal'){reqId++;profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;records=[];aiResult=null;persist();renderSuggestions();renderAlbert();}
+ if(t?.id==='co-goal'){reqId++;profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;records=[];aiResult=null;persist();renderGoalInfo();renderSuggestions();renderAlbert();}
  if(t?.id==='co-city'){profile.city=clean(t.value)||'Paris';persist();}
  if(t?.id==='co-mobility'){profile.mobility=t.value;persist();renderSearch();}
  if(t?.id==='co-apprenticeship'){profile.apprenticeship=!!t.checked;persist();}

@@ -39,7 +39,8 @@ function mount(host,opts){
   return w?.school||'';
  };
  const generate=()=>{
-  const d=get(),items=['Actuellement en baccalauréat professionnel '+opts.bacLabel(bac())+', je souhaite intégrer la formation '+course+'.'];
+  const d=get(),target=trim(d.target||savedSchool());
+  const items=['Actuellement en baccalauréat professionnel '+opts.bacLabel(bac())+', je souhaite intégrer la formation '+course+(target?' proposée par '+target:'')+'.'];
   for(const [k] of parts)if(trim(d.sections[k]))items.push(trim(d.sections[k]));
   items.push("Je vous remercie de l’attention portée à ma candidature.");
   return items.join('\n\n');
@@ -57,8 +58,8 @@ function mount(host,opts){
    '<div class="co-letter-actions"><button type="button" class="co-letter-primary" data-letter-step="1">Passer à la rédaction →</button></div>';
  }
  function writing(){
-  const d=get(),ex=examples[bac()]||examples.accueil;
-  return '<div class="co-letter-section-title"><span>ÉTAPE 02</span><h3>Construire mes arguments</h3><p>Réponds avec tes propres mots. Les phrases d’exemple ne seront pas copiées automatiquement.</p></div>'+
+  const d=get(),ex=examples[bac()]||examples.accueil,guide=opts.courseGuidance(course);
+  return '<div class="co-letter-section-title"><span>ÉTAPE 02</span><h3>Construire mes arguments</h3><p>Réponds avec tes propres mots. Les phrases d’exemple ne seront pas copiées automatiquement. Parcoursup recommande une rédaction personnelle et déconseille les textes rédigés par IA.</p></div>'+
    '<div class="co-letter-meter"><strong id="co-letter-progress">'+progress()+' / 4 rubriques remplies</strong><progress id="co-letter-progressbar" max="4" value="'+progress()+'"></progress></div>'+
    '<div class="co-letter-editor"><div class="co-letter-fields">'+parts.map(([k,label,help],i)=>
     '<article class="co-letter-field"><div class="co-letter-field-top"><b>'+String(i+1).padStart(2,'0')+'</b><strong>'+esc(label)+'</strong>'+
@@ -67,8 +68,8 @@ function mount(host,opts){
     '<button type="button" class="co-letter-ai-trigger" data-letter-ask="'+k+'">✦ Améliorer cette rubrique avec Albert</button></article>'
    ).join('')+'</div>'+
    '<aside class="co-letter-assist"><div><span>MON BAC PRO</span><strong>'+esc(opts.bacLabel(bac()))+'</strong><p>Une expérience réelle, même modeste, vaut mieux qu’une compétence inventée.</p></div>'+
-   '<div><span>MA FORMATION</span><strong>'+esc(course)+'</strong><p>Lis les enseignements et les attendus pour expliquer pourquoi tu souhaites y entrer.</p></div>'+
-   '<div><strong>✧ Albert, sur demande</strong><p>Albert ne voit qu’un passage précis, après ton accord. N’envoie pas de coordonnées ni de nom de personne.</p></div></aside></div>'+
+   '<div><span>MA FORMATION</span><strong>'+esc(course)+'</strong><p>'+esc(guide?.detail?.about||'Découvre les enseignements de ce diplôme sur Parcoursup.')+'</p><p><b>À vérifier :</b> '+esc(guide?.detail?.focus||'Les attendus de la formation.')+'</p></div>'+
+   '<div><strong>✧ Albert, sur demande</strong><p>Parcoursup déconseille de faire rédiger sa lettre par IA. Ici, Albert sert uniquement à relire un de tes passages, si tu le souhaites. Tu restes l’auteur du texte.</p></div></aside></div>'+
    '<div id="co-letter-ai-result" aria-live="polite"></div>'+
    '<div class="co-letter-actions"><button type="button" class="co-letter-secondary" data-letter-step="0">← Changer de formation</button>'+
    '<button type="button" class="co-letter-primary" data-letter-step="2"'+(!progress()?' disabled':'')+'>Relire ma lettre →</button></div>';
@@ -76,7 +77,7 @@ function mount(host,opts){
  function review(){
   const d=get(),body=d.final||generate(),length=body.length,limit=d.limit||1500;
   return '<div class="co-letter-section-title"><span>ÉTAPE 03</span><h3>Relire, corriger et exporter</h3>'+
-  '<p>La lettre n’est demandée que par certaines formations. La limite habituelle est de 1 500 caractères, espaces compris. Vérifie ta fiche officielle.</p></div>'+
+  '<p>La lettre n’est demandée que par certaines formations. La limite habituelle est de 1 500 caractères, espaces compris. Vérifie ta fiche officielle et ne mentionne ni ton nom ni ton prénom dans la lettre.</p></div>'+
   '<div class="co-letter-reviewtop"><label>Limite indiquée sur la fiche<select id="co-letter-limit"><option value="1500"'+(limit===1500?' selected':'')+'>1 500 caractères · règle habituelle</option>'+
   '<option value="4500"'+(limit===4500?' selected':'')+'>4 500 caractères · exception vérifiée</option></select></label>'+
   '<div id="co-letter-counter" class="co-letter-counter'+(length>limit?' is-over':'')+'"><span>Caractères, espaces compris</span><strong id="co-letter-count">'+length+' / '+limit+'</strong></div></div>'+
@@ -87,7 +88,7 @@ function mount(host,opts){
   '<button type="button" class="co-letter-secondary" data-letter-copy'+(length>limit?' disabled':'')+'>Copier</button>'+
   '<button type="button" class="co-letter-secondary" data-letter-export>↓ Exporter TXT</button>'+
   '<button type="button" class="co-letter-primary" data-letter-print'+(length>limit?' disabled':'')+'>Imprimer / PDF</button></div>'+
-  '<div class="co-letter-privacy">Tous tes brouillons sont sauvegardés sur cet appareil et inclus dans l’export de ton projet Orientation. Aucun vœu ou dossier personnel n’est envoyé au serveur CORTEX.</div>';
+  '<div class="co-letter-privacy">Tous tes brouillons sont sauvegardés sur cet appareil et inclus dans l’export de ton projet Orientation. Aucun vœu ou dossier personnel n’est envoyé au serveur CORTEX. Parcoursup demande un texte personnel et recommande de ne pas employer d’IA pour rédiger à ta place.</div>';
  }
  function render(){
   if(disposed||!host.isConnected)return;

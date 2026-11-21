@@ -42,7 +42,7 @@ function msg(message,error=false){
 }
 function scheduleSave(){
  clearTimeout(autoTimer);
- autoTimer=setTimeout(()=>save(),450);
+ autoTimer=setTimeout(()=>{autoTimer=0;save();},450);
 }
 function save(wishes){
  if(!root?.isConnected)return false;
@@ -299,7 +299,10 @@ function mount(element){
  msg('Projet chargé depuis ce navigateur. Sauvegarde locale automatique activée.');
 }
 function dispose(){
- clearTimeout(autoTimer);root=null;results=[];busy=false;searchToken++;
+ if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;save();}
+ else clearTimeout(autoTimer);
+ root=null;results=[];busy=false;searchToken++;
 }
+window.addEventListener('pagehide',()=>{if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;save();}});
 window.CORTEX_ORIENTATION={mount,dispose};
 })();

@@ -132,7 +132,7 @@ handwriting=null;
 if(view==='teacher')root.innerHTML=teacherShell();
 else if(view==='student')root.innerHTML=studentShell();
 else root.innerHTML=home();
-if(view==='student'&&tab==='orientation')window.CORTEX_ORIENTATION?.mount(document.getElementById('cortex-orientation'));
+if(view==='student'&&tab==='orientation')window.CORTEX_ORIENTATION?.mount(document.getElementById('cortex-orientation'),location.hash.split('/')[2]);
 const monitoredAttempt=view==='student'&&tab==='examen'?activeAttempt():null;
 const examGuard=monitoredAttempt?.status==='progress'&&authorizedAttempt(monitoredAttempt)?{
  key:monitoredAttempt.id,startedAt:monitoredAttempt.startedAt,root,subjectSelector:'.exam-question',
@@ -279,9 +279,8 @@ return `<div class="home cortex-focus-home">
      <p class="cortex-home-orientation-storage">Projet, choix et brouillons sauvegardés sur cet appareil · Conseils Albert sur demande</p>
     </div>
     <div class="cortex-home-orientation-choices" role="group" aria-label="Les deux parcours d’orientation">
-     <div class="cortex-home-orientation-choice"><span aria-hidden="true">✦</span><div><strong>Je pars d’un métier</strong><small>Je choisis le métier que je vise, puis Albert m’explique comment y arriver depuis mon bac.</small></div></div>
-     <div class="cortex-home-orientation-choice"><span aria-hidden="true">▤</span><div><strong>Je pars d’une formation</strong><small>J’explore les BTS, BUT et autres études possibles après Accueil, Commerce A ou AGOrA.</small></div></div>
-     <button type="button" data-action="student-orientation" class="cortex-home-orientation-launch" aria-label="Découvrir l'orientation en deux parcours">Découvrir les deux parcours <span aria-hidden="true">↗</span></button>
+     <a href="#eleve/orientation/metier" class="cortex-home-orientation-choice"><span aria-hidden="true">✦</span><span><strong>Je pars d’un métier</strong><small>Quelles études pour exercer ce métier ?</small></span></a>
+     <a href="#eleve/orientation/formation" class="cortex-home-orientation-choice"><span aria-hidden="true">▤</span><span><strong>Je pars d’une formation</strong><small>Quelles études après mon bac pro ?</small></span></a>
     </div>
    </article>
   </div>

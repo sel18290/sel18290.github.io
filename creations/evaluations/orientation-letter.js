@@ -4,6 +4,7 @@
 (function(){
 'use strict';
 const API='https://jhtmaoeazmjigfruandl.supabase.co/functions/v1/cortex-orientation-advice';
+const CARTE='https://dossier.parcoursup.fr/Candidat/carte';
 const parts=[
  ['motivation','Pourquoi cette formation ?',"Ce que tu veux apprendre et ce qui t'attire dans la formation."],
  ['competences',"Ce que tu as déjà appris","Une compétence observée en cours, en projet ou en PFMP : explique ce que tu as réellement fait."],
@@ -34,10 +35,8 @@ function mount(host,opts){
  const save=()=>{get().updatedAt=new Date().toISOString();opts.save()};
  const msg=(s,bad=false)=>{const e=$('co-letter-status');if(e){e.textContent=s;e.classList.toggle('is-error',bad)}};
  const progress=()=>parts.filter(([k])=>trim(get().sections[k])).length;
- const savedSchool=()=>{
-  const w=filtered().find(w=>(w.code||w.title+'#'+w.school)===wishId);
-  return w?.school||'';
- };
+ const selectedWish=()=>filtered().find(w=>w.code&&w.code===wishId);
+ const savedSchool=()=>selectedWish()?.school||'';
  const generate=()=>{
   const d=get(),target=trim(d.target||savedSchool());
   const items=['Actuellement en baccalauréat professionnel '+opts.bacLabel(bac())+', je souhaite intégrer la formation '+course+(target?' proposée par '+target:'')+'.'];
@@ -46,7 +45,7 @@ function mount(host,opts){
   return items.join('\n\n');
  };
  function target(){
-  const d=get(),list=filtered();
+  const d=get(),list=filtered().filter(w=>w.code),wish=selectedWish();
   return '<div class="co-letter-section-title"><span>ÉTAPE 01</span><h3>Choisir la formation</h3><p>Comme pour ton atelier PFMP, prépare une version adaptée à chaque formation et, si besoin, à chaque établissement.</p></div>'+
    '<div class="co-letter-formgrid"><label>Bac professionnel<input disabled value="'+esc(opts.bacLabel(bac()))+'"></label>'+
    '<label>Formation souhaitée<select id="co-letter-course">'+opts.courseOptions(course,'Choisir une formation')+'</select></label>'+
@@ -54,7 +53,7 @@ function mount(host,opts){
    list.map(w=>{const id=w.code||w.title+'#'+w.school;return '<option value="'+esc(id)+'"'+(id===wishId?' selected':'')+'>'+esc(w.school||w.title)+(w.city?' · '+esc(w.city):'')+'</option>';}).join('')+'</select></label>'+
    '<label>Établissement ciblé (facultatif)<input id="co-letter-school" maxlength="160" placeholder="Seulement si tu as vérifié son nom" value="'+esc(d.target||savedSchool())+'"></label></div>'+
    '<aside class="co-letter-read-first"><strong>Avant de rédiger</strong><p>Vérifie si cette formation demande une lettre sur Parcoursup et consulte les attendus de la fiche. N’invente pas une visite ou une expérience.</p>'+
-   '<a href="https://www.parcoursup.gouv.fr/" target="_blank" rel="noopener noreferrer">Lire les fiches Parcoursup ↗</a></aside>'+
+   '<a href="'+esc(wish?.url||CARTE)+'" target="_blank" rel="noopener noreferrer">'+(wish?'Ouvrir la fiche de cet établissement':'Chercher la formation sur Parcoursup')+'</a></aside>'+
    '<div class="co-letter-actions"><button type="button" class="co-letter-primary" data-letter-step="1">Passer à la rédaction →</button></div>';
  }
  function writing(){
@@ -62,7 +61,7 @@ function mount(host,opts){
   return '<div class="co-letter-section-title"><span>ÉTAPE 02</span><h3>Construire mes arguments</h3><p>Réponds avec tes propres mots. Les phrases d’exemple ne seront pas copiées automatiquement. Parcoursup recommande une rédaction personnelle et déconseille les textes rédigés par IA.</p></div>'+
    '<div class="co-letter-meter"><strong id="co-letter-progress">'+progress()+' / 4 rubriques remplies</strong><progress id="co-letter-progressbar" max="4" value="'+progress()+'"></progress></div>'+
    '<div class="co-letter-editor"><div class="co-letter-fields">'+parts.map(([k,label,help],i)=>
-    '<article class="co-letter-field"><div class="co-letter-field-top"><b>'+String(i+1).padStart(2,'0')+'</b><strong>'+esc(label)+'</strong>'+
+    '<article class="co-letter-field"><div class="co-letter-field-top"><b>'+String(i+1).padStart(2,'0')+'</b><label for="co-letter-'+k+'">'+esc(label)+'</label>'+
     '<span data-letter-status="'+k+'">'+(trim(d.sections[k])?'✓ Renseigné':'À compléter')+'</span></div><p>'+esc(help)+'</p>'+
     '<textarea id="co-letter-'+k+'" data-letter-field="'+k+'" rows="3" maxlength="1400" placeholder="'+esc(ex[i])+'">'+esc(d.sections[k])+'</textarea>'+
     '<button type="button" class="co-letter-ai-trigger" data-letter-ask="'+k+'">✦ Améliorer cette rubrique avec Albert</button></article>'
@@ -82,9 +81,10 @@ function mount(host,opts){
   '<option value="4500"'+(limit===4500?' selected':'')+'>4 500 caractères · exception vérifiée</option></select></label>'+
   '<div id="co-letter-counter" class="co-letter-counter'+(length>limit?' is-over':'')+'"><span>Caractères, espaces compris</span><strong id="co-letter-count">'+length+' / '+limit+'</strong></div></div>'+
   '<div class="co-letter-paper"><div class="co-letter-paper-head"><span>APERÇU MODIFIABLE · PARCOURSUP</span><span>'+esc(course)+'</span></div>'+
-  '<textarea id="co-letter-final" rows="14" maxlength="5000">'+esc(body)+'</textarea></div>'+
+  '<textarea id="co-letter-final" aria-label="Ma lettre Parcoursup" rows="14" maxlength="5000">'+esc(body)+'</textarea></div>'+
   '<p class="co-letter-warning" id="co-letter-warning">'+(length>limit?'La lettre dépasse la limite : raccourcis ton texte.':'Vérifie que chaque expérience citée est vraie et que ce texte est vraiment le tien.')+'</p>'+
   '<div class="co-letter-actions"><button type="button" class="co-letter-secondary" data-letter-step="1">← Modifier mes arguments</button>'+
+  (d.final?'<button type="button" class="co-letter-secondary" data-letter-rebuild>Recomposer à partir de mes arguments</button>':'')+
   '<button type="button" class="co-letter-secondary" data-letter-copy'+(length>limit?' disabled':'')+'>Copier</button>'+
   '<button type="button" class="co-letter-secondary" data-letter-export>↓ Exporter TXT</button>'+
   '<button type="button" class="co-letter-primary" data-letter-print'+(length>limit?' disabled':'')+'>Imprimer / PDF</button></div>'+
@@ -94,7 +94,7 @@ function mount(host,opts){
   if(disposed||!host.isConnected)return;
   signal?.abort();signal=null;busy=false;suggestion=null;
   if(!courses().includes(course))course=defaultCourse();
-  if(!filtered().some(w=>(w.code||w.title+'#'+w.school)===wishId))wishId='';
+  if(!selectedWish()&&!filtered().some(w=>!w.code&&w.title+'#'+w.school===wishId))wishId='';
   if(!course)return;
   host.innerHTML='<div class="co-letter-workshop"><div class="co-letter-mast"><div><span>✦ CORTEX / ATELIER D’ÉCRITURE</span><h2>Ta motivation, <em>tes mots.</em></h2>'+
    '<p>Un atelier inspiré de PFMP, adapté à ta filière et à chaque formation choisie.</p></div><div class="co-letter-local">⌁ SAUVEGARDE LOCALE</div></div>'+
@@ -121,21 +121,23 @@ function mount(host,opts){
   if(piimatch(raw)){msg('Retire les coordonnées personnelles avant de consulter Albert.',true);return}
   if(!window.confirm('Le passage sélectionné ('+raw.length+' caractères) sera transmis à Albert, avec ta filière et la formation visée. Le reste de ton dossier reste local. Continuer ?'))return;
   busy=true;signal?.abort();signal=new AbortController();
+  const own=signal,context=key(),timeout=setTimeout(()=>own.abort(),45000);
   const b=host.querySelector('[data-letter-ask="'+field+'"]');if(b)b.disabled=true;
   const area=$('co-letter-ai-result');if(area)area.innerHTML='<p class="co-letter-ai-wait">✦ Albert relit un seul passage…</p>';
   try{
    const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},
-    body:JSON.stringify({action:'revise_letter',filiere:bac(),goal:course,interests:profile().interests.slice(0,5),section:field,text:raw}),signal:signal.signal});
+    body:JSON.stringify({action:'revise_letter',filiere:bac(),goal:course,interests:profile().interests.slice(0,5),section:field,text:raw}),signal:own.signal});
    const data=await res.json().catch(()=>({}));
-   if(!res.ok||!data.ok)throw Error(data.error||'Albert indisponible.');
+   if(disposed||signal!==own||context!==key())return;
+   if(!res.ok||!data.ok||!trim(data.improved))throw Error('Albert est temporairement indisponible.');
    if(trim(get().sections[field])!==raw){msg('Le passage a changé. Recommence la relecture si nécessaire.');return}
    suggestion={field,original:raw,improved:trim(data.improved)};
    if(area)area.innerHTML='<div class="co-letter-suggestion"><span>✦ PROPOSITION ALBERT · À VÉRIFIER</span>'+
     '<p>'+esc(data.advice||'Vérifie que cette reformulation correspond à ton expérience réelle.')+'</p><blockquote>'+esc(suggestion.improved)+'</blockquote>'+
     '<div><button class="co-letter-primary" type="button" data-letter-accept>Accepter</button><button class="co-letter-secondary" type="button" data-letter-reject>Garder mon texte</button></div></div>';
    msg('Albert propose une reformulation. À toi de choisir.');
-  }catch(e){if(!signal?.signal.aborted){msg(e.message||'Relecture indisponible.',true);if(area)area.innerHTML='';}}
-  finally{busy=false;if(b)b.disabled=false}
+  }catch{if(signal===own&&!disposed){msg('La relecture Albert est temporairement indisponible.',true);if(area)area.innerHTML='';}}
+  finally{clearTimeout(timeout);if(signal===own){busy=false;if(b)b.disabled=false;}}
  }
  function exportText(){
   const d=get(),text=d.final||generate(),blob=new Blob([text],{type:'text/plain;charset=utf-8'});
@@ -171,9 +173,15 @@ function mount(host,opts){
   if(btn.dataset.letterAsk){albert(btn.dataset.letterAsk);return}
   if(btn.hasAttribute('data-letter-accept')&&suggestion){
    if(trim(get().sections[suggestion.field])!==suggestion.original){msg('Ce texte a changé. Redemande une reformulation.',true);return}
-   get().sections[suggestion.field]=suggestion.improved;get().final='';save();render();msg('Proposition choisie et sauvegardée localement.');return;
+   const d=get();d.sections[suggestion.field]=suggestion.improved;save();render();msg(d.final?'Argument mis à jour. Tu peux recomposer ta lettre à l’étape suivante.':'Argument reformulé et sauvegardé.');return;
   }
   if(btn.hasAttribute('data-letter-reject')){suggestion=null;const a=$('co-letter-ai-result');if(a)a.innerHTML='';msg('Texte conservé.');return}
+  if(btn.hasAttribute('data-letter-rebuild')){
+   if(window.confirm('Remplacer le texte de la lettre par une version composée à partir de tes arguments actuels ?')){
+    get().final='';save();render();msg('Lettre recomposée à partir de tes arguments.');
+   }
+   return;
+  }
   if(btn.hasAttribute('data-letter-copy')){copyText();return}
   if(btn.hasAttribute('data-letter-export')){exportText();return}
   if(btn.hasAttribute('data-letter-print')){printText();return}
@@ -181,11 +189,11 @@ function mount(host,opts){
  host.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.letterField){
-   const field=t.dataset.letterField,d=get();d.sections[field]=t.value.slice(0,1400);d.final='';save();
+   const field=t.dataset.letterField,d=get();d.sections[field]=t.value.slice(0,1400);save();
    const n=progress();const status=host.querySelector('[data-letter-status="'+field+'"]');if(status)status.textContent=trim(t.value)?'✓ Renseigné':'À compléter';
    if($('co-letter-progress'))$('co-letter-progress').textContent=n+' / 4 rubriques remplies';
    if($('co-letter-progressbar'))$('co-letter-progressbar').value=n;
-   const next=host.querySelector('[data-letter-step="2"]');if(next)next.disabled=!n;
+   host.querySelectorAll('[data-letter-step="2"]').forEach(next=>next.disabled=!n);
    const box=$('co-letter-ai-result');if(box)box.innerHTML='';suggestion=null;return;
   }
   if(t.id==='co-letter-school'){get().target=t.value.slice(0,160);save();return}
@@ -205,13 +213,13 @@ function mount(host,opts){
   if(disposed||!item)return;
   if(item.pathway&&courses().includes(item.pathway))course=item.pathway;
   const found=filtered().find(w=>w===item||(w.code&&w.code===item.code)||(w.title===item.title&&w.school===item.school));
-  wishId=found?(found.code||found.title+'#'+found.school):'';
+  wishId=found?.code||(found&&Object.hasOwn(profile().letters, [bac(),course,found.title+'#'+found.school].join('::'))?found.title+'#'+found.school:'');
   step=0;render();
  },refresh(){
   if(disposed)return;
-  if(!courses().includes(course)||step===0&&profile().goal&&profile().goal!==course){course=defaultCourse();wishId=''}
+  if(!courses().includes(course)){course=defaultCourse();wishId=''}
   render();
  },dispose(){disposed=true;signal?.abort();host.replaceChildren()}};
 }
-window.CORTEX_ORIENTATION_LETTER={mount,version:'1.0'};
+window.CORTEX_ORIENTATION_LETTER={mount,version:'1.2'};
 })();

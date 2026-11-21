@@ -215,3 +215,10 @@
  #cortex-orientation.co-v2 .co-v4-promise{gap:7px}
 }
 @media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 .co-v4-entry-choice button{transition:none}}
+
+#cortex-orientation.co-v2 .co-v4-first-onisep{
+ display:inline-flex;align-items:center;justify-content:center;margin-top:8px;
+ padding:11px 16px;background:#e7f4f7;border:1px solid #b9d8e2;border-radius:9px;
+ color:#1e6484!important;text-decoration:none;font-size:12px;font-weight:820
+}
+#cortex-orientation.co-v2 .co-v4-first-onisep:hover{background:#d6edf4}

@@ -183,7 +183,7 @@
     function blockSubjectDrag(event) {
       if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
       const target = event.target;
-      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"]')) return;
+      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"],.cw-question-response,[data-cortex-q],.cw-handwriting,.cw-handwriting-preview')) return;
       if (!isSubjectTarget(target)) return;
       // Interdit le glisser-déposer d'un extrait ou d'une image du sujet ;
       // ce geste n'est PAS enregistré comme une preuve de copie.
@@ -193,7 +193,7 @@
     function blockSubjectContextMenu(event) {
       if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
       const target = event.target;
-      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"]')) return;
+      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"],.cw-question-response,[data-cortex-q],.cw-handwriting,.cw-handwriting-preview')) return;
       if (!isSubjectTarget(target)) return;
       if (target.closest?.('img,svg,canvas') || isSubjectSelection()) {
         // Masque la fonction Copier depuis le menu contextuel de la page

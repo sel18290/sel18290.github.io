@@ -38,7 +38,7 @@ const classSelect=()=> $('co-class');
 const msg=(s,isError=false)=>{const e=$('co-message');if(!e)return;e.textContent=s;e.classList.toggle('co-error',!!isError);};
 const hasAccess=()=>!!bridge()?.teacher?.()&&!!bridge()?.client?.();
 const current=()=>cache.find(p=>p.class_id===currentClass&&p.student_number===currentStudent);
-const lessons=()=>Object.fromEntries(pathways);
+const defaultBac=()=>{const name=String((bridge()?.classes?.()||[]).find(c=>c.id===currentClass)?.display_name||'').toLowerCase();return /accueil|^(tma|1ma|2ma)(\b|\d)/.test(name)?'accueil':/mcv|vente|commerce/.test(name)?'mcv':/agora|gestion|(^|\W)ga(\W|$)/.test(name)?'agora':'autre';};
 function getData(){
  return {
   teacher_id:bridge().teacher(),class_id:currentClass,student_number:currentStudent,
@@ -81,6 +81,8 @@ function renderBase(){
  $('co-save').addEventListener('click',()=>save());
  $('co-search').addEventListener('click',()=>search());
  root.addEventListener('click',async ev=>{
+  const employment=ev.target.closest('[data-co-employment]');
+  if(employment){await employmentLookup(Number(employment.dataset.coEmployment),employment);return;}
   const add=ev.target.closest('[data-co-add]');
   if(add){const i=Number(add.dataset.coAdd),rec=results[i];if(!rec)return;await saveWish(rec);return;}
   const remove=ev.target.closest('[data-co-remove]');
@@ -109,8 +111,7 @@ async function chooseClass(id){
  currentStudent=1;student.value='1';
  // La liste des numéros n'implique pas qu'un compte PIN ait été créé.
  $('co-pathway').value=cl?.display_name||'';
- const label=(cl?.display_name||'').toLowerCase();
- $('co-bac').value=/accueil|(^|\W)ma(\W|$)/.test(label)?'accueil':/mcv|vente|commerce/.test(label)?'mcv':/agora|gestion|(^|\W)ga(\W|$)/.test(label)?'agora':'autre';
+ $('co-bac').value=defaultBac();
  if(!hasAccess()){msg('Connectez-vous en tant qu’enseignant.',true);applyProfile();return;}
  try{
   const {data,error}=await bridge().client().from('cortex_orientation_profiles').select('*')
@@ -124,8 +125,8 @@ async function chooseClass(id){
 }
 function applyProfile(){
  const p=current();
- $('co-bac').value=p?.bac_origin||'autre';
- $('co-pathway').value=p?.pathway||$('co-pathway').value||'';
+ $('co-bac').value=p?.bac_origin||defaultBac();
+ $('co-pathway').value=p?.pathway||(bridge()?.classes?.()||[]).find(c=>c.id===currentClass)?.display_name||'';
  $('co-city').value=p?.city||'Paris';
  $('co-goal').value=p?.goal||'';
  $('co-interests').value=p?.interests||'';
@@ -205,9 +206,52 @@ function displayResults(data,goal,city){
   '<div><small>Part appelable · '+esc(label)+'</small><strong>'+percent(r[k])+'</strong></div>'+
   '<div><small>Admis issus d’un bac pro</small><strong>'+percent(r.pct_bp)+'</strong></div>'+
   '<div><small>Réussite / insertion</small><strong class="co-unavailable">À vérifier sur la fiche</strong></div></div>'+
+  '<div class="co-employment" id="co-employment-'+i+'"><button type="button" class="co-employment-btn" data-co-employment="'+i+'">Consulter l’insertion InserJeunes ↗</button></div>'+ 
   '<div class="co-result-bottom"><span>Statistiques observées en 2025, pas une probabilité personnelle. Apprentissage non inclus.</span>'+
   '<button type="button" data-co-add="'+i+'" class="co-btn co-add">+ Garder cette piste</button></div></article>'
   ).join('')+'</div>';
+}
+
+async function employmentLookup(i,button){
+ const rec=results[i];if(!rec)return;
+ const target=$('co-employment-'+i);
+ const code=String(rec.cod_uai||'').trim().toUpperCase();
+ const title=normalize(rec.lib_for_voe_ins||'');
+ const url='https://www.inserjeunes.education.gouv.fr/diffusion/etablissement?id_uai='+encodeURIComponent(code);
+ const nav='<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Voir cet établissement sur InserJeunes ↗</a>';
+ if(!/^[0-9]{7}[A-Z]$/.test(code)||!(/\bbts\b/.test(title))){
+  target.innerHTML='<p>Indicateurs d’insertion détaillés non raccordés automatiquement pour cette formation. <a href="https://www.inserjeunes.education.gouv.fr/diffusion/accueil" target="_blank" rel="noopener noreferrer">Consulter InserJeunes ↗</a></p>';
+  return;
+ }
+ button.disabled=true;button.textContent='Consultation InserJeunes…';
+ try{
+  const urlApi=new URL('https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-inserjeunes-lycee_pro-formation-fine/records');
+  urlApi.searchParams.set('where','uai = '+JSON.stringify(code)+' AND type_diplome = "BTS"');
+  urlApi.searchParams.set('limit','100');
+  const res=await fetch(urlApi.toString(),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
+  if(!res.ok)throw Error('Service InserJeunes indisponible.');
+  const body=await res.json();
+  const stop=new Set(['bts','des','les','dans','pour','avec','sur','parcours','option','professionnel','management','metiers']);
+  const words=title.split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!stop.has(w));
+  const eligible=(body.results||[]).map(x=>{
+   const label=normalize(x.libelle_formation||'');
+   const overlap=words.filter(w=>label.includes(w)).length;
+   const match=words.length?(overlap/words.length):0;
+   return {item:x,match};
+  }).filter(x=>x.match>=.66&&x.match>0).sort((a,b)=>{
+   const year=x=>String(x.item.annee||'');
+   return year(b).localeCompare(year(a));
+  });
+  const entry=eligible.find(x=>num(x.item.taux_emploi_6_mois)!==null)?.item;
+  if(!entry){
+   target.innerHTML='<p>Pas de taux à six mois suffisamment fiable pour cette formation dans la base publique InserJeunes. '+nav+'</p>';
+   return;
+  }
+  target.innerHTML='<div class="co-employment-metrics"><div><small>Emploi salarié à 6 mois, parmi les sortants</small><strong>'+percent(entry.taux_emploi_6_mois)+'</strong></div>'+
+   '<div><small>Emploi à 12 mois</small><strong>'+percent(entry.taux_emploi_12_mois)+'</strong></div>'+
+   '<div><small>Poursuite d’études</small><strong>'+percent(entry.taux_poursuite_etudes)+'</strong></div></div>'+
+   '<p>Source InserJeunes · '+esc(entry.annee||'période non précisée')+' · '+esc(entry.libelle_formation||'BTS')+'. Le taux d’emploi porte sur les sortants ne poursuivant pas leurs études, pas sur tous les candidats. '+nav+'</p>';
+ }catch(error){target.innerHTML='<p>Statistiques InserJeunes momentanément indisponibles. '+nav+'</p>';}
 }
 async function queryDataset(goal,city,local){
  const u=new URL(base);
@@ -230,6 +274,7 @@ async function search(){
  try{
   const local=$('co-mobility').value==='ville';
   let data=await queryDataset(goal,city,local);
+  if(data.length===0&&/^bts\s+/i.test(goal))data=await queryDataset(goal.replace(/^bts\s+/i,''),city,local);
   if(data.length===0&&local)data=await queryDataset(goal,city,false);
   if(n!==searchToken)return;
   displayResults(data,goal,city);
@@ -248,6 +293,7 @@ function boot(){
 }
 window.addEventListener('cortex:academy-view',e=>{if(e.detail==='orientation')boot();});
 window.addEventListener('cortex:academy-data-ready',boot);
+window.addEventListener('cortex:academy-logout',()=>{cache=[];results=[];currentClass='';initialized=false;root.replaceChildren();});
 window.addEventListener('hashchange',()=>{if(location.hash==='#acad-orientation')setTimeout(boot,100);});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

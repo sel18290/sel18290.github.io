@@ -49,7 +49,7 @@
     if (settings.trackVisibility === true) rules.push('Les sorties d’écran d’au moins 2 secondes sont signalées au retour.');
     if (settings.trackLive === true) rules.push('Ton professeur voit la progression de ton brouillon, l’état de la page et les accès simultanés pour ton numéro.');
     if (settings.blockPaste === true) rules.push('Le collage dans les réponses est bloqué.');
-    if (settings.blockCopy === true) rules.push('La copie du sujet est limitée.');
+    if (settings.blockCopy === true) rules.push('La sélection et la copie du sujet sont limitées. Les réponses restent modifiables.');
     if (settings.watermarkCapture === true) rules.push('Un filigrane visible identifie les écrans du contrôle et les documents affichés dans CORTEX. Une capture système reste possible.');
     return rules.join(' ');
   }
@@ -106,10 +106,21 @@
       if (duration >= MIN_EXIT_MS && duration <= MAX_EVENT_AGE_MS) report('tab_hidden', at, duration);
     }
 
+    // Activation strictement limitée à la passation. Le professeur et
+    // les écrans de correction conservent une sélection de texte normale.
+    function updateCopyMode(previousRoot) {
+      if(previousRoot && previousRoot !== active?.root)
+        previousRoot.classList?.remove('cortex-exam-subject-locked');
+      active?.root?.classList?.toggle('cortex-exam-subject-locked',
+        active.settings?.enabled === true && active.settings?.blockCopy === true);
+    }
+
     function setActive(next = null) {
+      const previousRoot=active?.root;
       if (active?.key === next?.key) {
         const wasTracking = tracking();
         active = next;
+        updateCopyMode(previousRoot);
         if (wasTracking && !tracking()) {
           hiddenAt = null;
           writeHidden();
@@ -121,6 +132,7 @@
         writeHidden();
       }
       active = next;
+      updateCopyMode(previousRoot);
       lastAction.clear();
       if (!tracking()) return;
       const previous = readHidden();
@@ -142,9 +154,26 @@
       report(kind, at);
     }
 
+    const contentExempt = [
+      'input','textarea','select','button','a','[contenteditable="true"]',
+      '[data-cortex-q]','.cw-question-response','.cq-student-answer',
+      '.cw-handwriting','.cw-handwriting-preview','.cw-protected-pdf-actions',
+      '.cw-source-dialog-tools'
+    ].join(',');
+    function isEditableOrAnswer(target){
+      return Boolean(target?.closest?.(contentExempt));
+    }
     function isSubjectTarget(target) {
       if (!active?.root?.contains(target) || !active.subjectSelector) return false;
       return Boolean(target.closest?.(active.subjectSelector));
+    }
+    function blockSubjectSelection(event) {
+      if(active?.settings?.enabled!==true||active.settings.blockCopy!==true)return;
+      const target=event.target;
+      if(isEditableOrAnswer(target)||!isSubjectTarget(target))return;
+      // Empêche la sélection/surlignage, y compris sur téléphone.
+      // Les réponses restent sélectionnables et éditables.
+      if(event.cancelable)event.preventDefault();
     }
 
     function blockPaste(event) {
@@ -176,7 +205,7 @@
     function blockCopy(event) {
       if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
       // L'élève garde le droit de corriger et de copier son propre brouillon.
-      if (event.target.closest?.(editable)) return;
+      if (event.target.closest?.(editable) && !isSubjectSelection()) return;
       if (isSubjectSelection()) block(event, 'copy_blocked');
     }
 
@@ -217,6 +246,7 @@
     document.addEventListener('cut', blockCopy);
     document.addEventListener('dragstart', blockSubjectDrag);
     document.addEventListener('contextmenu', blockSubjectContextMenu);
+    document.addEventListener('selectstart', blockSubjectSelection);
     return { setActive };
   }
 

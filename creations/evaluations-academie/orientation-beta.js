@@ -60,7 +60,7 @@ function renderBase(){
   '<label>Spécialité / parcours<input id="co-pathway" maxlength="150" placeholder="Ex. Métiers de l’accueil"></label>'+
   '<label>Formation souhaitée<input id="co-goal" maxlength="180" placeholder="Ex. BTS Tourisme, BTS MCO…"></label>'+
   '<label>Ville recherchée<input id="co-city" maxlength="100" value="Paris" placeholder="Paris, Lyon, Lille…"></label>'+
-  '<label>Mobilité<select id="co-mobility"><option value="ville">Dans cette ville</option><option value="region">Dans la région ou autres villes</option><option value="france">Dans toute la France</option></select></label>'+
+  '<label>Mobilité<select id="co-mobility"><option value="ville">Dans cette ville</option><option value="region">Élargir à d’autres villes</option><option value="france">Dans toute la France</option></select></label>'+
   '<label>Centres d’intérêt / contraintes pédagogiques<input id="co-interests" maxlength="400" placeholder="Commerce, relations clients, gestion…"></label></div>'+
   '<label class="co-check"><input type="checkbox" id="co-apprenticeship"> L’élève souhaite aussi envisager l’apprentissage</label>'+
   '<div class="co-actions"><button type="button" class="co-btn" id="co-save">Enregistrer le projet</button><button type="button" class="co-btn co-primary" id="co-search">Explorer les formations officielles ↗</button></div>'+
@@ -181,7 +181,7 @@ async function saveWish(rec){
 async function removeWish(i){
  const wishes=(current()?.wishes||[]).slice();wishes.splice(i,1);if(!wishes.length&&!$('co-goal').value.trim()){msg('Renseignez un projet avant de retirer la dernière piste.',true);return;}await save(wishes);
 }
-function num(v){const n=Number(String(v??'').replace(',','.').replace('%',''));return Number.isFinite(n)?n:null;}
+function num(v){if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(',','.').replace('%',''));return Number.isFinite(n)?n:null;}
 function percent(v){const n=num(v);return n===null||n<0||n>100?'—':new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';}
 function normalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
 function score(rec,goal,city,bac){

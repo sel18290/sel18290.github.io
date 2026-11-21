@@ -1,0 +1,118 @@
+/* CORTEX Console développeur : bleu nuit, blanc et lecture des métriques */
+#cortex-dev-console {
+ position:fixed;inset:0;margin:auto;
+ width:min(1120px,calc(100vw - 24px));max-width:1120px;
+ max-height:min(92dvh,950px);padding:0;
+ background:#f7fbff;color:#193c5b;color-scheme:light;
+ border:1px solid #a9c6de;border-radius:17px;
+ box-shadow:0 30px 100px #06162dc9;
+ overflow:auto;z-index:10030;
+ font:400 14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+#cortex-dev-console::backdrop {background:#06152bd1;backdrop-filter:blur(5px)}
+#cortex-dev-console [hidden]{display:none!important}
+#cortex-dev-console *{box-sizing:border-box}
+#cortex-dev-console :is(button,input,select):focus-visible{outline:3px solid #288ec7;outline-offset:2px}
+#cortex-dev-console button{cursor:pointer;font-family:inherit}
+#cortex-dev-console h2,#cortex-dev-console h3,#cortex-dev-console p{margin:0}
+.cortex-dev-shell{min-height:360px}
+.cortex-dev-header{
+ display:flex;align-items:center;justify-content:space-between;gap:15px;
+ padding:20px clamp(17px,3vw,30px);background:#092a4b;color:#f1f9ff;
+ border-bottom:1px solid #2b6f9b;
+}
+.cortex-dev-brand{display:flex;align-items:center;gap:13px}
+.cortex-dev-brand>span{
+ display:grid;place-items:center;flex:none;width:48px;height:48px;
+ background:#184d78;border:1px solid #6bacd8;border-radius:12px;
+ color:#d9f3ff;font-size:26px;
+}
+.cortex-dev-brand small{display:block;color:#a4cde6;font-size:10px;letter-spacing:.16em;font-weight:800}
+#cortex-dev-console .cortex-dev-brand h2{font-size:clamp(20px,3vw,26px);color:#f7fcff;font-weight:810;letter-spacing:-.02em}
+#cortex-dev-console .cortex-dev-header>button{
+ width:40px;height:40px;border-radius:9px;
+ background:#184769;color:#fff;border:1px solid #5a89a9;font-size:18px;
+}
+.cortex-dev-login{
+ padding:clamp(24px,4vw,42px);max-width:520px;
+ margin:15px auto 25px;display:grid;gap:14px;
+}
+.cortex-dev-lock{
+ width:55px;height:55px;display:grid;place-items:center;
+ font-size:30px;background:#e5f2fb;color:#226b9f;border:1px solid #bbdbe8;border-radius:15px;
+}
+#cortex-dev-console .cortex-dev-login h3{font-size:25px;color:#163954}
+#cortex-dev-console .cortex-dev-login p,#cortex-dev-console .cortex-dev-login>small{color:#536f83;font-size:13px}
+#cortex-dev-console .cortex-dev-login form{display:grid;gap:10px}
+#cortex-dev-console .cortex-dev-login label{font-size:13px;font-weight:760;color:#26516c}
+#cortex-dev-console .cortex-dev-login input{
+ width:100%;min-height:49px;background:#fff;color:#183c58;
+ border:1px solid #adcbdc;border-radius:9px;padding:12px;font-size:16px;
+}
+#cortex-dev-console .cortex-dev-primary{
+ padding:12px 16px;min-height:47px;background:#216a9c;color:#fff;
+ border:1px solid #155685;border-radius:9px;font-size:14px;font-weight:790;
+}
+#cortex-dev-console .cortex-dev-primary:disabled{opacity:.55;cursor:wait}
+#cortex-dev-console .cortex-dev-login [role=status]{color:#99552a;font-size:13px;min-height:21px}
+.cortex-dev-workspace{padding:clamp(16px,3vw,28px);display:grid;gap:18px}
+.cortex-dev-toolbar{display:flex;align-items:start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.cortex-dev-toolbar>div:first-child{display:grid;gap:2px}
+.cortex-dev-toolbar strong{font-size:21px;color:#183c58;font-weight:810}
+.cortex-dev-toolbar small{font-size:12px;color:#5c7891}
+.cortex-dev-tools{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
+.cortex-dev-tools label{display:grid;gap:2px;color:#58758b;font-size:11px;font-weight:740}
+#cortex-dev-console .cortex-dev-tools :is(button,select){
+ min-height:38px;border:1px solid #bed5e4;border-radius:8px;
+ padding:7px 10px;color:#285779;background:#fff;font-size:12px;font-weight:740;
+}
+#cortex-dev-console .cortex-dev-tools button:hover{background:#e7f2fa}
+#cortex-dev-console [data-dev-data-status]{color:#58748a;font-size:12px;min-height:18px}
+.cortex-dev-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.cortex-dev-kpis article{
+ display:grid;gap:5px;padding:18px 17px;background:#fff;border:1px solid #d1e0ec;
+ border-radius:12px;min-width:0;box-shadow:0 4px 15px #163f6110;
+}
+.cortex-dev-kpis small{color:#59758c;font-size:12px;font-weight:650}
+.cortex-dev-kpis strong{font-size:clamp(23px,3vw,34px);color:#14598c;font-weight:820;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.cortex-dev-kpis span{font-size:11px;color:#8196a5}
+.cortex-dev-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cortex-dev-card{min-width:0;padding:18px;background:#fff;border:1px solid #d1e0eb;border-radius:12px;display:grid;align-content:start;gap:14px}
+.cortex-dev-wide{grid-column:1 / -1}
+.cortex-dev-card-head{display:flex;align-items:baseline;gap:12px;justify-content:space-between;flex-wrap:wrap}
+#cortex-dev-console .cortex-dev-card h3{font-size:16px;color:#214967;font-weight:770}
+.cortex-dev-card-head small{color:#8196a8;font-size:11px}
+.cortex-dev-list{display:grid;gap:13px;min-width:0}
+.cortex-dev-list-row{display:grid;gap:6px}
+.cortex-dev-item-text{display:flex;align-items:start;justify-content:space-between;gap:12px;min-width:0}
+.cortex-dev-item-text span{font-size:13px;color:#3c5f7b;overflow-wrap:anywhere}
+.cortex-dev-item-text strong{font-size:13px;color:#185d90;font-variant-numeric:tabular-nums;flex:none}
+.cortex-dev-line{width:100%;height:6px;border-radius:99px;background:#e9f2f9;overflow:hidden}
+.cortex-dev-line>div{height:100%;border-radius:99px;background:linear-gradient(90deg,#247db1,#65b1da)}
+#cortex-dev-console .cortex-dev-empty{font-size:13px;color:#8192a1;padding:12px 0}
+.cortex-dev-bars{
+ display:flex;align-items:end;justify-content:space-between;gap:5px;
+ height:185px;padding:15px 3px 22px;border-bottom:1px solid #c4d9e8;
+ background:repeating-linear-gradient(to top,transparent 0,transparent 42px,#e7f0f7 43px);
+}
+.cortex-dev-barcol{display:flex;flex:1;min-width:0;height:100%;align-items:end;justify-content:center;position:relative}
+.cortex-dev-bar{display:block;width:min(24px,75%);min-height:2px;border-radius:5px 5px 1px 1px;background:linear-gradient(0deg,#2b7cae,#76bce0)}
+.cortex-dev-barcol small{position:absolute;bottom:-22px;font-size:10px;color:#71899e;white-space:nowrap}
+#cortex-dev-console .cortex-dev-privacy{
+ color:#60788c;background:#edf5fb;border:1px solid #d5e6f1;
+ padding:13px 15px;border-radius:9px;font-size:12px;line-height:1.65;
+}
+@media(max-width:900px){
+ .cortex-dev-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ #cortex-dev-console{width:calc(100vw - 10px);max-height:95dvh;border-radius:12px}
+ .cortex-dev-header{padding:16px}
+ .cortex-dev-kpis article{padding:13px}
+ .cortex-dev-panels{grid-template-columns:minmax(0,1fr)}
+ .cortex-dev-wide{grid-column:auto}
+ .cortex-dev-card{padding:14px}
+ .cortex-dev-tools{width:100%}
+ .cortex-dev-tools>*{flex:1 1 auto}
+ #cortex-dev-console .cortex-dev-tools button{min-height:43px}
+}

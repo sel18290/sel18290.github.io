@@ -226,3 +226,31 @@ body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-canvas {
   -webkit-touch-callout:none;
   -webkit-user-drag:none;
 }
+
+
+/* Repli général : les documents créés via l'import PDF peuvent avoir des
+   classes variables. Verrouiller le conteneur de question puis réautoriser
+   explicitement les éditeurs de réponses. */
+body.cortex-noctis .cortex-exam-subject-locked :is(.exam-question,.cw-answer-question){
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+body.cortex-noctis .cortex-exam-subject-locked :is(
+  .exam-question [data-cortex-q],
+  .exam-question .cq-student-answer,
+  .exam-question .cw-handwriting,
+  .cw-answer-question [data-cortex-q],
+  .cw-answer-question .cw-question-response,
+  .cw-answer-question .cw-handwriting,
+  .cw-answer-question .cw-handwriting-preview,
+  .exam-question input,
+  .exam-question textarea,
+  .exam-question select,
+  .cw-answer-question input,
+  .cw-answer-question textarea,
+  .cw-answer-question select
+){
+  user-select:text!important;
+  -webkit-user-select:text!important;
+  -webkit-touch-callout:default;
+}

@@ -433,6 +433,12 @@ function teacherCopies(){
  (showDemo&&attemptBy('ex-pdf-demo')?btn('Corriger la copie PDF de démonstration','review-pdf-sample',''):'')+
  pdfBatch+btn('Mes classes','class-open-manager','secondary'))+
  `${window.CORTEX_CLASSES.filterBar(state,teacherClassFilter,teacherGroupFilter)}
+ <div class="panel" style="margin:12px 0;padding:17px">
+  <div class="panel-head"><div><h2>⌕ Comparer les ressemblances</h2>
+  <p>Analyse locale, réservée à l’enseignant. Un rapprochement ne prouve jamais une triche : vérifie les copies.</p></div>
+  <div class="btn-row">${btn('Comparer les réponses reçues','copy-similarities','secondary')}
+  ${btn('Voir un exemple fictif','copy-similarities-example','ghost')}</div></div>
+ </div>
  <div id="pdf-export-status" role="status" aria-live="polite" class="pdf-export-status" hidden></div>
  <div class="panel"><div class="panel-head"><div><h2>Copies reçues <span class="chip blue">${submitted.length}</span></h2>
  <p>Conserve le contexte classe et demi-groupe même après un archivage.</p></div>
@@ -692,9 +698,12 @@ function studentDocuments(e,q,a,answered){
   return attached?original.replace('<div class="doc-question-response">',attached+'<div class="doc-question-response">'):original;
  }
  const lockOriginal=e.sourceId&&window.CORTEX_INTEGRITY.config(e).enabled===true&&window.CORTEX_INTEGRITY.config(e).blockCopy===true;
+ const personalPdf=e.sourceId&&e.sourceType==='pdf'&&
+  window.CORTEX_INTEGRITY.config(e).enabled===true&&window.CORTEX_INTEGRITY.config(e).watermarkCapture===true;
  const source=e.sourceId?'<div class="doc-ribbon"><span class="chip blue">Document importé</span>'+
-  (lockOriginal?'<small>Document protégé · Lecture sur cette page, sans ouverture du fichier source.</small>':
-   '<button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Ouvrir le fichier original ↗</button>')+'</div>':'';
+  (lockOriginal?'<small>Document protégé · Lecture sur cette page.</small>':
+   '<button type="button" class="btn ghost small" data-action="show-exam-original" data-id="'+esc(e.id)+'">Ouvrir le fichier original ↗</button>')+
+  (personalPdf?'<button type="button" class="btn secondary small" data-action="demo-marked-pdf">⇩ Mon PDF filigrané</button>':'')+'</div>':'';
  const fallback=e.sourceId&&!attached?(e.sourceType==='pdf'?'<div id="import-original-canvas" class="import-original-canvas"><p class="small muted">Chargement du PDF original…</p></div>':
  '<div id="import-word-canvas" class="import-original-canvas"><p class="small muted">Chargement du document Word…</p></div>'):'';
  const manual=e.doc&&!e.sourceId?'<div class="question-doc">'+esc(q.doc||e.doc)+'</div>':'';
@@ -1231,6 +1240,46 @@ async function downloadPDFCopies(copies,scopeLabel=''){
 
 function action(el){
 const a=el.dataset.action,id=el.dataset.id;
+if(a==='demo-marked-pdf'){
+ const at=activeAttempt(),exam=examBy(at?.examId);
+ if(view!=='student'||tab!=='examen'||at?.status!=='progress'||!authorizedAttempt(at)){
+  showToast('Ce téléchargement n’est accessible que pendant un contrôle en cours.');return;
+ }
+ window.CORTEX_DEMO_PDF_WATERMARK?.download(exam,at)
+  .then(name=>showToast('PDF filigrané téléchargé : '+name))
+  .catch(err=>showToast(String(err?.message||err)));
+ return;
+}
+if(a==='copy-similarities'||a==='copy-similarities-example'){
+ const example=a==='copy-similarities-example';
+ import('../evaluations-academie/copy-similarities.js?v=1.0').then(({compareCopyTexts})=>{
+  const exams=example?[{id:'exemple',title:'Exemple fictif de réponses',content:{
+   questions:[{id:'q',type:'text',prompt:'Expliquer comment prévenir les risques professionnels.'}]}}]:state.exams;
+  const copied=example?[
+   {assessment_id:'exemple',student_number:11,answers:{q:'Pour prévenir les risques professionnels, il faut d’abord identifier les situations dangereuses et analyser les causes, puis mettre en place des protections collectives et informer les salariés. Cette prévention réduit les accidents du travail.'}},
+   {assessment_id:'exemple',student_number:19,answers:{q:'Pour prévenir les risques professionnels, il faut d’abord identifier les situations dangereuses et analyser les causes, puis mettre en place des protections collectives et informer les salariés. Cette prévention réduit les accidents du travail.'}}
+  ]:state.attempts.filter(at=>at.status==='submitted'&&
+   window.CORTEX_CLASSES.copyMatch(at,teacherClassFilter,teacherGroupFilter))
+   .map(at=>({assessment_id:at.examId,student_number:Number(at.studentNumber)||0,answers:at.answers||{}}));
+  let total=0,compared=0;
+  let content='<p class="small muted">Réponses textuelles suffisamment longues, même question et même contrôle. QCM et photographies non comparés. Aucune copie envoyée à une IA.</p>';
+  for(const exam of exams){
+   if(copied.filter(c=>c.assessment_id===exam.id).length<2)continue;
+   const result=compareCopyTexts(exam,copied);
+   compared+=result.tested;
+   if(!result.pairs.length)continue;
+   total+=result.pairs.length;
+   content+='<h3>'+esc(exam.title||'Contrôle')+'</h3><ul>'+
+    result.pairs.slice(0,15).map(pair=>'<li><strong>Élèves n°'+pair.a+' et n°'+pair.b+
+     ' — '+pair.score+' %</strong><br>'+pair.questions.map(q=>esc(q.title)+' ('+q.score+' %)').join(', ')+
+     '</li>').join('')+'</ul>';
+  }
+  if(!total)content+='<p>Aucune ressemblance inhabituelle signalée, ou pas assez de réponses rédigées comparables. Cela n’exclut pas toute copie.</p>';
+  content+='<p class="small muted">'+compared+' comparaison(s) de réponses · '+total+' binôme(s) à examiner. Résultat indicatif, non conservé.</p>';
+  modalShow(example?'Exemple fictif · Similitudes':'Ressemblances entre les copies',content,btn('Fermer','close-modal','ghost'));
+ }).catch(error=>showToast('Analyse impossible : '+String(error?.message||error)));
+ return;
+}
 if(a==='demo-photo-pdf'){
  const attempt=attemptBy(id),exam=examBy(attempt?.examId);
  if(attempt&&exam)handwritingModule().then(m=>m.downloadHandwriting(photoKey(attempt),exam.questions,el.dataset.question)).catch(error=>showToast(error.message));

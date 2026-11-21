@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="./real-entry.css?v=2">
 <script defer src="./real-entry.js?v=2"></script>
 <link rel="stylesheet" href="./style.css?v=18">
+<link rel="stylesheet" href="../cortex-local-demo-notice.css?v=1.0">
 <link rel="stylesheet" href="../cortex-nav.css?v=1.0">
 <link rel="stylesheet" href="../cortex-traffic.css?v=1.0">
 <script defer src="../cortex-traffic.js?v=1.0"></script>
@@ -41,7 +42,6 @@
 <script defer src="../cortex-pfmp-pdf.js?v=1.0"></script>
 <script defer src="../cortex-developer-console.js?v=1.2-session-metrics"></script>
 <script defer src="../cortex-stage-search.js?v=6.7-dev-session"></script>
-<script defer src="./pfmp-host-admin.js?v=1.0"></script>
 <script defer src="../cortex-exam-integrity.js?v=1.4-subject-lock"></script>
 <script defer src="../cortex-exam-watermark-dialogs.js?v=1.0"></script>
 <script defer src="../cortex-exam-live.js?v=1.1-stale-review"></script>
@@ -82,6 +82,11 @@
   <div class="cortex-entry-eyebrow">CORTEX Académie</div>
   <h1 id="cortex-real-entry-title">Accès à l’espace réel</h1>
   <p class="cortex-entry-alert"><strong>L’espace réel est fonctionnel.</strong> L’accès est restreint pendant les démarches de mise en conformité au RGPD.</p>
+   <div class="cs-local-mode-note cs-real-gate-local" role="note">
+     <strong>PFMP et Orientation : non disponibles dans l’espace réel</strong>
+     <p>Les évaluations et copies de l’espace réel sont conservées sur serveur. À l’inverse, les carnets PFMP et les projets d’orientation sont sauvegardés localement dans le navigateur : ces deux outils restent donc réservés à la démonstration, sans compte élève.</p>
+     <a href="../evaluations/#eleve/accueil">Essayer PFMP et Orientation en démonstration ↗</a>
+   </div>
   <form id="cortex-real-entry-form" method="post">
    <label for="cortex-real-entry-password">Mot de passe d’accès</label>
    <input id="cortex-real-entry-password" type="password" maxlength="72" autocomplete="off" autocapitalize="none" spellcheck="false" required>
@@ -105,7 +110,7 @@
   <div class="cortex-focus-copy">
    <span class="cortex-focus-kicker">CORTEX ACADÉMIE · STATION NOCTIS</span>
    <h1 class="cortex-home-new-headline">Moins de tâches répétitives.<br><em>Plus de temps pour apprendre.</em></h1>
-   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, accélérer les retours aux élèves, accompagner la correction des enseignants et simplifier les recherches de PFMP.</p>
+   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF et accompagner la correction des enseignants. Les outils PFMP et Orientation restent disponibles uniquement en démonstration, avec sauvegarde locale dans le navigateur.</p>
    <div class="cortex-focus-actions">
     <a class="cortex-focus-primary" href="./?espace=eleve">Je suis élève <span aria-hidden="true">↗</span></a>
     <a class="cortex-focus-secondary" href="#form-title">Je suis enseignant <span aria-hidden="true">↗</span></a>
@@ -120,7 +125,7 @@
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">03 · ENSEIGNANT</span><h3>Corriger plus vite avec l’IA</h3><p>Des propositions de notation et de commentaires par question, toujours vérifiées par l’enseignant.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">04 · ÉLÈVE</span><h3>Intégrer les réponses manuscrites</h3><p>Les photos de réponses écrites à la main rejoignent la copie numérique lorsque l’épreuve le permet.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>8 dispositifs de vigilance : 6 protections configurables + 2 compléments</h3><p>Six protections indépendantes, chronomètre et comparaison des ressemblances entre copies, avec revue humaine des alertes, suivi de passation et comparaison des réponses. Une convergence de signaux peut être forte, mais la détection de 100 % des triches ne peut pas être garantie. Chaque alerte nécessite une vérification humaine.</p></article>
-   <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · PFMP</span><h3>Trouver une PFMP plus facilement</h3><p>Recherche par filière et localisation, suivi des entreprises, CV et candidatures accompagnées par Albert.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · DÉMONSTRATION</span><h3>PFMP et Orientation en mode local</h3><p>Recherche de PFMP, candidatures, CV et préparation Parcoursup : ces deux outils sauvegardent les projets dans le navigateur et ne sont pas proposés dans l’espace réel.</p></article>
   </div>
  </section>
  <section class="cortex-feature-request" aria-label="Demander une fonctionnalité">
@@ -193,32 +198,13 @@
     <section class="panel"><div class="panel-head"><div><h2>Contrôles récents</h2><p>Les contrôles réellement enregistrés dans ton espace professeur.</p></div><a href="#prof-assessments" data-acad-view="assessments" class="btn ghost small">Tout voir →</a></div><div id="acad-live-recent-exams" class="acad-live-recent-exams"><div class="empty">Aucun contrôle enregistré pour le moment.</div></div></section>
     <section class="panel"><div class="panel-head"><h2>Ton espace professeur</h2><span class="chip teal">Données réelles</span></div><p class="muted small">Les mêmes rubriques que sur le site test, avec tes classes, tes sujets et les copies sauvegardées dans Supabase.</p><div class="inline-note"><strong>Parcours conseillé</strong><p>1. Ouvre les inscriptions PIN pendant 30 minutes : les élèves choisissent eux-mêmes leur code.</p><p>2. Crée un contrôle, importe son document et publie le QR code.</p><p>3. Retrouve les copies dans « Copies & notes » pour les corriger.</p></div><div class="btn-row" style="margin-top:18px"><a href="#cw-persistent-classes" data-acad-view="pins" class="btn secondary full">Préparer les PIN élèves →</a></div><p class="muted small acad-live-disclaimer">Les fonctions non encore raccordées au serveur sont signalées. Aucune donnée fictive n'est présentée comme réelle.</p></section>
    </div>
-   <section class="panel cs-stage-host-overview" aria-labelledby="pfmp-host-overview-title">
-    <div class="panel-head"><div><h2 id="pfmp-host-overview-title">Historique des accueils PFMP</h2><p>Confirme les lieux qui ont déjà accueilli tes élèves pour qu’ils puissent les retrouver dans leur recherche.</p></div><button type="button" class="btn secondary" data-pfmp-host-open>Gérer les accueils PFMP</button></div>
-   </section>
+   <section class="panel cs-local-mode-note" id="acad-local-tools-info" role="note" aria-label="PFMP et orientation disponibles en démonstration">
+     <strong>PFMP et Orientation · Uniquement en démonstration</strong>
+     <p>Les modules de suivi des candidatures PFMP et de préparation Parcoursup sont enregistrés dans le navigateur, et non dans Supabase. Comme les contrôles et copies de l’espace réel utilisent un stockage sur serveur, ces deux modules sont désactivés dans l’environnement réel.</p>
+     <a href="../evaluations/#eleve/accueil" target="_blank" rel="noopener noreferrer">Ouvrir les outils locaux en démonstration ↗</a>
+    </section>
   </section>
-  <dialog class="cs-stage-search cs-stage-dialog cs-stage-host-admin" id="pfmp-host-admin" aria-labelledby="pfmp-host-title">
-   <div class="cs-stage-dialog-head"><h2 id="pfmp-host-title">Historique des accueils PFMP</h2><form method="dialog"><button class="cs-stage-pale">Fermer</button></form></div>
-   <div class="cs-stage-dialog-body">
-    <p>Enregistre le lieu et la date de fin d’une PFMP effectuée. Ces confirmations sont accessibles à tes élèves connectés.</p>
-    <form class="cs-stage-host-form" data-host-form novalidate>
-     <label>SIRET de l’établissement<input name="siret" type="text" inputmode="numeric" maxlength="17" autocomplete="off" required></label>
-     <div class="cs-stage-action-row"><button type="button" data-host-lookup class="cs-stage-pale">Vérifier le SIRET</button><a href="https://annuaire-entreprises.data.gouv.fr/" target="_blank" rel="noopener noreferrer" class="cs-stage-text-button">Trouver un SIRET</a></div>
-     <fieldset data-host-details hidden><legend>PFMP effectuée</legend><div>
-      <div data-host-match></div>
-      <label>Filière<select name="program"></select></label>
-      <label>Type de lieu<select name="type"></select></label>
-      <label>Date de fin<input name="completed" type="date" min="2000-01-01" required></label>
-      <label class="cs-stage-host-confirm"><input name="confirmed" type="checkbox" required><span>Je confirme qu’une PFMP a été effectuée dans cet établissement.</span></label>
-      <button type="submit" class="cs-stage-primary" data-host-submit>Enregistrer l’accueil confirmé</button>
-     </div></fieldset>
-    </form>
-    <p role="status" data-host-status></p>
-    <h3>Mes confirmations</h3>
-    <div class="cs-stage-host-list" data-host-list></div>
-    <div class="cs-stage-action-row" data-host-pages hidden><button type="button" class="cs-stage-pale" data-host-previous>Page précédente</button><button type="button" class="cs-stage-pale" data-host-next>Page suivante</button></div>
-   </div>
-  </dialog>
+  
 <div id="prof-content">
 <section class="prof-sec cw-workspace" id="acad-live-workflow">
  <div class="prof-head"><div><span class="eyebrow">PASSATION RÉELLE · SUPABASE</span><h3>Déposer un sujet, recevoir les copies.</h3></div><button type="button" id="cw-refresh" class="cw-refresh">Actualiser les copies ↻</button></div>

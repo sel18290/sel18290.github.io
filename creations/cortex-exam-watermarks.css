@@ -105,3 +105,106 @@ body.cortex-noctis dialog.cw-source-dialog > .cw-student-watermark.cw-watermark-
     opacity:.55 !important;
   }
 }
+
+
+/* Fenêtres modales au-dessus de la page : calque local à chaque dialogue. */
+body.cortex-noctis dialog[open] > .integrity-watermark.cortex-watermark-dialog,
+body.cortex-noctis dialog[open] > .cw-student-watermark.cortex-watermark-dialog,
+body.cortex-noctis dialog[open] > .cw-student-watermark.cw-watermark-dialog {
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  z-index:2147482000 !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(8,minmax(0,1fr)) !important;
+}
+body.cortex-noctis dialog[open] > .integrity-watermark.cortex-watermark-dialog .integrity-watermark-alert {
+  position:absolute !important;
+  top:8px !important;
+  left:50% !important;
+}
+body.cortex-noctis .cw-protected-subject-dialog {
+  width:min(1120px,calc(100vw - 18px));
+  height:min(90dvh,870px);
+  max-height:90dvh;
+  padding:0;
+  border:1px solid #a8cadf;
+  border-radius:12px;
+  background:#f5f9fc;
+  color:#174166;
+  overflow:hidden;
+  color-scheme:light;
+}
+body.cortex-noctis .cw-protected-subject-dialog::backdrop {
+  background:rgba(4,17,34,.88);
+}
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-header {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:12px 16px;
+  min-height:64px;
+  border-bottom:1px solid #bad2e2;
+  background:#fff;
+}
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-header strong {
+  font-size:14px;
+  color:#174268;
+}
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-header button,
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-header a {
+  min-height:40px;
+  padding:8px 12px;
+  border:1px solid #9cbfd4;
+  border-radius:7px;
+  background:#eaf4fb;
+  color:#175980;
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+  text-decoration:none;
+}
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-viewer {
+  display:block;
+  width:100%;
+  height:calc(100% - 110px);
+  min-height:220px;
+  border:0;
+  background:#fff;
+}
+body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-note {
+  padding:9px 16px 13px;
+  font-size:12px;
+  color:#42667e;
+  line-height:1.4;
+  background:#f0f7fc;
+}
+body.cortex-noctis .cw-protected-subject-open {
+  display:block;
+  width:100%;
+  text-align:left;
+  cursor:pointer;
+}
+@media(max-width:760px) {
+  body.cortex-noctis dialog[open] > .integrity-watermark.cortex-watermark-dialog,
+  body.cortex-noctis dialog[open] > .cw-student-watermark.cortex-watermark-dialog,
+  body.cortex-noctis dialog[open] > .cw-student-watermark.cw-watermark-dialog {
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(16,minmax(0,1fr)) !important;
+  }
+  body.cortex-noctis .cw-protected-subject-dialog {
+    width:calc(100vw - 10px);
+    height:92dvh;
+    max-height:92dvh;
+  }
+  body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-header {
+    padding:9px 11px;
+  }
+  body.cortex-noctis .cw-protected-subject-dialog .cw-protected-subject-viewer {
+    height:calc(100% - 150px);
+  }
+}

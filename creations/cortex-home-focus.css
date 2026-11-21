@@ -461,3 +461,21 @@ body.cortex-noctis .cortex-home-orientation-launch>span {
  body.cortex-noctis .cortex-home-orientation-launch {transition:none}
  body.cortex-noctis .cortex-home-orientation-launch:hover {transform:none}
 }
+
+/* Accès direct à la recherche PFMP, même ergonomie que le 7e atout Orientation. */
+body.cortex-noctis .cortex-home-strength-pfmp{display:flex;flex-direction:column}
+body.cortex-noctis .cortex-home-pfmp-launch{
+ display:flex;align-items:center;justify-content:center;gap:9px;
+ width:100%;min-height:45px;margin-top:auto;padding:10px 12px;
+ border:1px solid #226da4;border-radius:10px;
+ background:#225d87;color:#fff;
+ font-family:inherit;font-size:12px;line-height:1.35;font-weight:800;
+ cursor:pointer;transition:background .15s,transform .15s
+}
+body.cortex-noctis .cortex-home-pfmp-launch:hover{background:#164d77;transform:translateY(-1px)}
+body.cortex-noctis .cortex-home-pfmp-launch:focus-visible{outline:3px solid #177d93;outline-offset:3px}
+body.cortex-noctis .cortex-home-pfmp-launch>span{font-size:17px;font-weight:500}
+@media(prefers-reduced-motion:reduce){
+ body.cortex-noctis .cortex-home-pfmp-launch{transition:none}
+ body.cortex-noctis .cortex-home-pfmp-launch:hover{transform:none}
+}

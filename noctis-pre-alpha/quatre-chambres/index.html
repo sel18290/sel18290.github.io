@@ -1,6 +1,18 @@
 <!doctype html>
 <html lang="fr">
 <head>
+<script data-cortex-alpha-guard>
+(function(){
+ 'use strict';
+ var unlocked=false;
+ try{unlocked=sessionStorage.getItem('cortex:noctis-pre-alpha:granted:v1')==='ok';}catch(_){}
+ if(!unlocked){
+  document.documentElement.style.visibility='hidden';
+  location.replace('/noctis-pre-alpha/');
+ }
+})();
+</script>
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#111820">

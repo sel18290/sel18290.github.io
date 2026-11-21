@@ -43,7 +43,7 @@ function mount(host,api){
  const persist=()=>api.save();
  const levelOf=()=>p().career_result?.data?.assessment?.level;
  const outcome=()=>p().career_result;
- const validOutcome=()=>{const o=outcome();return o&&norm(o.career)===norm(job())&&o.bac===p().bac_origin?o.data:null};
+ const validOutcome=()=>{const o=outcome();return o&&norm(o.career)===norm(job())&&o.bac===p().bac_origin&&JSON.stringify(o.interests||[])===JSON.stringify(p().interests||[])?o.data:null};
  function tell(message,error=false){
   const el=$('co-career-message');if(el){el.textContent=message;el.classList.toggle('is-error',!!error);}
  }
@@ -69,7 +69,7 @@ function mount(host,api){
    '<details class="co-v4-interests"><summary>Ajouter mes centres d’intérêt <span>(facultatif)</span></summary>'+
     '<p>Si tu le souhaites, choisis au maximum cinq domaines pour affiner l’analyse.</p>'+
     '<div class="co-v4-interests-tags">'+INTERESTS.map(([key,label])=>'<button type="button" data-v4-interest="'+key+'" aria-pressed="'+p().interests.includes(key)+'" class="'+(p().interests.includes(key)?'active':'')+'">'+esc(label)+(p().interests.includes(key)?' ✓':'')+'</button>').join('')+'</div></details>'+
-   '<div class="co-v4-submit"><button type="button" id="co-v4-analyse" class="co-v4-primary" data-v4-analyse'+(busy?' disabled':'')+'>'+ (busy?'✦ Albert étudie ton parcours…':'✦ Albert, montre-moi les chemins possibles')+'</button>'+
+   '<div class="co-v4-submit"><button type="button" id="co-v4-analyse" class="co-v4-primary" data-v4-analyse'+(busy||job().length<3?' disabled':'')+'>'+ (busy?'✦ Albert étudie ton parcours…':'✦ Albert, montre-moi les chemins possibles')+'</button>'+
    '<p>Albert reçoit uniquement le nom du métier, ta filière et tes centres d’intérêt choisis. Ton dossier reste enregistré sur cet appareil.</p></div>'+
    '</div>';
  }
@@ -84,7 +84,7 @@ function mount(host,api){
    return '<div class="co-v4-placeholder"><div class="co-v4-placeholder-mark">✦</div><strong>'+ (job()?'Ton métier est défini.':'Ton futur commence par une idée.')+'</strong>'+
     '<p>'+ (job()?'Demande à Albert d’expliquer les parcours possibles pour devenir '+esc(job())+'.':'Choisis le métier de ton choix et ton bac pro. Tu découvriras ensuite plusieurs chemins possibles.')+'</p>'+
     (hasOld?'<p class="co-v4-stale">Ton précédent conseil ne correspond plus au métier ou au bac sélectionné. Aucun brouillon n’a été effacé.</p>':'')+
-    '<div class="co-v4-promise"><span>1</span> Un métier et ses missions <span>2</span> Les chemins de formation <span>3</span> Ce que tu peux faire dès maintenant</div>'+
+    '<div class="co-v4-promise"><span>1</span> Un métier et ses missions <span>2</span> Les chemins de formation <span>3</span> Ce que tu peux faire dès maintenant</div>'+ '<a class="co-v4-first-onisep" href="'+ONISEP+'" target="_blank" rel="noopener noreferrer">Découvrir les métiers sur Onisep ↗</a>'+
    '</div>';
   }
   const lev=LEVELS[data.assessment?.level]||LEVELS.passerelle;
@@ -152,7 +152,7 @@ function mount(host,api){
  function clearResult(){const box=$('co-v4-report');if(box)box.innerHTML=recommendation();}
  function setJob(value){
   const input=safeString(value,90);
-  p().career=input;persist();
+  search='';p().career=input;persist();
   const field=$('co-v4-job');if(field)field.value=input;
   updateParts();clearResult();
  }
@@ -186,7 +186,7 @@ function mount(host,api){
    if(!response.ok||!json.ok)throw Error(json.error||'Albert ne peut pas analyser ce métier actuellement.');
    if(disposed||own.signal.aborted)return;
    if(norm(job())!==norm(target)||p().bac_origin!==body.filiere){tell('Tu as modifié ton projet : demande une nouvelle analyse pour ce choix.');return}
-   const plan={career:target,bac:body.filiere,data:{
+   const plan={career:target,bac:body.filiere,interests:body.interests.slice(),data:{
     career:safeString(json.career,110),summary:safeString(json.summary,420),
     assessment:json.assessment,routes:json.routes,next_actions:json.next_actions,warning:safeString(json.warning,300)
    },date:new Date().toISOString()};
@@ -202,7 +202,7 @@ function mount(host,api){
   const bacChip=node.closest('[data-v4-bac]');
   if(bacChip){setBac(bacChip.dataset.v4Bac);return;}
   const catChip=node.closest('[data-v4-category]');
-  if(catChip){activeCategory=Number(catChip.dataset.v4Category)||0;
+  if(catChip){search='';activeCategory=Number(catChip.dataset.v4Category)||0;
    host.querySelectorAll('[data-v4-category]').forEach(n=>{const on=Number(n.dataset.v4Category)===activeCategory;n.classList.toggle('active',on);n.setAttribute('aria-pressed',String(on));});
    const list=$('co-v4-samples');if(list)list.innerHTML=jobSamples();return;
   }
@@ -224,6 +224,7 @@ function mount(host,api){
   }
  }
  host.addEventListener('click',onClick);host.addEventListener('input',onInput);
+ host.addEventListener('keydown',event=>{if(event.target?.id==='co-v4-job'&&event.key==='Enter'){event.preventDefault();analyse();}});
  render();
  return{
   refresh(){if(disposed)return;render()},

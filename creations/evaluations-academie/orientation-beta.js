@@ -168,7 +168,7 @@ async function save(customWishes){
 }
 function link(input){
  const s=String(input||'');
- try{const u=new URL(s);return u.protocol==='https:'&&(/(^|\.)parcoursup\.gouv\.fr$/.test(u.hostname))?u.href:sources.parcoursup;}catch{return sources.parcoursup;}
+ try{const u=new URL(s);return u.protocol==='https:'&&(/(^|\.)parcoursup\.(?:gouv\.fr|fr)$/.test(u.hostname))?u.href:sources.parcoursup;}catch{return sources.parcoursup;}
 }
 async function saveWish(rec){
  const wishes=(current()?.wishes||[]).slice();

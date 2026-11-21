@@ -1,0 +1,72 @@
+/* CORTEX — lisibilité des modes de stockage PFMP / Orientation */
+.cs-stage-local-banner,
+.cs-local-mode-note,
+.cs-stage-real-unavailable {
+  display: flex;
+  gap: .6rem;
+  padding: 14px 17px;
+  border: 1px solid #6195ac;
+  background: linear-gradient(115deg, #12384e, #14283e);
+  border-radius: 13px;
+  color: #e7f8ff;
+  line-height: 1.6;
+  margin: 13px 0 17px;
+  box-shadow: 0 9px 22px #03132225;
+}
+.cs-stage-local-banner { flex-direction: column; }
+.cs-stage-local-banner strong { font-size: 13px; color: #ddf9ff; }
+.cs-stage-local-banner span { color: #c6dfe9; font-size: 12px; }
+.cs-local-mode-note { flex-direction: column; }
+.cs-local-mode-note strong,
+.cs-stage-real-unavailable h2 { font-size: 15px; font-weight: 800; color: #f6fbff; margin: 0; }
+.cs-local-mode-note p,
+.cs-stage-real-unavailable p { font-size: 12px; line-height: 1.7; color: #d6e6f0; margin: 3px 0; }
+.cs-local-mode-note a,
+.cs-stage-real-unavailable a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 9px 13px;
+  border-radius: 9px;
+  background: #c1ecfb;
+  color: #11334b;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+.cs-stage-real-unavailable {flex-direction: column;margin:15px auto;padding:22px;max-width:800px}
+.cs-stage-local-banner a:hover,
+.cs-local-mode-note a:hover,
+.cs-stage-real-unavailable a:hover {filter:brightness(.95)}
+.cs-demo-inline-local { display:inline-block; color:#c7f3ff; font-weight:750; font-size: 11px; }
+.cs-disabled-tool {opacity: .72; cursor:not-allowed!important}
+.cs-real-gate-local {margin-top: 12px!important}
+.cs-real-gate-local p {margin:0!important}
+body.cortex-noctis .portal-entry-option .cs-demo-local-tag {
+ display:inline-block;
+ margin: 4px 0;
+ padding: 3px 8px;
+ border-radius: 8px;
+ border: 1px solid #8ac4d7;
+ background: #d8f4fb;
+ color: #19546b;
+ font-size: 10px;
+ font-weight: 750;
+}
+body.cortex-noctis .cs-demo-storage-note {
+ padding: 10px 12px;
+ margin: 12px 0;
+ border: 1px solid #83b9c9;
+ border-radius: 11px;
+ background: #dfedf6;
+ color: #1d4560;
+ font-size: 11px;
+ line-height: 1.6;
+}
+@media(max-width:650px) {
+ .cs-stage-local-banner,.cs-local-mode-note,.cs-stage-real-unavailable{padding:12px}
+ .cs-local-mode-note a,.cs-stage-real-unavailable a{width:100%}
+}

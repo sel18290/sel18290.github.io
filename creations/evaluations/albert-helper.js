@@ -200,6 +200,7 @@
   dialog.showModal();
  }
  launcher.onclick=openAssistant;quick.onclick=openAssistant;
+ $('ct-phone-albert')?.addEventListener('click',openAssistant);
  dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
  ask.onclick=async()=>{
   const message=question.value.trim();

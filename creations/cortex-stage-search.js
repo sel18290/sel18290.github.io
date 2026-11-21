@@ -199,12 +199,12 @@
       </div>
     </header>
     <nav class="cs-stage-nav" aria-label="Parcours de recherche de PFMP">
-      <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Rechercher</button>
+      <button type="button" data-stage-nav="search" aria-controls="cs-stage-search-panel" aria-pressed="true" aria-label="Rechercher"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span><span class="cs-stage-nav-copy">Rechercher</span><span class="cortex-mobile-only cs-stage-nav-short" aria-hidden="true">Chercher</span></button>
 
-      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">2 · </span>Mes lieux de stage potentiels</strong><small>Structures enregistrées et suivi</small></span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
-      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">3 · </span>CV et lettre</strong><small>Adapter mes documents</small></span></button>
-      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">4 · </span>Prendre contact</strong><small>Appel ou message</small></span></button>
-      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert<span class="cs-stage-nav-extra"> · Besoin d’aide ?</span></strong><small>Discuter ou demander un conseil</small></span></button>
+      <button type="button" data-stage-nav="board" aria-controls="cs-stage-board-panel" aria-pressed="false" aria-label="Mes lieux de PFMP suivis"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">2 · </span>Mes lieux de stage potentiels</strong><small>Structures enregistrées et suivi</small></span><span class="cortex-mobile-only cs-stage-nav-short" aria-hidden="true">Mes lieux</span><span id="cs-stage-board-count" class="cs-stage-nav-count" hidden></span></button>
+      <button type="button" data-stage-nav="cv" aria-controls="cs-stage-cv-panel" aria-pressed="false" aria-label="CV et lettre"><span class="cs-stage-nav-icon is-board" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">3 · </span>CV et lettre</strong><small>Adapter mes documents</small></span><span class="cortex-mobile-only cs-stage-nav-short" aria-hidden="true">CV / lettre</span></button>
+      <button type="button" data-stage-nav="prep" aria-controls="cs-stage-prep-panel" aria-pressed="false" aria-label="Prendre contact"><span class="cs-stage-nav-icon is-prep" aria-hidden="true"></span><span class="cs-stage-nav-copy"><strong><span class="cs-stage-nav-step">4 · </span>Prendre contact</strong><small>Appel ou message</small></span><span class="cortex-mobile-only cs-stage-nav-short" aria-hidden="true">Contact</span></button>
+      <button type="button" data-stage-nav="assistant" aria-controls="cs-stage-assistant-panel" aria-pressed="false" aria-label="Albert"><span class="cs-stage-nav-icon is-advisor" aria-hidden="true">✦</span><span class="cs-stage-nav-copy"><strong>Albert<span class="cs-stage-nav-extra"> · Besoin d’aide ?</span></strong><small>Discuter ou demander un conseil</small></span><span class="cortex-mobile-only cs-stage-nav-short" aria-hidden="true">Albert</span></button>
     </nav>
     <div class="cs-stage-doc-launch" id="cs-stage-doc-launch" aria-label="Préparer ta candidature">
       <button type="button" data-stage-document="cv" aria-controls="cs-stage-cv-panel"><span class="cs-stage-doc-icon" aria-hidden="true">CV</span><span><strong>Préparer mon CV</strong><small>Présente tes compétences et tes expériences.</small></span></button>
@@ -228,7 +228,7 @@
             </div>
           </fieldset>
           <div class="cs-stage-zone">
-            <label for="cs-stage-city">Adresse, ville ou quartier<input id="cs-stage-city" value="Paris 15e" maxlength="140" required placeholder="Ex. 12 rue du Commerce, Paris"></label>
+            <label for="cs-stage-city">Adresse, ville ou quartier<input id="cs-stage-city" value="Paris 15e" enterkeyhint="search" maxlength="140" required placeholder="Ex. 12 rue du Commerce, Paris"></label>
             <label for="cs-stage-radius">Rayon<select id="cs-stage-radius">
               <option value="1200">1,2 km</option><option value="2500" selected>2,5 km</option>
               <option value="4000">4 km</option><option value="6500">6,5 km</option>
@@ -250,10 +250,13 @@
             </div>
           </details>
           <div class="cs-stage-launch">
-            <div class="cs-stage-search-options">
+            <details class="cs-stage-search-more cs-stage-adaptive-details" open>
+             <summary class="cortex-mobile-only">Options de recherche</summary>
+             <div class="cs-stage-search-options">
               <label class="cs-stage-toggle"><input type="checkbox" id="cs-stage-albert" checked><span><strong>Classement Albert IA</strong><small>Prioriser les lieux adaptés à ta filière</small></span></label>
               <label class="cs-stage-toggle cs-stage-confirmed-toggle"><input type="checkbox" id="cs-stage-confirmed"><span><strong>Uniquement les lieux ayant déjà accueilli en PFMP</strong><small id="cs-stage-confirmed-scope"></small></span></label>
-            </div>
+             </div>
+            </details>
             <button type="submit" class="cs-stage-primary" id="cs-stage-submit"><span class="cs-stage-nav-icon is-search" aria-hidden="true"></span> Trouver des lieux</button>
           </div>
         </form>
@@ -269,6 +272,7 @@
         <div class="cs-stage-result-header">
           <div><div class="cs-stage-kicker">Résultats de recherche</div><h2 id="cs-stage-result-title" tabindex="-1"></h2><p id="cs-stage-result-context"></p></div>
           <div class="cs-stage-result-actions">
+            <button type="button" id="cs-stage-edit-search" class="cortex-mobile-only cs-stage-quiet">Modifier la recherche</button>
             <button type="button" id="cs-stage-resume" class="cs-stage-primary" hidden>Reprendre la recherche</button>
             <button type="button" id="cs-stage-compare" class="cs-stage-quiet" hidden>Comparer avec Albert</button>
             <button type="button" id="cs-stage-refresh" class="cs-stage-quiet">Actualiser</button>
@@ -292,11 +296,14 @@
             <button type="button" id="cs-stage-batch-next" class="cs-stage-primary" hidden>100 autres pistes</button>
           </div>
         </nav>
-        <div class="cs-stage-filters" id="cs-stage-filters" hidden>
+        <details class="cs-stage-result-controls cs-stage-adaptive-details" id="cs-stage-filters" open hidden>
+         <summary class="cortex-mobile-only">Filtres et tri</summary>
+         <div class="cs-stage-filters">
           <label>Filtrer cette sélection<select id="cs-stage-filter"><option value="all">Tous les lieux</option><option value="phone">Avec téléphone</option><option value="full">Avec adresse</option><option value="site">Avec site web</option><option value="saved">Dans mes lieux suivis</option></select></label>
           <label>Trier cette sélection<select id="cs-stage-sort"><option value="default">Pertinence</option><option value="distance">Proximité</option><option value="phone">Téléphone disponible</option><option value="name">Nom A à Z</option></select></label>
           <button type="button" id="cs-stage-export" class="cs-stage-quiet">Exporter en CSV</button>
-        </div>
+         </div>
+        </details>
         <p class="cs-stage-matches" id="cs-stage-matches" aria-live="polite"></p>
         <div class="cs-stage-cards" id="cs-stage-cards"></div>
         <div class="cs-stage-display-actions">
@@ -489,11 +496,22 @@
     const $ = id => section.querySelector('#cs-stage-' + id);
     const navigation = section.querySelector('.cs-stage-nav');
     const siteHeader = document.querySelector('header.topbar, header.top');
+    const phoneLayout = window.CORTEX_PHONE?.layout;
+    function syncDisclosures() {
+      for (const detail of section.querySelectorAll('.cs-stage-adaptive-details, .cs-stage-mission-preview')) {
+        detail.open = !phoneLayout?.matches;
+      }
+    }
+    syncDisclosures();
+    phoneLayout?.addEventListener('change', syncDisclosures);
 
     function setScrollOffset() {
       const rect = siteHeader?.getBoundingClientRect();
       const visible = rect && rect.top >= -2 && ['fixed','sticky'].includes(getComputedStyle(siteHeader).position);
-      const offset = Math.ceil(visible ? rect.bottom : 0) + 12;
+      const navStyle = getComputedStyle(navigation);
+      const stickyNav = navStyle.position === 'sticky'
+        ? navigation.offsetHeight + (parseFloat(navStyle.top) || 0) : 0;
+      const offset = Math.ceil((visible ? rect.bottom : 0) + stickyNav) + 12;
       section.style.setProperty('--cs-stage-scroll-start', offset + 'px');
       return offset;
     }
@@ -579,8 +597,10 @@
       if (moveFocus) {
         const offset = setScrollOffset();
         const area = navigation.getBoundingClientRect();
-        $(next === 'search' ? 'form-title' : next + '-title').focus({ preventScroll:true });
-        if (area.top < offset || area.bottom > innerHeight) navigation.scrollIntoView({ block:'start' });
+        const target = $(next === 'search' ? 'form-title' : next + '-title');
+        target?.focus({ preventScroll:true });
+        if (phoneLayout?.matches) target?.scrollIntoView({ block:'start' });
+        else if (area.top < offset || area.bottom > innerHeight) navigation.scrollIntoView({ block:'start' });
       }
     }
 
@@ -1216,8 +1236,11 @@
       event.preventDefault();
       metric('pfmp_search',sector.startsWith('perso-')?'personnalisee':sector);
       persist();
+      if (phoneLayout?.matches && document.activeElement === $('city') && $('city').validity.valid) $('city').blur();
       search();
+      if (phoneLayout?.matches && !$('loader').hidden) $('loader').scrollIntoView({ block:'nearest' });
     });
+    $('edit-search').addEventListener('click', () => setPanel('search'));
     $('cancel').addEventListener('click', () => {
       if (!pending) return;
       pending.abort();
@@ -1386,8 +1409,9 @@
       if (evidence) card.append(evidence);
       const mission = categories[0]?.[2] || profile?.lead
         || 'Vérifie si l’équipe peut te confier des missions en espace de vente ou en prospection.';
-      const missions = node('div', 'cs-stage-mission-preview');
-      missions.append(node('strong', '', 'À demander pendant le contact'), node('p', '', mission));
+      const missions = node('details', 'cs-stage-mission-preview');
+      missions.open = !phoneLayout?.matches;
+      missions.append(node('summary', '', 'À demander pendant le contact'), node('p', '', mission));
       card.append(missions, linksFor(place));
       const actions = node('div', 'cs-stage-card-actions');
       const follow = button(board.has(place.id) ? 'Voir mes lieux suivis' : 'Ajouter au suivi', 'cs-stage-track', () => {
@@ -1819,6 +1843,7 @@
 
     function dispose() {
       destroyed = true;
+      phoneLayout?.removeEventListener('change', syncDisclosures);
       workshop.hide();
       assistant.hide();
       pending?.abort();

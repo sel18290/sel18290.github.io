@@ -86,6 +86,11 @@ window.CORTEX_REVIEW=(function reviewModule(){
         <div><span class="review-summary-label">Note calculée</span><strong>${fmt(t.grade)} <small>/ 20</small></strong><small>${t.ready?'Toutes les questions évaluées':'Provisoire · non validée'}</small></div>
         <div><span class="review-summary-label">Note enregistrée</span><strong>${attempt.grade==null?'—':fmt(attempt.grade)} <small>${attempt.grade==null?'':'/ 20'}</small></strong><small>${attempt.reviewedAt?'Validée dans la démo':'Note antérieure ou à valider'}</small></div>
       </div>
+      <nav class="cortex-phone-jumps" aria-label="Accès rapide à la correction">
+        <button type="button" class="btn ghost small" data-cortex-phone-target=".review-question-list">Questions</button>
+        <button type="button" class="btn ghost small" data-cortex-phone-target=".review-document-pane">Document</button>
+        <button type="button" class="btn ghost small" data-cortex-phone-target=".review-response-pane">Réponse</button>
+      </nav>
       <div class="review-layout">
       <nav class="review-question-list" aria-label="Questions de cette copie"><div class="review-pane-title"><div><span class="review-overline">NAVIGATION</span><h2>Questions</h2></div><span class="review-count">${t.completed}/${t.total}</span></div><div class="review-question-scroll">${nav}</div></nav>
       <section class="review-document-pane" aria-label="Document de la question ${index+1}"><div class="review-pane-title"><div><span class="review-overline">CONSIGNES ET RÉFÉRENCES</span><h2>Le document</h2></div><span class="review-source-badge">Source de l’élève</span></div>${source(exam,q)}</section>

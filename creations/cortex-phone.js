@@ -3,6 +3,7 @@
   'use strict';
 
   const phone = window.matchMedia('(max-width: 760px), (max-width: 1100px) and (pointer: coarse)');
+  const layout = window.matchMedia('(max-width: 760px), (max-width: 950px) and (max-height: 520px) and (pointer: coarse)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const root = document.documentElement;
   const body = document.body;
@@ -82,7 +83,7 @@
     return !phone.matches || event.pointerType === 'mouse' || surface.classList.contains('cortex-crop-armed');
   }
 
-  window.CORTEX_PHONE = { bindCrop, permitsCrop };
+  window.CORTEX_PHONE = { bindCrop, permitsCrop, layout };
 
   const workspace = document.getElementById('acad-professor-workspace');
   if (!workspace || typeof HTMLDialogElement === 'undefined' || !HTMLDialogElement.prototype.showModal) return;

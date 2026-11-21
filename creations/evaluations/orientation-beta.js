@@ -392,8 +392,9 @@ function layout(){
  root.innerHTML=
  titleBar()+
  '<nav class="co-step-navigation" aria-label="Mon orientation">'+
- [['projet','Mon projet'],['explorer','Établissements'],['pistes','Mes choix'],['lettre','Ma lettre'],['aides','Mes aides']].map(([id,label])=>
- '<button type="button" data-co-tab="'+id+'">'+label+(id==='pistes'?'<b id="co-count-wishes">0</b>':'')+'</button>').join('')+'</nav>'+
+ [['projet','Mon projet','Projet'],['explorer','Établissements','Études'],['pistes','Mes choix','Mes choix'],['lettre','Ma lettre','Lettre'],['aides','Mes aides','Aides']].map(([id,label,short])=>
+ '<button type="button" data-co-tab="'+id+'" aria-label="'+label+'"><span class="co-nav-label">'+label+'</span><span class="cortex-mobile-only co-nav-short" aria-hidden="true">'+short+'</span>'+
+ (id==='pistes'?'<b id="co-count-wishes">0</b>':'')+'</button>').join('')+'</nav>'+
  '<p class="co-sticky-message" role="status" id="co-message" aria-live="polite"></p>'+
  '<div class="co-stage-panels">'+
  '<section data-co-panel="projet" class="co-page" aria-label="Mon projet" tabindex="-1">'+
@@ -754,7 +755,10 @@ function renderComparison(){
  box.innerHTML='<section class="co-compare"><h3>Comparer mes pistes</h3><div class="co-compare-scroll" tabindex="0" aria-label="Tableau comparatif">'+
   '<table><thead><tr><th scope="col">Repère</th>'+choices.map(w=>'<th scope="col">'+esc(w.pathway||w.title)+'</th>').join('')+'</tr></thead>'+
   '<tbody>'+cols.map(([label,format])=>'<tr><th scope="row">'+label+(label==='Taux d’accès 2025'?' '+help('admission'):'')+'</th>'+
-   choices.map(w=>'<td>'+esc(format(w))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></section>';
+   choices.map(w=>'<td>'+esc(format(w))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+
+  '<div class="cortex-mobile-only co-compare-cards">'+choices.map(w=>'<article><h4>'+esc(w.pathway||w.title)+'</h4><dl>'+
+   cols.map(([label,format])=>'<div><dt>'+label+(label==='Taux d’accès 2025'?' '+help('admission'):'')+'</dt><dd>'+esc(format(w))+'</dd></div>').join('')+
+   '</dl></article>').join('')+'</div></section>';
 }
 function renderLetter(){
  const host=$('co-letter-mount');if(!host)return;
@@ -1083,8 +1087,10 @@ tab='projet';records=[];tabData=null;aiResult=null;showAllSuggestions=false;
  if(entry==='metier'||entry==='formation'){
   persist(true);
   const panel=root.querySelector('[data-co-panel="projet"]');
-  panel.focus({preventScroll:true});
-  panel.scrollIntoView({block:'start'});
+  if(!window.CORTEX_PHONE?.layout.matches){
+   panel.focus({preventScroll:true});
+   panel.scrollIntoView({block:'start'});
+  }
  }
  $('co-albert-button').addEventListener('click',askAlbert);
 
@@ -1097,5 +1103,5 @@ function dispose(){
  resetSearch();cancelWishRequest();wishMain='';searchCareer='';aiRequest?.abort();aiRequest=null;aiBusy=false;root=null;
 }
 window.addEventListener('pagehide',()=>{if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}});
-window.CORTEX_ORIENTATION={mount,dispose,version:'5.1'};
+window.CORTEX_ORIENTATION={mount,dispose,version:'5.2'};
 })();

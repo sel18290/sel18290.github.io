@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./student-ai.css?v=1.2">
 <link rel="stylesheet" href="./student-chatgpt.css?v=1.0">
 <script defer src="../question-types.js?v=1.2"></script>
-<script defer src="../cortex-phone.js?v=2.0"></script>
+<script defer src="../cortex-phone.js?v=3.0-iphone"></script>
 <script defer src="../cortex-student-simulator.js?v=1.2"></script>
 <script type="module" src="./app.js?v=47-no-orientation-in-real"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -41,12 +41,12 @@
 <script defer src="../evaluations/pdf-local.js?v=1.1"></script>
 <script defer src="../cortex-pfmp-pdf.js?v=1.0"></script>
 <script defer src="../cortex-developer-console.js?v=1.2-session-metrics"></script>
-<script defer src="../cortex-stage-search.js?v=6.9-real-disabled"></script>
+<script defer src="../cortex-stage-search.js?v=7.0-iphone"></script>
 <script defer src="../cortex-exam-integrity.js?v=1.4-subject-lock"></script>
 <script defer src="../cortex-exam-watermark-dialogs.js?v=1.0"></script>
 <script defer src="../cortex-exam-live.js?v=1.1-stale-review"></script>
 <script defer src="../cortex-exam-monitor.js?v=1.3-csv-filters"></script>
-<script type="module" src="./student-coursework.js?v=3.51-no-pfmp-server"></script>
+<script type="module" src="./student-coursework.js?v=3.52-iphone"></script>
 <script type="module" src="./class-portal-teacher.js?v=2.16-similarities-pdf"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
 <link rel="stylesheet" href="../cortex-noctis.css?v=1.4">
@@ -62,7 +62,6 @@
 <link rel="stylesheet" href="./copy-organizer.css?v=1.1">
 <script defer src="../cortex-live-sky.js?v=2.5-focus"></script>
 <link rel="stylesheet" href="../cortex-home-benefits.css?v=2.0">
-<link rel="stylesheet" href="../cortex-phone-ergonomics.css?v=2.0">
 <link rel="stylesheet" href="../cortex-exam-monitor.css?v=1.3-csv-filters">
 <link rel="stylesheet" href="./pin-admin.css?v=1.1">
 <link rel="stylesheet" href="../cortex-home-focus.css?v=1.5-six-atouts">
@@ -76,7 +75,8 @@
 <link rel="stylesheet" href="./copy-similarities.css?v=1.0">
 <script defer src="../cortex-feedback.js?v=1.1-envoi-auto"></script>
 <link rel="stylesheet" href="../cortex-feedback.css?v=1.0">
-</head><body class="cortex-noctis cortex-preaccess">
+<link rel="stylesheet" href="../cortex-phone-ergonomics.css?v=3.0-iphone">
+</head><body class="cortex-noctis cortex-academy-site cortex-preaccess">
 <section id="cortex-real-entry" aria-labelledby="cortex-real-entry-title">
  <div class="cortex-entry-card">
   <div class="cortex-entry-eyebrow">CORTEX Académie</div>
@@ -84,7 +84,8 @@
   <p class="cortex-entry-alert"><strong>L’espace réel est fonctionnel.</strong> L’accès est restreint pendant les démarches de mise en conformité au RGPD.</p>
    <div class="cs-local-mode-note cs-real-gate-local" role="note">
      <strong>PFMP et Orientation : non disponibles dans l’espace réel</strong>
-     <p>Les évaluations et copies de l’espace réel sont conservées sur serveur. À l’inverse, les carnets PFMP et les projets d’orientation sont sauvegardés localement dans le navigateur : ces deux outils restent donc réservés à la démonstration, sans compte élève.</p>
+     <p class="cortex-mobile-only cortex-real-short">Retrouve ces outils en démonstration, avec sauvegarde dans le navigateur.</p>
+     <p class="cortex-real-long">Les évaluations et copies de l’espace réel sont conservées sur serveur. À l’inverse, les carnets PFMP et les projets d’orientation sont sauvegardés localement dans le navigateur : ces deux outils restent donc réservés à la démonstration, sans compte élève.</p>
      <a href="../evaluations/#eleve/accueil">Essayer PFMP et Orientation en démonstration ↗</a>
    </div>
   <form id="cortex-real-entry-form" method="post">
@@ -97,7 +98,7 @@
   <div class="cortex-entry-links"><a href="../evaluations/#accueil">Ouvrir la démonstration</a><button type="button" class="cortex-entry-contact-button" data-cortex-feedback-open="contact">Contact</button></div>
  </div>
 </section>
-<header class="top" data-real-entry-covered inert><div class="cortex-creator-credit cortex-creator-in-header" id="cortex-author-visible" aria-label="Présentation du créateur"><span class="cortex-creator-symbol" aria-hidden="true">✦</span><p>Créateur : <strong>Sélim ARHROR</strong>, enseignant de biotechnologie santé, au lycée Beaugrenelle 75015 <span class="cortex-creator-separator" aria-hidden="true">·</span> <a class="cortex-creator-contact" href="mailto:cortexgenesis1@gmail.com" data-cortex-feedback-open="contact" aria-label="Ouvrir le formulaire de contact CORTEX">Contact</a></p></div><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
+<header class="top" data-real-entry-covered inert><div class="cortex-creator-credit cortex-creator-in-header" id="cortex-author-visible" aria-label="Présentation du créateur"><span class="cortex-creator-symbol" aria-hidden="true">✦</span><p>Créateur : <strong>Sélim ARHROR</strong><span class="cortex-creator-detail">, enseignant de biotechnologie santé, au lycée Beaugrenelle 75015 </span><span class="cortex-creator-separator" aria-hidden="true">·</span> <a class="cortex-creator-contact" href="mailto:cortexgenesis1@gmail.com" data-cortex-feedback-open="contact" aria-label="Ouvrir le formulaire de contact CORTEX">Contact</a></p></div><a class="cortex-creations-link" href="../" aria-label="Mes créations, univers CORTEX en développement"><span class="cortex-creations-emblem" aria-hidden="true">✦</span><span><strong>Mes créations</strong><small>Univers CORTEX · en développement</small></span></a><div class="cortex-traffic" id="cortex-traffic" data-status="loading" role="group" aria-label="Fréquentation de CORTEX, compteurs anonymes" title="Explorations : sessions cumulées depuis le lancement du compteur. En orbite : sessions vues au cours des deux dernières minutes.">
  <div class="cortex-traffic-metric"><span class="cortex-traffic-symbol" aria-hidden="true">✦</span><span class="cortex-traffic-data"><strong data-traffic="visits" aria-label="Nombre d'explorations cumulées">—</strong><small>Explorations</small></span></div>
  <div class="cortex-traffic-metric cortex-traffic-metric-live"><span class="cortex-traffic-symbol" aria-hidden="true">◉</span><span class="cortex-traffic-data"><strong data-traffic="online" aria-label="Sessions actives actuellement">—</strong><small>En orbite</small></span><span class="cortex-traffic-dot" aria-hidden="true"></span></div>
  <span class="cortex-traffic-note" data-traffic="note">Sessions anonymes · activité des 2 dernières minutes</span>

@@ -22,6 +22,16 @@ async function store(key,method,record){
   tx.onabort=tx.onerror=()=>reject(tx.error||rq.error);
  })}finally{db.close()}
 }
+function restoredPhotos(row,questions){
+ if(!Array.isArray(row?.photos))return [];
+ const questionIds=new Set(questions.map(question=>question.id));
+ return row.photos.flatMap(photo=>{
+  if(!questionIds.has(photo?.questionId))return [];
+  if(photo.blob instanceof Blob)return [photo];
+  if(!(photo.bytes instanceof ArrayBuffer)||!photo.bytes.byteLength)return [];
+  return [{...photo,blob:new Blob([photo.bytes],{type:'image/jpeg'})}];
+ });
+}
 async function compressImage(file){
  if(!file||(!String(file.type||'').startsWith('image/')&&!/\.(jpe?g|png|webp|heic|heif|avif)$/i.test(file.name||''))||file.type==='image/svg+xml'||file.size>12*1024*1024)
   throw Error('Choisis une photo JPG, PNG, HEIC ou WebP de moins de 12 Mo.');
@@ -88,8 +98,7 @@ async function createPdf(items,questions){
 }
 export async function downloadHandwriting(key,questions,questionId){
  const row=await store(key,'get',key);
- const items=(row?.photos||[]).filter(item=>item.blob instanceof Blob&&
-  (!questionId||item.questionId===questionId)&&questions.some(q=>q.id===item.questionId));
+ const items=restoredPhotos(row,questions).filter(item=>!questionId||item.questionId===questionId);
  if(!items.length)throw Error('Aucune photo manuscrite à ouvrir.');
  const pdf=await createPdf(items,questions);
  const url=URL.createObjectURL(pdf),link=el('a');
@@ -156,7 +165,13 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
   }
  }
  async function persist(){
-  try{await store(key,'put',{id:key,updated:Date.now(),photos})}
+  try{
+   // Some WebKit storage configurations cannot write Blob values. Keep JPEG bytes in IndexedDB.
+   const stored=await Promise.all(photos.map(async ({blob,bytes,...info})=>({
+    ...info,bytes:bytes??await blob.arrayBuffer()
+   })));
+   await store(key,'put',{id:key,updated:Date.now(),photos:stored});
+  }
   catch{onStatus?.('Le navigateur ne peut pas conserver cette photo.',true);return false}
   return true;
  }
@@ -209,7 +224,7 @@ export function createHandwritingManager({form,questions,key,onAttach,onRemove,o
  function awaitPromise(promise){return promise.catch(()=>null)}
  const ready=record.then(row=>{
   if(closed)return;
-  photos=Array.isArray(row?.photos)?row.photos.filter(p=>questions.some(q=>q.id===p.questionId)&&p.blob instanceof Blob):[];
+  photos=restoredPhotos(row,questions);
   render();
   if(photos.length)onChange?.(photos.map(photo=>photo.questionId));
   if(restoreAttachment&&photos.length)void updatePdf();

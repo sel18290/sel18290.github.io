@@ -543,3 +543,710 @@
   body.cortex-noctis .tabbar { gap: 4px; }
   body.cortex-noctis .tabbar button { padding-inline: 4px; overflow-wrap: anywhere; }
 }
+
+body.cortex-noctis .cortex-mobile-only:not([hidden]) { display: none; }
+.cs-stage-search .cs-stage-search-more { flex: 1 1 18rem; min-width: 0; }
+.cs-stage-search .cs-stage-mission-preview summary { font-weight: 750; }
+
+@media (max-width: 760px), (max-width: 950px) and (max-height: 520px) and (pointer: coarse) {
+  :root {
+    --cortex-phone-dock-height: calc(62px + var(--cortex-phone-bottom));
+    --cortex-phone-context-height: 57px;
+  }
+  html.cortex-compact { scroll-padding-block-start: 0; }
+  body.cortex-noctis :is(.cortex-mobile-only, .cortex-top-albert):not([hidden]) { display: initial; }
+  body.cortex-noctis :is(input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select) {
+    font-size: max(16px, 1rem) !important;
+  }
+  body.cortex-noctis [type=date]::-webkit-date-and-time-value { text-align: start; }
+  body.cortex-noctis :is(dialog[open], .modal-dialog) {
+    overscroll-behavior-y: contain;
+    scroll-padding-block: .8rem;
+  }
+  body.cortex-noctis .ct-command-backdrop {
+    padding: 7px var(--cortex-phone-right) 7px var(--cortex-phone-left);
+  }
+  body.cortex-noctis .ct-command-dialog { width: 100%; min-width: 0; }
+  body.cortex-noctis .ct-command-close,
+  body.cortex-noctis .cortex-feedback-head .cortex-feedback-close { min-width: 44px; min-height: 44px; }
+  body.cortex-noctis .ct-command-footer { display: none; }
+  body.cortex-noctis.mobile-input-focus .ct-command-backdrop {
+    inset-block: var(--cortex-visual-top,0px) auto;
+    height: var(--cortex-visual-height,100dvh);
+    place-items: start center;
+  }
+  body.cortex-noctis.mobile-input-focus .ct-command-dialog {
+    max-height: calc(var(--cortex-visual-height,100dvh) - 14px);
+  }
+  body.cortex-noctis.cortex-academy-site.mobile-input-focus #cortex-real-entry {
+    inset-block: var(--cortex-visual-top,0px) auto;
+    height: var(--cortex-visual-height,100dvh);
+  }
+
+  /* The lower dock belongs to the viewport. A filtered header traps fixed descendants. */
+  body.cortex-noctis.cortex-demo-site .topbar {
+    position: relative;
+    z-index: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 0;
+    padding: max(6px, var(--cortex-phone-top)) var(--cortex-phone-right) 5px var(--cortex-phone-left);
+    gap: 2px 7px;
+    background: #0d1b2e;
+    box-shadow: 0 1px 0 #85afbd35;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar::after,
+  body.cortex-noctis.cortex-demo-site .topbar > :is(.top-status, .cortex-header-desktop-tools, .cortex-creations-link),
+  body.cortex-noctis.cortex-demo-site #cortex-real-return { display: none !important; }
+  body.cortex-noctis.cortex-demo-site .topbar > .brand {
+    grid-column: 1; grid-row: 1;
+    justify-self: start;
+    margin: 0;
+    min-height: 44px;
+    gap: 8px;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar .brand-mark { width: 33px; height: 33px; flex: none; }
+  body.cortex-noctis.cortex-demo-site .topbar .brand strong { font-size: .9375rem; }
+  body.cortex-noctis.cortex-demo-site .topbar .brand small { margin-top: 3px; }
+  body.cortex-noctis.cortex-demo-site .topbar > :is(#ct-tour-launch-mobile, #ct-phone-albert) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-row: 1;
+    min-height: 44px;
+    min-width: 0;
+    max-width: none;
+    padding: 5px 8px;
+    border: 1px solid #6594ad;
+    border-radius: 9px;
+    color: #e4f7ff;
+    background: #18344b;
+    font: 720 .8125rem/1.15 system-ui, sans-serif;
+    text-align: center;
+    white-space: normal;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar #ct-tour-launch-mobile { grid-column: 2; }
+  body.cortex-noctis.cortex-demo-site .topbar #ct-phone-albert { grid-column: 3; }
+  body.cortex-noctis.cortex-demo-site :is(#cortex-albert-person,#cortex-albert-quick) { display: none !important; }
+  body.cortex-noctis.cortex-demo-site:has(:is(.cs-stage-search,.exam-playing,.exam-player.is-running)) .topbar #ct-phone-albert { display: none; }
+  body.cortex-noctis.cortex-demo-site .topbar > .cortex-traffic {
+    grid-row: 2; grid-column: 1/-1;
+    width: auto; margin: 0;
+    justify-content: space-around;
+    gap: 5px;
+    padding: 3px 7px;
+    min-height: 32px;
+    border-radius: 8px;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-metric { gap: 5px; min-width: 0; }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-data { display: flex; align-items: baseline; gap: 5px; }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-data strong { font-size: .9375rem; }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-data small { font-size: .75rem; }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-symbol { width: 20px; height: 20px; }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-traffic-note { display: none; }
+  body.cortex-noctis.cortex-demo-site .topbar > .cortex-creator-in-header {
+    grid-row: 3; grid-column: 1/-1;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-creator-in-header .cortex-creator-symbol { display: none; }
+  body.cortex-noctis.cortex-demo-site:has(:is(#cortex-orientation,.cs-stage-search,.workspace,.portal-root)) .topbar > .cortex-creator-in-header {
+    display: none !important;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-creator-in-header p {
+    margin: 0;
+    font: 550 .75rem/1.25 system-ui, sans-serif;
+  }
+  body.cortex-noctis.cortex-demo-site .topbar .cortex-creator-in-header a {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    padding: 0 5px;
+  }
+  body.cortex-noctis :is(.topbar,.top) .cortex-creator-in-header .cortex-creator-detail { display: none; }
+
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 68;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    align-items: stretch;
+    width: 100%;
+    gap: 3px;
+    margin: 0;
+    padding: 4px var(--cortex-phone-right) calc(6px + var(--cortex-phone-bottom)) var(--cortex-phone-left);
+    background: #101f34;
+    border-top: 1px solid #537a91;
+    box-shadow: 0 -6px 20px #030b20aa;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions :is(.top-link,.top-exit,#ct-command-launch) {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    width: 100%;
+    min-height: 50px;
+    padding: 3px 0;
+    margin: 0;
+    border-radius: 9px;
+    font: 740 .72rem/1.15 system-ui, sans-serif;
+    color: #e0f1f7;
+    text-align: center;
+    white-space: normal;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions :is(.top-link,.top-exit)::before {
+    font-size: 19px; line-height: 20px;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions .top-exit .cortex-exit-arrow {
+    display: none;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions .top-exit > span:last-child {
+    display: inline;
+    font-size: .72rem;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions .top-link.active {
+    color: #12384a;
+    background: #c6ece8;
+    border-color: #99e1d7;
+    box-shadow: none;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions #ct-command-launch .ct-quicknav-icon {
+    font-size: 20px; line-height: 20px;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions #ct-command-launch .ct-quicknav-label {
+    display: inline; font: inherit;
+  }
+  html.cortex-compact body.cortex-noctis.cortex-demo-site .topbar .top-actions #ct-tour-launch,
+  html.cortex-compact body.cortex-noctis.cortex-demo-site:has(.workspace) .topbar .top-actions,
+  html.cortex-compact body.cortex-noctis.cortex-demo-site.mobile-input-focus .topbar .top-actions { display: none !important; }
+
+  body.cortex-noctis.cortex-demo-site :is(#app,.footer,.demo-notice) {
+    width: calc(100% - var(--cortex-phone-left) - var(--cortex-phone-right));
+    max-width: 42rem;
+    min-width: 0;
+  }
+  body.cortex-noctis.cortex-demo-site #app { margin-top: 0; padding-top: 9px; }
+  body.cortex-noctis.cortex-demo-site :is(#cortex-demo-stages,.portal-root) { margin-block-start: 0; }
+  body.cortex-noctis.cortex-demo-site #app > .student-shell:has(:is(#cortex-orientation,.cs-stage-search)) { padding-top: 0; }
+  body.cortex-noctis.cortex-demo-site .demo-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    margin-block: 7px 0;
+    padding: 1px 9px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    border-radius: 9px;
+  }
+  body.cortex-noctis.cortex-demo-site .demo-notice :is(.notice-icon,.cortex-notice-full,.demo-back-real-inline) {
+    display: none !important;
+  }
+  body.cortex-noctis.cortex-demo-site .demo-notice .cortex-notice-short {
+    display: inline;
+    flex: 1 1 auto;
+    color: #d2f2ee;
+    font-size: .8125rem;
+    font-weight: 730;
+  }
+  body.cortex-noctis.cortex-demo-site .demo-notice .notice-more {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 5px 6px;
+    margin: 0;
+    color: #c7eff4;
+    font-size: .8125rem;
+    white-space: nowrap;
+  }
+  body.cortex-noctis.cortex-demo-site .footer .cortex-mobile-footer {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 5px 11px;
+    padding-top: 4px;
+  }
+  body.cortex-noctis.cortex-demo-site .cortex-mobile-footer :is(a,button) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+    background: transparent;
+    border: 0;
+    color: #b7dfeb;
+    font: 680 .83rem/1.3 system-ui, sans-serif;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Home and the main entry points. */
+  body.cortex-noctis.cortex-demo-site .cortex-focus-home { padding: 0 0 20px !important; }
+  body.cortex-noctis :is(.cortex-focus-home,.cortex-focus-real) .cortex-focus-hero {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 17px 14px;
+    gap: 0;
+    border-radius: 16px;
+  }
+  body.cortex-noctis :is(.cortex-focus-home,.cortex-focus-real) .cortex-focus-copy h1 {
+    margin: 7px 0 9px;
+    font-size: clamp(1.85rem, 7.7vw, 2.75rem) !important;
+    line-height: 1.08 !important;
+  }
+  body.cortex-noctis .cortex-focus-home :is(.cortex-focus-visual,.cortex-focus-description,.cortex-focus-kicker) { display: none; }
+  body.cortex-noctis .cortex-focus-home .cortex-focus-description-short {
+    display: block;
+    font-size: .9375rem !important;
+    line-height: 1.45;
+  }
+  body.cortex-noctis :is(.cortex-focus-home,.cortex-focus-real) .cortex-focus-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+    margin-top: 13px;
+  }
+  body.cortex-noctis :is(.cortex-focus-home,.cortex-focus-real) .cortex-focus-actions > :is(.btn,a) {
+    min-height: 45px;
+    padding: 5px 6px;
+    font-size: .8125rem;
+    white-space: normal;
+    gap: 0;
+  }
+  body.cortex-noctis :is(.cortex-focus-home,.cortex-focus-real) .cortex-focus-actions > :is(.btn,a) span[aria-hidden] { display: none; }
+  body.cortex-noctis .cortex-focus-home .cortex-focus-meta { margin-top: 9px; }
+  body.cortex-noctis .cortex-focus-home .cortex-home-tool-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+    margin-top: 9px;
+  }
+  body.cortex-noctis .cortex-home-tool-shortcuts > a {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 61px;
+    padding: 6px 8px;
+    border: 1px solid #5b8798;
+    border-radius: 10px;
+    color: #eaf8fd;
+    background: #17334a;
+    text-decoration: none;
+    line-height: 1.25;
+  }
+  body.cortex-noctis .cortex-home-tool-shortcuts > a:first-child {
+    border-color: #73b7af;
+    background: #16434b;
+  }
+  body.cortex-noctis .cortex-home-tool-shortcuts > a > span[aria-hidden] { color: #b0e7dd; font-size: 1.15rem; }
+  body.cortex-noctis .cortex-home-tool-shortcuts strong { display: block; font-size: .9375rem; }
+  body.cortex-noctis .cortex-home-tool-shortcuts small { display: block; color: #c5dfe8; font-size: .75rem; }
+  body.cortex-noctis .cortex-focus-home .cortex-home-strengths { margin-top: 24px; }
+  body.cortex-noctis .cortex-home-strengths .cortex-home-strength { min-height: 0; padding: 14px; }
+
+  /* Shared orientation and PFMP section bars. */
+  body.cortex-noctis.cortex-demo-site:has(:is(#cortex-orientation,.cs-stage-search)) {
+    overflow: visible;
+  }
+  body.cortex-noctis :is(#cortex-orientation.co-v2 .co-step-navigation, .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav) {
+    position: sticky;
+    top: var(--cortex-phone-top);
+    z-index: 18;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    align-items: stretch;
+    gap: 3px;
+    margin: 7px 0 10px;
+    padding: 4px;
+    border: 1px solid #557f90;
+    border-radius: 11px;
+    background: #112638;
+    box-shadow: 0 4px 12px #050f2380;
+  }
+  body.cortex-noctis :is(#cortex-orientation.co-v2 .co-step-navigation, .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav) > button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    grid-column: auto;
+    min-width: 0;
+    min-height: 45px;
+    padding: 3px 2px;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #e1f0f7;
+    background: transparent;
+    font: 740 .75rem/1.17 system-ui, sans-serif;
+    text-align: center;
+    white-space: normal;
+    box-shadow: none;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav > button[data-stage-nav="assistant"] {
+    grid-column: auto;
+    min-height: 45px;
+    padding: 3px 2px;
+  }
+  body.cortex-noctis :is(#cortex-orientation.co-v2 .co-step-navigation, .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav) > button:is([aria-current=page],[aria-pressed=true]) {
+    border-color: #82bdb5;
+    background: #24494c;
+    color: #eafff8;
+    box-shadow: inset 0 -2px #98e1cb;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-step-navigation button :is(.co-nav-label,#co-count-wishes),
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav :is(.cs-stage-nav-copy,.cs-stage-nav-icon) {
+    display: none;
+  }
+  body.cortex-noctis :is(#cortex-orientation.co-v2 .co-step-navigation .co-nav-short, .cs-stage-search .cs-stage-nav-short) {
+    display: inline;
+    color: inherit;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-nav-count:not([hidden]) {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+    width: auto;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 3px;
+    border-radius: 6px;
+    font: 750 .675rem/1rem system-ui, sans-serif;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-page,.co-v4-output,.co-letter-mast,.co-wish-plan-results h4) {
+    scroll-margin-block-start: calc(var(--cortex-phone-top) + var(--cortex-phone-context-height) + 7px);
+  }
+
+  /* Orientation: compact choice, readable actions and comparison in reading order. */
+  body.cortex-noctis #cortex-demo-orientation { margin: 0 auto; padding: 0; width: 100%; max-width: 100% !important; }
+  body.cortex-noctis #cortex-orientation.co-v2 { padding: 0 0 12px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-orientation-hero {
+    min-height: 0;
+    margin: 0;
+    padding: 8px 11px;
+    border-radius: 13px;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-orientation-hero .co-headline {
+    display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 6px;
+    width: 100%;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-orientation-hero .co-ghost {
+    grid-column: 2;
+    grid-row: 1;
+    max-width: 108px;
+    white-space: normal;
+    min-height: 44px; padding: 3px 8px;
+    color: #e1f6ff; border-color: #718fa4; background: #203b52;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-orientation-hero h1 {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: clamp(1.48rem, 6.1vw, 2.05rem);
+    margin: 2px 0;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-orientation-hero :is(p,small) { display: none; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry {
+    gap: 9px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-entry-top { grid-template-columns: minmax(0,1fr); gap: 5px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-heading h2 { font-size: 1.125rem; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-bac-field { gap: 4px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-bac-field select { min-height: 44px; padding-block: 6px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-choice { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-choice button {
+    min-height: 56px; padding: 6px; gap: 5px;
+    justify-content: flex-start; text-align: start;
+    border-width: 2px; border-radius: 10px;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-choice strong { font-size: .875rem; line-height: 1.2; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-choice .co-v4-entry-icon {
+    width: 24px; height: 24px; flex-basis: 24px; font-size: .875rem; border-radius: 6px;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-entry-choice small { display: none; }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-pane,.co-letter-sheet) { padding: 12px; border-radius: 12px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-page .co-section-top { margin-bottom: 8px; }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-page .co-section-top h2,.co-letter-section-title h3) {
+    font-size: 1.22rem; line-height: 1.26;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-page .co-section-top p,.co-letter-section-title p) { font-size: .9rem; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-profile-form { margin-top: 8px; gap: 6px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-form {
+    grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-form > :not(details),
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-form > details[open] { grid-column: 1/-1; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-form > details { min-width: 0; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-form > details summary { font-size: .8125rem; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-career-form .co-section-top p { display: none; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-ai-actions > button { width: 100%; }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-ai-actions small,.co-v4-submit p) { line-height: 1.4; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-v4-submit p a { color: #1b6a70; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-optional:not([open]) {
+    padding-block: 0;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-optional:not([open]) summary {
+    min-height: 44px;
+    align-content: center;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-btn,.co-wish-actions button,.co-wish-actions a,.co-letter-actions button,.co-letter-steps button) {
+    min-height: 44px;
+    max-width: 100%;
+    white-space: normal;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-help {
+    min-width: 28px; min-height: 28px;
+    box-shadow: none;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-data-head,.co-wish-plan-actions,.co-suggestion-footer) { flex-wrap: wrap; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-data-head a { display: inline-flex; align-items: center; min-height: 44px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-result-footer { gap: 5px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-data-card { padding: 11px; border-radius: 11px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-wish-proposals { grid-template-columns: minmax(0,1fr); }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-wish-plan { margin-bottom: 10px; padding: 11px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-wish-plan-actions > button { width: 100%; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-wish-proposal-actions :is(a,button) { min-height: 44px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-wish-proposal-actions a { display: inline-flex; align-items: center; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-scroll { display: none; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards { display: grid; gap: 7px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards article {
+    min-width: 0; padding: 9px; border: 1px solid #c2d9d9; border-radius: 9px; background: #fff;
+  }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards h4 { margin: 0 0 6px; color: #1c5560; font-size: 1rem; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards dl { display: grid; gap: 5px; margin: 0; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards :is(dt,dd) { font-size: .875rem; line-height: 1.4; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards dt { font-weight: 750; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-compare-cards dd { margin: 0; overflow-wrap: anywhere; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-letter-mast { min-height: 0; padding: 12px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-letter-mast h2 { font-size: 1.65rem; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-letter-mast .co-letter-local { display: none; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-letter-steps button { padding: 5px 3px; }
+  body.cortex-noctis #cortex-orientation.co-v2 .co-letter-steps button small { display: none; }
+
+  /* PFMP: put the search before supporting content and preserve the full set of options. */
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) {
+    padding: 0 0 12px;
+    border: 0;
+    background: transparent;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero {
+    min-height: 0;
+    margin: 0;
+    border-radius: 13px;
+    border: 1px solid #547e91;
+    background: linear-gradient(110deg,#13283b,#123d46);
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) :is(.cs-stage-hero-visual,.cs-stage-signature,.cs-stage-hero-copy .cs-stage-kicker) {
+    display: none;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero-content {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 11px;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero-top {
+    grid-column: 2; grid-row: 1; width: auto; justify-content: flex-end;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero-copy {
+    grid-column: 1; grid-row: 1; min-width: 0;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-return {
+    width: min(100%, 108px);
+    min-height: 44px;
+    padding: 4px 7px;
+    white-space: normal;
+    line-height: 1.2;
+    color: #e5f6fc;
+    border-color: #728e9c;
+    background: #1a3a4d;
+    font-size: .8125rem;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero h1 {
+    margin: 0;
+    color: #f2fffd;
+    font: 780 clamp(1.4rem, 5.75vw, 2.05rem)/1.11 system-ui, sans-serif;
+    letter-spacing: -.035em;
+  }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero h1 br { display: none; }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero h1 em { margin-inline-start: .2em; color: #b5efdf; font: inherit; }
+  body.cortex-noctis .cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-hero-copy p { display: none; }
+  body.cortex-noctis .cs-stage-search :is(.cs-stage-doc-launch,.cs-stage-local-banner,.cs-stage-workspace .cs-stage-brief) { display: none; }
+  body.cortex-noctis .cs-stage-search .cs-stage-workspace { grid-template-columns: minmax(0,1fr); gap: 0; }
+  body.cortex-noctis .cs-stage-search .cs-stage-console {
+    padding: 11px; border-radius: 12px;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-console .cs-stage-panel-kicker { display: none; }
+  body.cortex-noctis .cs-stage-search .cs-stage-console > h2 { margin-block: 0 8px; font-size: 1.2rem; }
+  body.cortex-noctis .cs-stage-search .cs-stage-console :is(.cs-stage-fieldset,.cs-stage-zone,.cs-stage-launch) { margin-block: 8px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-fieldset legend { margin-bottom: 5px; font-size: .875rem; }
+  body.cortex-noctis .cs-stage-search .cs-stage-programs { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-program-card {
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 4px; align-items: center; text-align: center;
+    min-height: 58px; padding: 5px 2px;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-program-card :is(.cs-stage-program-code,small) { display: none; }
+  body.cortex-noctis .cs-stage-search .cs-stage-program-card strong { font-size: .8125rem; line-height: 1.25; hyphens: auto; overflow-wrap: normal; }
+  body.cortex-noctis .cs-stage-search .cs-stage-programs .cs-stage-add-program {
+    grid-column: 1/-1; min-height: 44px; margin: 0; justify-self: start;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-options-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-options-row label > span {
+    min-height: 44px; align-content: center; padding: 5px 3px; text-align: center;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-zone { grid-template-columns: minmax(0,1fr) minmax(87px, .37fr); gap: 6px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-zone :is(input, select) { width: 100%; min-height: 46px; padding: 7px 8px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-location { margin-bottom: 6px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-location button { min-height: 44px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-launch {
+    display: grid; grid-template-columns: minmax(0,1fr); gap: 6px; margin-bottom: 0;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-launch #cs-stage-submit { width: 100%; min-height: 49px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-search-more,
+  body.cortex-noctis .cs-stage-search .cs-stage-result-controls {
+    min-width: 0;
+    border: 1px solid #b3ccd1;
+    border-radius: 9px;
+    padding: 0 8px;
+  }
+  body.cortex-noctis .cs-stage-search :is(.cs-stage-search-more,.cs-stage-result-controls,.cs-stage-kinds,.cs-stage-mission-preview) summary {
+    display: list-item;
+    align-content: center;
+    min-height: 44px;
+    padding-block: 4px;
+    font-size: .875rem;
+    font-weight: 740;
+    text-align: start;
+    cursor: pointer;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-search-more[open] > .cs-stage-search-options { padding-bottom: 7px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-result-controls {
+    margin: 6px 0;
+    color: #def3f7;
+    border-color: #557688;
+    background: #142d41;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-result-controls[open] > .cs-stage-filters { padding-bottom: 8px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-result-header {
+    align-items: stretch; gap: 8px;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-result-header h2 { font-size: 1.3rem; }
+  body.cortex-noctis .cs-stage-search .cs-stage-result-actions,
+  body.cortex-noctis .cs-stage-search .cs-stage-card-actions {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px;
+  }
+  body.cortex-noctis .cs-stage-search #cs-stage-edit-search { display: inline-flex; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card { padding: 10px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card h3 { font-size: 1.06rem; line-height: 1.24; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card .cs-stage-contact-links { gap: 5px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card .cs-stage-contact-links a { flex: 1 1 124px; padding: 5px 7px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card .cs-stage-mission-preview {
+    order: 6;
+    margin-block: 4px 0; padding: 0 6px;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-card .cs-stage-mission-preview[open] { padding-bottom: 6px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card-actions { margin-block: 5px 0; }
+  body.cortex-noctis .cs-stage-search .cs-stage-card-actions > button { min-height: 46px; padding: 5px 4px; }
+  body.cortex-noctis .cs-stage-search .cs-stage-board-main-actions,
+  body.cortex-noctis .cs-stage-search .cs-stage-prep-contact .cs-stage-action-row { display: grid; grid-template-columns: minmax(0,1fr); }
+  body.cortex-noctis :is(.cs-stage-dialog,.cs-stage-dialog--contact) :is(.cs-stage-dialog-head,.cs-stage-chat-head) {
+    position: sticky; top: 0; z-index: 2;
+  }
+  body.cortex-noctis .cs-stage-search .cs-stage-chat-body { height: auto; }
+  body.cortex-noctis .cs-stage-search .cs-stage-chat-log { min-height: 72px; max-height: 34dvh; }
+  body.cortex-noctis.mobile-input-focus .cs-stage-search .cs-stage-chat-log { min-height: 0; max-height: 16dvh; }
+
+  /* Student and professor panels keep a single column and usable response actions. */
+  body.cortex-noctis :is(.portal-root,.cw-student-portal,.workspace-main) { min-width: 0; overflow-wrap: anywhere; }
+  body.cortex-noctis :is(.portal-root,.cw-student-portal) :is(.portal-login-hero,.portal-hero,.portal-welcome,.portal-panel,.cw-student-panel) {
+    padding: 12px;
+  }
+  body.cortex-noctis .portal-root .portal-entry-options {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 6px;
+    margin-block: 7px 10px;
+  }
+  body.cortex-noctis .portal-root .portal-entry-options .portal-entry-option {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    padding: 6px;
+    min-height: 0;
+  }
+  body.cortex-noctis .portal-root .portal-entry-options :is(h2,p,.cs-demo-local-tag) { display: none; }
+  body.cortex-noctis .portal-root .portal-entry-option .portal-entry-button {
+    min-height: 48px;
+    text-align: center;
+    justify-content: center;
+    white-space: normal;
+    padding: 6px;
+  }
+  body.cortex-noctis.cortex-demo-site .portal-root .cs-demo-storage-note { display: none; }
+  body.cortex-noctis .portal-root .portal-login-form .portal-demo-gateway { padding: 10px; margin-bottom: 10px; }
+  body.cortex-noctis .portal-root .portal-welcome-buttons > button { min-height: 44px; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-header { margin-bottom: 7px; padding: 6px 10px; gap: 6px; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-header strong { font-size: 1.05rem; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-header small { font-size: .7rem; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-header .btn { min-height: 44px; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-shortcuts { gap: 6px; margin-bottom: 9px; }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-shortcuts button {
+    flex-direction: row; align-items: center; justify-content: flex-start;
+    gap: 6px; min-height: 51px; padding: 6px; border-radius: 9px;
+  }
+  body.cortex-noctis.cortex-demo-site .phone-teacher-shortcuts button > span { font-size: 1rem; flex: 0 0 auto; }
+  body.cortex-noctis.cortex-demo-site .workspace-main .page-head { gap: 7px; padding: 9px; }
+  body.cortex-noctis.cortex-demo-site .workspace-main .page-head h1 { font-size: clamp(1.45rem,6.4vw,2rem); }
+  body.cortex-noctis.cortex-demo-site .workspace-main .page-head > div:first-child { min-width: 0; }
+  body.cortex-noctis.cortex-demo-site .workspace-main :is(.class-details,.review-workspace,.visual-workspace,.ed-configuration,.review-question-list,.review-document-pane,.review-response-pane) {
+    scroll-margin-block-start: max(12px, var(--cortex-phone-top));
+  }
+  body.cortex-noctis .phone-teacher-more :is(button,a) { min-height: 44px; }
+
+  /* Access gate and short-screen real workspace. */
+  body.cortex-noctis.cortex-academy-site #cortex-real-entry {
+    padding: max(9px, var(--cortex-phone-top)) var(--cortex-phone-right)
+      max(9px, var(--cortex-phone-bottom)) var(--cortex-phone-left);
+  }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card { padding: 13px; gap: 9px; margin-block: auto; border-radius: 14px; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card h1 { font-size: clamp(1.35rem,6vw,1.75rem); }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card p { font-size: .875rem; line-height: 1.4; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card .cortex-real-long { display: none; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card .cortex-real-short { display: block; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card :is(.cortex-entry-alert,.cs-real-gate-local) { padding: 8px; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card .cs-real-gate-local { margin: 0 !important; gap: 4px; }
+  body.cortex-noctis.cortex-academy-site .cortex-entry-card :is(.cs-real-gate-local a,.cortex-entry-links :is(a,button)) { min-height: 44px; }
+  body.cortex-noctis.cortex-academy-site .top { min-height: 0; gap: 5px; padding-block-end: 5px; }
+  body.cortex-noctis.cortex-academy-site :is(.cw-student-frame,.academy-header-actions,.prof-form,.cw-copy-filter-bar) { min-width: 0; }
+  body.cortex-noctis.cortex-academy-site .cw-student-frame :is(.cw-student-assessment-actions,.cw-student-dashboard-tools) {
+    flex-wrap: wrap;
+  }
+}
+@media (min-width: 761px) and (max-width: 950px) and (max-height: 520px) and (pointer: coarse) {
+  body.cortex-noctis.cortex-demo-site :is(#app,.footer,.demo-notice) {
+    max-width: none;
+    margin-inline: var(--cortex-phone-left) var(--cortex-phone-right);
+  }
+  body.cortex-noctis.cortex-demo-site .topbar > .cortex-creator-in-header { display: none; }
+  body.cortex-noctis :is(#cortex-orientation.co-v2 .co-step-navigation,.cs-stage-search:is([data-stage-view],[aria-labelledby="cs-stage-title"]) .cs-stage-nav) { position: static; }
+  body.cortex-noctis #cortex-orientation.co-v2 :is(.co-page,.co-v4-output,.co-letter-mast,.co-wish-plan-results h4) { scroll-margin-block-start: 12px; }
+}
+@media (min-width: 761px) and (min-height: 521px), (min-width: 951px), (min-width: 761px) and (pointer: fine) {
+  .cs-stage-search .cs-stage-mission-preview summary { list-style: none; }
+  .cs-stage-search .cs-stage-mission-preview summary::-webkit-details-marker { display: none; }
+}

@@ -4,7 +4,7 @@
   const app=document.getElementById('app');
   if(!app)return;
   const mobile=window.matchMedia('(max-width:760px)');
-  const onMobile=()=>mobile.matches || document.documentElement.classList.contains('cortex-phone');
+  const onMobile=()=>window.CORTEX_PHONE?.layout.matches || mobile.matches || document.documentElement.classList.contains('cortex-phone');
   let frame=0;
   const tableCache=new WeakSet();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');

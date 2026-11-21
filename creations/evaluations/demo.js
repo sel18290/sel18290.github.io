@@ -47,7 +47,7 @@ return makeSeed();
 let state=window.CORTEX_CLASSES.init(load()),view='home',tab='dashboard',currentQuestion=0,editor=null,search='',toastTimer=null,chosenCode='SOMMEILPDF',pendingImport=null,importNewExamId=null,previewFileUrl=null,reviewAttemptId=null,reviewIndex=0,editorIndex=0,editorDocTab='documents',importExamId=null,visualPage=1,visualQuestionId=null,selectedClassId='2mrc1',teacherClassFilter='',teacherGroupFilter='',studentAssignmentId=null,studentQrToken=null,studentRollNumber='',studentSession=null,studentPinBusy=false,portalSession=null,portalPreviewState=null,portalLoginBusy=false,portalPeriod='s1',portalYear=null,portalCopyId=null,currentQrAssignmentId=null,integritySetupId='';
 let stageWorkspace=null;
 let handwriting=null;
-const handwritingModule=()=>import('../evaluations-academie/student-handwriting.js?v=1.3');
+const handwritingModule=()=>import('../evaluations-academie/student-handwriting.js?v=1.4-iphone');
 const photoKey=attempt=>'demo-cortex:'+attempt.id;
 const hasPhoto=(attempt,question)=>attempt.photoQuestions?.includes(question.id)===true;
 const answeredQuestion=(attempt,question)=>Boolean(String(attempt.answers[question.id]??'').trim())||hasPhoto(attempt,question);
@@ -236,11 +236,16 @@ return `<div class="home cortex-focus-home">
   <div class="cortex-focus-copy">
    <span class="cortex-focus-kicker">CORTEX · STATION NOCTIS</span>
    <h1 id="cortex-focus-title" class="cortex-home-new-headline">Moins de tâches répétitives.<br><em>Plus de temps pour apprendre.</em></h1>
-   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, obtenir un retour rapide après les contrôles, faciliter les corrections, accompagner la recherche de PFMP et construire une orientation en partant d’un métier ou d’une formation.</p>
+   <p class="cortex-focus-description">Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, obtenir un retour rapide après les contrôles, faciliter les corrections, accompagner la recherche de PFMP et construire une orientation en partant d’un métier ou d’une formation.</p>
+   <p class="cortex-mobile-only cortex-focus-description-short">Évaluations, recherche de PFMP et orientation après le bac pro.</p>
    <div class="cortex-focus-actions">
     ${btn('Je suis élève <span aria-hidden="true">↗</span>','student','')}
     ${btn('Je suis professeur <span aria-hidden="true">↗</span>','teacher','secondary')}
    </div>
+   <nav class="cortex-mobile-only cortex-home-tool-shortcuts" aria-label="Outils élèves">
+    <a href="#eleve/stages"><span aria-hidden="true">⌖</span><span><strong>PFMP</strong><small>Trouver un lieu</small></span></a>
+    <a href="#eleve/orientation"><span aria-hidden="true">✦</span><span><strong>Orientation</strong><small>Préparer Parcoursup</small></span></a>
+   </nav>
    <small class="cortex-focus-meta">Démonstration libre · Sans inscription · Données fictives</small>
   </div>
   <div class="cortex-focus-visual" aria-hidden="true">
@@ -989,7 +994,7 @@ modalShow('Relire ma copie',`<p>${e.questions.length-empty} réponses sur ${e.qu
 `<button class="btn" data-action="confirm-submit">Rendre ma copie →</button>${btn('Continuer à répondre','close-modal','ghost')}`);
 }
 function notifyAbout(){
-modalShow('Comment fonctionne cette démonstration ?',`<p>Tu peux explorer librement les profils <strong>Professeur</strong> et <strong>Élève</strong>, sans créer de compte.</p><div class="preview-list"><div class="summary-answer"><strong>Ce qui fonctionne</strong><p>Création de contrôles fictifs, passage d'un contrôle, sauvegarde dans ce navigateur, copie remise, correction manuelle et journal d'interruptions local.</p></div><div class="summary-answer"><strong>Ce qui n'est pas activé</strong><p>Comptes réels, traitement de PDF, stockage serveur, suivi de classe à distance et correction IA par RTX 3060. Rien n'est envoyé sur internet depuis les formulaires.</p></div></div><p class="small muted">Évite d'utiliser de vraies données scolaires : cette page est publique.</p>`,btn('Compris','close-modal',''));
+ modalShow('Comment fonctionne cette démonstration ?',`<p>Découvre les espaces <strong>Professeur</strong> et <strong>Élève</strong> avec des exemples fictifs, sans compte.</p><div class="preview-list"><div class="summary-answer"><strong>Sur cet appareil</strong><p>Tes évaluations de démonstration, carnets PFMP, CV, brouillons et choix d’orientation restent dans ton navigateur.</p></div><div class="summary-answer"><strong>Services en ligne</strong><p>Les recherches consultent des annuaires publics. Quand tu sollicites Albert, les critères ou les passages que tu choisis de soumettre sont transmis au service. Évite d’utiliser de vraies données scolaires ou des informations personnelles.</p></div></div>`,btn('Compris','close-modal',''));
 }
 function setReviewPoints(value){
  const at=attemptBy(reviewAttemptId),e=examBy(at?.examId),q=e?.questions[reviewIndex];

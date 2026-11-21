@@ -6,7 +6,7 @@ import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.8-no-
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.2-no-drag';
 import {openProtectedPdf} from './student-protected-pdf.js?v=1.2-pdf-watermark';
-import { createHandwritingManager } from './student-handwriting.js?v=1.3';
+import { createHandwritingManager } from './student-handwriting.js?v=1.4-iphone';
 
 const params=new URLSearchParams(location.search);
 const qr=params.get('join'),classPrefill=params.get('classe');

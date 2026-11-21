@@ -1,0 +1,360 @@
+/* Orientation · Direction artistique station Noctis, alignée sur PFMP V3.
+ * Bandeau Observatoire identique à PFMP, surfaces papier, accents vert d'eau,
+ * atelier de lettre en bleu-blanc comme l'atelier CV/lettre PFMP.
+ */
+#cortex-orientation.co-v2{
+ --co-night:#0a1423;--co-panel:#111f30;--co-paper:#f7fafc;--co-stroke:#c6d5de;
+ --co-text:#172f40;--co-subtext:#526e80;--co-mint:#a1eddb;
+ color:#f5faff;max-width:1180px;margin:0 auto;padding:0 0 40px
+}
+#cortex-demo-orientation{max-width:1200px!important}
+#cortex-orientation.co-v2 .co-head{
+ min-height:clamp(300px,37vw,406px);padding:clamp(20px,3vw,46px);
+ background:
+ linear-gradient(90deg,#07111e 2%,#0a1624fa 23%,#0a1624bb 53%,#0b16243c 78%,#0a142421),
+ linear-gradient(0deg,#081321aa,transparent 66%),
+ url("../../genesis/scenes/n05-observatoire.webp") 75% 49% / cover no-repeat,
+ #091321;
+ border:1px solid #658396;border-radius:24px;box-shadow:0 18px 52px #02071170;
+ gap:22px;align-items:center;position:relative;isolation:isolate;
+}
+#cortex-orientation.co-v2 .co-head:before{content:none;display:none}
+#cortex-orientation.co-v2 .co-head:after{
+ content:"";position:absolute;inset:auto 18px 0;height:2px;width:auto;border-radius:0;
+ background:linear-gradient(90deg,transparent,#9deedbd9 31%,#8dddff98 70%,transparent);
+ box-shadow:none
+}
+#cortex-orientation.co-v2 .co-orbit-label{color:#b0f2df;font-size:11px;letter-spacing:.12em}
+#cortex-orientation.co-v2 .co-pulse{border-radius:1px;background:#91e1c4;transform:rotate(45deg);box-shadow:0 0 10px #9eefd3a0}
+#cortex-orientation.co-v2 .co-head h1{color:#f7fdff;font-size:clamp(42px,6.7vw,78px);font-weight:820;line-height:.98;letter-spacing:-.072em;text-shadow:0 2px 24px #0009}
+#cortex-orientation.co-v2 .co-head h1 em{color:#d5f7f4;font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-.065em}
+#cortex-orientation.co-v2 .co-headline>p{color:#e0edf4;font-size:15px;line-height:1.62;max-width:450px}
+#cortex-orientation.co-v2 .co-head-aside{background:#091c2dc9;border:1px solid #7399a8;color:white;max-width:228px;min-width:190px;padding:21px;backdrop-filter:blur(4px)}
+#cortex-orientation.co-v2 .co-head-aside #co-progress{color:#fff}
+#cortex-orientation.co-v2 .co-head-aside strong{color:#a1eddb}
+#cortex-orientation.co-v2 .co-aside-symbol{color:#a1eddb}
+#cortex-orientation.co-v2 .co-local-pill{border:1px solid #8ab8a9;background:#0b352fd8;color:#d1f9ea}
+#cortex-orientation.co-v2 .co-step-navigation{
+ grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:13px 0 9px;
+ padding:6px;background:#0b1725;border:1px solid #34465b;border-radius:15px;
+}
+#cortex-orientation.co-v2 .co-step-navigation button{
+ min-width:0;min-height:57px;padding:10px 8px;justify-content:center;text-align:center;
+ background:transparent;color:#d5e1ed;border:1px solid transparent;border-radius:10px;
+ font-size:12px;font-weight:780;gap:9px
+}
+#cortex-orientation.co-v2 .co-step-navigation button span{color:#afc8cf}
+#cortex-orientation.co-v2 .co-step-navigation button:hover:not(.active){background:#1c2b3c}
+#cortex-orientation.co-v2 .co-step-navigation button.active{
+ background:#203d40;color:#e9fffa;border:1px solid #577d80;
+ box-shadow:inset 0 -3px #a1eddb
+}
+#cortex-orientation.co-v2 .co-step-navigation button.active span{color:#a1eddb}
+#cortex-orientation.co-v2 .co-sticky-message{
+ color:#bceadb;border:1px solid #31594f;background:#102c2b;
+ padding:8px 15px;margin:8px 0 16px;border-radius:9px;font-size:11px
+}
+#cortex-orientation.co-v2 .co-pane{
+ background:linear-gradient(128deg,#fbfdff,#edf3f5 90%);border:1px solid #b9cfd9;
+ border-radius:18px;color:#142b3a;box-shadow:0 10px 30px #030a1940
+}
+#cortex-orientation.co-v2 .co-section-top .co-step{color:#176960}
+#cortex-orientation.co-v2 .co-section-top h2{color:#142b3a;font-size:clamp(21px,2.5vw,31px)}
+#cortex-orientation.co-v2 .co-section-top p{color:#526b7c;font-size:13px}
+#cortex-orientation.co-v2 .co-profile-form label,
+#cortex-orientation.co-v2 .co-explore-controls label{color:#1e3b50}
+#cortex-orientation.co-v2 .co-field-hint,#cortex-orientation.co-v2 .co-field-optional{color:#647f90}
+#cortex-orientation.co-v2 :is(.co-profile-form,.co-explore-controls) :is(input,select,textarea){
+ background:#fff;color:#172f40;border-color:#b7ced9;border-radius:9px;
+ font-weight:500;min-height:45px;box-shadow:0 1px 3px #1231230b
+}
+#cortex-orientation.co-v2 :is(input,textarea)::placeholder{color:#778b99}
+#cortex-orientation.co-v2 .co-sector{background:#fff;color:#15354a;border:1px solid #c1d5df;box-shadow:0 2px 8px #1731420a}
+#cortex-orientation.co-v2 .co-sector:hover{background:#f3fbf8;border-color:#5eac96}
+#cortex-orientation.co-v2 .co-sector.active{background:#e2f5ee;border:2px solid #2a8274;color:#0b4741;box-shadow:0 0 0 3px #afecdc55}
+#cortex-orientation.co-v2 .co-sector-icon{color:#287a72}
+#cortex-orientation.co-v2 .co-sector small{color:#536f7c}
+#cortex-orientation.co-v2 .co-tick{color:#21735f}
+#cortex-orientation.co-v2 .co-interest{background:#fff;color:#26455a;border:1px solid #b8d1da}
+#cortex-orientation.co-v2 .co-interest.active{background:#d6f1e7;color:#15574e;border-color:#4aa997}
+#cortex-orientation.co-v2 .co-interest-star{color:#308879}
+#cortex-orientation.co-v2 .co-panel-tint{background:#e1f2ed;border:1px solid #bbd7cd;color:#1d514a}
+#cortex-orientation.co-v2 .co-panel-tint strong{color:#18574d}
+#cortex-orientation.co-v2 .co-panel-tint p{color:#46695f}
+#cortex-orientation.co-v2 .co-tint-icon{color:#2d8679}
+#cortex-orientation.co-v2 .co-btn{background:#eff7f9;color:#20514e;border:1px solid #aacac8;border-radius:10px}
+#cortex-orientation.co-v2 .co-btn:hover:not(:disabled){background:#dcedea}
+#cortex-orientation.co-v2 .co-btn.co-primary{background:#0c4b48;color:#f4fffa;border:1px solid #196d61;box-shadow:none}
+#cortex-orientation.co-v2 .co-btn.co-primary:hover:not(:disabled){background:#17655b}
+#cortex-orientation.co-v2 .co-btn.co-soft{background:#fff;color:#245c61;border-color:#b4cfd7}
+#cortex-orientation.co-v2 .co-btn.co-danger{background:#fbf0f2;color:#8f3852;border-color:#e1abb8}
+#cortex-orientation.co-v2 .co-help{background:#d5eee9!important;color:#105b52!important;border-color:#3d9181!important;box-shadow:none}
+#cortex-orientation.co-v2 .co-goal-empty,
+#cortex-orientation.co-v2 .co-goal-detail{background:#edf7f5;color:#1b4b46;border-color:#accfc8}
+#cortex-orientation.co-v2 .co-goal-empty strong,#cortex-orientation.co-v2 .co-goal-detail>strong{color:#173d3b}
+#cortex-orientation.co-v2 .co-goal-detail p,#cortex-orientation.co-v2 .co-goal-detail p b{color:#2e5b56}
+#cortex-orientation.co-v2 .co-goal-detail .co-course-type{color:#58737f}
+#cortex-orientation.co-v2 .co-classification,
+#cortex-orientation.co-v2 .co-family-indicator{background:#d7f1e7;color:#135849;border-color:#72ae9e}
+#cortex-orientation.co-v2 .co-family-bridge .co-family-indicator{background:#e6eef9;color:#295d83}
+#cortex-orientation.co-v2 .co-family-prepare .co-family-indicator{background:#f7e9d8;color:#895a32}
+#cortex-orientation.co-v2 .co-guide-explainer{background:#e1f1ee;color:#234d43;border-color:#a6cfc3}
+#cortex-orientation.co-v2 .co-guide-explainer strong{color:#164f43}
+#cortex-orientation.co-v2 .co-guide-explainer p,#cortex-orientation.co-v2 .co-guide-explainer p b{color:#356859}
+#cortex-orientation.co-v2 .co-family-section{border-top-color:#c5d9df}
+#cortex-orientation.co-v2 .co-family-heading h3{color:#18394d}
+#cortex-orientation.co-v2 .co-family-heading p{color:#647989}
+#cortex-orientation.co-v2 .co-family-count{background:#fff;color:#4a6976;border-color:#d2e1e7}
+#cortex-orientation.co-v2 .co-suggestion{background:#fff;border-color:#c6d8df;color:#18394a;box-shadow:0 3px 12px #213e4b10}
+#cortex-orientation.co-v2 .co-suggestion h3{color:#17394c}
+#cortex-orientation.co-v2 .co-suggestion .co-course-type{color:#297b6e}
+#cortex-orientation.co-v2 .co-suggestion-about{color:#506878}
+#cortex-orientation.co-v2 .co-suggestion-why,#cortex-orientation.co-v2 .co-suggestion-why b{color:#235d5a}
+#cortex-orientation.co-v2 .co-suggestion-match{color:#24816a}
+#cortex-orientation.co-v2 .co-suggestion-details{border-top-color:#d1e3e7}
+#cortex-orientation.co-v2 .co-suggestion-details summary{color:#1d6970}
+#cortex-orientation.co-v2 .co-suggestion-details p{color:#587387}
+#cortex-orientation.co-v2 .co-family-caution,#cortex-orientation.co-v2 .co-suggestion-footer>span{color:#5d7888}
+#cortex-orientation.co-v2 .co-suggestion-footer{border-color:#cadadf}
+#cortex-orientation.co-v2 .co-kept{color:#287962}
+#cortex-orientation.co-v2 .co-alert{background:#eaf5ee;border-color:#bedccf;color:#23564f}
+#cortex-orientation.co-v2 .co-ai-pane{background:linear-gradient(140deg,#edf6f5,#e6f1f6);color:#18384d;border-color:#bad1dc}
+#cortex-orientation.co-v2 .co-ai-placeholder{background:#fff;border-color:#bdd5db}
+#cortex-orientation.co-v2 .co-ai-placeholder p,#cortex-orientation.co-v2 .co-ai-placeholder small{color:#546f7c}
+#cortex-orientation.co-v2 .co-ai-placeholder span{color:#367e78}
+#cortex-orientation.co-v2 .co-data-policy,#cortex-orientation.co-v2 .co-ai-caution{color:#577283}
+#cortex-orientation.co-v2 .co-ai-intro{color:#284f55}
+#cortex-orientation.co-v2 .co-ai-suggestions article{background:#fff;border-color:#c5d8e0}
+#cortex-orientation.co-v2 .co-ai-suggestions strong,#cortex-orientation.co-v2 .co-ai-content h3{color:#153b4b}
+#cortex-orientation.co-v2 .co-ai-suggestions p,#cortex-orientation.co-v2 .co-ai-content li{color:#4b6a7a}
+#cortex-orientation.co-v2 .co-ai-suggestions small{color:#277b73}
+#cortex-orientation.co-v2 .co-ai-suggestions p.co-ai-context{background:#edf6f5;border-color:#66b5a6}
+#cortex-orientation.co-v2 .co-explore-controls{background:#e9f3f5;border-color:#c0d8df}
+#cortex-orientation.co-v2 .co-explore-explain>div{background:#f2f8fa;border-color:#c1d8df}
+#cortex-orientation.co-v2 .co-explore-explain strong,#cortex-orientation.co-v2 .co-explore-explain p{color:#355a68}
+#cortex-orientation.co-v2 .co-explore-classification{background:#e5f5f0;border-color:#b3d2cc}
+#cortex-orientation.co-v2 .co-explore-classification>span,#cortex-orientation.co-v2 .co-explore-classification p{color:#285f56}
+#cortex-orientation.co-v2 .co-explore-hint{color:#446c7c;border-color:#c4d6df}
+#cortex-orientation.co-v2 .co-data-card{background:#fff;border-color:#cadce5;color:#123849}
+#cortex-orientation.co-v2 .co-data-head h3{color:#1a3f53}
+#cortex-orientation.co-v2 .co-data-head p{color:#5a7485}
+#cortex-orientation.co-v2 .co-data-label{color:#277e70}
+#cortex-orientation.co-v2 .co-indicator-list>div{background:#edf5f8;border-color:#d3e5e9}
+#cortex-orientation.co-v2 .co-indicator-list small{color:#4b6577}
+#cortex-orientation.co-v2 .co-indicator-list strong{color:#175c64}
+#cortex-orientation.co-v2 .co-result-footer>span,#cortex-orientation.co-v2 .co-source-note{color:#526d7d}
+#cortex-orientation.co-v2 .co-empty-state{background:#f2f8fa;border-color:#c2d8dc}
+#cortex-orientation.co-v2 .co-empty-state>span{color:#2b907d}
+#cortex-orientation.co-v2 .co-empty-state h3{color:#1b4552}
+#cortex-orientation.co-v2 .co-empty-state p{color:#5e7a88}
+#cortex-orientation.co-v2 .co-results-info{color:#386a70}
+#cortex-orientation.co-v2 .co-plan-stats>span{background:#e9f4f6;border-color:#c6d9df;color:#486879}
+#cortex-orientation.co-v2 .co-plan-stats strong{color:#185c64}
+#cortex-orientation.co-v2 .co-wish-guidance{background:#e3f5f0;border-color:#b3d9cd;color:#20564d}
+#cortex-orientation.co-v2 .co-wish-caution{color:#4e7167}
+#cortex-orientation.co-v2 .co-wish-card{background:#fff;border-color:#cfdee4}
+#cortex-orientation.co-v2 .co-wish-index{background:#dff1ef;color:#1b7464}
+#cortex-orientation.co-v2 .co-wish-card strong{color:#183d4e}
+#cortex-orientation.co-v2 .co-wish-card small{color:#5f7682}
+#cortex-orientation.co-v2 .co-wish-stat{color:#2d776f}
+#cortex-orientation.co-v2 .co-wish-classification{background:#e4f4ef;border-color:#c1dcd2;color:#286756}
+#cortex-orientation.co-v2 .co-planning{border-color:#c6d9df}
+#cortex-orientation.co-v2 .co-planning h3{color:#204354}
+#cortex-orientation.co-v2 .co-task{background:#fff;border-color:#d1e2e7}
+#cortex-orientation.co-v2 .co-task span{color:#2a4a5d}
+#cortex-orientation.co-v2 .co-task:has(input:checked){background:#dff4eb;border-color:#8ac1ae}
+#cortex-orientation.co-v2 .co-aid-grid article{background:#fff;border-color:#c8dbe3}
+#cortex-orientation.co-v2 .co-aid-index{color:#368477}
+#cortex-orientation.co-v2 .co-aid-grid h3{color:#1c3f50}
+#cortex-orientation.co-v2 .co-aid-grid p{color:#566f7c}
+#cortex-orientation.co-v2 .co-aid-note{background:#e9f7f3;border-color:#c5e0d6;color:#315b55}
+#cortex-orientation.co-v2 .co-aid-bottom{background:#f5fbfd;border-color:#cbdde4}
+#cortex-orientation.co-v2 .co-aid-bottom strong{color:#153e52}
+#cortex-orientation.co-v2 .co-aid-bottom p{color:#576f7e}
+#cortex-orientation.co-v2 .co-definition{background:linear-gradient(150deg,#fdfefe,#eaf5f6);border-color:#8fb2bc;color:#153d51}
+#cortex-orientation.co-v2 .co-definition h2{color:#12394f}
+#cortex-orientation.co-v2 .co-definition p{color:#496c7e}
+#cortex-orientation.co-v2 .co-def-kicker{color:#157463}
+#cortex-orientation.co-v2 .co-dialog-close{background:#e2f1f5;border-color:#b7ccd8;color:#19506a}
+#cortex-orientation.co-v2 .co-letter-invite{
+ display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+ padding:18px 21px;margin:0 0 18px;border:1px solid #8bbfb5;border-radius:15px;
+ background:linear-gradient(105deg,#d8eee7,#e6f7f1);color:#21483f
+}
+#cortex-orientation.co-v2 .co-letter-invite>div{flex:1 1 220px}
+#cortex-orientation.co-v2 .co-letter-invite span{display:block;font-size:10px;color:#27665d;font-weight:850;letter-spacing:.09em}
+#cortex-orientation.co-v2 .co-letter-invite strong{display:block;font-size:19px;font-weight:850;margin:4px 0}
+#cortex-orientation.co-v2 .co-letter-invite p{font-size:12px;line-height:1.65;color:#3b615b;margin:4px 0}
+#cortex-orientation.co-v2 .co-letter-invite .co-btn{flex:0 1 auto}
+@media(max-width:950px){
+ #cortex-orientation.co-v2 .co-head-aside{display:none}
+ #cortex-orientation.co-v2 .co-head{min-height:340px}
+ #cortex-orientation.co-v2 .co-step-navigation{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media(max-width:680px){
+ #cortex-orientation.co-v2 .co-step-navigation{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #cortex-orientation.co-v2 .co-step-navigation button{min-height:49px;flex-direction:row;gap:6px;font-size:11px}
+ #cortex-orientation.co-v2 .co-step-navigation button span{font-size:10px}
+ #cortex-orientation.co-v2 .co-head{min-height:335px;padding:21px 19px;border-radius:17px;background-position:50% 55%,center,68% center}
+ #cortex-orientation.co-v2 .co-head h1{font-size:clamp(38px,9vw,57px)}
+ #cortex-orientation.co-v2 .co-headline>p{font-size:13px}
+}
+@media(max-width:430px){
+ #cortex-orientation.co-v2 .co-step-navigation{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ #cortex-orientation.co-v2 .co-step-navigation button{flex-direction:column;gap:2px;padding:8px 4px}
+ #cortex-orientation.co-v2 .co-letter-invite .co-btn{width:100%}
+}
+/* Atelier de lettre : DA identique au panneau CV / lettre PFMP (blanc, bleu, cartes). */
+#cortex-orientation.co-v2 .co-letter-workshop{
+ color:#183a59;background:#fff;border:1px solid #d1e0eb;border-radius:18px;padding:clamp(17px,2.8vw,30px);
+ box-shadow:0 10px 30px #020c1d38;font-family:Inter,'Segoe UI',system-ui,sans-serif
+}
+#cortex-orientation.co-v2 .co-letter-workshop *{box-sizing:border-box}
+#cortex-orientation.co-v2 .co-letter-mast{
+ display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;
+ align-items:center;padding:2px 0 20px;border-bottom:1px solid #dce8f1
+}
+#cortex-orientation.co-v2 .co-letter-mast>div:first-child{flex:1 1 280px}
+#cortex-orientation.co-v2 .co-letter-mast span{
+ font-size:10px;color:#3772aa;font-weight:800;letter-spacing:.07em
+}
+#cortex-orientation.co-v2 .co-letter-mast h2{
+ font-size:clamp(23px,3vw,35px);font-weight:780;letter-spacing:-.04em;
+ color:#173858;line-height:1.18;margin:8px 0 6px
+}
+#cortex-orientation.co-v2 .co-letter-mast h2 em{font-style:normal;color:#266baf}
+#cortex-orientation.co-v2 .co-letter-mast p{font-size:13px;color:#647c93;line-height:1.7;margin:0}
+#cortex-orientation.co-v2 .co-letter-local{
+ border:1px solid #bcdcd6;background:#e9f6f1;color:#226e5d;border-radius:8px;
+ font-size:10px;letter-spacing:.07em;font-weight:800;padding:9px 12px
+}
+#cortex-orientation.co-v2 .co-letter-steps{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0 13px
+}
+#cortex-orientation.co-v2 .co-letter-steps button{
+ display:flex;gap:10px;align-items:center;justify-content:center;padding:14px 10px;
+ background:#f7fafd;color:#214366;border:1px solid #dbe5ef;border-radius:10px;
+ min-height:55px;cursor:pointer;text-align:left
+}
+#cortex-orientation.co-v2 .co-letter-steps button small{color:#3772a1;font-size:10px;font-weight:850}
+#cortex-orientation.co-v2 .co-letter-steps button strong{font-size:12px;font-weight:800;line-height:1.4}
+#cortex-orientation.co-v2 .co-letter-steps button.active{background:#e5f1fc;border-color:#81b2da;color:#174e83}
+#cortex-orientation.co-v2 .co-letter-steps button:hover{border-color:#98bfd9;background:#edf7fd}
+#cortex-orientation.co-v2 .co-letter-status{
+ padding:9px 12px;margin:0 0 12px;background:#f0f8f6;color:#35715e;
+ border:1px solid #d4e8e1;border-radius:8px;font-size:11px;line-height:1.5
+}
+#cortex-orientation.co-v2 .co-letter-status.is-error{background:#fff2f3;color:#a13653;border-color:#eed0d4}
+#cortex-orientation.co-v2 .co-letter-sheet{display:grid;gap:19px;min-width:0}
+#cortex-orientation.co-v2 .co-letter-section-title{
+ padding:19px 21px;background:#f5f9fc;border:1px solid #d6e5f0;border-radius:12px
+}
+#cortex-orientation.co-v2 .co-letter-section-title span{
+ display:block;color:#3772aa;font-size:10px;font-weight:850;letter-spacing:.09em;margin-bottom:5px
+}
+#cortex-orientation.co-v2 .co-letter-section-title h3{font-size:clamp(19px,2.2vw,26px);color:#173858;font-weight:790;letter-spacing:-.03em;margin:0 0 9px}
+#cortex-orientation.co-v2 .co-letter-section-title p{color:#61798d;font-size:12px;line-height:1.8;margin:0}
+#cortex-orientation.co-v2 .co-letter-formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#cortex-orientation.co-v2 .co-letter-formgrid label,#cortex-orientation.co-v2 .co-letter-reviewtop label{
+ display:grid;gap:8px;font-size:12px;font-weight:800;color:#244c69;min-width:0
+}
+#cortex-orientation.co-v2 .co-letter-workshop :is(input,select,textarea){
+ width:100%;min-width:0;max-width:100%;font:500 13px/1.6 inherit;
+ border:1px solid #c1d5e4;background:#fff;color:#183a59;border-radius:9px;padding:10px 12px;
+ box-shadow:inset 0 1px 2px #1738550a
+}
+#cortex-orientation.co-v2 .co-letter-workshop :is(input,select){min-height:46px}
+#cortex-orientation.co-v2 .co-letter-workshop input:disabled{background:#edf4f7;color:#63798c}
+#cortex-orientation.co-v2 .co-letter-workshop textarea{resize:vertical;min-height:95px;font-family:inherit}
+#cortex-orientation.co-v2 .co-letter-workshop textarea::placeholder{color:#849bad}
+#cortex-orientation.co-v2 .co-letter-read-first{
+ padding:18px 20px;background:#e8f3f8;border:1px solid #c5d9e7;border-radius:12px
+}
+#cortex-orientation.co-v2 .co-letter-read-first strong{font-size:14px;color:#184d6b}
+#cortex-orientation.co-v2 .co-letter-read-first p{color:#507085;font-size:12px;line-height:1.8;margin:7px 0}
+#cortex-orientation.co-v2 .co-letter-read-first a{color:#1d6b9c;font-weight:800;font-size:12px}
+#cortex-orientation.co-v2 .co-letter-actions{
+ display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;margin-top:8px
+}
+#cortex-orientation.co-v2 .co-letter-actions button,
+#cortex-orientation.co-v2 .co-letter-suggestion button{
+ min-height:43px;padding:10px 14px;border-radius:9px;font-weight:800;font-size:12px;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-letter-primary{background:#205f9b;border:1px solid #205d95;color:#fff}
+#cortex-orientation.co-v2 .co-letter-primary:hover:not(:disabled){background:#174c7e}
+#cortex-orientation.co-v2 .co-letter-secondary{background:#f2f7fb;color:#225c8d;border:1px solid #bed5e6}
+#cortex-orientation.co-v2 .co-letter-secondary:hover:not(:disabled){background:#e5f0f9}
+#cortex-orientation.co-v2 .co-letter-workshop button:disabled{cursor:not-allowed;opacity:.47}
+#cortex-orientation.co-v2 .co-letter-meter{display:grid;gap:7px;margin-top:-8px}
+#cortex-orientation.co-v2 .co-letter-meter strong{font-size:11px;color:#426b84}
+#cortex-orientation.co-v2 .co-letter-meter progress{width:100%;height:10px;accent-color:#268473}
+#cortex-orientation.co-v2 .co-letter-editor{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(210px,.7fr);gap:16px;align-items:start}
+#cortex-orientation.co-v2 .co-letter-fields{display:grid;gap:13px;min-width:0}
+#cortex-orientation.co-v2 .co-letter-field{
+ display:grid;gap:9px;background:#fff;border:1px solid #d2e1eb;padding:16px 17px;border-radius:12px;min-width:0
+}
+#cortex-orientation.co-v2 .co-letter-field-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#cortex-orientation.co-v2 .co-letter-field-top b{color:#2b72a5;font-size:11px}
+#cortex-orientation.co-v2 .co-letter-field-top strong{flex:1 1 130px;font-size:13px;color:#1d4664}
+#cortex-orientation.co-v2 .co-letter-field-top span{font-size:10px;color:#6a8ba3}
+#cortex-orientation.co-v2 .co-letter-field>p{font-size:11px;color:#658096;line-height:1.7;margin:0}
+#cortex-orientation.co-v2 .co-letter-ai-trigger{
+ justify-self:start;background:#e9f4fd;color:#225e8e;border:1px solid #bcd9e9;border-radius:8px;
+ padding:9px 12px;font-size:11px;font-weight:820;cursor:pointer
+}
+#cortex-orientation.co-v2 .co-letter-ai-trigger:hover{background:#d8ecf9}
+#cortex-orientation.co-v2 .co-letter-assist{display:grid;gap:11px}
+#cortex-orientation.co-v2 .co-letter-assist>div{
+ padding:17px;background:#f6fafd;border:1px solid #d8e5ef;border-radius:11px;display:grid;gap:9px
+}
+#cortex-orientation.co-v2 .co-letter-assist span{font-size:10px;color:#477ca3;font-weight:850;letter-spacing:.08em}
+#cortex-orientation.co-v2 .co-letter-assist strong{font-size:13px;color:#205070}
+#cortex-orientation.co-v2 .co-letter-assist p{font-size:11px;color:#60798d;line-height:1.7;margin:0}
+#cortex-orientation.co-v2 .co-letter-suggestion{
+ padding:17px;background:#edf6f9;border:1px solid #bad5e2;border-radius:12px
+}
+#cortex-orientation.co-v2 .co-letter-suggestion>span{display:block;font-size:10px;letter-spacing:.08em;font-weight:840;color:#3477a3}
+#cortex-orientation.co-v2 .co-letter-suggestion p{font-size:12px;color:#4b6a7d;line-height:1.7}
+#cortex-orientation.co-v2 .co-letter-suggestion blockquote{
+ font-size:13px;line-height:1.8;margin:10px 0;padding:12px 15px;background:#fff;border-left:3px solid #3c8daf;color:#1e4761;white-space:pre-wrap
+}
+#cortex-orientation.co-v2 .co-letter-suggestion>div{display:flex;flex-wrap:wrap;gap:8px}
+#cortex-orientation.co-v2 .co-letter-ai-wait{font-size:12px;color:#537b92}
+#cortex-orientation.co-v2 .co-letter-reviewtop{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px}
+#cortex-orientation.co-v2 .co-letter-reviewtop label{flex:1 1 250px}
+#cortex-orientation.co-v2 .co-letter-counter{
+ display:grid;gap:6px;padding:12px 16px;border:1px solid #b6d7d0;border-radius:10px;
+ background:#eef7f2;color:#266d5c
+}
+#cortex-orientation.co-v2 .co-letter-counter span{font-size:10px;letter-spacing:.04em;font-weight:800}
+#cortex-orientation.co-v2 .co-letter-counter strong{font-size:19px;font-weight:880;font-variant-numeric:tabular-nums}
+#cortex-orientation.co-v2 .co-letter-counter.is-over{background:#fff0f0;color:#a53447;border-color:#e5aeb7}
+#cortex-orientation.co-v2 .co-letter-paper{
+ display:grid;gap:0;border:1px solid #cad9e3;border-radius:12px;padding:14px 15px;
+ background:linear-gradient(#f6fafd,#fff);box-shadow:0 4px 17px #24445c13
+}
+#cortex-orientation.co-v2 .co-letter-paper-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;color:#476e87;font-size:10px;letter-spacing:.06em;font-weight:820}
+#cortex-orientation.co-v2 #co-letter-final{font-size:14px;min-height:290px;line-height:1.9;padding:18px;background:#fff}
+#cortex-orientation.co-v2 .co-letter-warning{padding:11px 14px;border-radius:9px;background:#f4f9fb;color:#4d6879;border:1px solid #d6e4eb;font-size:12px;line-height:1.75;margin:0}
+#cortex-orientation.co-v2 .co-letter-privacy{padding:12px 15px;border-radius:9px;background:#f0f8f4;border:1px solid #d2e9df;color:#4a7666;font-size:11px;line-height:1.7}
+#cortex-orientation.co-v2 .co-letter-footer{font-size:11px;color:#61798c;line-height:1.7;margin:17px 0 0;padding:13px 0 0;border-top:1px solid #e0eaf0}
+@media(max-width:780px){
+ #cortex-orientation.co-v2 .co-letter-editor{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-letter-assist{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #cortex-orientation.co-v2 .co-letter-assist>div:last-child{grid-column:1/-1}
+ #cortex-orientation.co-v2 .co-letter-formgrid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+ #cortex-orientation.co-v2 .co-letter-workshop{padding:16px 13px;border-radius:14px}
+ #cortex-orientation.co-v2 .co-letter-steps{gap:6px}
+ #cortex-orientation.co-v2 .co-letter-steps button{flex-direction:column;gap:3px;text-align:center;padding:9px 5px;min-height:60px}
+ #cortex-orientation.co-v2 .co-letter-steps button strong{font-size:10px}
+ #cortex-orientation.co-v2 .co-letter-mast{gap:10px}
+ #cortex-orientation.co-v2 .co-letter-section-title{padding:15px 13px}
+ #cortex-orientation.co-v2 .co-letter-field{padding:14px 12px}
+ #cortex-orientation.co-v2 .co-letter-assist{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-letter-assist>div:last-child{grid-column:auto}
+ #cortex-orientation.co-v2 .co-letter-actions button{flex:1 1 100%}
+ #cortex-orientation.co-v2 .co-letter-counter{width:100%}
+}
+@media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 .co-letter-workshop *{transition:none!important}}

@@ -2,10 +2,10 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.14-handwriting';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.7-watermark';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.8-no-drag';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
 import { sourceFigure } from './student-source-view.js?v=1.2-no-drag';
-import {openProtectedPdf} from './student-protected-pdf.js?v=1.0';
+import {openProtectedPdf} from './student-protected-pdf.js?v=1.1-canvas';
 import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 
 const params=new URLSearchParams(location.search);
@@ -373,7 +373,8 @@ if(qr||globalPortal){
      // sélectionner et copier le texte lorsque le mode anti-copie est actif.
      // Le contenu accessible dans le navigateur n'est toutefois jamais secret.
      const protectedMode=settings.enabled===true&&settings.blockCopy===true;
-     if(/\.pdf(?:$|\?)/i.test(subjectName)||/\.pdf(?:$|\?)/i.test(current.subject.url)){
+     if(/\.pdf(?:$|\?)/i.test(subjectName)||/\.pdf(?:$|\?)/i.test(current.subject.url)||
+        /application\/pdf/i.test(String(current.subject.mime_type||current.subject.content_type||current.subject.type||''))){
        openProtectedPdf({url:current.subject.url,name:subjectName,protectedMode});
        return;
      }

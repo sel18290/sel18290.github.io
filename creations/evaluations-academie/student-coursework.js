@@ -1,6 +1,6 @@
 /* CORTEX Académie — parcours élève permanent par classe et contrôle par QR code.
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
-import { api } from './coursework.js?v=2.14-handwriting';
+import { api } from './coursework.js?v=2.15-similarities-pdf';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
 import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.8-no-drag';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';

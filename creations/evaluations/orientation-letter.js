@@ -201,7 +201,13 @@ function mount(host,opts){
   }
  });
  course=defaultCourse();render();
- return {refresh(){
+ return {selectWish(item){
+  if(disposed||!item)return;
+  if(item.pathway&&courses().includes(item.pathway))course=item.pathway;
+  const found=filtered().find(w=>w===item||(w.code&&w.code===item.code)||(w.title===item.title&&w.school===item.school));
+  wishId=found?(found.code||found.title+'#'+found.school):'';
+  step=0;render();
+ },refresh(){
   if(disposed)return;
   if(!courses().includes(course)||step===0&&profile().goal&&profile().goal!==course){course=defaultCourse();wishId=''}
   render();

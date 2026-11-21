@@ -48,6 +48,11 @@ export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=fa
  canvas.setAttribute('role','img');
  canvas.setAttribute('aria-label','Image de la page du PDF, sans sélection de texte');
  canvas.draggable=false;
+ if(protectedMode){
+  canvas.addEventListener('contextmenu',e=>e.preventDefault());
+  canvas.addEventListener('dragstart',e=>e.preventDefault());
+  canvas.addEventListener('selectstart',e=>e.preventDefault());
+ }
  viewport.append(status,canvas);
  const note=element('p','cw-protected-subject-note',protectedMode
   ? 'Mode anti-copie actif : document consultable, mais surlignage et copie de texte désactivés. La capture d’écran reste possible.'
@@ -63,7 +68,7 @@ export function openProtectedPdf({url,name='Sujet du contrôle',protectedMode=fa
  }
  dialog.append(head,viewport,footer);
  document.body.append(dialog);
- let closed=false,pdf=null,page=1,scale=1,sequence=0,loading=false,task=null;
+ let closed=false,pdf=null,page=1,scale=1,sequence=0,task=null;
  prev.disabled=true;next.disabled=true;zoomOut.disabled=true;zoomIn.disabled=true;
  function updateButtons(){
   prev.disabled=!pdf||page<=1;

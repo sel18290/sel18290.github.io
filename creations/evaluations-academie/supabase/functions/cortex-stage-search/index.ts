@@ -302,6 +302,22 @@ function database(){
  return createClient(u,key,{auth:{persistSession:false}});
 }
 
+// Compter les usages Albert PFMP par fonction : aucun texte de demande n'est conservé.
+async function recordAlbertPFMP(body){
+ const action=String(body?.action||'');
+ const category=({
+  create_sector:'creation',prepare_contact:'contact',
+  improve_application:'cv',chat_pfmp:'chat',
+  guide_search:'conseils',stage_priorities:'recherche'
+ })[action]||(body?.albert===true?'recherche':'');
+ if(!category)return;
+ try{
+  await database().rpc('cortex_dev_event_increment',{
+   p_kind:'pfmp_albert',p_category:category,p_source:body.demo===true?'demo':'real'
+  });
+ }catch{/* Le comptage ne bloque jamais Albert. */}
+}
+
 async function studentSession(token,db){
  if(!/^[A-Za-z0-9_-]{40,256}$/.test(token||""))return null;
  const hex=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token)))).map(x=>x.toString(16).padStart(2,"0")).join("");
@@ -866,6 +882,7 @@ Deno.serve(async req=>{
  try{
   if(Number(req.headers.get("content-length")||0)>11000)throw Error("Requête trop volumineuse.");
   const body=await req.json();
+  await recordAlbertPFMP(body);
   if(body.action==="create_sector")return await createCustomProgram(body,origin);
   if(/^perso-/.test(clean(body.filiere,40))&&!body.customFiliere)
    throw Error("Cette filière personnalisée doit être chargée depuis ton espace PFMP.");

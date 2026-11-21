@@ -48,7 +48,7 @@ async function screenWithAlbert(kind:'contact'|'fonctionnalite',subject:string,m
    headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},
    body:JSON.stringify({
     model:Deno.env.get('ALBERT_MODEL')||'openai/gpt-oss-120b',
-    stream:false,max_tokens:240,temperature:0,
+    stream:false,max_tokens:240,
     messages:[{role:'system',content:system},{role:'user',content:JSON.stringify({kind,subject,message})}]
    })
   });

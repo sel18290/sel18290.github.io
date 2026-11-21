@@ -233,8 +233,8 @@ return `<div class="home cortex-focus-home">
  <section class="cortex-focus-hero" aria-labelledby="cortex-focus-title">
   <div class="cortex-focus-copy">
    <span class="cortex-focus-kicker">CORTEX · STATION NOCTIS</span>
-   <h1 id="cortex-focus-title">Apprendre.<br><em>Autrement.</em></h1>
-   <p>Des contrôles plus simples, des corrections accompagnées et une recherche de PFMP facilitée.</p>
+   <h1 id="cortex-focus-title" class="cortex-home-new-headline">Moins de tâches répétitives.<br><em>Plus de temps pour apprendre.</em></h1>
+   <p>Une plateforme pédagogique augmentée par l’IA pour créer des évaluations numériques à partir de PDF, obtenir un retour rapide après les contrôles, faciliter les corrections et accompagner chaque élève dans sa recherche de PFMP.</p>
    <div class="cortex-focus-actions">
     ${btn('Je suis élève <span aria-hidden="true">↗</span>','student','')}
     ${btn('Je suis professeur <span aria-hidden="true">↗</span>','teacher','secondary')}
@@ -256,23 +256,33 @@ return `<div class="home cortex-focus-home">
    <div class="cortex-focus-orbit-note"><small>Parcours</small><strong>Élève + prof</strong></div>
   </div>
  </section>
- <section class="cortex-focus-capabilities" aria-label="Les trois essentiels de CORTEX">
-  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">▤</span><div><strong>Évaluer</strong><span>Réponses numériques ou photo manuscrite à chaque question.</span></div></article>
-  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">✧</span><div><strong>Accompagner</strong><span>Estimation, conseils et aide à la correction par IA.</span></div></article>
-  <article class="cortex-focus-capability"><span class="cortex-focus-capability-icon" aria-hidden="true">⌖</span><div><strong>Trouver une PFMP</strong><span>Recherche de structures adaptée à la filière avec Albert IA.</span></div></article>
+ <section class="cortex-home-strengths" aria-labelledby="cortex-home-strengths-title">
+  <div class="cortex-home-strengths-head">
+   <div><span class="cortex-home-strengths-kicker">SIX ATOUTS POUR APPRENDRE ET ENSEIGNER</span>
+   <h2 id="cortex-home-strengths-title">Moins d’attente. <em>Plus d’accompagnement.</em></h2></div>
+   <p>CORTEX relie la préparation des évaluations, les réponses des élèves et les retours pédagogiques, dans un même espace.</p>
+  </div>
+  <div class="cortex-home-strengths-grid">
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">01 · ÉLÈVE</span><h3>Une estimation dès la fin du contrôle</h3><p>L’IA propose rapidement une note indicative et des conseils personnalisés. L’enseignant reste responsable de la correction et de la note définitive.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">02 · ENSEIGNANT</span><h3>Du PDF au contrôle numérique</h3><p>Importe un sujet et transforme-le avec l’aide de l’IA en questions numériques, en conservant les documents à vérifier avant publication.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">03 · ENSEIGNANT</span><h3>Une correction assistée par IA</h3><p>Obtiens des propositions de notation et des commentaires question par question pour corriger plus vite, tout en gardant le dernier mot.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">04 · ÉLÈVE</span><h3>Le manuscrit rejoint le numérique</h3><p>Quand l’évaluation le permet, photographie tes réponses écrites à la main : elles rejoignent la copie numérique et facilitent la correction.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>Un suivi anti-triche intégré</h3><p>Chronomètre, suivi des sorties d’écran et journal des événements selon les réglages. Une alerte invite à vérifier : elle ne prouve pas une triche.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · PFMP</span><h3>La recherche de PFMP simplifiée</h3><p>Recherche des lieux adaptés à ta filière et à ta zone, suis les entreprises choisies et prépare CV, lettre et prise de contact avec Albert.</p></article>
+  </div>
  </section>
- <div class="cortex-focus-trust"><span class="cortex-focus-trust-mark" aria-hidden="true">◈</span><strong>Mode anti-triche configurable</strong><span>Copier-coller, sorties d'écran et suivi selon les réglages.</span><span class="cortex-focus-separator" aria-hidden="true"></span><small>Alerte ≠ preuve de triche.</small></div>
+ <div class="cortex-focus-trust"><span class="cortex-focus-trust-mark" aria-hidden="true">◈</span><strong>L’IA accompagne, l’humain décide.</strong><span>Estimation indicative, vérification des documents et validation des corrections par l’enseignant.</span><span class="cortex-focus-separator" aria-hidden="true"></span><small>Visite libre · Données fictives</small></div>
  <section class="cortex-focus-vista" aria-labelledby="cortex-focus-vista-title">
   <div class="cortex-focus-vista-copy">
    <span class="cortex-focus-vista-kicker"><span class="cortex-focus-vista-led" aria-hidden="true"></span> STATION NOCTIS · LE PARCOURS</span>
-   <h2 id="cortex-focus-vista-title">De l'évaluation<br><em>à la progression.</em></h2>
-   <p>Un parcours simple, du premier document jusqu'au retour pédagogique.</p>
+   <h2 id="cortex-focus-vista-title">Du document<br><em>au progrès de l’élève.</em></h2>
+   <p>Import du sujet, réponses numériques ou manuscrites, puis retour pédagogique plus rapide.</p>
   </div>
   <div class="cortex-focus-vista-terminal" aria-label="Parcours de démonstration en trois étapes">
    <div class="cortex-focus-vista-terminal-top"><span>CORTEX / FLUX PÉDAGOGIQUE</span><span aria-hidden="true">● SIGNAL ACTIF</span></div>
-   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">01</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">▤</span><strong>Préparer</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Document ou questions</small></div>
+   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">01</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">▤</span><strong>Préparer</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Importer un PDF ou créer un sujet</small></div>
    <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">02</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">✎</span><strong>Évaluer</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Copie numérique ou manuscrite</small></div>
-   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">03</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">✧</span><strong>Progresser</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Estimation et conseils</small></div>
+   <div class="cortex-focus-vista-step"><span class="cortex-focus-vista-number">03</span><span class="cortex-focus-vista-step-icon" aria-hidden="true">✧</span><strong>Progresser</strong><span class="cortex-focus-vista-step-line" aria-hidden="true"></span><small>Conseils puis correction validée</small></div>
   </div>
  </section>
 </div>`;

@@ -1,6 +1,6 @@
 /* CORTEX Académie — client autonome, activation Supabase après configuration. */
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1';
-import { api as cortexCourseworkApi } from './coursework.js?v=2.14-handwriting';
+import { api as cortexCourseworkApi } from './coursework.js?v=2.15-similarities-pdf';
 
 const domain=/^[a-z0-9._%+-]+@ac-paris\.fr$/i;
 const $=id=>document.getElementById(id);
@@ -227,7 +227,7 @@ const directTools=[
  {key:'trackVisibility',icon:'◷',name:'Sorties d’écran',detail:'Enregistre au retour les pages masquées pendant au moins 2 secondes : heure du départ, retour et durée.',limit:'Ne surveille pas les autres applications : appel, document ou changement d’onglet peuvent produire le même signal.'},
  {key:'trackLive',icon:'◉',name:'Suivi en direct',detail:'Affiche la progression du brouillon, l’état de la page et le dernier contact par numéro. Les accès simultanés apparaissent dans le journal.',limit:'Active ce suivi avant la passation pour que les élèves voient la règle au démarrage.'},
  {key:'warnStudent',icon:'!',name:'Avertir les élèves',detail:'Affiche un message après une sortie signalée ou une action bloquée.',limit:'Le chronomètre continue.'},
- {key:'watermarkCapture',icon:'▧',name:'Filigrane anti-partage / IA',detail:'Répète la classe, le numéro et l’avertissement sur tout l’écran et les documents ouverts dans CORTEX.',limit:'Actif pendant le contrôle si le mode intégrité est activé. Un fichier ouvert à l’extérieur et une capture système ne peuvent pas être protégés avec certitude.'}
+ {key:'watermarkCapture',icon:'▧',name:'Filigrane intégré aux PDF',detail:'Marque chaque page du sujet PDF sur le serveur avec la classe et le numéro de l’élève. Le PDF téléchargé conserve cette inscription.',limit:'Actif avec le mode intégrité. Les images et captures d’écran gardent un filigrane visuel, mais une photo externe ou des outils techniques peuvent toujours récupérer le contenu.'}
 ];
 function drawAcademyTools(){
  const selector=$('acad-tools-exam'),panel=$('acad-tools-panel');

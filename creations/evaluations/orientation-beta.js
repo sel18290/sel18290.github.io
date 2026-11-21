@@ -53,6 +53,95 @@ const FILIERES={
  courses:[5,1,9,8,7,10,12,14,17]
  }
 };
+
+/* Ce classement décrit la proximité pédagogique, jamais les chances d'admission.
+ * Toute formation est classée dans les 3 familles, pour chacune des 3 filières.
+ * Aucun parcours n'est interdit : les attendus locaux sont à consulter sur Parcoursup.
+ */
+const FAMILIES={
+ direct:{
+  title:'Dans la continuité de ton bac',
+  short:'Proche de ton bac',
+  subtitle:'Les activités de ces formations prolongent directement plusieurs compétences de ta filière.',
+  caution:"Une poursuite cohérente ne signifie pas que l’admission est assurée.",
+  dictionary:"Un cursus dont plusieurs compétences prolongent celles travaillées dans ton bac pro. Cette indication concerne le contenu de la formation, pas tes chances d’admission."
+ },
+ bridge:{
+  title:'Passerelles à explorer',
+  short:'Passerelle possible',
+  subtitle:'Tu possèdes des bases utiles, mais tu découvriras aussi de nouveaux apprentissages.',
+  caution:"Lis les attendus et prépare les compétences qui te manquent avant de candidater.",
+  dictionary:"Une formation que tu peux envisager en utilisant une partie de tes compétences actuelles, tout en apprenant de nouvelles matières. C’est une possibilité à explorer, pas un refus."
+ },
+ prepare:{
+  title:'Nouvelle direction à préparer',
+  short:'Transition à préparer',
+  subtitle:'Ton projet peut évoluer : certaines formations sont plus éloignées de ton enseignement actuel.',
+  caution:"Ce n’est pas interdit ! Il faut surtout regarder les attendus, le rythme et l’accompagnement possible.",
+  dictionary:"Une formation dont les méthodes ou matières s’éloignent davantage de ton bac. Tu peux la demander : prévois de vérifier son contenu et tes besoins d’accompagnement. Ce n’est pas un jugement sur ton niveau."
+ }
+};
+const FITS={
+ accueil:{direct:[0,1,15,16],bridge:[4,2,3,5,17,7,8,6],prepare:[9,10,11,12,13,14]},
+ commerce:{direct:[2,3,4,6],bridge:[0,5,7,8,17,1,15,16],prepare:[9,10,11,12,13,14]},
+ agora:{direct:[5,1,9,8],bridge:[7,4,17,0,2,3,6,16],prepare:[10,11,12,13,14,15]}
+};
+const COURSE_DETAILS=[
+ {about:'Accueil des visiteurs, voyages, information et relation clientèle touristique.',focus:'La pratique des langues étrangères et la connaissance des destinations.',tags:['tourisme','relation-client','langues']},
+ {about:'Organisation de réunions, gestion des agendas et accompagnement de responsables.',focus:'La rédaction, les outils bureautiques et souvent les langues étrangères.',tags:['administration','organisation','langues']},
+ {about:'Gestion d’un magasin ou rayon, animation commerciale et management d’équipe.',focus:'La gestion commerciale, les chiffres de vente et l’organisation du travail.',tags:['commerce','vente','relation-client','entrepreneuriat']},
+ {about:'Prospection, négociation commerciale et relation client à distance ou en ligne.',focus:'La prospection, la négociation, l’aisance orale et les outils numériques.',tags:['vente','relation-client','communication']},
+ {about:'Conception de messages, campagnes et projets de communication.',focus:'L’expression écrite, les outils de création et la conduite de projet.',tags:['communication','evenementiel','organisation']},
+ {about:'Suivi administratif d’une petite ou moyenne entreprise, clients et fournisseurs.',focus:'La comptabilité appliquée, l’organisation et les logiciels de gestion.',tags:['administration','organisation','entrepreneuriat']},
+ {about:'Achats, ventes et suivi de marchandises dans les échanges internationaux.',focus:'Les langues étrangères, le commerce international et la logistique.',tags:['commerce','langues','vente']},
+ {about:'Accueil des clients, opérations bancaires et conseil sur les services.',focus:'Les calculs, les règles bancaires et le conseil client.',tags:['finance','relation-client','commerce']},
+ {about:'Conseil et gestion de contrats d’assurance, suivi des dossiers et des clients.',focus:'La lecture de contrats, les règles du secteur et le suivi administratif.',tags:['finance','administration','relation-client']},
+ {about:'Enregistrement des opérations comptables, contrôle et gestion de l’activité.',focus:'La rigueur, les calculs, les outils comptables et l’analyse financière.',tags:['comptabilite','finance','administration']},
+ {about:'Développement de logiciels ou administration et sécurisation des réseaux.',focus:'Les bases informatiques, la logique, les projets techniques et l’autonomie.',tags:['informatique','organisation']},
+ {about:'Études de marché, marketing, vente et projets commerciaux en IUT.',focus:'Les enseignements théoriques, les méthodes universitaires et les projets.',tags:['commerce','vente','communication']},
+ {about:'Gestion, finance, ressources humaines et pilotage d’organisations en IUT.',focus:'Les mathématiques appliquées, l’analyse et le rythme universitaire.',tags:['administration','comptabilite','organisation']},
+ {about:'Communication, contenus, médias et méthodologie de projet en IUT.',focus:'La culture générale, l’analyse, la rédaction et le travail autonome.',tags:['communication','evenementiel','langues']},
+ {about:'Administration économique et sociale : droit, économie, gestion et société.',focus:'La lecture de textes, l’argumentation, le travail personnel et les matières théoriques.',tags:['administration','service-public','social']},
+ {about:'Accueil et service des voyageurs dans les transports.',focus:'Les langues, la mobilité et les conditions propres au métier visé.',tags:['tourisme','langues','relation-client']},
+ {about:'Techniques de réception, accueil et hébergement dans un établissement touristique.',focus:'Les langues, les contraintes horaires et les missions réelles de réception.',tags:['tourisme','relation-client','langues']},
+ {about:'Gestion, location et commercialisation de biens immobiliers.',focus:'Les notions juridiques, la gestion et la négociation commerciale.',tags:['commerce','administration','vente']}
+];
+const DIRECT_REASONS={
+ accueil:{
+  0:'L’accueil du public, l’information et la relation client rejoignent tes compétences.',
+  1:'Les échanges professionnels et l’organisation sont utiles pour assister une équipe.',
+  15:'L’accueil et l’orientation des voyageurs prolongent tes mises en situation.',
+  16:'La réception et l’information du public sont proches de tes activités.'
+ },
+ commerce:{
+  2:'L’animation d’un espace commercial et le conseil client prolongent ton option A.',
+  3:'Les compétences de vente et de relation client offrent une base pour apprendre la négociation.',
+  4:'La promotion de produits et la relation client donnent des repères pour la communication.',
+  6:'La vente et le commerce donnent une première base, à compléter notamment en langues.'
+ },
+ agora:{
+  5:'La gestion des dossiers et le suivi administratif sont au cœur de ta filière.',
+  1:'L’organisation et la communication professionnelle préparent à assister des équipes.',
+  9:'La gestion administrative est une base, à compléter avec les méthodes comptables.',
+  8:'Le suivi de dossiers et la relation avec les usagers sont utiles en assurance.'
+ }
+};
+function familyFor(bac,course){
+ const index=COURSES.indexOf(course),set=FITS[bac]||FITS.accueil;
+ if(set.direct.includes(index))return 'direct';
+ if(set.bridge.includes(index))return 'bridge';
+ return 'prepare';
+}
+function aboutCourse(course,bac=profile.bac_origin){
+ const index=COURSES.indexOf(course);
+ const family=familyFor(bac,course),detail=COURSE_DETAILS[index]||{about:'Consulte la fiche de cette formation.',focus:'Les attendus publiés sur Parcoursup.',tags:[]};
+ const matched=(detail.tags||[]).filter(tag=>profile.interests.includes(tag)).map(tag=>INTERESTS[tag]);
+ const why=family==='direct'?(DIRECT_REASONS[bac]?.[index]||'Ce parcours prolonge plusieurs compétences de ta filière.'):
+  family==='bridge'?'Tu peux y transférer certaines compétences de '+FILIERES[bac].short+'. Il faudra aussi découvrir de nouvelles matières.':
+  'Le contenu ou le rythme s’éloigne davantage de ton bac '+FILIERES[bac].short+'. Cela ne t’empêche pas de candidater.';
+ return {family,detail,why,matched};
+}
+
 const INTERESTS={
  'relation-client':'Écouter et aider','tourisme':'Voyages et tourisme',
  'commerce':'Commerce','vente':'Vente et conseil','communication':'Communication',

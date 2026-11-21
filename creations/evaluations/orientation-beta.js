@@ -184,14 +184,14 @@ const norm=v=>clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCa
 const pct=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(',','.').replace('%',''));return Number.isFinite(n)&&n>=0&&n<=100?n:null;};
 const formatPct=v=>{const n=pct(v);return n===null?'Non publié':new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';};
 const sourceUrl=v=>{try{const u=new URL(String(v));return u.protocol==='https:'&&/(\.|^)parcoursup\.(gouv\.fr|fr)$/.test(u.hostname)?u.href:SOURCES.parcoursup;}catch{return SOURCES.parcoursup;}};
-const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:''});
-let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0,showAllSuggestions=false;
+const dflt=()=>({bac_origin:'accueil',goal:'',city:'Paris',mobility:'ville',apprenticeship:false,interests:[],wishes:[],tasks:[],notes:'',letters:{}});
+let root=null,profile=dflt(),tab='projet',records=[],loading=false,aiBusy=false,autoTimer=0,reqId=0,tabData=null,aiResult=null,noticeTimer=0,showAllSuggestions=false,letterStudio=null;
 const $=id=>root?.querySelector('#'+id);
 const help=(id)=>'<button type="button" class="co-help" data-co-define="'+esc(id)+'" aria-label="Comprendre : '+esc(DEFINITIONS[id]?.[0]||id)+'" title="Explication en mots simples">?</button>';
 const anchor=(url,text)=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(text)+' ↗</a>';
 function read(){
  try{
- const raw=localStorage.getItem(KEY);if(!raw||raw.length>60000)return dflt();
+ const raw=localStorage.getItem(KEY);if(!raw||raw.length>450000)return dflt();
  const x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x))return dflt();
  const old=x.bac_origin==='mcv'?'commerce':x.bac_origin;
  const p={...dflt(),...x,bac_origin:old};
@@ -217,6 +217,16 @@ function read(){
   part:w?.part??null,pctbp:w?.pctbp??null
  })).filter(w=>w.title):[];
  p.tasks=Array.isArray(x.tasks)?x.tasks.filter(v=>['fiches','parler','bourse','alternance','comparaison'].includes(v)):[];
+ p.letters={};
+ if(x.letters&&typeof x.letters==='object'&&!Array.isArray(x.letters)){
+  for(const [k,d] of Object.entries(x.letters).slice(0,45)){
+   if(k.length>330||!d||typeof d!=='object'||Array.isArray(d))continue;
+   const section={};
+   for(const field of ['motivation','competences','formation','avenir'])section[field]=String(d.sections?.[field]||'').slice(0,1400);
+   p.letters[k]={target:String(d.target||'').slice(0,160),sections:section,
+    final:String(d.final||'').slice(0,5000),limit:d.limit===4500?4500:1500};
+  }
+ }
  p.notes=clean(p.notes).slice(0,1200);
  const previousInterests=typeof x.interests==='string'?clean(x.interests).slice(0,360):'';
  if(previousInterests&&!norm(p.notes).includes(norm(previousInterests)))p.notes=('Mes anciens centres d’intérêt : '+previousInterests+'\n'+p.notes).slice(0,1200);
@@ -239,13 +249,14 @@ function updateCounters(){
  const c=$('co-progress');if(c)c.textContent=(profile.goal?'Projet défini':'Projet à explorer')+' · '+profile.wishes.length+' piste'+(profile.wishes.length>1?'s':'')+' sauvegardée'+(profile.wishes.length>1?'s':'');
 }
 function openTab(next){
- tab=['projet','explorer','pistes','aides'].includes(next)?next:'projet';
+ tab=['projet','explorer','pistes','lettre','aides'].includes(next)?next:'projet';
  root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
  root.querySelectorAll('[data-co-panel]').forEach(el=>{el.hidden=el.dataset.coPanel!==tab;});
  if(tab==='projet'){renderSectors();renderInterests();renderSuggestions();renderAlbert();}
  if(tab==='pistes'){renderWishes();}
+ if(tab==='lettre'){renderLetter();}
  if(tab==='aides'){renderAid();}
  if(tab==='explorer'){renderSearch();}
  root.querySelector('.co-stage-panels')?.scrollIntoView?.({behavior:'smooth',block:'start'});
@@ -290,7 +301,7 @@ function layout(){
  root.innerHTML=
  titleBar()+
  '<div class="co-step-navigation" role="tablist" aria-label="Étapes de mon orientation">'+
- [['projet','01','Mon projet'],['explorer','02','Explorer'],['pistes','03','Mes choix'],['aides','04','Mes aides']].map(([id,n,label])=>
+ [['projet','01','Mon projet'],['explorer','02','Explorer'],['pistes','03','Mes choix'],['lettre','04','Ma lettre'],['aides','05','Mes aides']].map(([id,n,label])=>
  '<button type="button" role="tab" data-co-tab="'+id+'" aria-selected="false"><span>'+n+'</span>'+label+(id==='pistes'?'<b id="co-count-wishes">0</b>':'')+'</button>').join('')+'</div>'+
  '<p class="co-sticky-message" role="status" id="co-message" aria-live="polite">Sauvegarde automatique sur cet appareil.</p>'+
  '<div class="co-stage-panels">'+
@@ -311,7 +322,7 @@ function layout(){
  '<div class="co-pane co-support-pane"><div class="co-section-top"><span class="co-step">02 / MES ENVIES</span><h2>Qu’est-ce que tu aimes ?</h2><p>Choisis jusqu’à cinq domaines. Tu pourras modifier tes choix plus tard.</p></div>'+
  '<div class="co-interest-tags" id="co-interests"></div>'+
  '<div class="co-panel-tint"><span class="co-tint-icon">✧</span><div><strong>De bonnes idées, pas des promesses</strong><p>Personne ne peut connaître tes chances exactes sur Parcoursup. Nous allons regarder les formations, les chiffres officiels disponibles et leurs explications.</p></div></div>'+
- '<div class="co-next-actions"><button type="button" class="co-btn co-primary" data-co-tab="explorer">Explorer les formations →</button><button type="button" class="co-btn co-soft" data-co-tab="pistes">Voir mes choix</button></div></div></div>'+
+ '<div class="co-next-actions"><button type="button" class="co-btn co-primary" data-co-tab="explorer">Explorer les formations →</button><button type="button" class="co-btn co-soft" data-co-tab="pistes">Voir mes choix</button><button type="button" class="co-btn co-soft" data-co-tab="lettre">✍ Préparer ma lettre Parcoursup</button></div></div></div>'+
  '<div class="co-guide-panels"><section class="co-pane co-suggestions-pane"><div class="co-section-top"><span class="co-step">DES IDÉES POUR MON BAC</span><h2>Des pistes qui te correspondent</h2><p>Des propositions indicatives selon ta filière. Elles ne remplacent pas les attendus des formations.</p></div><div id="co-alternatives"></div></section>'+
  '<section class="co-pane co-ai-pane"><div class="co-section-top"><span class="co-step">✦ ASSISTANCE ALBERT</span><h2>Albert prépare ton parcours</h2><p>Des idées expliquées simplement, adaptées à tes goûts et à ton bac pro.</p></div>'+
  '<div class="co-ai-content" id="co-albert"></div><div class="co-ai-actions"><button type="button" class="co-btn co-primary" id="co-albert-button">✦ Demander conseil à Albert</button></div>'+
@@ -332,6 +343,7 @@ function layout(){
  '<div id="co-wishes"></div><div class="co-planning"><h3>Ma petite feuille de route</h3><div id="co-tasks"></div></div>'+
  '<div class="co-export-tools"><button type="button" class="co-btn co-soft" data-co-export>↓ Exporter mon projet</button><label class="co-btn co-soft" for="co-import-file">↑ Importer un projet</label><input type="file" accept=".json,application/json" id="co-import-file" hidden>'+
  '<button type="button" class="co-btn co-danger" data-co-clear>Effacer sur cet appareil</button></div></div></section>'+
+ '<section data-co-panel="lettre" class="co-page" hidden><div id="co-letter-mount" class="co-letter-container"></div></section>'+
  '<section data-co-panel="aides" class="co-page" hidden><div class="co-pane co-aid-pane"><div class="co-section-top"><span class="co-step">VIE ÉTUDIANTE</span><h2>Les aides à connaître avant de choisir.</h2>'+
  '<p>Tu peux étudier plus loin que prévu si tu repères les aides possibles. Les montants et les droits dépendent de ta situation : utilise les outils officiels.</p></div>'+
  '<div id="co-aides-list"></div></div></section></div>'+
@@ -449,7 +461,7 @@ function renderWishes(){
  $('co-pistes-count').textContent=String(profile.wishes.length);
  const saved=profile.wishes;
  const callout=saved.length===0?'Ajoute une première formation depuis « Mon projet » ou « Explorer ».':saved.length===1?'Tu as une seule piste. Essaie d’en ajouter deux autres pour diversifier ton projet.':'Tu as déjà plusieurs pistes. Compare leurs critères et les établissements.';
- wrap.innerHTML='<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+
+ wrap.innerHTML='<div class="co-letter-invite"><div><span>✦ NOUVEL ATELIER</span><strong>Rédige ta lettre Parcoursup</strong><p>À partir de ton bac et de la formation visée, construis une motivation personnelle et relis-la avec Albert.</p></div><button type="button" class="co-btn co-primary" data-co-tab="lettre">Ouvrir l’atelier de lettre →</button></div>'+ '<div class="co-wish-guidance">'+esc(callout)+' '+help('diversite')+
   '<p class="co-wish-caution">Ce carnet sert à préparer tes choix. Il ne crée aucun vœu sur Parcoursup et ne transmet aucune candidature. '+help('voeu')+'</p></div>'+
  (saved.length?'<div class="co-wish-list">'+saved.map((w,i)=>
  '<article class="co-wish-card"><div class="co-wish-index">'+String(i+1).padStart(2,'0')+'</div><div><strong>'+esc(w.title)+'</strong>'+
@@ -466,6 +478,22 @@ function renderWishes(){
  ['alternance','Regarder si l’apprentissage m’intéresse','apprentissage']
  ];
  $('co-tasks').innerHTML=tasks.map(([id,text,def])=>'<label class="co-task"><input type="checkbox" data-co-task="'+id+'"'+(profile.tasks.includes(id)?' checked':'')+'><span>'+esc(text)+'</span></label>').join('');
+}
+function renderLetter(){
+ const host=$('co-letter-mount');if(!host)return;
+ const workshop=window.CORTEX_ORIENTATION_LETTER;
+ if(!workshop?.mount){
+  host.innerHTML='<div class="co-pane"><h2>Atelier de motivation indisponible</h2><p>Actualise cette page pour charger le module de rédaction Parcoursup.</p></div>';return;
+ }
+ if(!letterStudio)letterStudio=workshop.mount(host,{
+  profile:()=>profile,
+  courses:()=>COURSES.slice(),
+  defaultCourses:()=>FITS[profile.bac_origin].direct.map(i=>COURSES[i]),
+  bacLabel:id=>FILIERES[id]?.label||FILIERES.accueil.label,
+  courseOptions:(selected,placeholder)=>courseOptions(selected,placeholder),
+  save:()=>persist(true)
+ });
+ else letterStudio.refresh();
 }
 function renderAid(){
  const wrap=$('co-aides-list');if(!wrap)return;
@@ -597,6 +625,7 @@ async function importFile(file){
   if(obj?.format!=='CORTEX_ORIENTATION_DEMO_LOCAL'||!obj.project||typeof obj.project!=='object')throw Error('Ce fichier ne correspond pas à un projet CORTEX.');
   if(!window.confirm('Remplacer ton projet d’orientation actuel par le fichier importé ?'))return;
   localStorage.setItem(KEY,JSON.stringify(obj.project));
+  letterStudio?.dispose();letterStudio=null;
   profile=read();aiResult=null;tabData=null;records=[];
   refresh();status('Projet importé et enregistré dans ce navigateur.');
  }catch(e){status('Import impossible : '+(e?.message||'fichier invalide'),true);}
@@ -605,6 +634,7 @@ function erase(){
  if(!window.confirm('Effacer ton projet Orientation de ce navigateur ? Les autres outils CORTEX ne seront pas modifiés.'))return;
  clearTimeout(autoTimer);
  try{localStorage.removeItem(KEY);}catch{}
+ letterStudio?.dispose();letterStudio=null;
  profile=dflt();records=[];aiResult=null;tabData=null;
  refresh();status('Le projet local a été effacé.');
 }
@@ -615,7 +645,7 @@ function refresh(){
  $('co-mobility').value=profile.mobility;
  $('co-apprenticeship').checked=profile.apprenticeship;
  $('co-notes').value=profile.notes;
- renderInterests();renderSuggestions();renderAlbert();renderWishes();renderAid();renderSearch();updateCounters();
+ renderInterests();renderSuggestions();renderAlbert();renderWishes();renderAid();renderSearch();if(tab==='lettre')renderLetter();updateCounters();
  root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
@@ -681,6 +711,7 @@ function mount(el){
 }
 function dispose(){
  if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}else clearTimeout(autoTimer);
+ letterStudio?.dispose();letterStudio=null;
  root=null;records=[];reqId++;loading=false;aiBusy=false;
 }
 window.addEventListener('pagehide',()=>{if(autoTimer&&root?.isConnected){clearTimeout(autoTimer);autoTimer=0;persist(true);}});

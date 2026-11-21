@@ -1,5 +1,5 @@
 /* Gestion des comptes et sessions de la classe sélectionnée. */
-import {api} from './coursework.js?v=2.14-handwriting';
+import {api} from './coursework.js?v=2.15-similarities-pdf';
 import {downloadCopyPdf} from './class-copy-pdf.js?v=1.0';
 
 const $=id=>document.getElementById(id);

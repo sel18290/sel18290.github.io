@@ -166,7 +166,7 @@ function mount(host,api){
   if(interests.includes(v))p().interests=interests.filter(x=>x!==v);
   else if(interests.length<5)p().interests=[...interests,v];
   else{tell('Cinq centres d’intérêt maximum.',true);return}
-  persist();
+  persist();api.syncInterests?.();
   const details=host.querySelector('.co-v4-interests');const isOpen=!!details?.open;
   render();if(isOpen){const newDetails=host.querySelector('.co-v4-interests');if(newDetails)newDetails.open=true;}
  }

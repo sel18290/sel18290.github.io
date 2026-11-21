@@ -2,9 +2,9 @@
    Un seul PIN par numéro dans sa classe, session temporaire côté serveur. */
 import { api } from './coursework.js?v=2.14-handwriting';
 import { renderReceiptAi,renderDashboardAi } from './student-ai.js?v=1.4';
-import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.6';
+import { mobileExam,installMobileExam } from './student-iphone-exam.js?v=1.7-watermark';
 import { createStudentDraft,recoverAnswers } from './student-draft.js?v=1';
-import { sourceFigure } from './student-source-view.js?v=1.0';
+import { sourceFigure } from './student-source-view.js?v=1.1-watermark';
 import { createHandwritingManager } from './student-handwriting.js?v=1.3';
 
 const params=new URLSearchParams(location.search);
@@ -780,7 +780,7 @@ if(qr||globalPortal){
   if(settings.enabled&&settings.watermarkCapture){
    const mark=E('div','cw-student-watermark');
    mark.setAttribute('aria-hidden','true');
-   const classCode=String(classData?.class?.code||current.class_code||'CLASSE').slice(0,22);
+   const classCode=String(classData?.class?.code||validatedLink?.class_code||current.assessment?.class_code||current.class_code||'CLASSE').slice(0,22);
    const candidate='CORTEX · '+classCode+' · N°'+String(current.student_number||'—').slice(0,4);
    const warning='CONTRÔLE EN COURS · AIDE IA INTERDITE';
    // 48 marques réparties sur le viewport : plus de grands rectangles sans trace.

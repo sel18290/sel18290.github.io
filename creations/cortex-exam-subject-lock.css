@@ -1,0 +1,188 @@
+/* CORTEX – protection contre le surlignage / copie du sujet.
+   Active seulement pendant une épreuve dont Mode intégrité ET Copie du sujet sont activés.
+   Les réponses de l'élève restent sélectionnables et éditables.
+   Ne protège pas contre les captures, DevTools ou les téléchargements réseau. */
+body.cortex-noctis .cortex-exam-subject-locked :is(
+  .cw-student-subject,
+  .cw-answer-question > strong,
+  .cw-answer-question > small,
+  .cw-answer-question > p,
+  .cw-answer-question .cw-student-source-snippets,
+  .cw-answer-question .cw-student-source-figure,
+  .cw-answer-question .ist-graphic,
+  .exam-question > .question-number,
+  .exam-question > h2,
+  .exam-question > .question-doc,
+  .exam-question > .visual-student-docs,
+  .exam-question > .visual-student-figure
+) {
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  -webkit-touch-callout:none;
+}
+body.cortex-noctis .cortex-exam-subject-locked :is(
+  .cw-student-subject,
+  .cw-answer-question .cw-student-source-figure,
+  .cw-answer-question .cw-student-source-snippets,
+  .exam-question .visual-student-docs
+) img {
+  -webkit-user-drag:none;
+  user-drag:none;
+  -webkit-touch-callout:none;
+}
+/* Les éditeurs manuscrits, réponses et champs texte ne sont jamais verrouillés. */
+body.cortex-noctis .cortex-exam-subject-locked :is(
+  .cw-answer-question [data-cortex-q],
+  .cw-answer-question .cw-question-response,
+  .exam-question [data-cortex-q],
+  .cw-handwriting,
+  .cw-handwriting-preview,
+  input,textarea,select,[contenteditable="true"]
+) {
+  user-select:text!important;
+  -webkit-user-select:text!important;
+  -webkit-touch-callout:default;
+}
+/* Visionneuse PDF : affiche exclusivement des canvas dans les contrôles protégés.
+   Aucune textLayer ni lecteur PDF natif n'est chargé dans cette fenêtre. */
+body.cortex-noctis dialog.cw-protected-pdf[open] {
+  display:flex;
+  flex-direction:column;
+  height:min(91dvh,930px);
+  width:min(1120px,calc(100vw - 16px));
+  max-height:91dvh;
+  max-width:1120px;
+  padding:0;
+  overflow:hidden;
+  color:#183c5b;
+  color-scheme:light;
+  background:#eef5fa;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-subject-header {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  flex:none;
+  padding:11px 15px;
+  background:#ffffff;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-subject-header strong {
+  flex:1 1 150px;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-actions {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:7px;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-actions button,
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-footer a {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:39px;
+  padding:8px 11px;
+  font-size:12px;
+  line-height:1.35;
+  font-weight:730;
+  background:#e9f3f9;
+  border:1px solid #a9ccdf;
+  border-radius:8px;
+  color:#185c8a;
+  text-decoration:none;
+  cursor:pointer;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-actions button:disabled {
+  opacity:.45;
+  cursor:default;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-number {
+  font-size:13px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  color:#174f75;
+  white-space:nowrap;
+  padding:0 4px;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-scroll {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:0;
+  padding:12px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  background:#dce9f2;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-scroll canvas {
+  display:block;
+  flex:none;
+  max-width:none;
+  height:auto;
+  background:#fff;
+  box-shadow:0 3px 17px #163e5c32;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  -webkit-touch-callout:none;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-scroll canvas[hidden] {
+  display:none!important;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-status {
+  align-self:stretch;
+  padding:15px 12px;
+  margin:0;
+  font-size:13px;
+  font-weight:680;
+  text-align:center;
+  color:#28516d;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-status[hidden] {
+  display:none!important;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-footer {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:9px;
+  padding:9px 15px;
+  border-top:1px solid #b2ccdd;
+  background:#f9fcff;
+}
+body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-footer p {
+  flex:1 1 240px;
+  padding:0;
+  margin:0;
+  color:#365f7c;
+  font-size:12px;
+  line-height:1.5;
+}
+@media(max-width:650px){
+  body.cortex-noctis dialog.cw-protected-pdf[open] {
+    height:94dvh;
+    max-height:94dvh;
+    width:calc(100vw - 8px);
+  }
+  body.cortex-noctis dialog.cw-protected-pdf .cw-protected-subject-header {
+    padding:9px;
+    gap:7px;
+  }
+  body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-actions {
+    width:100%;
+    justify-content:flex-start;
+  }
+  body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-actions button {
+    min-height:42px;
+    padding:8px;
+    font-size:11px;
+  }
+  body.cortex-noctis dialog.cw-protected-pdf .cw-protected-pdf-footer {
+    padding:9px 11px;
+  }
+}

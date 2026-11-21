@@ -148,3 +148,29 @@ body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header p{
   body.cortex-noctis .top > .cortex-traffic{grid-row:3;}
   body.cortex-noctis .top > .academy-header-actions{grid-row:4;}
 }
+
+/* Contact CORTEX : lien visible à côté du code postal sur les deux espaces. */
+body.cortex-noctis .cortex-creator-credit .cortex-creator-contact,
+body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header .cortex-creator-contact {
+  display: inline;
+  color: #ffffff !important;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.3px;
+  text-decoration-color: #95dfff;
+  white-space: nowrap;
+}
+body.cortex-noctis .cortex-creator-credit .cortex-creator-contact:hover,
+body.cortex-noctis :is(.topbar,.top) > .cortex-creator-in-header .cortex-creator-contact:hover {
+  color: #b9eeff !important;
+  text-decoration-color: #ffffff;
+}
+body.cortex-noctis .cortex-creator-credit .cortex-creator-contact:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+body.cortex-noctis .cortex-creator-credit .cortex-creator-separator {
+  margin: 0 5px;
+}

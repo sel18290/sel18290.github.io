@@ -27,9 +27,9 @@ const INTERESTS=[
  ['evenementiel','Événementiel'],['social','Aider les autres']
 ];
 const LEVELS={
- proche:{label:'Parcours dans la continuité',why:'Ton bac fournit déjà plusieurs bases utiles, mais cela ne garantit ni une place en formation ni un emploi.',symbol:'1',style:'direct'},
- passerelle:{label:'Passerelle à construire',why:'Tu peux utiliser certaines compétences, puis ajouter des connaissances ou une qualification.',symbol:'2',style:'bridge'},
- long:{label:'Parcours plus long ou réorientation',why:'Tu peux viser cet objectif, mais il faudra généralement suivre d’autres étapes de formation.',symbol:'3',style:'long'}
+ proche:{label:'Parcours dans la continuité',why:'Ton bac fournit déjà plusieurs bases utiles, mais cela ne garantit ni une place en formation ni un emploi.',symbol:'✓',style:'direct'},
+ passerelle:{label:'Passerelle à construire',why:'Tu peux utiliser certaines compétences, puis ajouter des connaissances ou une qualification.',symbol:'↗',style:'bridge'},
+ long:{label:'Parcours plus long ou réorientation',why:'Tu peux viser cet objectif, mais il faudra généralement suivre d’autres étapes de formation.',symbol:'⌁',style:'long'}
 };
 const str=x=>String(x??'');
 const esc=x=>str(x).replace(/[&<>"']/g,v=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[v]));
@@ -91,7 +91,7 @@ function mount(host,api){
   return '<div class="co-v4-report">'+
    '<header class="co-v4-report-hero"><span>✦ ANALYSE ALBERT · PROJET DE MÉTIER</span><h3>'+esc(safeString(data.career,110))+'</h3>'+
    '<p>'+esc(safeString(data.summary,420))+'</p></header>'+
-   '<section class="co-v4-verdict co-v4-'+lev.style+'"><div class="co-v4-verdict-header"><span class="co-v4-verdict-symbol">'+lev.symbol+'</span><div><small>POSITIONNEMENT DU PARCOURS</small><h4>'+lev.label+'</h4></div></div>'+
+   '<section class="co-v4-verdict co-v4-'+lev.style+'"><div class="co-v4-verdict-header"><span class="co-v4-verdict-symbol">'+lev.symbol+'</span><div><small>TYPE DE CHEMIN À PRÉVOIR</small><h4>'+lev.label+'</h4></div></div>'+
    '<p>'+esc(safeString(data.assessment?.why,550))+'</p>'+
    '<p class="co-v4-level-note">'+lev.why+'</p>'+
    '<div class="co-v4-check-lists"><div><strong>Ce que ton bac peut t’apporter</strong><ul>'+list(data.assessment?.strengths,3,160)+'</ul></div>'+
@@ -185,7 +185,7 @@ function mount(host,api){
    const json=await response.json().catch(()=>({}));
    if(!response.ok||!json.ok)throw Error(json.error||'Albert ne peut pas analyser ce métier actuellement.');
    if(disposed||own.signal.aborted)return;
-   if(norm(job())!==norm(target)||p().bac_origin!==body.filiere){tell('Tu as modifié ton projet : demande une nouvelle analyse pour ce choix.');return}
+   if(norm(job())!==norm(target)||p().bac_origin!==body.filiere||JSON.stringify(p().interests)!==JSON.stringify(body.interests)){tell('Tu as modifié ton projet : demande une nouvelle analyse pour ce choix.');return}
    const plan={career:target,bac:body.filiere,interests:body.interests.slice(),data:{
     career:safeString(json.career,110),summary:safeString(json.summary,420),
     assessment:json.assessment,routes:json.routes,next_actions:json.next_actions,warning:safeString(json.warning,300)

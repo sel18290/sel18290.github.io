@@ -448,6 +448,10 @@
     let positionRequest = 0;
     const calibrationScores = new Map();
 
+    const metric = (kind,category) => {
+      try{window.CORTEX_DEV_METRICS?.track?.(kind,category,mode)}catch{/* Statistiques facultatives */}
+    };
+    metric('pfmp_open','ouverture');
     const section = node('section', 'cs-stage-search');
     section.setAttribute('aria-labelledby', 'cs-stage-title');
     section.innerHTML = screen;
@@ -506,6 +510,8 @@
     }
 
     function setPanel(next, moveFocus = true, company = '', kind = '') {
+      if(next==='cv')metric('pfmp_cv','atelier');
+      if(next==='prep')metric('pfmp_contact','candidature');
       panel = next;
       section.dataset.stageView = next;
       const [title, emphasis, kicker, description] = HERO[next];
@@ -750,6 +756,7 @@
         return;
       }
       customSectors.push(customProposed);
+      metric('custom_sector',String(customProposed.label||customProposed.name||'').trim().slice(0,65));
       sector=customProposed.id;
       persist();
       renderPrograms();
@@ -1175,6 +1182,7 @@
 
     $('form').addEventListener('submit', event => {
       event.preventDefault();
+      metric('pfmp_search',sector.startsWith('perso-')?'personnalisee':sector);
       persist();
       search();
     });

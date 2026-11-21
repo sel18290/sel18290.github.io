@@ -416,8 +416,21 @@
 
   function mount(container, settings = {}) {
     if (!container) return;
-
-    const mode = settings.demo ? 'demo' : 'real';
+    // PFMP est réservé à la démonstration : les données de suivi ne sont jamais
+    // intégrées au modèle serveur des évaluations réelles.
+    if (settings.demo !== true) {
+      const notice = node('section', 'cs-stage-real-unavailable');
+      notice.setAttribute('role','note');
+      const title = node('h2','', 'PFMP et Orientation : disponibles en démonstration');
+      const explanation = node('p','',
+        'Ces deux outils conservent les projets et les candidatures localement dans le navigateur. L’espace réel utilise un stockage sur serveur pour les évaluations et ne propose pas encore ces rubriques.');
+      const link = outbound('Accéder à la démonstration locale ↗',
+        '../evaluations/#eleve/accueil', 'cs-stage-primary');
+      notice.append(title,explanation,link);
+      container.replaceChildren(notice);
+      return {dispose() {},search() {}};
+    }
+    const mode = 'demo';
     const scope = encodeURIComponent(settings.storageScope || 'public');
     const key = 'cortex-stage-workspace:v1:' + mode + ':' + scope;
     const cacheKey = 'cortex-stage-cache:v7:' + mode;
@@ -463,6 +476,13 @@
     const section = node('section', 'cs-stage-search');
     section.setAttribute('aria-labelledby', 'cs-stage-title');
     section.innerHTML = screen;
+    const localNotice = node('aside', 'cs-stage-local-banner');
+    localNotice.setAttribute('role','note');
+    localNotice.innerHTML = '<strong>PFMP et Orientation · Sauvegarde locale</strong>' +
+      '<span>Tes candidatures, dates, brouillons, CV et projets d’orientation restent sur ce navigateur, sans synchronisation serveur CORTEX. ' +
+      'Pour rechercher des entreprises ou utiliser Albert, seuls les critères de recherche ou les textes envoyés volontairement sont transmis au service distant. ' +
+      'Sur un appareil partagé, d’autres personnes pourraient retrouver tes données.</span>';
+    section.querySelector('.cs-stage-hero')?.after(localNotice);
     container.replaceChildren(section);
     const $ = id => section.querySelector('#cs-stage-' + id);
     const navigation = section.querySelector('.cs-stage-nav');

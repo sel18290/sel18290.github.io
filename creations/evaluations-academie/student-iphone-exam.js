@@ -2,7 +2,7 @@
  * Une seule question et ses documents montés à la fois. Le formulaire
  * parent assure la sauvegarde du brouillon sur mobile et sur ordinateur.
  */
-import { sourceFigure } from './student-source-view.js?v=1.1-watermark';
+import { sourceFigure } from './student-source-view.js?v=1.2-no-drag';
 const E=(tag,cls,text)=>{
  const element=document.createElement(tag);
  if(cls)element.className=cls;

@@ -280,8 +280,12 @@ function renderEntry(){
    profile:()=>profile,save:()=>persist(true),courses:()=>COURSES.slice(),
    changeBac:bac=>{
     if(!FILIERES[bac])return;
-    profile.bac_origin=bac;persist(true);
+    profile.bac_origin=bac;aiResult=null;persist(true);
     renderSectors();renderInterests();renderSuggestions();renderAlbert();renderSearch();
+   },
+   syncInterests:()=>{
+    aiResult=null;
+    renderInterests();renderGoalInfo();renderSuggestions();renderAlbert();
    },
    openCourse:course=>{
     if(!COURSES.includes(course))return;
@@ -722,7 +726,7 @@ function click(event){
  if(el.closest('[data-co-define]')){event.preventDefault();openDefinition(el.closest('[data-co-define]').dataset.coDefine);return;}
  if(el.closest('[data-co-close]')){$('co-dialog').close();return;}
  const entry=el.closest('[data-co-entry]');
- if(entry){const next=entry.dataset.coEntry;if(next==='metier'||next==='formation'){profile.entry_mode=next;persist();renderEntry();}return;}
+ if(entry){const next=entry.dataset.coEntry;if(next==='metier'||next==='formation'){profile.entry_mode=next;persist();if(next==='formation'){renderSectors();renderInterests();renderSuggestions();renderAlbert();}renderEntry();}return;}
  const sector=el.closest('[data-co-sector]');
  if(sector){reqId++;profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;showAllSuggestions=false;persist();refresh();return;}
  const interest=el.closest('[data-co-interest]');

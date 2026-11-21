@@ -107,7 +107,7 @@ function mount(host,api){
     '<p>Choisis jusqu’à cinq domaines.</p>'+
     '<div class="co-v4-interests-tags">'+INTERESTS.map(([key,label])=>'<button type="button" data-v4-interest="'+key+'" aria-pressed="'+p().interests.includes(key)+'" class="'+(p().interests.includes(key)?'active':'')+'">'+esc(label)+'</button>').join('')+'</div></details>'+
    '<div class="co-v4-submit"><button type="button" id="co-v4-analyse" class="co-v4-primary" data-v4-analyse'+(busy||job().length<3?' disabled':'')+'>'+buttonLabel()+'</button>'+
-   '<p>Albert reçoit le nom du métier, ta filière et tes centres d’intérêt choisis. <a href="'+ONISEP+'metier" target="_blank" rel="noopener noreferrer">Consulter Onisep</a></p></div></div>';
+   '<p>Relance Albert autant de fois que tu veux : CORTEX ne fixe aucun quota de demandes. Le service Albert peut avoir ses propres limites. Il reçoit le métier, ta filière et tes centres d’intérêt choisis. <a href="'+ONISEP+'metier" target="_blank" rel="noopener noreferrer">Consulter Onisep</a></p></div></div>';
  }
  const buttonLabel=()=>{
   if(busy)return 'Albert prépare ton parcours…';

@@ -187,3 +187,187 @@ body.cortex-noctis .cortex-focus-vista-copy h2{font-size:clamp(29px,3.2vw,46px);
 @media(max-width:760px){
  body.cortex-noctis .topbar .cortex-header-desktop-tools{display:none!important}
 }
+
+
+/* CORTEX · Accueil 2026 : six bénéfices pédagogiques lisibles et responsive */
+body.cortex-noctis .cortex-focus-copy h1.cortex-home-new-headline {
+  font-size:clamp(36px,4vw,61px)!important;
+  line-height:1.08!important;
+  letter-spacing:-.052em;
+  max-width:740px;
+  text-wrap:balance;
+}
+body.cortex-noctis .cortex-focus-real .cortex-focus-copy h1.cortex-home-new-headline {
+  font-size:clamp(34px,3.2vw,51px)!important;
+  letter-spacing:-.048em;
+  max-width:700px;
+}
+body.cortex-noctis .cortex-focus-copy>p {
+  max-width:610px;
+}
+.cortex-home-strengths {
+  width:100%;
+  min-width:0;
+  margin-top:clamp(25px,3vw,42px);
+}
+.cortex-home-strengths-head {
+  display:grid;
+  grid-template-columns:minmax(0,1.22fr) minmax(220px,.78fr);
+  align-items:end;
+  gap:clamp(14px,3vw,35px);
+  margin-bottom:21px;
+}
+.cortex-home-strengths-kicker {
+  display:block;
+  margin-bottom:11px;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.16em;
+  line-height:1.5;
+  color:#a8e5f5;
+}
+body.cortex-noctis .cortex-home-strengths-head h2 {
+  margin:0;
+  color:#f4faff;
+  font-size:clamp(27px,3vw,41px);
+  line-height:1.13;
+  letter-spacing:-.045em;
+  font-weight:820;
+}
+.cortex-home-strengths-head h2 em {
+  font-style:normal;
+  color:#a5e9e6;
+}
+.cortex-home-strengths-head>p {
+  margin:0;
+  color:#c3d9e9;
+  font-size:13px;
+  line-height:1.62;
+}
+.cortex-home-strengths-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.cortex-home-strength {
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+  min-width:0;
+  min-height:205px;
+  padding:clamp(17px,2vw,24px);
+  background:linear-gradient(145deg,#f8fcff,#eaf5fc);
+  border:1px solid #f0fbff;
+  border-radius:18px;
+  box-shadow:0 15px 38px rgba(1,14,34,.21),inset 0 1px #ffffff;
+}
+.cortex-home-strength-num {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:#2e7199;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.09em;
+}
+.cortex-home-strength-num::before {
+  content:"";
+  width:7px;
+  height:7px;
+  flex:none;
+  border-radius:50%;
+  background:#45b7ba;
+}
+body.cortex-noctis .cortex-home-strength h3 {
+  margin:0;
+  color:#163b59;
+  font-size:clamp(17px,1.48vw,20px);
+  line-height:1.24;
+  font-weight:800;
+  letter-spacing:-.027em;
+}
+body.cortex-noctis .cortex-home-strength p {
+  margin:0;
+  color:#44647b;
+  font-size:13px;
+  line-height:1.58;
+}
+.cortex-focus-home>.cortex-focus-trust {
+  margin-top:10px;
+  padding-top:15px;
+}
+.cortex-focus-real .cortex-home-strengths {
+  margin-top:27px;
+}
+.cortex-focus-real .cortex-home-strengths-head {
+  grid-template-columns:minmax(0,1fr);
+  gap:7px;
+  margin-bottom:13px;
+}
+.cortex-focus-real .cortex-home-strengths-kicker {
+  margin-bottom:7px;
+}
+body.cortex-noctis .cortex-focus-real .cortex-home-strengths-head h2 {
+  font-size:clamp(24px,2.4vw,31px);
+}
+.cortex-focus-real .cortex-home-strengths-head>p {
+  font-size:12px;
+}
+.cortex-focus-real .cortex-home-strengths-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.cortex-focus-real .cortex-home-strength {
+  min-height:158px;
+  gap:7px;
+  padding:14px 13px;
+  border-radius:13px;
+}
+body.cortex-noctis .cortex-focus-real .cortex-home-strength h3 {
+  font-size:15px;
+  line-height:1.3;
+}
+body.cortex-noctis .cortex-focus-real .cortex-home-strength p {
+  font-size:11px;
+  line-height:1.5;
+}
+.cortex-focus-real .cortex-home-ethics {
+  justify-content:flex-start;
+  padding-top:14px;
+  text-align:left;
+}
+@media(max-width:950px) {
+  .cortex-home-strengths-head {
+    grid-template-columns:minmax(0,1fr);
+    gap:9px;
+  }
+  .cortex-home-strengths-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:760px) {
+  body.cortex-noctis .cortex-focus-copy h1.cortex-home-new-headline,
+  body.cortex-noctis .cortex-focus-real .cortex-focus-copy h1.cortex-home-new-headline {
+    font-size:clamp(32px,7.2vw,45px)!important;
+    line-height:1.1!important;
+    letter-spacing:-.045em;
+    overflow-wrap:break-word;
+  }
+  .cortex-home-strengths {margin-top:23px}
+  .cortex-home-strengths-head {gap:9px;margin-bottom:15px}
+  .cortex-home-strengths-head h2 {font-size:27px!important}
+  .cortex-home-strengths-grid {grid-template-columns:1fr;gap:9px}
+  .cortex-home-strength {min-height:0;gap:8px;padding:16px;border-radius:14px}
+  body.cortex-noctis .cortex-home-strength h3 {font-size:18px}
+  body.cortex-noctis .cortex-home-strength p {font-size:13px}
+  .cortex-focus-real .cortex-home-strengths-grid {grid-template-columns:1fr}
+  .cortex-focus-real .cortex-home-strength {min-height:0;padding:15px}
+  body.cortex-noctis .cortex-focus-real .cortex-home-strength h3 {font-size:17px}
+  body.cortex-noctis .cortex-focus-real .cortex-home-strength p {font-size:12px}
+}
+@media(max-width:380px) {
+  body.cortex-noctis .cortex-focus-copy h1.cortex-home-new-headline,
+  body.cortex-noctis .cortex-focus-real .cortex-focus-copy h1.cortex-home-new-headline {
+    font-size:30px!important;
+  }
+}

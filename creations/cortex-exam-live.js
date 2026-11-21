@@ -34,6 +34,9 @@
     window.addEventListener('pagehide', () => report('hidden'));
     window.addEventListener('pageshow', reportVisibility);
     window.addEventListener('online', reportVisibility);
+    // Reprise immédiate au retour dans l'onglet, sans présumer qu'un flou de
+    // fenêtre est une sortie : seules les vraies pages masquées sont signalées.
+    window.addEventListener('focus', reportVisibility);
     return {
       setActive(next = null) {
         if (active?.key === next?.key) {
@@ -117,16 +120,22 @@
     let exam = null, studentNumber = '', classId = '', snapshot = null, failed = false;
 
     function render() {
+      const snapshotAge = snapshot?.observed_at ? Date.now() - Date.parse(snapshot.observed_at) : 0;
+      const isOld = Number.isFinite(snapshotAge) && snapshotAge >= 45000;
       detail.textContent = demo ? 'Exemple de passation avec des élèves fictifs.' :
-        snapshot?.observed_at ? 'Relevé à ' + timeOf(snapshot.observed_at) + ' · Actualisation automatique' :
-        'Activité des élèves et réponses sauvegardées.';
+        snapshot?.observed_at
+          ? (isOld ? 'Dernier relevé à ' + timeOf(snapshot.observed_at) +
+              ' · Données anciennes : actualise avant toute conclusion.'
+            : 'Relevé à ' + timeOf(snapshot.observed_at) + ' · Actualisation automatique')
+          : 'Activité des élèves et réponses sauvegardées.';
       let message = '';
       if (!demo && !exam) message = 'Choisis un contrôle publié.';
       else if (!demo && (exam.tracksLive === false || snapshot?.enabled === false)) {
         message = 'Active « Suivi en direct » dans Réglages anti-triche pour suivre ce contrôle.';
       } else if (failed) {
         if (!snapshot) message = 'Suivi momentanément indisponible. Utilise « Actualiser ».';
-        else detail.textContent = 'Dernier relevé à ' + timeOf(snapshot.observed_at) + ' · Actualisation indisponible';
+        else detail.textContent = 'Dernier relevé à ' + timeOf(snapshot.observed_at) +
+          ' · Actualisation indisponible, états historiques uniquement.';
       } else if (!snapshot) message = 'Chargement de la passation…';
       const entries = message ? [] : (snapshot?.entries || []).filter(entry => {
         if (demo && ((exam && exam.id !== entry.examId) || (classId && classId !== entry.classId))) return false;

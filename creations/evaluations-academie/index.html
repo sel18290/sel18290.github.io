@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="./real-entry.css?v=2">
 <script defer src="./real-entry.js?v=2"></script>
 <link rel="stylesheet" href="./style.css?v=18">
+<link rel="stylesheet" href="./orientation-beta.css?v=1.0">
 <link rel="stylesheet" href="../cortex-nav.css?v=1.0">
 <link rel="stylesheet" href="../cortex-traffic.css?v=1.0">
 <script defer src="../cortex-traffic.js?v=1.0"></script>
@@ -19,7 +20,8 @@
 <script defer src="../question-types.js?v=1.2"></script>
 <script defer src="../cortex-phone.js?v=2.0"></script>
 <script defer src="../cortex-student-simulator.js?v=1.2"></script>
-<script type="module" src="./app.js?v=45-marked-pdf"></script>
+<script type="module" src="./app.js?v=46-orientation-beta"></script>
+<script defer src="./orientation-beta.js?v=1.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=2.15-similarities-pdf"></script>
 <script defer src="../evaluations/ai-albert-import.js?v=2.4"></script>
@@ -119,7 +121,7 @@
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">02 · ENSEIGNANT</span><h3>Transformer un PDF en évaluation</h3><p>Convertis un sujet en questions numériques avec l’IA, puis vérifie les documents avant publication.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">03 · ENSEIGNANT</span><h3>Corriger plus vite avec l’IA</h3><p>Des propositions de notation et de commentaires par question, toujours vérifiées par l’enseignant.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">04 · ÉLÈVE</span><h3>Intégrer les réponses manuscrites</h3><p>Les photos de réponses écrites à la main rejoignent la copie numérique lorsque l’épreuve le permet.</p></article>
-   <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>Six protections anti-triche complémentaires</h3><p>Chronomètre, sorties d’écran horodatées, blocage de copie et collage, filigranes nominatifs sur les PDF, suivi de passation et comparaison des réponses. Une convergence de signaux peut être forte, mais la détection de 100 % des triches ne peut pas être garantie. Chaque alerte nécessite une vérification humaine.</p></article>
+   <article class="cortex-home-strength"><span class="cortex-home-strength-num">05 · ÉVALUATION</span><h3>8 dispositifs de vigilance : 6 protections configurables + 2 analyses</h3><p>Six protections indépendantes, chronomètre et comparaison des ressemblances entre copies, avec revue humaine des alertes, suivi de passation et comparaison des réponses. Une convergence de signaux peut être forte, mais la détection de 100 % des triches ne peut pas être garantie. Chaque alerte nécessite une vérification humaine.</p></article>
    <article class="cortex-home-strength"><span class="cortex-home-strength-num">06 · PFMP</span><h3>Trouver une PFMP plus facilement</h3><p>Recherche par filière et localisation, suivi des entreprises, CV et candidatures accompagnées par Albert.</p></article>
   </div>
  </section>
@@ -169,6 +171,7 @@
    <a href="#prof-overview" class="side-item active is-active" data-acad-view="overview" aria-current="page"><span class="side-icon">▦</span>Vue d’ensemble</a>
    <a href="#prof-classes" class="side-item" data-acad-view="classes"><span class="side-icon">▣</span>Mes classes</a>
    <a href="#cw-persistent-classes" class="side-item" data-acad-view="pins"><span class="side-icon">⌑</span>PIN élèves</a>
+    <a href="#acad-orientation" class="side-item" data-acad-view="orientation"><span class="side-icon">✦</span>Mes élèves · Orientation <span class="co-nav-beta">β</span></a>
    <a href="#prof-assessments" class="side-item" data-acad-view="assessments"><span class="side-icon">▤</span>Mes contrôles</a>
    <a href="#cw-copies-head" class="side-item" data-acad-view="copies"><span class="side-icon">✎</span>Copies & notes</a>
    <a href="#acad-live-monitoring" class="side-item" data-acad-view="suivi"><span class="side-icon">◷</span>Suivi des épreuves</a>
@@ -399,7 +402,8 @@
     <div class="ri-footer"><p>Enregistre le contrôle en brouillon. Le document et les extraits seront accessibles aux élèves seulement après publication du contrôle. Les contrôles publiés sont consultables sans modification.</p><div class="ri-footer-actions"><button type="button" class="ri-action secondary" id="ri-new">Importer un autre contrôle</button><button type="button" id="ri-save" class="ri-action primary">Enregistrer le contrôle et son document</button></div></div>
   </div>
  </section>
-<section class="prof-sec academie-integrity-area" id="acad-integrity"><div class="academie-integrity-head"><div><h3>Mode <em>anti-triche</em></h3><p>Choisis les protections à appliquer à chaque contrôle.</p></div><span class="academie-integrity-emblem" aria-hidden="true">◈</span></div>
+<section class="prof-sec" id="acad-orientation" aria-label="Mes élèves - Orientation Parcoursup, bêta"><div id="cortex-orientation"></div></section>
+ <section class="prof-sec academie-integrity-area" id="acad-integrity"><div class="academie-integrity-head"><div><h3>Mode <em>anti-triche</em></h3><p>Choisis les protections à appliquer à chaque contrôle.</p></div><span class="academie-integrity-emblem" aria-hidden="true">◈</span></div>
 <div class="acad-tools-workspace"><div class="acad-tools-head"><div><h4>Protections du contrôle</h4><a id="acad-tools-journal" href="#acad-live-monitoring" class="btn ghost small" data-acad-view="suivi" hidden>Voir le journal du contrôle →</a></div><label for="acad-tools-exam">Contrôle<select id="acad-tools-exam" aria-label="Contrôle à protéger"><option value="">Chargement des contrôles…</option></select></label></div>
 <div id="acad-tools-panel" class="acad-tools-panel" aria-live="polite"><p class="empty">Connecte-toi pour retrouver tes réglages.</p></div>
 <p class="acad-tools-note">Les élèves voient les règles avant de démarrer le chronomètre.</p></div>

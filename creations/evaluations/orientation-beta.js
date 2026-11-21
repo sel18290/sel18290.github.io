@@ -213,7 +213,7 @@ function read(){
  p.apprenticeship=!!p.apprenticeship;
  p.wishes=Array.isArray(x.wishes)?x.wishes.slice(0,30).map(w=>({
   title:clean(w?.title).slice(0,160),school:clean(w?.school).slice(0,150),city:clean(w?.city).slice(0,80),
-  url:sourceUrl(w?.url),code:clean(w?.code).slice(0,110),taux:w?.taux??null,
+  url:sourceUrl(w?.url),code:clean(w?.code).slice(0,110),pathway:COURSES.includes(w?.pathway)?w.pathway:COURSES.find(c=>norm(w?.title).replace(/^(bts|but)\s*[-–]\s*/,'$1 ').includes(norm(c)))||'',taux:w?.taux??null,
   part:w?.part??null,pctbp:w?.pctbp??null
  })).filter(w=>w.title):[];
  p.tasks=Array.isArray(x.tasks)?x.tasks.filter(v=>['fiches','parler','bourse','alternance','comparaison'].includes(v)):[];
@@ -434,9 +434,9 @@ function keepCourse(course,rec){
   school:clean(rec.g_ea_lib_vx).slice(0,150),
   city:clean(rec.ville_etab).slice(0,80),
   url:sourceUrl(rec.lien_form_psup),
-  code:clean(rec.cod_aff_form).slice(0,110),
+  code:clean(rec.cod_aff_form).slice(0,110),pathway:COURSES.includes(course)?course:'',
   taux:pct(rec.taux_acces_ens),part:pct(rec.part_acces_pro),pctbp:pct(rec.pct_bp)
- }:{title:course,school:'À rechercher',city:profile.city,url:SOURCES.parcoursup,code:'',taux:null,part:null,pctbp:null};
+ }:{title:course,school:'À rechercher',city:profile.city,url:SOURCES.parcoursup,code:'',pathway:course,taux:null,part:null,pctbp:null};
  if(profile.wishes.some(w=>(w.code&&item.code&&w.code===item.code)||(!item.code&&!w.code&&norm(w.title)===norm(item.title)))){
   status('Cette piste est déjà dans tes choix.');return;
  }
@@ -454,7 +454,7 @@ function renderWishes(){
  (saved.length?'<div class="co-wish-list">'+saved.map((w,i)=>
  '<article class="co-wish-card"><div class="co-wish-index">'+String(i+1).padStart(2,'0')+'</div><div><strong>'+esc(w.title)+'</strong>'+
  '<small>'+esc(w.school||'Établissement à préciser')+(w.city?' · '+esc(w.city):'')+'</small>'+
-  (COURSES.includes(w.title)?'<span class="co-wish-classification">'+esc(FAMILIES[familyFor(profile.bac_origin,w.title)].short)+'</span>':'')+
+  ((COURSES.includes(w.pathway)||COURSES.includes(w.title))?'<span class="co-wish-classification">'+esc(FAMILIES[familyFor(profile.bac_origin,w.pathway||w.title)].short)+'</span>':'')+
  (pct(w.taux)!==null?'<span class="co-wish-stat">Accès 2025 : '+formatPct(w.taux)+' '+help('admission')+'</span>':'')+'</div>'+
  '<div class="co-wish-actions">'+anchor(sourceUrl(w.url),'Fiche Parcoursup')+'<button type="button" data-co-remove="'+i+'">Retirer</button></div></article>').join('')+'</div>':
  '<div class="co-empty-state"><span>✦</span><h3>Tes possibilités commencent ici</h3><p>Tu peux ajouter des idées sans remplir de dossier Parcoursup.</p><button type="button" class="co-btn co-primary" data-co-tab="projet">Découvrir des idées →</button></div>');
@@ -643,7 +643,7 @@ function click(event){
  const explore=el.closest('[data-co-explore-course]');
  if(explore){tabData=explore.dataset.coExploreCourse;records=[];openTab('explorer');return;}
  const row=el.closest('[data-co-add-result]');
- if(row){const n=Number(row.dataset.coAddResult),rec=root._orientationShown?.[n];if(rec){keepCourse(clean(rec.lib_for_voe_ins),rec);renderSearch();}return;}
+ if(row){const n=Number(row.dataset.coAddResult),rec=root._orientationShown?.[n];if(rec){keepCourse(tabData||profile.goal,rec);renderSearch();}return;}
  const remove=el.closest('[data-co-remove]');
  if(remove){const n=Number(remove.dataset.coRemove);if(n>=0&&n<profile.wishes.length){profile.wishes.splice(n,1);persist();renderWishes();renderSuggestions();}return;}
  if(el.closest('[data-co-export]')){download();return;}

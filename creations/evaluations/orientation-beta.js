@@ -145,7 +145,7 @@ function updateCounters(){
 }
 function openTab(next){
  tab=['projet','explorer','pistes','aides'].includes(next)?next:'projet';
- root.querySelectorAll('[data-co-tab]').forEach(el=>{
+ root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
  root.querySelectorAll('[data-co-panel]').forEach(el=>{el.hidden=el.dataset.coPanel!==tab;});
@@ -183,7 +183,7 @@ function layout(){
  '<div class="co-profile-form"><label for="co-goal">Quelle formation t’intéresse déjà ? '+help('voeu')+'</label>'+
  '<select id="co-goal">'+courseOptions()+'</select><p class="co-field-hint">Pas encore d’idée ? Aucun problème : Albert et les suggestions t’aideront.</p>'+
  '<div class="co-grid-fields"><div><label for="co-city">Dans quelle ville veux-tu étudier ?</label><input id="co-city" maxlength="100" placeholder="Ex. Paris, Lille, Lyon" autocomplete="address-level2"></div>'+
- '<div><label for="co-mobility">Jusqu’où peux-tu aller ? '+help('mobilite')+'</label><select id="co-mobility"><option value="ville">Ma ville en priorité</option><option value="region">Ma ville et les environs</option><option value="france">Partout en France</option></select></div></div>'+
+ '<div><label for="co-mobility">Jusqu’où peux-tu aller ? '+help('mobilite')+'</label><select id="co-mobility"><option value="ville">Ma ville en priorité</option><option value="region">Ma ville et d’autres villes</option><option value="france">Partout en France</option></select></div></div>'+
  '<label class="co-check-row"><input type="checkbox" id="co-apprenticeship"> Je veux aussi découvrir l’alternance '+help('apprentissage')+'</label>'+
  '<label for="co-notes">Ce qui compte pour moi <span class="co-field-optional">(notes privées sur cet appareil)</span></label>'+
  '<textarea id="co-notes" maxlength="1200" rows="3" placeholder="Ex. Je veux travailler dans le tourisme, j’aime l’accueil du public… Cette zone n’est jamais envoyée à Albert."></textarea>'+
@@ -453,7 +453,7 @@ function refresh(){
  $('co-apprenticeship').checked=profile.apprenticeship;
  $('co-notes').value=profile.notes;
  renderInterests();renderSuggestions();renderAlbert();renderWishes();renderAid();renderSearch();updateCounters();
- root.querySelectorAll('[data-co-tab]').forEach(el=>{
+ root.querySelectorAll('.co-step-navigation [data-co-tab]').forEach(el=>{
   const on=el.dataset.coTab===tab;el.classList.toggle('active',on);el.setAttribute('aria-selected',String(on));
  });
  root.querySelectorAll('[data-co-panel]').forEach(el=>el.hidden=el.dataset.coPanel!==tab);
@@ -463,7 +463,7 @@ function click(event){
  if(el.closest('[data-co-define]')){event.preventDefault();openDefinition(el.closest('[data-co-define]').dataset.coDefine);return;}
  if(el.closest('[data-co-close]')){$('co-dialog').close();return;}
  const sector=el.closest('[data-co-sector]');
- if(sector){profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;persist();refresh();return;}
+ if(sector){reqId++;profile.bac_origin=sector.dataset.coSector;profile.goal='';tabData=null;records=[];aiResult=null;persist();refresh();return;}
  const interest=el.closest('[data-co-interest]');
  if(interest){
   const k=interest.dataset.coInterest;
@@ -492,7 +492,7 @@ function input(e){
 }
 function change(e){
  const t=e.target;
- if(t?.id==='co-goal'){profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;records=[];aiResult=null;persist();renderSuggestions();renderAlbert();}
+ if(t?.id==='co-goal'){reqId++;profile.goal=COURSES.includes(t.value)?t.value:'';tabData=null;records=[];aiResult=null;persist();renderSuggestions();renderAlbert();}
  if(t?.id==='co-city'){profile.city=clean(t.value)||'Paris';persist();}
  if(t?.id==='co-mobility'){profile.mobility=t.value;persist();renderSearch();}
  if(t?.id==='co-apprenticeship'){profile.apprenticeship=!!t.checked;persist();}

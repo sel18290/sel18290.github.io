@@ -103,7 +103,16 @@ function read(){
  const old=x.bac_origin==='mcv'?'commerce':x.bac_origin;
  const p={...dflt(),...x,bac_origin:old};
  if(!FILIERES[p.bac_origin])p.bac_origin='accueil';
- p.goal=COURSES.includes(p.goal)?p.goal:COURSES.find(c=>norm(c)===norm(p.goal))||'';
+ const oldGoal=clean(p.goal).slice(0,180);
+ const names={
+  'bts mco':COURSES[2],'mco':COURSES[2],
+  'bts ndrc':COURSES[3],'ndrc':COURSES[3],
+  'bts sam':COURSES[1],'sam':COURSES[1],
+  'bts gpme':COURSES[5],'gpme':COURSES[5],
+  'bts cg':COURSES[9],'bts sio':COURSES[10],
+  'bts ci':COURSES[6],'bts tourisme':COURSES[0]
+ };
+ p.goal=COURSES.includes(oldGoal)?oldGoal:COURSES.find(c=>norm(c)===norm(oldGoal))||names[norm(oldGoal)]||'';
  p.city=clean(p.city).slice(0,100)||'Paris';
  p.mobility=['ville','region','france'].includes(p.mobility)?p.mobility:'ville';
  // Migrer les anciens champs d'intérêt libres en mots-clés locaux ; ne jamais les envoyer à Albert.
@@ -116,6 +125,7 @@ function read(){
  })).filter(w=>w.title):[];
  p.tasks=Array.isArray(x.tasks)?x.tasks.filter(v=>['fiches','parler','bourse','alternance','comparaison'].includes(v)):[];
  p.notes=clean(p.notes).slice(0,1200);
+ if(oldGoal&&!p.goal&&!norm(p.notes).includes(norm(oldGoal)))p.notes=('Ancien projet : '+oldGoal+'\n'+p.notes).slice(0,1200);
  return p;
  }catch{return dflt();}
 }

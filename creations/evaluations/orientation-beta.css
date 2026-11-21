@@ -376,3 +376,5 @@ body.cortex-noctis .co-portal-privacy{font-size:11px;line-height:1.65;color:#355
  #cortex-orientation.co-v2 .co-export-tools .co-btn{flex:1 1 100%}
 }
 @media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 *{scroll-behavior:auto!important;transition:none!important}}
+
+#cortex-orientation.co-v2 .co-wish-caution{font-size:10px;font-weight:600;color:#b9d8e6;line-height:1.7;margin:9px 0 0}

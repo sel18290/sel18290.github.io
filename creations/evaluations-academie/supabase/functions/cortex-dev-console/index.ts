@@ -80,7 +80,8 @@ async function verifyToken(token:unknown){
  }catch{return false}
 }
 async function gather(days:number){
- const since=new Date(Date.now()-(days-1)*86400000).toISOString().slice(0,10);
+ const since=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'})
+  .format(new Date(Date.now()-(days-1)*86400000));
  const [rows,total,online]=await Promise.all([
   db.from('cortex_dev_events').select('day,kind,category,source,hits')
    .gte('day',since).order('day',{ascending:false}).limit(5000),

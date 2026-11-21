@@ -3,9 +3,19 @@
 
   const MIN_EXIT_MS = 2000;
   const MAX_EVENT_AGE_MS = 8 * 60 * 60 * 1000;
+  // Toutes les réponses textuelles : textes courts, tableaux, cases à compléter,
+  // anciennes évaluations et version mobile. Les cases à cocher, pièces jointes
+  // et fenêtres de connexion restent hors du blocage.
   const answerField = [
-    '[data-cortex-q] textarea', '[data-cortex-q] input:not([type=radio],[type=checkbox],[type=file])',
-    'textarea[data-answer]', 'input[data-answer]:not([type=radio],[type=checkbox],[type=file])',
+    '[data-cortex-q] textarea',
+    '[data-cortex-q] input:not([type=radio]):not([type=checkbox]):not([type=file]):not([type=hidden])',
+    '[data-cortex-q] [contenteditable="true"]',
+    '.cw-question-response textarea',
+    '.cw-question-response input:not([type=radio]):not([type=checkbox]):not([type=file]):not([type=hidden])',
+    '.cw-question-response [contenteditable="true"]',
+    '.exam-question textarea',
+    '.exam-question input[data-cq-input]:not([type=radio]):not([type=checkbox])',
+    'textarea[data-answer]', 'input[data-answer]:not([type=radio]):not([type=checkbox]):not([type=file])',
     'input[data-doc-fill]'
   ].join(',');
   const editable = 'input, textarea, select, [contenteditable="true"]';
@@ -132,21 +142,64 @@
       report(kind, at);
     }
 
+    function isSubjectTarget(target) {
+      if (!active?.root?.contains(target) || !active.subjectSelector) return false;
+      return Boolean(target.closest?.(active.subjectSelector));
+    }
+
     function blockPaste(event) {
       if (active?.settings.enabled !== true || active.settings.blockPaste !== true) return;
-      if (active.root.contains(event.target) && event.target.matches?.(answerField)) block(event, 'paste_blocked');
+      const target = event.target;
+      if (!active.root?.contains(target)) return;
+      // Sur iOS et avec les tableaux, l'événement peut partir d'un enfant
+      // d'un élément contenteditable plutôt que du conteneur lui-même.
+      if (target.closest?.(answerField)) block(event, 'paste_blocked');
+    }
+
+    function isSubjectSelection() {
+      const selection = document.getSelection();
+      if (!selection || selection.isCollapsed) return false;
+      const bounds = [selection.anchorNode, selection.focusNode].some(node => {
+        const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+        return element && isSubjectTarget(element);
+      });
+      if (bounds) return true;
+      // Une sélection peut commencer dans un en-tête et se terminer ailleurs.
+      if (!selection.rangeCount) return false;
+      try {
+        const range = selection.getRangeAt(0);
+        return [...active.root.querySelectorAll(active.subjectSelector)]
+          .some(subject => range.intersectsNode(subject));
+      } catch { return false; }
     }
 
     function blockCopy(event) {
       if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
+      // L'élève garde le droit de corriger et de copier son propre brouillon.
       if (event.target.closest?.(editable)) return;
-      const selection = document.getSelection();
-      if (!selection || selection.isCollapsed) return;
-      const includesSubject = [selection.anchorNode, selection.focusNode].some(node => {
-        const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
-        return element && active.root.contains(element) && element.closest(active.subjectSelector);
-      });
-      if (includesSubject) block(event, 'copy_blocked');
+      if (isSubjectSelection()) block(event, 'copy_blocked');
+    }
+
+    function blockSubjectDrag(event) {
+      if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
+      const target = event.target;
+      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"]')) return;
+      if (!isSubjectTarget(target)) return;
+      // Interdit le glisser-déposer d'un extrait ou d'une image du sujet ;
+      // ce geste n'est PAS enregistré comme une preuve de copie.
+      if (event.cancelable) event.preventDefault();
+    }
+
+    function blockSubjectContextMenu(event) {
+      if (active?.settings.enabled !== true || active.settings.blockCopy !== true) return;
+      const target = event.target;
+      if (target.closest?.('a,button,input,textarea,select,[contenteditable="true"]')) return;
+      if (!isSubjectTarget(target)) return;
+      if (target.closest?.('img,svg,canvas') || isSubjectSelection()) {
+        // Masque la fonction Copier depuis le menu contextuel de la page
+        // sans bloquer l'accès aux outils de zoom, clavier ou lecture vocale.
+        if (event.cancelable) event.preventDefault();
+      }
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -162,6 +215,8 @@
     });
     document.addEventListener('copy', blockCopy);
     document.addEventListener('cut', blockCopy);
+    document.addEventListener('dragstart', blockSubjectDrag);
+    document.addEventListener('contextmenu', blockSubjectContextMenu);
     return { setActive };
   }
 

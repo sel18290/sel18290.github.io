@@ -378,3 +378,150 @@ body.cortex-noctis .co-portal-privacy{font-size:11px;line-height:1.65;color:#355
 @media(prefers-reduced-motion:reduce){#cortex-orientation.co-v2 *{scroll-behavior:auto!important;transition:none!important}}
 
 #cortex-orientation.co-v2 .co-wish-caution{font-size:10px;font-weight:600;color:#b9d8e6;line-height:1.7;margin:9px 0 0}
+
+/* Orientation V2.3 — clarification de la proximité pédagogique.
+ * Trois parcours compréhensibles, aucune formation affichée sans catégorie.
+ */
+#cortex-orientation.co-v2 #co-goal optgroup,
+#cortex-orientation.co-v2 #co-search-course optgroup{
+ color:#b8eeff;font-size:12px;font-weight:800;background:#122f45
+}
+#cortex-orientation.co-v2 #co-goal option,
+#cortex-orientation.co-v2 #co-search-course option{
+ color:#eefaff;background:#10293e;font-size:12px;font-weight:570
+}
+#cortex-orientation.co-v2 #co-goal-info{margin:0 0 8px;min-width:0}
+#cortex-orientation.co-v2 .co-goal-empty{
+ padding:14px 17px;background:#0d293c;border:1px solid #4c708a;border-radius:12px;
+ color:#c7dce9;line-height:1.8;font-size:11px
+}
+#cortex-orientation.co-v2 .co-goal-empty strong{color:#effaff;margin-right:4px}
+#cortex-orientation.co-v2 .co-goal-detail{
+ display:grid;gap:9px;padding:17px 18px;background:linear-gradient(135deg,#14374b,#0c273a);
+ border:1px solid #5c879c;border-left:3px solid #83d6ea;border-radius:13px;
+}
+#cortex-orientation.co-v2 .co-goal-detail.co-group-bridge{border-left-color:#b6bddd}
+#cortex-orientation.co-v2 .co-goal-detail.co-group-prepare{border-left-color:#e1b994}
+#cortex-orientation.co-v2 .co-goal-detail-top{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+#cortex-orientation.co-v2 .co-classification,
+#cortex-orientation.co-v2 .co-ai-family,
+#cortex-orientation.co-v2 .co-wish-classification,
+#cortex-orientation.co-v2 .co-family-indicator{
+ display:inline-flex;align-items:center;font-size:10px;line-height:1.45;font-weight:800;
+ letter-spacing:.025em;border:1px solid #5d9ca9;background:#164356;color:#d0f7f5;
+ padding:4px 8px;border-radius:7px
+}
+#cortex-orientation.co-v2 .co-ai-family.co-group-bridge,
+#cortex-orientation.co-v2 .co-goal-detail.co-group-bridge .co-classification,
+#cortex-orientation.co-v2 .co-family-bridge .co-family-indicator{
+ background:#263c53;border-color:#748aa9;color:#e4edff
+}
+#cortex-orientation.co-v2 .co-ai-family.co-group-prepare,
+#cortex-orientation.co-v2 .co-goal-detail.co-group-prepare .co-classification,
+#cortex-orientation.co-v2 .co-family-prepare .co-family-indicator{
+ background:#403743;border-color:#9a8185;color:#ffe8dc
+}
+#cortex-orientation.co-v2 .co-goal-detail>strong{
+ color:#f4fcff;font-size:15px;font-weight:860;line-height:1.4
+}
+#cortex-orientation.co-v2 .co-goal-detail p{
+ color:#c7dfeb;font-size:11px;line-height:1.75;margin:0
+}
+#cortex-orientation.co-v2 .co-goal-detail p b{color:#e9f8ff}
+#cortex-orientation.co-v2 .co-goal-detail p.co-match{color:#a6e7db}
+#cortex-orientation.co-v2 .co-goal-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+#cortex-orientation.co-v2 .co-guide-explainer{
+ padding:17px 18px;border:1px solid #5d8fa1;border-radius:14px;
+ background:linear-gradient(125deg,#193b51,#113044);margin-bottom:17px
+}
+#cortex-orientation.co-v2 .co-guide-explainer strong{
+ color:#e5f9ff;font-size:13px;line-height:1.5;font-weight:850
+}
+#cortex-orientation.co-v2 .co-guide-explainer p{
+ color:#cbe4ec;font-size:11px;line-height:1.75;margin:8px 0 0
+}
+#cortex-orientation.co-v2 .co-guide-explainer p b{color:#e9faff}
+#cortex-orientation.co-v2 .co-guide-explainer a{font-size:11px;font-weight:850}
+#cortex-orientation.co-v2 .co-family-section{
+ margin-top:17px;padding-top:15px;border-top:1px solid #385c76
+}
+#cortex-orientation.co-v2 .co-family-heading{
+ display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin:0 0 15px
+}
+#cortex-orientation.co-v2 .co-family-heading>div{min-width:0}
+#cortex-orientation.co-v2 .co-family-heading h3{
+ font-size:15px;font-weight:850;line-height:1.45;letter-spacing:-.02em;color:#f3fbff;margin:8px 0 5px
+}
+#cortex-orientation.co-v2 .co-family-heading p{
+ font-size:11px;color:#b9d2df;line-height:1.7;margin:0
+}
+#cortex-orientation.co-v2 .co-family-count{
+ white-space:nowrap;color:#b5d2df;font-size:10px;border:1px solid #3d6079;
+ border-radius:9px;padding:8px 10px;background:#142e42
+}
+#cortex-orientation.co-v2 .co-family-section .co-suggestion-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px
+}
+#cortex-orientation.co-v2 .co-suggestion{
+ min-height:0;gap:15px;padding:16px;border:1px solid #4b7185
+}
+#cortex-orientation.co-v2 .co-suggestion.co-suggestion-bridge{border-color:#596b8a}
+#cortex-orientation.co-v2 .co-suggestion.co-suggestion-prepare{border-color:#816e70}
+#cortex-orientation.co-v2 .co-suggestion h3{font-size:13px;line-height:1.45}
+#cortex-orientation.co-v2 .co-suggestion-about{
+ font-size:11px;color:#d0e3ee;line-height:1.7;margin:0 0 9px
+}
+#cortex-orientation.co-v2 .co-suggestion-why{
+ font-size:10.5px;color:#a7d9e4;line-height:1.7;margin:0 0 9px
+}
+#cortex-orientation.co-v2 .co-suggestion-why b{color:#d9f8ff}
+#cortex-orientation.co-v2 .co-suggestion-match{font-size:10px;color:#a9e8d3;line-height:1.6;margin:0 0 8px}
+#cortex-orientation.co-v2 .co-suggestion-details{
+ border-top:1px solid #3b5669;margin-top:9px;padding-top:9px
+}
+#cortex-orientation.co-v2 .co-suggestion-details summary{
+ font-size:10.5px;color:#badfeb;line-height:1.6;cursor:pointer;font-weight:800
+}
+#cortex-orientation.co-v2 .co-suggestion-details summary:focus-visible{
+ outline:2px solid #b4f0ff;outline-offset:3px;border-radius:5px
+}
+#cortex-orientation.co-v2 .co-suggestion-details p{
+ color:#d5e6ef;font-size:10.5px;line-height:1.75;margin:8px 0 0
+}
+#cortex-orientation.co-v2 .co-family-caution{
+ font-size:10px;color:#b6ccd9;line-height:1.7;margin:10px 0 0
+}
+#cortex-orientation.co-v2 .co-suggestion-footer{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+ margin-top:20px;padding:15px 0 0;border-top:1px solid #40617a
+}
+#cortex-orientation.co-v2 .co-suggestion-footer>span{flex:1 1 200px;max-width:450px;color:#b8d0dd;font-size:11px;line-height:1.7}
+#cortex-orientation.co-v2 .co-ai-suggestions .co-ai-family{margin-bottom:8px}
+#cortex-orientation.co-v2 .co-ai-suggestions .co-ai-family+strong{display:block}
+#cortex-orientation.co-v2 .co-ai-suggestions p.co-ai-context{
+ background:#173447;padding:10px 11px;border-left:2px solid #79b8d2;border-radius:6px
+}
+#cortex-orientation.co-v2 .co-wish-classification{
+ display:inline-flex;width:max-content;margin-top:7px;font-size:9px
+}
+#cortex-orientation.co-v2 .co-explore-classification{
+ display:grid;gap:6px;padding:14px 17px;margin:12px 0;
+ background:#12364a;border:1px solid #54859a;border-left:3px solid #8ed5e3;border-radius:12px
+}
+#cortex-orientation.co-v2 .co-explore-classification.co-group-bridge{border-left-color:#a6b6d6}
+#cortex-orientation.co-v2 .co-explore-classification.co-group-prepare{border-left-color:#ddb797}
+#cortex-orientation.co-v2 .co-explore-classification>span{font-size:10px;letter-spacing:.04em;color:#b6e6f1;font-weight:870}
+#cortex-orientation.co-v2 .co-explore-classification p{font-size:11px;color:#cae2eb;line-height:1.65;margin:0}
+#cortex-orientation.co-v2 .co-explore-hint{font-size:11px;padding:10px 13px;border:1px solid #3b667f;border-radius:10px;color:#bbdeea}
+@media(max-width:960px){
+ #cortex-orientation.co-v2 .co-family-section .co-suggestion-grid{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-family-heading{flex-wrap:wrap}
+}
+@media(max-width:520px){
+ #cortex-orientation.co-v2 .co-goal-detail-actions .co-btn{flex:1 1 100%}
+ #cortex-orientation.co-v2 .co-family-heading{gap:7px}
+ #cortex-orientation.co-v2 .co-family-section .co-suggestion-grid{grid-template-columns:1fr}
+ #cortex-orientation.co-v2 .co-family-count{padding:6px 8px}
+ #cortex-orientation.co-v2 .co-guide-explainer{padding:13px}
+ #cortex-orientation.co-v2 .co-suggestion-footer .co-btn{width:100%}
+}

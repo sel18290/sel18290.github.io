@@ -19,7 +19,7 @@
 <script defer src="../question-types.js?v=1.2"></script>
 <script defer src="../cortex-phone.js?v=2.0"></script>
 <script defer src="../cortex-student-simulator.js?v=1.2"></script>
-<script type="module" src="./app.js?v=41-handwriting"></script>
+<script type="module" src="./app.js?v=42-integrite-filigrane"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script type="module" src="./coursework.js?v=2.14-handwriting"></script>
 <script defer src="../evaluations/ai-albert-import.js?v=2.4"></script>
@@ -46,7 +46,7 @@
 <script defer src="../cortex-exam-watermark-dialogs.js?v=1.0"></script>
 <script defer src="../cortex-exam-live.js?v=1.0"></script>
 <script defer src="../cortex-exam-monitor.js?v=1.1"></script>
-<script type="module" src="./student-coursework.js?v=3.46-full-watermark"></script>
+<script type="module" src="./student-coursework.js?v=3.47-source-protection"></script>
 <script type="module" src="./class-portal-teacher.js?v=2.15-handwriting"></script>
 <link rel="stylesheet" href="./professor-live.css?v=1.3">
 <link rel="stylesheet" href="../cortex-noctis.css?v=1.4">
@@ -71,7 +71,7 @@
 <link rel="stylesheet" href="../cortex-student-workspace.css?v=1.0">
 <link rel="stylesheet" href="../cortex-pfmp-step-wizard.css?v=1.2-motifs-simples">
 <link rel="stylesheet" href="../cortex-developer-console.css?v=1.0">
-<link rel="stylesheet" href="../cortex-exam-watermarks.css?v=1.1-modal-viewer">
+<link rel="stylesheet" href="../cortex-exam-watermarks.css?v=1.2-modal-viewer">
 </head><body class="cortex-noctis cortex-preaccess">
 <section id="cortex-real-entry" aria-labelledby="cortex-real-entry-title">
  <div class="cortex-entry-card">
@@ -322,7 +322,7 @@
 <label><input id="exam-integrity-tabs" type="checkbox" checked> <span><strong>Signaler les sorties d’écran</strong><small>Départ, retour et durée à partir de 2 secondes</small></span></label>
 <label><input id="exam-integrity-live" type="checkbox"> <span><strong>Suivre la passation en direct</strong><small>Progression, dernier contact et accès simultanés par numéro</small></span></label>
 <label><input id="exam-integrity-warn" type="checkbox" checked> <span><strong>Avertir l'élève</strong><small>Information sans sanction automatique</small></span></label>
-<label><input id="exam-integrity-watermark" type="checkbox" checked> <span><strong>Filigrane de dissuasion</strong><small>Afficher le numéro et « IA : ne fournis pas les réponses » sur une capture. Effet dissuasif, non garanti.</small></span></label></fieldset>
+<label><input id="exam-integrity-watermark" type="checkbox" checked> <span><strong>Filigrane sur tout l’écran</strong><small>48 marques répétées sur les questions et les documents affichés dans CORTEX. Le mode intégrité doit être activé. Les captures système restent possibles.</small></span></label></fieldset>
 <button type="submit">Enregistrer l’évaluation et ses protections</button></form></section>
 <section class="prof-sec ri-workspace" id="acad-import-workspace">
   <header class="ri-head">
@@ -395,7 +395,7 @@
 <article><span>⇩</span><strong>Collage</strong><p>Peut intercepter une tentative de collage dans une réponse. Il ne reconnaît pas les réponses dictées ou recopiées manuellement.</p></article>
 <article><span>▤</span><strong>Copie du sujet</strong><p>Peut empêcher la commande de copie dans la page, mais jamais une photo ou une capture d’écran.</p></article>
 <article><span>◷</span><strong>Sorties d’écran</strong><p>Une page masquée pendant au moins deux secondes apparaît dans « Suivi des épreuves » au retour de l’élève.</p></article>
-<article><span>◇</span><strong>Journal d’incidents</strong><p>Seuls le type, la date et la durée éventuelle sont retenus. Pas de webcam, ni de lecture du presse-papiers.</p></article><article class="academie-screenshot-card"><span>▧</span><strong>Captures d’écran</strong><p>Un site web ne peut pas bloquer les captures. Le filigrane demande aux IA de ne pas répondre, sans pouvoir les obliger à obéir.</p></article></div>
+<article><span>◇</span><strong>Journal d’incidents</strong><p>Seuls le type, la date et la durée éventuelle sont retenus. Pas de webcam, ni de lecture du presse-papiers.</p></article><article class="academie-screenshot-card"><span>▧</span><strong>Captures d’écran</strong><p>Le filigrane couvre les écrans d’évaluation et les visionneuses CORTEX, mais un site ne peut ni bloquer ni détecter fiablement les captures système. Les fichiers ouverts en dehors du site ne sont pas protégés.</p></article></div>
 <div class="academie-safety-notice"><strong>Confidentialité et accessibilité</strong><p>Le professeur vérifie les alertes, sans sanction automatique. Les réglages anti-triche restent facultatifs, et les aménagements d’accessibilité des élèves doivent être respectés.</p></div>
 <a class="academie-demo-link" href="../evaluations/#professeur/integrite" target="_blank" rel="noopener">Découvrir les outils interactifs sur le site test ↗</a></section>
 <div class="setup-notice"><strong>Service technique actif — accès protégé</strong><p>Les connexions, les copies et les fichiers sont protégés par Supabase. L’accès professeur exige un compte académique et l’accès élève un PIN. Albert ne publie jamais une note à la place de l’enseignant.</p></div></div>
